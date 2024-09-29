@@ -1,0 +1,2 @@
+docker stop splash_aistorg
+docker rm splash_aistorg

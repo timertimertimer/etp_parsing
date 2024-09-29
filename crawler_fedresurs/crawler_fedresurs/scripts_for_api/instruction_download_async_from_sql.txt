@@ -1,0 +1,3 @@
+sudo vim /usr/bin/async_download_files_from_sql.py
+sudo vim /lib/systemd/system/async_download_from_sql.service
+

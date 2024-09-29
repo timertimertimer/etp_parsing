@@ -1,0 +1,16 @@
+#!/bin/bash
+sleep 2
+mydir=$HOME
+cd $mydir/etp_parsing
+source env/bin/activate
+cd $mydir/etp_parsing/crawler_bankruptcy_selt
+scrapy crawl bankruptcy
+sleep 2
+cd $mydir/etp_parsing/crawler_bankruptcy_selt && cd .scrapy/ && rm -rf *
+
+sleep 2
+cd $mydir/etp_parsing/crawler_sibtoptrade/
+dirname=".scrapy"
+if [ -d $dirname ]; then
+    rm -rf $dirname
+fi

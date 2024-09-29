@@ -1,0 +1,125 @@
+# -*- coding: utf-8 -*-
+
+# (post_debitor) data that will be place after go to category page:
+#      '__EVENTTARGET': '',
+#      '__EVENTARGUMENT': '',
+#      '__VIEWSTATE': '',
+#      '__VIEWSTATEGENERATOR': '',
+#      '__PREVIOUSPAGE': '',
+#
+#       ctl00$cphBody$OrganizationCode1$CodeTextBox
+#
+#
+#
+#
+#
+#
+
+post_debitor_company = {
+    '__EVENTTARGET': '',
+    '__EVENTARGUMENT': '',
+    '__VIEWSTATE': '',
+    '__VIEWSTATEGENERATOR': '',
+    '__PREVIOUSPAGE': '',
+    'ctl00$PrivateOffice1$tbLogin': '',
+    'ctl00$PrivateOffice1$tbPassword': '',
+    'ctl00$PrivateOffice1$cbRememberMe': 'on',
+    'ctl00$PrivateOffice1$tbEmailForPassword': '',
+    'ctl00_PrivateOffice1_RadToolTip1_ClientState': '',
+    'ctl00$DebtorSearch1$inputDebtor': 'поиск',
+    'ctl00$cphBody$rblDebtorType': 'Organizations',
+    'ctl00$cphBody$tbOrgName': '',
+    'ctl00$cphBody$tbOrgAddress': '',
+    'ctl00$cphBody$ucOrgRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucOrgCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$OrganizationCode1$CodeTextBox': '',
+    'ctl00$cphBody$tbPrsLastName': '',
+    'ctl00$cphBody$tbPrsFirstName': '',
+    'ctl00$cphBody$tbPrsMiddleName': '',
+    'ctl00$cphBody$tbPrsAddress': '',
+    'ctl00$cphBody$ucPrsRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucPrsCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$PersonCode1$CodeTextBox': '',
+    'ctl00$cphBody$btnSearch.x': '31',
+    'ctl00$cphBody$btnSearch.y': '7',
+}
+
+
+post_debitor_follow_person = {
+    '__EVENTTARGET': '',
+    '__EVENTARGUMENT': '',
+    '__VIEWSTATE': '',
+    '__VIEWSTATEGENERATOR': '',
+    '__PREVIOUSPAGE': '',
+    'ctl00$PrivateOffice1$tbLogin': '',
+    'ctl00$PrivateOffice1$tbPassword': '',
+    'ctl00$PrivateOffice1$cbRememberMe': 'on',
+    'ctl00$PrivateOffice1$tbEmailForPassword': '',
+    'ctl00_PrivateOffice1_RadToolTip1_ClientState': '',
+    'ctl00$DebtorSearch1$inputDebtor': 'поиск',
+    'ctl00$cphBody$rblDebtorType': 'Persons',
+    'ctl00$cphBody$tbOrgName': '',
+    'ctl00$cphBody$tbOrgAddress': '',
+    'ctl00$cphBody$ucOrgRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucOrgCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$OrganizationCode1$CodeTextBox': '',
+    'ctl00$cphBody$tbPrsLastName': '',
+    'ctl00$cphBody$tbPrsFirstName': '',
+    'ctl00$cphBody$tbPrsMiddleName': '',
+    'ctl00$cphBody$tbPrsAddress': '',
+    'ctl00$cphBody$ucPrsRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucPrsCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$PersonCode1$CodeTextBox': '',
+    'ctl00$cphBody$btnSearch.x': '0',
+    'ctl00$cphBody$btnSearch.y': '0',
+}
+
+post_debitor_person = {
+    '__EVENTTARGET': '',
+    '__EVENTARGUMENT': '',
+    '__VIEWSTATE': '',
+    '__VIEWSTATEGENERATOR': '',
+    '__PREVIOUSPAGE': '',
+    'ctl00$PrivateOffice1$tbLogin': '',
+    'ctl00$PrivateOffice1$tbPassword': '',
+    'ctl00$PrivateOffice1$cbRememberMe': 'on',
+    'ctl00$PrivateOffice1$tbEmailForPassword': '',
+    'ctl00_PrivateOffice1_RadToolTip1_ClientState': '',
+    'ctl00$DebtorSearch1$inputDebtor': 'поиск',
+    'ctl00$cphBody$rblDebtorType': 'Persons',
+    'ctl00$cphBody$tbOrgName': '',
+    'ctl00$cphBody$tbOrgAddress': '',
+    'ctl00$cphBody$ucOrgRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucOrgCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$OrganizationCode1$CodeTextBox': '',
+    'ctl00$cphBody$tbPrsLastName': '',
+    'ctl00$cphBody$tbPrsFirstName': '',
+    'ctl00$cphBody$tbPrsMiddleName': '',
+    'ctl00$cphBody$tbPrsAddress': '',
+    'ctl00$cphBody$ucPrsRegionList$ddlBoundList': '',
+    'ctl00$cphBody$ucPrsCategoryList$ddlBoundList': '',
+    'ctl00$cphBody$PersonCode1$CodeTextBox': '',
+    'ctl00$cphBody$btnSearch.x': '40',
+    'ctl00$cphBody$btnSearch.y': '13',
+}
+
+header_page_deb = {
+    ':authority': 'bankrot.fedresurs.ru',
+    ':method': 'GET',
+    ':scheme': 'https',
+    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'accept-encoding': 'gzip, deflate, br',
+    'accept-language': 'en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
+    #'Cookie': '',
+    'dnt': '1',
+    'pragma': 'no-cache',
+    'referer': '',
+    'cache-control': 'no-cache',
+    'connection': 'keep-alive',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'same-origin',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1',
+    'user-agent': '',
+}

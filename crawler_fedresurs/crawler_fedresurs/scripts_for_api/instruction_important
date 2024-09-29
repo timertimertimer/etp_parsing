@@ -1,0 +1,43 @@
+1. Created server service(deamon) -> sudo vim /usr/bin/asyn_websocket_server.py
+    - sudo vim /lib/systemd/system/async_fedres_server.service:
+        [Unit]
+Description=Async_Fedres_Server Service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+        [Service]
+        Type=simple
+        ExecStart=/usr/bin/python3 /usr/bin/asyn_websocket_server.py
+        StandardInput=tty-force
+
+        [Install]
+        WantedBy=multi-user.target
+    -  sudo systemctl daemon-reload
+    -  sudo systemctl enable async_fedres_server.service
+    -  sudo systemctl start  async_fedres_server.service
+
+  2. Create client service(deamon) -> sudo vim /usr/bin/get_value_from_table.py
+    - sudo vim /lib/systemd/system/fedresurs_client.service
+[Unit]
+Description=Monitor_Task_Table Service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/python3 /usr/bin/get_value_from_table.py
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
+    -  sudo systemctl daemon-reload
+    -  sudo systemctl enable fedresurs.service
+    -  sudo systemctl start fedresurs.service
+
+
+How it work
+1) client(get_value_from_table) monitor DB
+2) if new data with status active is appeared, client pack data to dict -> serialized(to byte) and send to server(dict representation)
+3) server get data deserialized -> write to files according type
+4) than server run spiders
+5) every spider read data from it's own directory and file/ get post data for parsing

@@ -1,0 +1,2 @@
+docker stop splash_bepspb
+docker rm splash_bepspb

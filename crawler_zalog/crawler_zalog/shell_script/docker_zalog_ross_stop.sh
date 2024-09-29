@@ -1,0 +1,2 @@
+docker stop splash_zalog_ross
+docker rm splash_zalog_ross

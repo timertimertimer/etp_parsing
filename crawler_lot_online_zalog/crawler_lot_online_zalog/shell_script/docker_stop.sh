@@ -1,0 +1,2 @@
+docker stop splash_sale_zalog
+docker rm splash_sale_zalog

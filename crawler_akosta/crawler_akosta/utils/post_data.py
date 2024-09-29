@@ -1,0 +1,207 @@
+# post_data_pagination -> change: formMain:lotListTable_first,
+#                                 formMain:inputServerTime,
+#                                 javax.faces.ViewState
+post_data_pagination = {
+    "javax.faces.partial.ajax": "true",
+    "javax.faces.source": "formMain:lotListTable",
+    "javax.faces.partial.execute": "formMain:lotListTable",
+    "javax.faces.partial.render": "formMain:lotListTable",
+    "javax.faces.behavior.event": "page",
+    "javax.faces.partial.event": "page",
+    "formMain:lotListTable_pagination": "true",
+    "formMain:lotListTable_first": "0",
+    "formMain:lotListTable_rows": "50",
+    "formMain:lotListTable_skipChildren": "true",
+    "formMain:lotListTable_encodeFeature": "true",
+    "formMain": "formMain",
+    "formMain:inputServerTime": "00:00:00",
+    "formMain:commonSearchCriteriaStr": "",
+    "formMain:inputKeyWordId": "",
+    "formMain:orgSubId": "",
+    "formMain:debtSubId": "",
+    "formMain:fromIdPeriod_input": "",
+    "formMain:toIdPeriod_input": "",
+    "formMain:fromIdAcceptancePeriod_input": "",
+    "formMain:toIdAcceptancePeriod_input": "",
+    "formMain:j_idt71": "",
+    "formMain:j_idt73": "",
+    "formMain:sgTable:2:j_idt79_input": "on",
+    "formMain:sgTablePanel_collapsed": "false",
+    "formMain:taTablePanel_collapsed": "true",
+    "formMain:stateTablePanel_collapsed": "true",
+    "formMain:j_idt99_scrollState": "0,0",
+    "formMain:selectTreeDlgPanel_collapsed": "true",
+    "formMain:selectRegTreeDlgPanel_collapsed": "true",
+    "formMain:objFilterPanel_collapsed": "false",
+    "formMain:lotListTable_rppDD": "50",
+    "formMain:selectTreeDlgTree_selection": "",
+    "formMain:selectTreeDlgTree_scrollState": "0,0",
+    "javax.faces.ViewState": "",
+
+}
+
+post_data_query = {
+    'javax.faces.partial.ajax': 'true',
+    'javax.faces.source': 'formMain:cbLotFilterFindId',
+    'javax.faces.partial.execute': '@all',
+    'javax.faces.partial.render': 'formMain',
+    'formMain:cbLotFilterFindId': 'formMain:cbLotFilterFindId',
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'formMain:inputKeyWordId': '',
+    'formMain:orgSubId': '',
+    'formMain:debtSubId': '',
+    'formMain:fromIdPeriod_input': '',
+    'formMain:toIdPeriod_input': '',
+    'formMain:fromIdAcceptancePeriod_input': '',
+    'formMain:toIdAcceptancePeriod_input': '',
+    'formMain:j_idt71': '',
+    'formMain:j_idt73': '',
+    'formMain:sgTable:2:j_idt79_input': 'on',
+    'formMain:sgTablePanel_collapsed': 'false',
+    'formMain:taTablePanel_collapsed': 'true',
+    'formMain:stateTablePanel_collapsed': 'true',
+    'formMain:j_idt99_scrollState': '0,0',
+    'formMain:selectTreeDlgPanel_collapsed': 'true',
+    'formMain:selectRegTreeDlgPanel_collapsed': 'true',
+    'formMain:objFilterPanel_collapsed': 'false',
+    'formMain:lotListTable_rppDD': '50',
+    'formMain:selectTreeDlgTree_selection': '',
+    'formMain:selectTreeDlgTree_scrollState': '0,0',
+    'javax.faces.ViewState': '',
+}
+
+# data that changing:
+# javax.faces.source
+# formMain:inputServerTime
+# javax.faces.ViewState
+# GENERING FORM javax.faces.source value
+post_data_to_trade = {
+    "javax.faces.partial.ajax": "true",
+    "javax.faces.source": "",
+    "javax.faces.partial.execute": "@all",
+    # "formMain:lotListTable:43:j_idt122": "formMain:lotListTable:43:j_idt122",
+    "formMain": "formMain",
+    "formMain:inputServerTime": "",
+    "formMain:commonSearchCriteriaStr": "",
+    "formMain:inputKeyWordId": "",
+    "formMain:orgSubId": "",
+    "formMain:debtSubId": "",
+    "formMain:fromIdPeriod_input": "",
+    "formMain:toIdPeriod_input": "",
+    "formMain:fromIdAcceptancePeriod_input": "",
+    "formMain:toIdAcceptancePeriod_input": "",
+    "formMain:j_idt71": "",
+    "formMain:j_idt73": "",
+    # "formMain:sgTable:2:j_idt79_input": "on",
+    "formMain:sgTablePanel_collapsed": "true",
+    "formMain:taTablePanel_collapsed": "true",
+    "formMain:stateTablePanel_collapsed": "true",
+    "formMain:j_idt99_scrollState": "0,0",
+    "formMain:selectTreeDlgPanel_collapsed": "true",
+    "formMain:selectRegTreeDlgPanel_collapsed": "true",
+    "formMain:objFilterPanel_collapsed": "false",
+    "formMain:lotListTable_rppDD": "50",
+    "formMain:selectTreeDlgTree_selection": "",
+    "formMain:selectTreeDlgTree_scrollState": "0,0",
+    "javax.faces.ViewState": "",
+}
+
+post_data_debitor = {
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'formMain:j_idt59_collapsed': 'false',
+    'formMain:j_idt74_collapsed': 'false',
+    # 'formMain:j_idt93_collapsed': 'false', formMain:j_idt82_collapsed
+    'formMain:auctionDocsPanel_collapsed': 'false',
+    'javax.faces.ViewState': '',
+    'formMain:j_idt51': 'formMain:j_idt51',
+}
+
+post_data_lot_tab = {
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'formMain:j_idt54': 'formMain:j_idt54'
+}
+
+post_data_unique_lot_page = {
+    'javax.faces.partial.ajax': 'true',
+    'javax.faces.source': '',
+    'javax.faces.partial.execute': '@all',
+    # 'formMain:dataLot:1:j_idt63: formMain:dataLot:1:j_idt63'
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'javax.faces.ViewState': ''
+}
+
+post_data_download = {
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'formMain:j_idt59_collapsed': 'false',
+    'formMain:j_idt74_collapsed': 'false',
+    # 'formMain:j_idt82_collapsed': 'false',
+    'formMain:auctionDocsPanel_collapsed': 'false',
+    'javax.faces.ViewState': '',
+}
+
+post_data_period_offer_page = {
+    'javax.faces.partial.ajax': 'true',
+    'javax.faces.source': 'formMain:dataRSList',
+    'javax.faces.partial.execute': 'formMain:dataRSList',
+    'javax.faces.partial.render': 'formMain:dataRSList',
+    'formMain:dataRSList': 'formMain:dataRSList',
+    'formMain:dataRSList_pagination': 'true',
+    # neccessary
+    'formMain:dataRSList_first': '',
+    'formMain:dataRSList_rows': '10',
+    'formMain:dataRSList_skipChildren': 'true',
+    'formMain:dataRSList_encodeFeature': 'true',
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    # formMain:j_idt55: 133 дн. 01 час. (08.06.2021 00:00:00)
+    'formMain:j_idt45_collapsed': 'false',
+    'formMain:dataRSList_rppDD': '10',
+    # neccesssary
+    'formMain:dataRSList_selection': '',
+    'formMain:j_idt61_collapsed': 'false',
+    # neccessary
+    'javax.faces.ViewState': '',
+}
+
+post_search_query = {
+    'javax.faces.partial.ajax': 'true',
+    'javax.faces.source': 'formMain:cbLotFilterFindId',
+    'javax.faces.partial.execute': '@all',
+    'javax.faces.partial.render': 'formMain',
+    'formMain:cbLotFilterFindId': 'formMain:cbLotFilterFindId',
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:commonSearchCriteriaStr': '',
+    'formMain:inputKeyWordId': '',
+    'formMain:orgSubId': '',
+    'formMain:debtSubId': '',
+    'formMain:fromIdPeriod_input': '',
+    'formMain:toIdPeriod_input': '',
+    'formMain:fromIdAcceptancePeriod_input': '',
+    'formMain:toIdAcceptancePeriod_input': '',
+    'formMain:j_idt71': '',
+    'formMain:j_idt73': '',
+    'formMain:sgTable:2:j_idt79_input': 'on',
+    'formMain:sgTablePanel_collapsed': 'false',
+    'formMain:taTablePanel_collapsed': 'true',
+    'formMain:stateTablePanel_collapsed': 'true',
+    'formMain:j_idt99_scrollState': '0,0',
+    'formMain:selectTreeDlgPanel_collapsed': 'true',
+    'formMain:selectRegTreeDlgPanel_collapsed': 'true',
+    'formMain:objFilterPanel_collapsed': 'false',
+    'formMain:lotListTable_rppDD': '50',
+    'formMain:selectTreeDlgTree_selection': '',
+    'formMain:selectTreeDlgTree_scrollState': '0,0',
+    'javax.faces.ViewState': ''
+}

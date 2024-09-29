@@ -1,0 +1,2 @@
+docker stop splash_sibtoptrade
+docker rm splash_sibtoptrade

@@ -1,0 +1,1932 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>
+	
+	Аукционы :: Альфалот
+
+</title>
+	<meta name="description" content="Электронная Торговая Площадка по реализации имущества предприятий-банкротов.">
+
+	<meta name="msapplication-config" content="none">
+	<meta name="keywords" content="Торги, электронные торги, аукционы, тендеры, Альфалот, реализация имущества, аукционы, арбитраж, управляющие">
+
+	<link rel="stylesheet" type="text/css" href="/combres.axd/cssPublic/-1472965197/">
+
+<link rel="shortcut icon" href="/Resources/images/icons/favicon.ico">
+<!--[if IE]>
+<![if lt IE 9]>
+<link rel="stylesheet" rev="stylesheet" href="/Resources/css/ie.css" />
+<![endif]>
+<![endif]-->
+<!--[if gte IE 5.5]>
+<![if lt IE 7]>
+<style type="text/css">
+	div.top-line {
+		/* IE5.5+/Win - this is more specific than the IE 5.0 version */
+		left: expression( ( 0 + ( ignoreMe2 = document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft ) ) + 'px' );
+		top: expression( ( 0 + ( ignoreMe = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop ) ) + 'px' );
+	}
+	div.content-holder table td.tdTitle,
+	div.expand-collapse-target table td.tdTitle {
+		border-left: expression( this.previousSibling==null ? 'none' : 'inherit');
+	}
+</style>
+<![endif]>
+<![endif]-->
+	
+<!--[if gte IE 5.5]>
+<![if lt IE 8]>
+<style type="text/css">
+	
+	#header { padding-top: 25px; }
+		
+	/* align calendar by height with nearest controls */
+	span.control input.calYearText { padding-bottom: 3px; }
+		
+	/* float to the left authentication div with user name for right display separator */
+	#authDiv { float: left; }
+		
+</style>
+<![endif]>
+<![endif]-->
+
+	
+<link href="/WebResource.axd?d=b482KSEMjuAcfrgBUeGSWPcOtta1n8-ubLgajjN-ArWcpQQaPHBLFc5JsmxSHu2T5xbktMH5RdgrPctcEo7JgIDppbBh8rWhKMYX3UEuTurX3-0V-w077128yTsoRFPVjWUG93efS5ms8vKze6JQK_lIA2d04mX96csAQPaL-dE1&amp;t=637569473374411721" type="text/css" rel="stylesheet"><style type="text/css">
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_0 { background-color:white;visibility:hidden;display:none;position:absolute;left:0px;top:0px; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_1 { text-decoration:none; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_2 {  }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_3 { border-style:none; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_4 { padding:0px 0px 0px 0px; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_5 { border-style:none; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_6 {  }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_7 {  }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_8 {  }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_9 { border-style:none; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_10 {  }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_11 { border-style:none; }
+	.ctl00_ctl00_TopMenu_ctl00_mainMenu_12 {  }
+
+</style></head>
+<body>
+<table cellspacing="0" border="0" cellpadding="0" width="100%"><tbody><tr><td>
+<form name="aspnetForm" method="post" action="./" onsubmit="javascript:return WebForm_OnSubmit();" onkeypress="javascript:return WebForm_FireDefaultButton(event, 'ctl00_ctl00_MainExpandableArea_phExpandCollapse_SearchButton')" id="aspnetForm">
+<div>
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__CVIEWSTATE" id="__CVIEWSTATE" value="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">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=tM8SUJVuS0C8Bcj6eUq8KhahCPQfvYuo0LkrH3IbwFTeRJtCqqdj04Dx6Vrv6YQgNwbYncVQb1ciOrr9bZddrFIswsmWcuR5SAWRmTLeizM1&amp;t=637461089481343508" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+document.forms[0].action = "/public/auctions-all/";
+document.forms[0]._initialAction = document.forms[0].action;
+//]]>
+</script>
+
+<script src="/ScriptResource.axd?d=kdFCHC6y9Y1WIXL18E2A0nPsYqR7rRsnTTxMjmkJNOEz5BVxvDFJzUGoiGGieSrzaCoIqe5fRUU-UULHOj47PUHnnf6TtK6IGSHE4BT9NQoSMnBykoixaslQy0M9tZ1Mf2sHSydXSUwLoopY1spkdg2&amp;t=fffffffff6474071" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=fB5u308b55u-p-QuedJ5_0gQ35xgWHI8dD-RM2_-7qBzdlD1SXWjcAUVjKa2yO5oJ2xoTjmkD8F82NuGhlbIXJhMNAmf9oWW0V63nkMtSa0jBMAQQqs0JVpLTat3c-hawPVWR-ge6Zm1VjNdfNpyV1aVURzGNSvvoMnf0Ece12U1&amp;t=fffffffff6474071" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+var keypressHandler_validInt = "0123456789";
+var keypressHandler_validDecimal = "-.,";
+//]]>
+</script>
+
+<script src="/ScriptResource.axd?d=MZw6_BIuRZ9mXDHQXYGUIPyVrNicSDzYLEFUagOHyRT5wW6wocNqck1BWtODQDSbrNoFxxjPe75PUzKHBGLGBKsTiUyQW3m5x1DOPW4sc400SWY3FJm4ojUa3VGEWtH659zAzPb0hY1s1Gfr94n1r4nSAg8TF1UheonLXmBG3Pg1&amp;t=5bc30b0a" type="text/javascript"></script>
+<script src="/resources/scripts/calendar/calendar.wrapper.js" type="text/javascript"></script>
+<script src="/resources/scripts/calendar/calendar.js" type="text/javascript"></script>
+<script src="/resources/scripts/calendar/lang/calendar-ru.js" type="text/javascript"></script>
+<script src="/resources/scripts/calendar/calendar-setup.js" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=j9ZTe1QjxXH0oB90h9zjsbhwBRWBehnTQnG8NTHL6-pVeeQOAYgvFN0nDsQMk2bLY2sze8Q1XdtsM1kx6j7mUjEqP2BgJUEkBcnCT9lAC2UwYPVOUGmU_G-xz9cX5AsRuxf4owr953_7HKfIlU5SZA2&amp;t=5bc30b0a" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=_OZmYaye0GDXkgR6kE0mjWzt_Ml-_MXz0JkgJ6OwR1yVD_zRYE1L1lnVnENAKxL5I0g9LqzUBoJK92QrImNLZ0SyQLMrZTxwlyZ35U1FI9RELiQkpWVcR2tr6uzQUr_3ULIrFxhisxcWykhzU7mOAJeDJJb1ajz7jT7fSjjAgig1&amp;t=5bc30b0a" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=xeV43I-Wkg8zIDY4GZ-gS5LTdPLdqnKczUCTXllxDSHOMQ-KFM2rhHAtu8sjccJVcXMVQ0AhjXm6hPTk0-D2OSKTIJBaWfEPt-n2xwzC4Bjilpt0AEVfMCSSLZXszDTkG_XHK5FCH3SYw8fRjPMTQtSzdRYP60bnPvR6AK9bWIE1&amp;t=2fe674eb" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=ZNZTaDWR47FEnfgpS6RqpcRL0yu_Yww7MgBX2VJccuJSve7SL070U0BfU4SmKYEROPBlRYhri3ntmKiE8Mtrb-5HVhaJuy6fpQpswCtq48xS5q6FDhDo75MN10IQb5OPzRd9LpJf2NuwcG08xyjyc-r139GvyG_dwdMFrjBy_j0k7lEWUZbwnI1HSZ1AW2-G0&amp;t=2fe674eb" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=bD-cBxR2S8drig9zcQBHwpwdRtBdJt0uOlPnp2910q_vc0Al3JEJBEnYhsciZEzEjkH6kdOR8EecJtv24KZ3mkDLHxyD6MGPVUoSP8h7LBmdHJVVZNnw9w9Di7ZhFQuJYQM9IBl73PbxOjVAuhHLog2&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=qlPc6fW5fehR7cXhLeZPjMZcciIokSq9tdJ0GrX4OwMGFrAstBcVcHxJ56ka0xS4zYo4ifynQR4BbfaMUk6tBXHw8Q43sj6z9lmG8hUwy44tY8byDESEhf-MrjFlKzxvnYxgKeggnA42VGkgEPd4xQ2&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=Pr1EE5EK76ZY3maWxTZDla50niPoMny1U-V6uYusnfLnr_-Hi7XOoJCOuLkPXbIBBNX7DRtaP3GNpOjp2yba23Gdkq_jdVVgFRXJ8sOPlECNBaxy7_TetAtsboo_HRgV0&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=RXvFhI3P5EKyfxiD7jWNW3wp0117GBM2OZeiSs5I9_u2EFdfn4tLeJM10CZz7_TM-ODbxm9oLZMo9N3XqzNnggMM8zGaV5mA75z90Cj26wsq45GRkBLQp_ZXWT9GCNmW0&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=DEq_qL_r8pi3lwUUfMvfqW1kT_I5qkZcHJwd7IHENGFNxkeMqqcI0fcpmdXuNVezY3Vm-gH4hwyuMuWg3gaXiXyR68R7vQTB1wc-KjeTaf7Q77zEQJp020dQjsJyvKDM0&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=Do7GhH4fBe9xDquzHwMMcs1QyXIssG-50iXzwO4GWkxMaXfhx27CrYg5knZ01kzcSEesOcVX0YJrA06WEcU0_ubCBQKtm_2sNO_og_BM3EMxrO4B_FzSjxIlm8hVilnZ_SIVExK2O6E2OmOEBZrFIA2&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=tq5nEljZp-BVe1SOtTnRG6TbalVRJ8PkT8YWotN5eQHWfXC4f-oYwt8PbaKLXH3rA5yAatA-HnOINmfb10VCLRkmzPsmfVbe2ZMfGM-F7CRGoJ1EPGbPPX-DtgmXFZgH0&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=UrvlGwK3imp_1AVeEjg4FsxFG_K81pNpRi3Ty8DKGyM0SowncTqRcS3Fycf1F1jPVQPsaSsdZXfEsXlOjfX_MXYsnzNX6YQfFr5yYHyhiM3w2RliHUGEfJVlR4uEPb0L0&amp;t=ffffffffcfeeeb28" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__SCROLLPOSITIONX" id="__SCROLLPOSITIONX" value="0">
+	<input type="hidden" name="__SCROLLPOSITIONY" id="__SCROLLPOSITIONY" value="0">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdACuvVXD1oYELeveMr0vHCmYPxMGvS2gF0sIlDMntuxXtEcF6XwpERp24Wgjklr17PPUiaW64Grk4DXQTXa1aiMAyCjeHuz2YkgjgoXS1Znq2SswbSzaLLvEl5rMHIacrVnBgyLKYH12Ny2kFtsfxRstGpSvfblViZFZrDgACjJqWHoKslxPn7YOFPte35+apxkJrKDtyVLMmBJc60g4YfYiz3Elf26jmwqrBRsG0IPlrd/usfBu+8729k/lgDp402W3yZda1D3HpWSYwxVupBiDzqZcHwbjqlDITs67gXqoxNfGKJSyCDYUib6o0oO8HtPHXJt2lfoMywfGSYlr349hf1wsLz3uVDitIdW1lZLNUmyYlrA4KHjyQob8WN+OdgrOZQAlyEt7Ac1iMlWMve+MqqCrsOUlQmNy2NVlpKLTT57KnTrdrpaAhfRt5qtVLlLcHcNdJhcYI2VcxDA8VD3Ir+jo7rW34WQv2uKzvBI7h4wBshHV0UIxpVFC1vlt3IMv8FrmcMA/yYnzif9kvRnCBD+RzX2l6mETVSBYx/UgUBHyHS5ZYjtauxgBEt62NdpIcqqY4BfzDM3lEX3obQti9WxfXD8eq6AxVt+kZUqFymAx2CH+fmzFtIq6i3fRDE/CuQ9QkBrLRMoFzjNDPxTpy8t2eeMu4k5kMRztz2F6QpYlLhuk8SCesJY2cTWDGlKTCy2E+tN9EnW7P4257PnrDZillZhwLHHcU2qCdYlyT3RHT10omRQ7NUZe85y1DVdbWaAy/G0S9Y86nz4fmGna4Sp2lFliRrR70cB5y8CqMcccZy3MvYDRBSWS94XXIP7GzdUQv63IMPYjaorKQL8HhGhKJrFGN7C3e8oPysDSt2NaCefcIVuRGZpRvtLTLrCf/nEohy2cDHein3ZnBLKJvGiONiV7F6LjK9EuOIBwTMWW7FVNMa8SiNArNBX2SSTA=">
+</div>
+	
+	<script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ctl00$BodyScripts$BodyScripts$scripts', 'aspnetForm', ['tctl00$ctl00$MainExpandableArea$phExpandCollapse$UpdatePanel1','','tctl00$ctl00$MainContent$ContentPlaceHolderMiddle$UpdatePanel2',''], [], [], 90, 'ctl00$ctl00');
+//]]>
+</script>
+
+
+
+	
+	
+
+
+
+
+	<div class="clock no-print expand-fade-target-top">
+		<div class="clockBorder"></div>
+		<div class="clockUpdate"></div>
+		<div id="date">
+	20 августа 2021
+</div>
+		<div id="time">
+	1:10:48 (UTC+3)
+</div>
+		<div id="note">
+	на момент последнего обновления
+</div>
+	</div>
+	<div class="top-line expand-collapse-target-top">
+		<div class="top-line-inner">
+			
+			<div class="wps right">
+				
+			</div>
+			
+			<div class="timetable">
+				
+	Работа площадки: круглосуточно. Служба поддержки: с 6:00 до 18:00.&nbsp;
+
+			</div>
+		</div>
+	</div>
+	<div id="header" class="expand-collapse-target-top">
+		<div class="captions">
+			<div class="custom-content">
+				
+	<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+   ym(51694295, "init", {
+        id:51694295,
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true,
+        webvisor:true
+   });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/51694295" style="position:absolute; left:-9999px;" alt=""></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+			</div>
+			
+	<a class="logo" href="http://www.alfalot.ru"></a>
+
+			<div class="contacts"></div>
+		</div>
+	</div>
+
+	<div id="toolbar-border">
+		<div id="toolbar">
+			<table cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tbody><tr>
+					<td>
+						
+	<a id="ctl00_ctl00_TopMenuButton_btnFullScreen" class="extender0" href="javascript:__doPostBack('ctl00$ctl00$TopMenuButton$btnFullScreen','')"></a>
+
+					</td>
+					<td class="menu_left_spacer"></td>
+					<td style="width:100%">
+						<div id="top-menu">
+							
+	
+
+<table id="ctl00_ctl00_TopMenu_ctl00_mainMenu" class="sub-level-0 ctl00_ctl00_TopMenu_ctl00_mainMenu_7 ctl00_ctl00_TopMenu_ctl00_mainMenu_2" cellpadding="0" cellspacing="0" border="0">
+	<tbody><tr>
+		<td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun0"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/purchases-all/">Торги</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun1"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/register-party/">Регистрация</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun2"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/help/reglament/">Регламент</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun3"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/help/tariff/">Тарифы</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun4"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/faq/">Вопросы-ответы</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun5"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/help/eds/">Электронная подпись</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun6"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/help/about/">О площадке</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun7"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/help/contacts/">Контакты</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td><td style="width:0px;"></td><td onmouseover="Menu_HoverStatic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun8"><table class="ctl00_ctl00_TopMenu_ctl00_mainMenu_4" cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tbody><tr>
+				<td style="white-space:nowrap;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 ctl00_ctl00_TopMenu_ctl00_mainMenu_3" href="/public/clientpage/accreditation/">Аккредитация при СРО</a></td>
+			</tr>
+		</tbody></table></td><td style="width:0px;"></td>
+	</tr>
+</tbody></table><div id="ctl00_ctl00_TopMenu_ctl00_mainMenun0Items" class="ctl00_ctl00_TopMenu_ctl00_mainMenu_0 sub-level-1 ctl00_ctl00_TopMenu_ctl00_mainMenu_8">
+	<table border="0" cellpadding="0" cellspacing="0">
+		<tbody><tr onmouseover="Menu_HoverDynamic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun9">
+			<td><table class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6 active ctl00_ctl00_TopMenu_ctl00_mainMenu_12" cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tbody><tr>
+					<td style="white-space:nowrap;width:100%;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_5 active ctl00_ctl00_TopMenu_ctl00_mainMenu_11" href="/public/auctions-all/" style="border-style:none;font-size:1em;">Аукционы</a></td>
+				</tr>
+			</tbody></table></td>
+		</tr><tr onmouseover="Menu_HoverDynamic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun10">
+			<td><table class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6" cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tbody><tr>
+					<td style="white-space:nowrap;width:100%;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_5" href="/public/contests-all/" style="border-style:none;font-size:1em;">Конкурсы</a></td>
+				</tr>
+			</tbody></table></td>
+		</tr><tr onmouseover="Menu_HoverDynamic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun11">
+			<td><table class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6" cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tbody><tr>
+					<td style="white-space:nowrap;width:100%;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_5" href="/public/public-offers-all/" style="border-style:none;font-size:1em;">Публичные предложения</a></td>
+				</tr>
+			</tbody></table></td>
+		</tr><tr onmouseover="Menu_HoverDynamic(this)" onmouseout="Menu_Unhover(this)" onkeyup="Menu_Key(this)" id="ctl00_ctl00_TopMenu_ctl00_mainMenun12">
+			<td><table class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6" cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tbody><tr>
+					<td style="white-space:nowrap;width:100%;"><a class="ctl00_ctl00_TopMenu_ctl00_mainMenu_1 dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_5" href="/public/purchases-all/" style="border-style:none;font-size:1em;">Все торги</a></td>
+				</tr>
+			</tbody></table></td>
+		</tr>
+	</tbody></table><div class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6 active ctl00_ctl00_TopMenu_ctl00_mainMenu_12 ctl00_ctl00_TopMenu_ctl00_mainMenu_0" id="ctl00_ctl00_TopMenu_ctl00_mainMenun0ItemsUp" onmouseover="PopOut_Up(this)" onmouseout="PopOut_Stop(this)" style="text-align:center;">
+		<img src="/WebResource.axd?d=7Fo15EqTFl4U4ngYcbYVMtLyKxl_591svq1SfFEhWHRnpfwdw1IS99nTuuKN-Xz9fnW75xgP3DfOKKYJWfMVGVl0GhajbfxmTY559gClMKo1&amp;t=637461089481343508" alt="Прокрутка вверх">
+	</div><div class="dynamicMM ctl00_ctl00_TopMenu_ctl00_mainMenu_6 active ctl00_ctl00_TopMenu_ctl00_mainMenu_12 ctl00_ctl00_TopMenu_ctl00_mainMenu_0" id="ctl00_ctl00_TopMenu_ctl00_mainMenun0ItemsDn" onmouseover="PopOut_Down(this)" onmouseout="PopOut_Stop(this)" style="text-align:center;">
+		<img src="/WebResource.axd?d=fPLLqHcx-cH4zhirt9TEes2IOyOTJXBJhC6d_6gJEtIgi33vXo45uLB0z4otlTJv1UlG2cuA6ebh1Y5RuAPz5HyO-Std4ThutTpgiWSW6r01&amp;t=637461089481343508" alt="Прокрутка вниз">
+	</div>
+</div>
+
+						</div>
+					</td>
+					<td>
+						
+	<a id="ctl00_ctl00_RightSpacer_btnMainExpandButton" class="extender2" href="javascript:__doPostBack('ctl00$ctl00$RightSpacer$btnMainExpandButton','')"></a>
+
+					</td>
+				</tr>
+			</tbody></table>
+		</div>
+	</div>
+	<div class="spacer"></div>
+		
+	<div class="contentContainer">
+		<table border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td id="left-target-holder">
+			<div id="ctl00_ctl00_divLeftContainer" class="left-target leftContainer">
+				<div class="left-target-bg">
+					<div class="left-target-content">
+						
+	<script type="text/javascript" src="/combres.axd/jsPassfield/46488386/"></script>
+<link rel="stylesheet" type="text/css" href="/combres.axd/cssPassfield/-33753784/">
+
+
+
+
+
+<div class="login-block">
+	<div class="block-header block-header-auth">Авторизация</div>
+	
+	<div id="authDiv" class="block-content wrapLongText2">
+		
+		
+
+		<table id="ctl00_ctl00_LeftContentLogin_ctl00_Login1" class="login-form" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
+	<tbody><tr>
+		<td>
+			<div class="input-form" onkeypress="javascript:return WebForm_FireDefaultButton(event, 'ctl00_ctl00_LeftContentLogin_ctl00_Login1_Login')">
+			
+					<table border="0" cellpadding="0" cellspacing="0">
+					<tbody><tr><td colspan="2">
+						<div><span id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired" style="color:Red;display:none;">• Введите имя пользователя</span></div>
+						<div><span id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired" style="color:Red;display:none;">• Введите пароль</span></div>
+						<div id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary" class="lc validationFailed" style="color:Red;display:none;">
+
+			</div>
+					</td></tr>
+					<tr>
+					<td><label>Имя:</label></td>
+					<td><input name="ctl00$ctl00$LeftContentLogin$ctl00$Login1$UserName" type="text" id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserName" tabindex="1" class="tdContent login-input control"></td>
+					</tr>
+					<tr>
+					<td><label>Пароль:&nbsp;</label></td>
+					<td><input name="ctl00$ctl00$LeftContentLogin$ctl00$Login1$Password" type="password" id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_Password" tabindex="2" class="tdContent login-input control"></td>
+					</tr>
+					
+					<tr><td colspan="2">
+					<input type="submit" name="ctl00$ctl00$LeftContentLogin$ctl00$Login1$Login" value="Войти" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$ctl00$LeftContentLogin$ctl00$Login1$Login&quot;, &quot;&quot;, true, &quot;Login&quot;, &quot;&quot;, false, false))" id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_Login" tabindex="3" class="button-2 login-form-button">
+					
+
+<input type="hidden" id="hidSignedData">
+<input type="submit" name="ctl00$ctl00$LeftContentLogin$ctl00$Login1$edsLogin$EdsLoginButton" value="Войти по ЭП" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$ctl00$LeftContentLogin$ctl00$Login1$edsLogin$EdsLoginButton&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, false))" id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_edsLogin_EdsLoginButton" class="button-2 login-form-button">
+<div id="eds-dialog" class="edsLoginPopup hidden">
+	<div class="eds-preambula">Выбранный сертификат используется несколькими пользователями. Выберите пользователя для авторизации:</div>
+	<div id="user-list"></div>
+</div>
+					<a id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_btnForgotPassword" href="javascript:__doPostBack('ctl00$ctl00$LeftContentLogin$ctl00$Login1$btnForgotPassword','')" style="white-space:nowrap;">Забыли пароль?</a>
+					<a id="ctl00_ctl00_LeftContentLogin_ctl00_Login1_btnRegister" href="javascript:__doPostBack('ctl00$ctl00$LeftContentLogin$ctl00$Login1$btnRegister','')" style="white-space:nowrap;">Регистрация</a>
+					</td></tr>
+					</tbody></table>
+			
+		</div>
+			</td>
+	</tr>
+</tbody></table>
+	</div>
+	<div style="clear: both"></div>
+</div>
+
+					</div>
+				</div>
+			</div>
+			<div id="ctl00_ctl00_divLeftContainer2" class="left-target leftContainer">
+				<div class="left-target-bg">
+					<div class="left-target-bg-bottom">
+						<div class="left-target-content">
+							
+	
+<div>
+	
+	
+	<div id="ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu" class="menu-accordion">
+		<input type="hidden" name="ctl00$ctl00$LeftContentSideMenu$mSideMenu$extAccordionMenu_AccordionExtender_ClientState" id="ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu_AccordionExtender_ClientState" value="0"><div class="block-header block-header-up block-header-selected">
+			
+			<span class="menu-link" href="">
+				Торги</span>
+			<div class="spacer5">
+			</div>
+		
+		</div><div class="block-content" style="display:block;">
+			
+			
+					<a class="active" href="/public/auctions-all/">Аукционы</a>
+					
+					
+				
+					<a href="/public/contests-all/">Конкурсы</a>
+					
+					
+				
+					<a href="/public/public-offers-all/">Публичные предложения</a>
+					
+					
+				
+					<a href="/public/purchases-all/">Все торги</a>
+					
+					
+				
+		
+		</div><div class="block-header block-header-down">
+			
+			<span class="menu-link" href="">
+				Статистика</span>
+			<div class="spacer5">
+			</div>
+		
+		</div><div class="block-content" style="display:none;">
+			
+			
+					<a href="/public/statistic/">Статистика торгов</a>
+					
+					
+				
+		
+		</div><div class="block-header block-header-down">
+			
+			<span class="menu-link" href="">
+				Помощь</span>
+			<div class="spacer5">
+			</div>
+		
+		</div><div class="block-content" style="display:none;">
+			
+			
+					<a href="/public/help/reglament/">Регламент</a>
+					
+					
+				
+					<a href="/public/help/tariff/">Тарифы</a>
+					
+					
+				
+					<a href="/public/help/eds/">Электронная подпись</a>
+					
+					
+				
+					<a href="/public/help/about/">О площадке</a>
+					
+					
+				
+					<a href="/public/help/checkEds/">Проверка электронной подписи</a>
+					
+					
+				
+					<a href="/public/faq/">Вопросы-ответы</a>
+					
+					
+				
+					<a href="/public/files/manual/user_manual.pdf">Руководство по регистрации</a>
+					
+					
+				
+					<a href="/public/help/browserSetup/">Настройка браузера</a>
+					
+					
+				
+					<a href="/public/help/feedback/">Обратная связь</a>
+					
+					
+				
+					<a href="/public/help/contacts/">Контактная информация</a>
+					
+					
+				
+					<a href="/public/timetable/view/">График работы</a>
+					
+					
+				
+		
+		</div>
+	</div>
+
+</div>
+
+
+							
+	
+
+<div class="block">
+<div class="block-header block-header-news">Новости</div>
+	<div class="block-content">
+		<a href="/public/news/">Все новости</a>
+		
+				<div class="news-short">
+					<span class="time">27.07.2021 09:15</span>
+					<a href="/public/news/view/30/" class="news-title">
+						Продление аккредитации ЭТП при СРО 
+					</a>
+					<div class="news-body"><p><span style="font-size:14px"><span style="font-family:arial,helvetica,sans-serif"><span style="background-color:rgb(255, 255, 255)">ЭТП ALFALOT.RU продлила аккредитацию при САУ "СОЗИДАНИЕ".</span></span></span></p>
+
+<p><span style="font-size:14px"><a href="https://bankrupt.alfalot.ru/public/clientpage/accreditation/" title="Открыть полный список аккредитаций при СРО">Открыть полный список аккредитаций при СРО</a></span></p>
+</div>
+				</div>
+			
+				<div class="news-short">
+					<span class="time">01.07.2021 08:30</span>
+					<a href="/public/news/view/39/" class="news-title">
+						Ускоренная аккредитация на ЭТП
+					</a>
+					<div class="news-body"><p><a href="http://acct.alfalot.ru/index.php/ureg" target="_blank"><img alt="" src="/Resources/FckUserFiles/image/kontur/%D0%91%D0%B5%D0%B7%20%D0%B8%D0%BC%D0%B5%D0%BD%D0%B8-1.png" style="height:160px; width:200px"></a></p>
+</div>
+				</div>
+			
+				<div class="news-short">
+					<span class="time">01.07.2021 08:00</span>
+					<a href="/public/news/view/29/" class="news-title">
+						Услуги для участников торгов
+					</a>
+					<div class="news-body"><div>
+<div class="landing-block-node-card-text g-font-size-default g-color-gray-dark-v2 mb-0" style="box-sizing: border-box;"><strong><a href="https://e-torgi.pro/"><img alt="" src="/Resources/FckUserFiles/image/%D0%91%D0%B0%D0%BD%D0%BD%D0%B5%D1%80%201272.png" style="height:310px; width:214px"></a></strong></div>
+</div>
+</div>
+				</div>
+			
+				<div class="news-short">
+					<span class="time">18.06.2021 17:05</span>
+					<a href="/public/news/view/1057/" class="news-title">
+						Аукцион №0029303
+					</a>
+					<div class="news-body"><p>При проведении аукциона №0029303 в работе&nbsp;ЭТП произошел технический сбой.</p>
+
+<p>Организатором торгов, Черноокой Екатериной Васильевной принято Решение о переносе проведения торгов на следующие даты:</p>
+
+<p>Период предоставления заявок с 00:00 21.06.2021г. по 23: 59 27.07.2021г.</p>
+
+<p>Дата торгов 05.08.2021г. в 12:00.</p>
+</div>
+				</div>
+			
+				<div class="news-short">
+					<span class="time">08.06.2021 16:20</span>
+					<a href="/public/news/view/1056/" class="news-title">
+						Уведомление об устранении технического сбоя
+					</a>
+					<div class="news-body"><p>08.06.2021 в 16:20&nbsp;(МСК) технический сбой в работе ЭТП Alfalot.ru устранён.<br>
+ЭТП работает в штатном режиме.</p>
+</div>
+				</div>
+			
+				<div class="news-short">
+					<span class="time">08.06.2021 14:15</span>
+					<a href="/public/news/view/1055/" class="news-title">
+						Уведомление о техническом сбое
+					</a>
+					<div class="news-body"><p>08.06.2021 в 14:10 (МСК) на ЭТП&nbsp; наблюдалось снижение в скорости работы электронной площадки. Инженеры занимаются устранением неисправностей.&nbsp; Предполагаемое время восстановления работы ЭТП 16:30&nbsp;(МСК).</p>
+</div>
+				</div>
+			
+	</div>
+</div>
+
+
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</td><td style="width:100%" id="content-holder">
+			<div id="ctl00_ctl00_contentHolder" class="content-holder">
+	
+				<div class="advertising-slider-wrapper">
+					<div class="advertising-slider">
+ <!-- слайдер начинается здесь -->   
+
+
+<div class="advertising-item">
+                                        <a href="https://rshb.alfalot.ru?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=rshb-dagestan" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/rshb-dagestan.jpg">
+                                            </a>
+                                    </div> 
+
+<!--
+ <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/28578/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=25" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/25.png">
+                                            </a>
+                                    </div> 
+-->
+
+ <div class="advertising-item">
+                                        <a href="https://etp.alfalot.ru/app/section/RSHB/SearchLots/page#%7B%22filter%22:%7B%22state%22:%5B%22ALL%22%5D,%20%22section%22:%22RSHB%22%7D,%20%22sort%22:%7B%22placementDate%22:false%7D%7D/?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=26" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/rshb.png">
+                                            </a>
+                                    </div> 
+<!--
+ <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/26831/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=27" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/27.png">
+                                            </a>
+                                    </div> 
+-->
+<!--                             
+        <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/lots/view/95445/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=11" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/11.png">
+                                            </a>
+                                    </div>        
+   <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/lots/view/95453/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=12" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/12.png">
+                                            </a>
+                                    </div>                                
+-->
+<!--
+<div class="advertising-item">
+                            <a href="http://nedv.alfalot.ru?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=4" target="_blank">
+                                <img class="" src="/Resources/Client/Images/slider/mana.jpg">
+                            </a>
+                        </div>
+-->
+
+<!--
+    <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/23890//?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=14" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/14.png">
+                                            </a>
+                                    </div> 
+-->
+
+<!--
+   <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/25825/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=23" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/23.png">
+                                            </a>
+                                    </div> 
+-->
+<!--
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/24339/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=16" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/16.png">
+                                            </a>
+                                    </div> 
+-->
+<!--
+   <div class="advertising-item">
+                                        <a href="http://credittorgi.pervbank.ru/?utm_source=alfalot_ru_services_torgi-po-bankrotstvu_uchastnikam-torgov_&utm_medium=knopka&utm_campaign=TORGI-knopka-alfalot" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/171.png">
+                                            </a>
+                                    </div> 
+-->
+ <div class="advertising-item">
+                                        <a href="mailto:info@alfalot.ru?subject=Разместить имущество на панели рекламы">
+                                                <img class="" src="/Resources/Client/Images/slider/19.png">
+                                            </a>
+                                    </div> 
+
+<!--
+   <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/27561/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=20" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/20.png">
+                                            </a>
+                                    </div> 
+-->
+ 
+<!--
+   <div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/27489/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=21" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/21.png">
+                                            </a>
+                                    </div> 
+--> 
+
+
+
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/36771/?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=36" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/36.jpg">
+                                            </a>
+                                    </div> 
+<!--
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/33117/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=37" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/37.jpg">
+                                            </a>
+                                    </div> 
+
+
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/29822/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=32" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/32.jpg">
+                                            </a>
+                                    </div> 
+-->
+
+<!--
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/29673/?utm_source=site&utm_medium=hz&utm_campaign=vitrina&utm_content=vitrina1&utm_term=33" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/33.jpg">
+                                            </a>
+                                    </div> 
+-->
+<div class="advertising-item">
+                                        <a href="https://bankrupt.alfalot.ru/public/auctions/view/33067/?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=34" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/34.jpg">
+                                            </a>
+                                    </div> 
+<div class="advertising-item">
+                                        <a href="http://openbank.alfalot.ru/?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=open" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/open.jpg">
+                                            </a>
+                                    </div> 
+<div class="advertising-item">
+                                        <a href="https://vitralfalot.bitrix24.site/?utm_source=site&amp;utm_medium=hz&amp;utm_campaign=vitrina&amp;utm_content=vitrina1&amp;utm_term=39" target="_blank">
+                                                <img class="" src="/Resources/Client/Images/slider/39.jpg">
+                                            </a>
+                                    </div> 
+                    <!-- слайдер кончается здесь -->   
+					</div>
+				</div>
+				
+
+				
+				
+	
+
+
+				<noscript>
+					<div class="notification critical">
+						<span class="messageHeader"> В Вашем браузере отключен JavaScript.</span>
+						<p>Для корректной работы с площадкой необходимо включить JavaScript.</p>
+					</div>
+				</noscript>
+
+				
+	
+
+
+				
+	
+
+
+
+
+				<div id="ctl00_ctl00_pnlExpandCollapse" class="expand-collapse">
+		
+					<h3>
+	Аукционы
+</h3>
+					
+	<a id="ctl00_ctl00_MainExpandButton_btnExpandCollapse" class="extender1" href="javascript:__doPostBack('ctl00$ctl00$MainExpandButton$btnExpandCollapse','')"></a>
+
+					<div style="clear: both"></div>
+				
+	</div>
+				<div id="ctl00_ctl00_pnlExpandCollapseTarget" class="expand-collapse-target">
+		
+					
+	
+	<div id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_UpdatePanel1">
+			
+		<table id="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria" border="0" cellspacing="0" cellpadding="3"><colgroup><col width="30%"><col width="20%"><col width="30%"><col width="20%"></colgroup><tbody><tr>
+				<td class="tdTitle" nowrap="nowrap">№ лота:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота" tabindex="100" class="control columnNumber" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_lotNumber_лота" maxlength="11" onkeydown="automove(event, this, 11, 'Int32', null, null, null, '-', null)" onkeypress="if (!keypressHandler(event, this, 11, 'Int32', null, null, null, '-', null)) return false;"><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0" title="Значение поля “№ лота” должно быть в пределах от 0 до 2147483647." class="error" style="color:Red;display:none;">*</span></td><td class="tdTitle" nowrap="nowrap">№ аукциона:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона" tabindex="900" class="control columnNumber" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_аукциона" maxlength="11" onkeydown="automove(event, this, 11, 'Int32', null, null, null, '-', null)" onkeypress="if (!keypressHandler(event, this, 11, 'Int32', null, null, null, '-', null)) return false;"><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0" title="Значение поля “№ аукциона” должно быть в пределах от 0 до 2147483647." class="error" style="color:Red;display:none;">*</span></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">Наименование лота:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotTitle_Наименованиелота" tabindex="200" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_lotTitle_Наименованиелота" maxlength="2147483647"></td><td class="tdTitle" nowrap="nowrap">Наименование аукциона:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_fullTitle_Наименованиеаукциона" tabindex="1000" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеаукциона" maxlength="1024"></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">Организатор торгов:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_Party_contactName_AliasFullOrganizerTitle" tabindex="300" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$Party_contactName_AliasFullOrganizerTitle" maxlength="500"></td><td class="tdTitle" nowrap="nowrap">Начальная цена от, руб.:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб" tabindex="1100" class="control columnCurrency" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_InitialPrice_Начальнаяценаотруб" maxlength="14" onkeydown="automove(event, this, 14, 'Decimal', null, null, null, '-', null)" onkeypress="if (!keypressHandler(event, this, 14, 'Decimal', null, null, null, '-', null)) return false;"><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0" class="error" style="color:Red;display:none;">*</span></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">ИНН организатора:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_Party_inn_ИННорганизатора" tabindex="400" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$Party_inn_ИННорганизатора" maxlength="12"></td><td class="tdTitle" nowrap="nowrap">Форма торга по составу участников:</td><td class="tdContent"><select id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_ParticipationFormID_Форматоргапосоставуучастников" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_ParticipationFormID_Форматоргапосоставуучастников" tabindex="1200" class="control">
+					<option value="" selected="">
+						Все
+					</option><option value="2">
+						Закрытая
+					</option><option value="1">
+						Открытая
+					</option>
+				</select></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">КПП организатора:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_Party_kpp_КППорганизатора" tabindex="500" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$Party_kpp_КППорганизатора" maxlength="9"></td><td class="tdTitle" nowrap="nowrap">Форма представления предложений о цене:</td><td class="tdContent"><select id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_BargainType_PriceForm_Формапредставленияпредложенийоцене" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$BargainType_PriceForm_Формапредставленияпредложенийоцене" tabindex="1300" class="control">
+					<option value="" selected="">
+						Все
+					</option><option value="CloseForm">
+						Закрытая
+					</option><option value="OpenForm">
+						Открытая
+					</option>
+				</select></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">Адрес регистрации организатора:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_Party_registeredAddress_Адресрегистрацииорганизатора" tabindex="600" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$Party_registeredAddress_Адресрегистрацииорганизатора" maxlength="255"></td><td class="tdTitle" nowrap="nowrap">Дата проведения (с):</td><td class="tdContent"><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс"><select tabindex="1401" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalDay" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.fillData(false);" class="calDaySelect"></select><select tabindex="1402" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalMonth" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.fillData(false);" class="calMonthSelect"></select><input tabindex="1403" type="text" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalYear" maxlength="4" size="4" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.fillData(false);" class="calYearText" onkeydown="automove(event, this, 4, 'Int', null, null, null, '-', null)" onkeypress="if (!keypressHandler(event, this, 4, 'Int', null, null, null, '-', null)) return false;"><img src="/resources/images/calendar.gif" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalPopup" border="0" alt="" class="calImageRef "><select tabindex="1405" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalHour" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.fillData(false);" class="calHourSelect"></select>:<select tabindex="1406" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalMinute" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.fillData(false);" class="calMinuteSelect"></select><input type="hidden" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput" value="2021-4-22 0:0:0"><script type="text/javascript"><!--
+
+ var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal = new FogSoftCalendar("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс", "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal", 2016, 2026, "", 1, "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput", "", 1, 1, 1, 0, 5, 1, "");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal.initData();
+Calendar.setup({
+	inputField     :    "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput",
+	ifFormat       :    "%Y-%N-%e",
+	button         :    "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясcalPopup",
+	daFormat       :    "%Y-%N-%e",
+	range          :    [2016, 2026],
+	onSelect       :    ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясonSelect
+});
+function ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведениясonSelect(calendar, date)
+{
+	UpdateCalendar(ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_cal, calendar, date);
+};
+
+// --></script></span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0" title="Дата “Дата проведения (с)” не может быть частично заполнена." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1" title="Год в поле “дата проведения (с)” должен быть в пределах от 1753 до 9999." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2" title="Дата “Дата проведения (с)” указана некорректно." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">Должник:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_BankruptName_Должник" tabindex="700" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptName_Должник" maxlength="512"></td><td class="tdTitle" nowrap="nowrap">Дата проведения (по):</td><td class="tdContent"><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо"><select tabindex="1501" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalDay" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.fillData(false);" class="calDaySelect"></select><select tabindex="1502" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalMonth" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.fillData(false);" class="calMonthSelect"></select><input tabindex="1503" type="text" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalYear" maxlength="4" size="4" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.fillData(false);" class="calYearText" onkeydown="automove(event, this, 4, 'Int', null, null, null, '-', null)" onkeypress="if (!keypressHandler(event, this, 4, 'Int', null, null, null, '-', null)) return false;"><img src="/resources/images/calendar.gif" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalPopup" border="0" alt="" class="calImageRef "><select tabindex="1505" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalHour" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.fillData(false);" class="calHourSelect"></select>:<select tabindex="1506" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalMinute" onchange="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.fillData(false);" class="calMinuteSelect"></select><input type="hidden" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput" value=""><script type="text/javascript"><!--
+
+ var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal = new FogSoftCalendar("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо", "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal", 2016, 2026, "", 1, "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput", "", 1, 1, 1, 0, 5, 1, "");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal.initData();
+Calendar.setup({
+	inputField     :    "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput",
+	ifFormat       :    "%Y-%N-%e",
+	button         :    "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоcalPopup",
+	daFormat       :    "%Y-%N-%e",
+	range          :    [2016, 2026],
+	onSelect       :    ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоonSelect
+});
+function ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_ДатапроведенияпоonSelect(calendar, date)
+{
+	UpdateCalendar(ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_cal, calendar, date);
+};
+
+// --></script></span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0" title="Дата “Дата проведения (по)” не может быть частично заполнена." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1" title="Год в поле “дата проведения (по)” должен быть в пределах от 1753 до 9999." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span><span id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2" title="Дата “Дата проведения (по)” указана некорректно." class="error" datepattern="dd/MM/yyyy HH:mm" style="color:Red;display:none;">*</span></td>
+			</tr><tr>
+				<td class="tdTitle" nowrap="nowrap">ИНН должника:</td><td class="tdContent"><input id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_BankruptINN_ИННдолжника" tabindex="800" class="control" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptINN_ИННдолжника" maxlength="12"></td><td class="tdTitle" nowrap="nowrap">Статус:</td><td class="tdContent"><select id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseStatusID_Статус" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseStatusID_Статус" tabindex="1600" class="control">
+					<option value="" selected="">
+						Все
+					</option><option value="5">
+						Извещение опубликовано
+					</option><option value="7">
+						Прием заявок
+					</option><option value="8">
+						Определение участников торгов
+					</option><option value="1">
+						Идут торги
+					</option><option value="15">
+						Подведение результатов
+					</option><option value="2">
+						Окончен
+					</option><option value="3">
+						Не состоялся
+					</option><option value="4">
+						Отменён организатором
+					</option><option value="13">
+						Приостановлен
+					</option>
+				</select></td>
+			</tr></tbody></table>
+
+		<div class="floatRight">
+			<input type="submit" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton" value="Искать аукционы" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, false))" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_SearchButton" class="button-2">
+			<input type="submit" name="ctl00$ctl00$MainExpandableArea$phExpandCollapse$ClearButton" value="Очистить" id="ctl00_ctl00_MainExpandableArea_phExpandCollapse_ClearButton" class="button-2">
+		</div>
+		<div class="spacer"></div>
+	
+		</div>
+
+
+				
+	</div>
+				
+	<span id="ctl00_ctl00_MainWarnings_mlWarnings" class="info"></span>
+
+				
+	<span id="ctl00_ctl00_MainInfos_mlInfos" class="info-message"></span>
+
+				
+	<div id="ctl00_ctl00_MainValidation_DefaultValidationSummary" class="validationFailed" style="color:Red;display:none;">
+
+	</div>
+
+				
+		
+	<div id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_UpdatePanel2">
+		
+		<div class="grid">
+			<table class="gridTable" cellspacing="0" cellpadding="3" rules="rows" border="0" id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult" style="border-width:0px;width:100%;border-collapse:collapse;">
+				<tbody><tr>
+					<td class="pager" colspan="10"><span>Страницы:&nbsp;</span><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl02','')">2</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl03','')">3</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl04','')">4</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl05','')">5</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl06','')">6</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl07','')">7</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl08','')">8</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl09','')">9</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl10','')">10</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl01$ctl11','')">&gt;&gt;</a></td>
+				</tr><tr class="gridHeader">
+					<td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl00','')">№</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl01','')">Аукцион</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl02','')">№ лота</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl03','')">Лот</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl04','')">Начальная цена, руб.</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl06','')">Организатор торгов</a></td><td class="columnDateTime"><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl08','')">Дата окончания представления заявок</a></td><td class="columnDateTime"><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl09','')">Дата проведения</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl10','')">Статус</a></td><td><a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl02$ctl11','')">Победитель</a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40318/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0040311</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl03_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40318/" href="/public/auctions/view/40318/">Реализация имущества Курбакова А.А.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142826/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl03_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142826/" href="/public/auctions/lots/view/142826/">1/4    доли    гаражного    бокса, расположенного    по    адресу: Свердловская область, г. Екатеринбург, ул.  Монтажников, бокс 101.  Имущество является совместно нажитым и зарегистрировано за должником. Сведения о залоге отсутствуют.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						17&nbsp;915,62
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl03_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16345/" href="/public/party/view/16345/">Куров Евгений Евгеньевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">15.10.2021&nbsp;00:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;10:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40318/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0040311</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl04_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40318/" href="/public/auctions/view/40318/">Реализация имущества Курбакова А.А.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142827/">2</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl04_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142827/" href="/public/auctions/lots/view/142827/">1/4 доли нежилого здания,  расположенного  по  адресу: Свердловская область, г. Верхняя Пышма, снт «Восход» в районе поселка Соколовка, участок 37 и 1/4 доли земельного участка, под ним, расположенного по адресу: Свердловская область, г. Верхняя Пышма, снт «Восход» в районе поселка Соколовка, участок 37. Имущество является совместно нажитым и зарегистрировано за должником. Сведения о залоге отсутствуют.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						171&nbsp;280,98
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl04_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16345/" href="/public/party/view/16345/">Куров Евгений Евгеньевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">15.10.2021&nbsp;00:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;10:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40292/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0040286</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl05_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40292/" href="/public/auctions/view/40292/">Реализация имущества Курбакова А.А.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142769/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl05_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142769/" href="/public/auctions/lots/view/142769/">1/4    доли    гаражного    бокса, расположенного    по    адресу: Свердловская область, г. Екатеринбург, ул.  Монтажников, бокс 101.  Имущество является совместно нажитым и зарегистрировано за должником. Сведения о залоге отсутствуют.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						17&nbsp;915,62
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl05_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16345/" href="/public/party/view/16345/">Куров Евгений Евгеньевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">15.10.2021&nbsp;00:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;10:00</td><td class="gridAltColumn">Отменён организатором</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39504/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039499</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl06_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39504/" href="/public/auctions/view/39504/">Имущество должника – Брютова Дмитрия Александровича</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140880/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl06_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140880/" href="/public/auctions/lots/view/140880/">- Доля 65/100 в праве на земельный участок, земли населенных пунктов, виды разрешенного использования: эксплуатация, обслуживание, строительство станции технического обслуживания, для размещения иных объектов автомобильного транспорта и дорожного хозяйства, площадью 1 007 кв.м., кадастровый номер 72:25:0102003:43, адрес объекта: Тюменская область, г. Ишим, ул. Большая 193;
+- Помещение нежилое помещение №1, этаж №1, назначение: нежилое, вид использования: объекты дорожного транспорта, площадью 146 кв.м., кадастровый номер: 72:25:0102003:1144, адрес объекта: Тюменская область, г. Ишим, ул. Большая, д. 193, нежилое помещение №1;
+- Помещение нежилое помещение №2, этаж №1, назначение: нежилое, вид использования: объекты дорожного сервиса, площадью 86,4 кв.м., кадастровый номер: 72:25:0102003:1145, адрес объекта: Тюменская область, г. Ишим, ул. Большая, д. 193, нежилое помещение №2;
+- Помещение нежилое помещение №3 (18.2, кв.м., 13,0 кв.м., 7.7 кв.м.), этаж №1, назначение: нежилое, вид использования: объекты дорожного сервиса, площадью 38,9 кв.м., кадастровый номер: 72:25:0102003:1146, адрес объекта: Тюменская область, г. Ишим, ул. Большая, д. 193, нежилое помещение №3;
+- Газовый котел Р50XTRA с техническими устройствами, обеспечивающими водоснабжение, теплоснабжение, установлен в котельной помещения по адресу: Тюменская область, г. Ишим, ул. Большая, д. 193, нежилое помещение №3.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						1&nbsp;430&nbsp;000,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl06_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16686/" href="/public/party/view/16686/">Герасимов Сергей Сергеевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">19.10.2021&nbsp;16:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;09:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39504/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039499</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl07_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39504/" href="/public/auctions/view/39504/">Имущество должника – Брютова Дмитрия Александровича</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140881/">2</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl07_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140881/" href="/public/auctions/lots/view/140881/">- Здание (охраны), назначение объекта недвижимости: нежилое, площадью 27 кв.м., кадастровый номер: 72:25:0102007:1667, адрес объекта: Тюменская область, г. Ишим, ул. Большая, д. 191;
+- Сооружение (автостоянка), назначение объекта недвижимости: нежилое, кадастровый номер 72:25:0102007:1668, адрес объекта: Тюменская обл., г. Ишим, ул. Большая, 191;
+- Право аренды земельного участка, назначение объекта: для размещения платной автостоянки, площадью 1 705 кв.м., кадастровый номер 72:25:0102003:427, адрес объекта: Тюменская обл., г. Ишим, ул. Большая, 191, по договору аренды №114 от 12.08.2013г., заключенному с Департаментом имущественных отношений и земельных ресурсов администрации г. Ишима, срок аренды с 12.08.2013г. по 11.07.2062г., с обязательством погашения задолженности по договору аренды за свой счет сверх цены приобретения права, имеется задолженность по арендным платежам.
+- Газовый котел, установлен в здании (охраны), кадастровый номер: 72:25:0102007:1667 по адресу: Тюменская область, г. Ишим, ул. Большая, д. 191.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						536&nbsp;000,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl07_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16686/" href="/public/party/view/16686/">Герасимов Сергей Сергеевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">19.10.2021&nbsp;16:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;09:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39504/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039499</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl08_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39504/" href="/public/auctions/view/39504/">Имущество должника – Брютова Дмитрия Александровича</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140882/">3</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl08_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140882/" href="/public/auctions/lots/view/140882/">Доля 100% участия в уставном капитале ООО «Багира» ИНН 7205029148, ОГРН 1167232070279, номинальной стоимостью 10 000 руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						6&nbsp;650&nbsp;000,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl08_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16686/" href="/public/party/view/16686/">Герасимов Сергей Сергеевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">19.10.2021&nbsp;16:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;09:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39504/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039499</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl09_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39504/" href="/public/auctions/view/39504/">Имущество должника – Брютова Дмитрия Александровича</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140883/">4</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl09_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140883/" href="/public/auctions/lots/view/140883/">Право требование задолженности к ИП Сабаеву Сергею Михайловичу ОГРНИП 305720519500013, ИНН: 720501088978 в сумме 7 395 048,85 руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						6&nbsp;401&nbsp;875,62
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl09_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16686/" href="/public/party/view/16686/">Герасимов Сергей Сергеевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">19.10.2021&nbsp;16:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;09:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39504/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039499</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl10_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39504/" href="/public/auctions/view/39504/">Имущество должника – Брютова Дмитрия Александровича</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140884/">5</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl10_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140884/" href="/public/auctions/lots/view/140884/">- Объект незавершенного строительства, назначение: гараж, кадастровый номер 72:25:0102003:1128, степень готовности 20%, площадь застройки 40,3 кв.м., адрес объекта: Тюменская область, г. Ишим, ул. Большая;
+- Право аренды земельного участка, площадью 429 кв.м., кадастровый номер: 72:25:0102003:898, адрес объекта: Тюменская область, г. Ишим, ул. Большая, 191/а, по договору аренды №77 от 19.09.2016г., заключенному с Департаментом имущественных отношений и земельных ресурсов администрации г. Ишима, срок аренды с 03.10.2016г. по 03.10.2019г. с обязательством погашения задолженности по договору аренды за свой счет сверх цены приобретения права, имеется задолженность по арендным платежам. 
+</a>
+					</td><td class="columnCurrency gridAltColumn">
+						100&nbsp;000,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl10_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16686/" href="/public/party/view/16686/">Герасимов Сергей Сергеевич</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">19.10.2021&nbsp;16:00</td><td class="alignCenter nowrap columnDateTime gridColumn">21.10.2021&nbsp;09:00</td><td class="gridAltColumn">Прием заявок</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/38381/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0038360</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl11_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/38381/" href="/public/auctions/view/38381/">Продажа имущества Саеткуловой Р.З.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/138081/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl11_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/138081/" href="/public/auctions/lots/view/138081/">Земельный участок: виды разрешенного использования объекта недвижимости – для ведения личного подсобного хозяйства; вид права, доля в праве – собственность; кадастровый номер: 02:31:080101:259; адрес: местоположение установлено относительно ориентира, расположенного в границах участка. Почтовый адрес ориентира: Республика Башкортостан, р-н. Кармаскалинский, с/с. Прибельский, д. Сарт-Наурузово, ул. Советская, д. 89/1, площадь: 1313.00 кв. м. </a>
+					</td><td class="columnCurrency gridAltColumn">
+						148&nbsp;644,73
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl11_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/20785/" href="/public/party/view/20785/">Калашникова Наталья Александровна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">05.10.2021&nbsp;00:00</td><td class="alignCenter nowrap columnDateTime gridColumn">06.10.2021&nbsp;10:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40149/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0040148</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl12_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40149/" href="/public/auctions/view/40149/">Сельскохозяйственная организация. Единый лот в составе: Имущественный комплекс ООО «Агрофирма Тавла»; Имущественный комплекс СППК «Булгаково».</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142561/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl12_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142561/" href="/public/auctions/lots/view/142561/">Лот № 1: 
+Сельскохозяйственная организация. Единый лот в составе: Имущественный комплекс ООО «Агрофирма Тавла»; Имущественный комплекс СППК «Булгаково».</a>
+					</td><td class="columnCurrency gridAltColumn">
+						194&nbsp;702&nbsp;330,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl12_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/21670/" href="/public/party/view/21670/">Рыбкин Вадим Владимирович</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">01.10.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">05.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40129/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0040127</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl13_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40129/" href="/public/auctions/view/40129/">Реализация имущества Журавлевой В.В.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142502/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl13_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142502/" href="/public/auctions/lots/view/142502/">Гараж, Кадастровый номер объекта: 61:49:0010421:449 наименование объекта: Здание назначение объекта: Нежилое площадь объекта: 21.00 кв. м. адрес объекта: Ростовская обл., г. Гуково, пер. Менделеева, 16-а, блок 1, гараж 2</a>
+					</td><td class="columnCurrency gridAltColumn">
+						180&nbsp;000,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl13_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/10280/" href="/public/party/view/10280/">Черноокая Екатерина Васильевна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">27.09.2021&nbsp;23:59</td><td class="alignCenter nowrap columnDateTime gridColumn">05.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/38337/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0038247</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl14_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/38337/" href="/public/auctions/view/38337/">Продажа имущества Максимовой Л.А.</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/138034/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl14_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/138034/" href="/public/auctions/lots/view/138034/">Трактор колесный МТЗ-80Л, р/н 9835 АВ 16, 1992 г. в., мощность двигателя кВт (л.с.) 55,16 (75,00), заводской № 861553, цвет синий. </a>
+					</td><td class="columnCurrency gridAltColumn">
+						248&nbsp;330,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl14_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/20785/" href="/public/party/view/20785/">Калашникова Наталья Александровна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">04.10.2021&nbsp;00:00</td><td class="alignCenter nowrap columnDateTime gridColumn">05.10.2021&nbsp;10:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40264/" class="purchase-type-auction-closed" title="Открытый аукцион с закрытой формой представления цены">0040061</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl15_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40264/" href="/public/auctions/view/40264/">Открытые торги в форме аукциона с закрытой формой подачи предложения о цене имущества должника ЗАО "МОНОЛИТ-ЛТД"</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142715/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl15_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142715/" href="/public/auctions/lots/view/142715/">Денежные права требования (дебиторская задолженность) к ООО «МОНОЛИТИНВЕСТСТРОЙ» (ИНН 3304016880), в размере 1 542 783,0 руб. и в размере 98 806,00 руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						1&nbsp;477&nbsp;430,10
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl15_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/515/" href="/public/party/view/515/">ООО«Лидер Стайл»</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">29.09.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40264/" class="purchase-type-auction-closed" title="Открытый аукцион с закрытой формой представления цены">0040061</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl16_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40264/" href="/public/auctions/view/40264/">Открытые торги в форме аукциона с закрытой формой подачи предложения о цене имущества должника ЗАО "МОНОЛИТ-ЛТД"</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142716/">2</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl16_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142716/" href="/public/auctions/lots/view/142716/">Денежные права требования (дебиторская задолженность) к ООО «Региональный перевозчик» (ИНН 3304024591) в размере 691 964,81 руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						622&nbsp;768,33
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl16_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/515/" href="/public/party/view/515/">ООО«Лидер Стайл»</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">29.09.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40264/" class="purchase-type-auction-closed" title="Открытый аукцион с закрытой формой представления цены">0040061</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl17_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40264/" href="/public/auctions/view/40264/">Открытые торги в форме аукциона с закрытой формой подачи предложения о цене имущества должника ЗАО "МОНОЛИТ-ЛТД"</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142717/">3</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl17_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142717/" href="/public/auctions/lots/view/142717/">Денежные права требования (дебиторская задолженность) к Адзинову Ауэс Рамазановичу (ИНН 330402853574) в размере 66 781,00 руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						60&nbsp;102,90
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl17_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/515/" href="/public/party/view/515/">ООО«Лидер Стайл»</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">29.09.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40264/" class="purchase-type-auction-closed" title="Открытый аукцион с закрытой формой представления цены">0040061</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl18_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40264/" href="/public/auctions/view/40264/">Открытые торги в форме аукциона с закрытой формой подачи предложения о цене имущества должника ЗАО "МОНОЛИТ-ЛТД"</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142718/">4</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl18_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142718/" href="/public/auctions/lots/view/142718/">Денежные права требования (дебиторская задолженность) к ИП Винченко Андрею Александровичу (ИНН 3304056644), в размере 23 496,43руб.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						21&nbsp;146,79
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl18_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/515/" href="/public/party/view/515/">ООО«Лидер Стайл»</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">29.09.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/40264/" class="purchase-type-auction-closed" title="Открытый аукцион с закрытой формой представления цены">0040061</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl19_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/40264/" href="/public/auctions/view/40264/">Открытые торги в форме аукциона с закрытой формой подачи предложения о цене имущества должника ЗАО "МОНОЛИТ-ЛТД"</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/142719/">5</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl19_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/142719/" href="/public/auctions/lots/view/142719/">Доля ЗАО «МОНОЛИТ-ЛТД» в размере 50% в уставном капитале ЗАО «МОНОЛИТИНВЕСТСТРОЙ» (ИНН 3304016880).</a>
+					</td><td class="columnCurrency gridAltColumn">
+						4&nbsp;500,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl19_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/515/" href="/public/party/view/515/">ООО«Лидер Стайл»</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">29.09.2021&nbsp;12:00</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;12:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39506/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039497</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl20_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39506/" href="/public/auctions/view/39506/">имущество  Государственного унитарного предприятия Республики Хакасия «Хакресводоканал»</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140886/">1</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl20_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140886/" href="/public/auctions/lots/view/140886/">Лот №1.Автобус ПАЗ 3205, VIN ХТМ32050096000935, наименование (тип ТС) автоб.5м&lt;дл &gt;=8м, 1996 г.вып., модель, № двигателя 5254  005124, шассии (рама) № отсутствует, кузов (прицеп)№ 000935, цвет кузова белый. </a>
+					</td><td class="columnCurrency gridAltColumn">
+						38&nbsp;215,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl20_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16454/" href="/public/party/view/16454/">Николаева Оксана Владимировна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">24.09.2021&nbsp;23:59</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;10:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39506/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039497</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl21_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39506/" href="/public/auctions/view/39506/">имущество  Государственного унитарного предприятия Республики Хакасия «Хакресводоканал»</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140887/">2</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl21_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140887/" href="/public/auctions/lots/view/140887/">Лот №2.Автомобиль ГАЗ 3102 , 1997 г.вып., цвет кузова серый, VIN ХТН310200V0065149, модель № двигателя 40200А V3373397, шасси (рама)№ 596857, кузов (кабина)№ V0065149.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						43&nbsp;290,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl21_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16454/" href="/public/party/view/16454/">Николаева Оксана Владимировна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">24.09.2021&nbsp;23:59</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;10:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr class="gridRow">
+					<td class="gridAltColumn">
+						<a href="/public/auctions/view/39506/" class="purchase-type-auction-open" title="Открытый аукцион с открытой формой представления цены">0039497</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl22_HyperLink2" class="tip-purchase" rel="/default/tooltips/purchase/view/39506/" href="/public/auctions/view/39506/">имущество  Государственного унитарного предприятия Республики Хакасия «Хакресводоканал»</a>
+					</td><td class="gridAltColumn">
+						<a href="/public/auctions/lots/view/140888/">3</a>
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl22_HyperLink3" class="tip-lot" rel="/default/tooltips/lots/view/140888/" href="/public/auctions/lots/view/140888/">Лот №3. Автомобиль ГАЗ 53 12 ,автовышка, год выпуска 1990, цвет кузова синий, модель № двигателя 5311-73908, кузов № отсут, шасси (рама)№ н/у, VIN отсутствует.</a>
+					</td><td class="columnCurrency gridAltColumn">
+						16&nbsp;648,00
+					</td><td class="gridColumn">
+						<a id="ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_ctl22_HyperLink1" class="tip-party" rel="/default/tooltips/party/view/16454/" href="/public/party/view/16454/">Николаева Оксана Владимировна</a>
+					</td><td class="alignCenter nowrap columnDateTime gridAltColumn">24.09.2021&nbsp;23:59</td><td class="alignCenter nowrap columnDateTime gridColumn">04.10.2021&nbsp;10:00</td><td class="gridAltColumn">Извещение опубликовано</td><td class="gridColumn"><a disabled="disabled" onclick=""></a></td>
+				</tr><tr>
+					<td class="pager" colspan="10"><span>Страницы:&nbsp;</span><span>1</span>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl02','')">2</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl03','')">3</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl04','')">4</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl05','')">5</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl06','')">6</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl07','')">7</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl08','')">8</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl09','')">9</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl10','')">10</a>&nbsp;<a href="javascript:__doPostBack('ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$PurchasesSearchResult$ctl24$ctl11','')">&gt;&gt;</a></td>
+				</tr>
+			</tbody></table>
+		</div>
+	
+	</div>
+
+
+			
+</div>
+		</td></tr></tbody></table>
+	</div>	
+
+	<div class="footer-backing">
+		<div id="footer">
+			<div class="custom-content">
+				
+	
+
+			</div>
+			<div class="copyright">
+				
+	<a href="http://fogsoft.ru/solutions/procurement_automation/procurement_automation.aspx" target="_blank">Разработано на платформе iTender компании Fogsoft (ФогСофт)</a>
+
+			</div>
+			<div class="clearer"></div>
+		</div>
+	</div>
+	<div id="min-width-spacer"></div>
+
+<script type="text/javascript">
+//<![CDATA[
+var Page_ValidationSummaries =  new Array(document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary"), document.getElementById("ctl00_ctl00_MainValidation_DefaultValidationSummary"));
+var Page_Validators =  new Array(document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired"), document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1"), document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired = document.all ? document.all["ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired"] : document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired");
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.controltovalidate = "ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserName";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.errormessage = "&#x2022; Введите имя пользователя";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.display = "Dynamic";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.validationGroup = "Login";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired.initialvalue = "";
+var ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired = document.all ? document.all["ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired"] : document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired");
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.controltovalidate = "ctl00_ctl00_LeftContentLogin_ctl00_Login1_Password";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.errormessage = "&#x2022; Введите пароль";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.display = "Dynamic";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.validationGroup = "Login";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired.initialvalue = "";
+var ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary = document.all ? document.all["ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary"] : document.getElementById("ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary");
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary.displaymode = "List";
+ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary.validationGroup = "LoginValidation";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.errormessage = "Значение поля “№ лота” должно быть в пределах от 0 до 2147483647.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.type = "Integer";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.evaluationfunction = "RangeValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.maximumvalue = "2147483647";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0.minimumvalue = "0";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.errormessage = "Значение поля “№ аукциона” должно быть в пределах от 0 до 2147483647.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.type = "Integer";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.evaluationfunction = "RangeValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.maximumvalue = "2147483647";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0.minimumvalue = "0";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.errormessage = "Значение “Начальная цена от, руб.” должно быть больше 0.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.evaluationfunction = "CompareValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.valuetocompare = "0,001";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0.operator = "GreaterThan";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0.errormessage = "Дата “Дата проведения (с)” не может быть частично заполнена.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0.clientvalidationfunction = "validatePartialDate";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1.errormessage = "Год в поле “дата проведения (с)” должен быть в пределах от 1753 до 9999.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1.clientvalidationfunction = "validateDateRange";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2.errormessage = "Дата “Дата проведения (с)” указана некорректно.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2.clientvalidationfunction = "validateDateCommon";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0.errormessage = "Дата “Дата проведения (по)” не может быть частично заполнена.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0.clientvalidationfunction = "validatePartialDate";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1.errormessage = "Год в поле “дата проведения (по)” должен быть в пределах от 1753 до 9999.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1.clientvalidationfunction = "validateDateRange";
+var ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2 = document.all ? document.all["ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2"] : document.getElementById("ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2");
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2.controltovalidate = "ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2.errormessage = "Дата “Дата проведения (по)” указана некорректно.";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2.display = "Dynamic";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2.evaluationfunction = "CustomValidatorEvaluateIsValid";
+ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2.clientvalidationfunction = "validateDateCommon";
+//]]>
+</script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+_spOriginalFormAction = document.forms[0].action; _spSuppressFormOnSubmitWrapper=true;var ctl00_ctl00_TopMenu_ctl00_mainMenu_Data = new Object();
+ctl00_ctl00_TopMenu_ctl00_mainMenu_Data.disappearAfter = 3000;
+ctl00_ctl00_TopMenu_ctl00_mainMenu_Data.horizontalOffset = 0;
+ctl00_ctl00_TopMenu_ctl00_mainMenu_Data.verticalOffset = 0;
+ctl00_ctl00_TopMenu_ctl00_mainMenu_Data.iframeUrl = '/WebResource.axd?d=Rn-v55h0fWTX-19liTeYDwfBj3kOREDJiLih9IQC2VnMS8MlhesZK1x5yKbamZjpkDKaFUuMkKdDpQ6MwLUHgjCxc5gsZ32u4tZDA0P_wTg1&t=637461089481343508';
+
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        
+(function(id) {
+    var e = document.getElementById(id);
+    if (e) {
+        e.dispose = function() {
+            Array.remove(Page_ValidationSummaries, document.getElementById(id));
+        }
+        e = null;
+    }
+})('ctl00_ctl00_LeftContentLogin_ctl00_Login1_LoginValidationSummary');
+Sys.Extended.UI.Localization.SetLocale("ru");
+(function(id) {
+    var e = document.getElementById(id);
+    if (e) {
+        e.dispose = function() {
+            Array.remove(Page_ValidationSummaries, document.getElementById(id));
+        }
+        e = null;
+    }
+})('ctl00_ctl00_MainValidation_DefaultValidationSummary');
+
+ var oTablectl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_Init = document.getElementById( 'ctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult' );
+ var oDataGridctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_Init = new clsDataGrid( oTablectl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_Init, new Array( 'gridHeader', 'gridRow' ), '', 'rowHover', 'selectedNumber' );
+ oDataGridctl00_ctl00_MainContent_ContentPlaceHolderMiddle_PurchasesSearchResult_Init.Init( );
+theForm.oldSubmit = theForm.submit;
+theForm.submit = WebForm_SaveScrollPositionSubmit;
+
+theForm.oldOnSubmit = theForm.onsubmit;
+theForm.onsubmit = WebForm_SaveScrollPositionOnSubmit;
+
+document.getElementById('ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_LeftContentLogin_ctl00_Login1_UserNameRequired'));
+}
+
+document.getElementById('ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_LeftContentLogin_ctl00_Login1_PasswordRequired'));
+}
+Sys.Application.add_init(function() {
+    $create(Sys.Extended.UI.AccordionBehavior, {"ClientStateFieldID":"ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu_AccordionExtender_ClientState","framesPerSecond":40,"headerCssClass":"block-header block-header-down","headerSelectedCssClass":"block-header block-header-up block-header-selected","id":"ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu_AccordionExtender","requireOpenedPane":false,"suppressHeaderPostbacks":true,"transitionDuration":150}, null, null, $get("ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu"));
+});
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_lotNumber_лота_v0'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_purchaseNumber_аукциона_v0'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_InitialPrice_Начальнаяценаотруб_v0'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v0'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v1'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияс_v2'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v0'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v1'));
+}
+
+document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_ctl00_MainExpandableArea_phExpandCollapse_PurchasesSearchCriteria_vPurchaseLot_auctionStartDate_Датапроведенияпо_v2'));
+}
+//]]>
+</script>
+</form>
+</td></tr></tbody></table>
+
+<div class="alert" id="browser" style="display: none;">
+	<button type="button" class="close" data-dismiss="alert">×</button>
+	<strong>Вы используете браузер <b class="browserAlert"></b> версии <b class="browserVersion"></b></strong> 
+	<br> Электронная площадка оптимизирована для просмотра обозревателем Microsoft Internet Explorer версии 8 и выше. При использовании других обозревателей отдельные элементы могут отображаться некорректно.
+</div>
+
+
+
+
+
+
+
+<script type="text/javascript" src="/combres.axd/jsPublic/354277832/"></script>
+<!--ASP.controls_administration_edslogin_ascx SignHelper-->
+<script type="text/javascript" src="/combres.axd/jsFogSoftSigner.CryptoProCades2/832225092/"></script>
+<script type="text/javascript">
+	// FogSoftETPWebCoreUtilityTooltipHelper
+FogSoftETPWebCoreUtilityTooltipHelperPostbackScript();
+Sys.WebForms.PageRequestManager.getInstance().add_endRequest(FogSoftETPWebCoreUtilityTooltipHelperPostbackScript);
+function FogSoftETPWebCoreUtilityTooltipHelperPostbackScript(){$('a.tip-purchase').cluetip({closePosition:'title',mouseOutClose:true,closeText:'<a class=deleteLink></a>',activation:'hover',showTitle:false,clickThrough:true,cluetipClass:'default'});
+$('a.tip-lot').cluetip({closePosition:'title',mouseOutClose:true,closeText:'<a class=deleteLink></a>',activation:'hover',showTitle:false,clickThrough:true,cluetipClass:'default'});
+$('a.tip-party').cluetip({closePosition:'title',mouseOutClose:true,closeText:'<a class=deleteLink></a>',activation:'hover',showTitle:false,clickThrough:true,cluetipClass:'default'});
+$('a.tip-hostaddr').cluetip({closePosition:'title',mouseOutClose:true,closeText:'<a class=deleteLink></a>',activation:'hover',showTitle:false,clickThrough:true,cluetipClass:'default',width:300});}
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_LeftContentLogin_ctl00_ctl01
+
+		var password = new PassField.Field('ctl00_ctl00_LeftContentLogin_ctl00_Login1_Password',
+			{
+				showGenerate: false,
+				showWarn: false,
+				showTip: false
+			});
+	
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_LeftContentLogin_ctl00_Login1_edsLogin_ctl00
+
+		function edsLoginClick() {
+			FogSoft.Common.hideErrorMessage();
+			FogSoftSigner.getAsync().then(function(signer) {
+				signer.SelectCertificate(function(cert) {
+					signer.SignAsync(cert, '31498117-57ff-410c-96a9-8f017591e2cf', undefined, undefined, FogSoft.SignerMessages.errorEcpLogin).then(
+						function(signedData) {
+						if (signedData != null) {
+							$('#hidSignedData').val(signedData);
+							Sys.Net.WebServiceProxy.invoke("/public/services/edslogin",
+								'GetUsersListByEDS',
+								false,
+								{ signedData: signedData },
+								processUsersList,
+								failureCall);
+						}
+					});
+				});
+			});
+		}
+
+		function loginClick(login) {
+		if($("#popupDiv").is(':data(uiDialog)'))
+			$("#popupDiv").dialog("close");
+			var arguments = "EDSLogin_<login>" +
+				login +
+				"</login><signedData>" +
+				$("#hidSignedData").val() +
+				"</signedData>";
+		WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions('ctl00$ctl00$LeftContentLogin$ctl00$Login1$edsLogin', arguments, true, '', '', false, true));
+		return false;
+		}
+
+		function processUsersList(usersInfo, eventArgs) {
+		if (usersInfo == null || (usersInfo.UserInfos == null && usersInfo.ErrorMessage == null)) {
+			FogSoft.Common.showErrorMessage("Произошла ошибка. Обратитесь к администратору.");
+			return;
+		}
+		
+		if (usersInfo.ErrorMessage != null && usersInfo.ErrorMessage !== "") {
+			FogSoft.Common.showErrorMessage(usersInfo.ErrorMessage);
+			return;
+		}
+
+		if (usersInfo.UserInfos == null || usersInfo.UserInfos.length === 0) {
+			FogSoft.Common.showErrorMessage("Выбранный сертификат не используется на площадке.");
+		} else if (usersInfo.UserInfos.length === 1) {
+			loginClick(usersInfo.UserInfos[0].Login);
+		} else {
+			var $dialog = $("#eds-dialog");
+			var $userList = $dialog.find('#user-list');
+			$userList.empty();
+
+			var template = '<div class="user-item">' +
+								'<span class="user-image"></span>' +
+								'<div class="user-info">' +
+									'<strong>${username}</strong><br/>' +
+								'</div>' +
+								'<div style="clear: both"></div>' +
+							'</div>';
+			$.each(usersInfo.UserInfos,
+				function(i, info) {
+					$.tmpl(template,
+					{
+								username: info.Login
+					}).click(function () {
+						var $image = $(this).find('.user-image');
+						$image.removeClass('user-image');
+						$image.addClass('dialog-ajax-busy eds');
+						$dialog.find('.user-item').unbind('click');
+						loginClick(info.Login);
+					}).appendTo($userList);
+				});
+
+			$dialog.dialog(
+				{
+					modal: true,
+					closeOnEscape: true,
+					resizable: false,
+					draggable: false,
+					width: 300,
+					height: 'auto',
+					title: " Выбор пользователя",
+					dialogClass: 'centered-popup eds-popup',
+					minHeight: 0,
+					maxHeight: $(window).height() * 0.8
+				});
+		}
+		}
+	
+		function failureCall(error) {
+			FogSoft.Common.showErrorMessage(error._message);
+		}
+
+		$('#ctl00_ctl00_LeftContentLogin_ctl00_Login1_edsLogin_EdsLoginButton').click(function () {
+			edsLoginClick();
+			return false;
+		});
+	
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_LeftContentSideMenu_mSideMenu_ctl00
+
+		function pageLoad() {
+			try {
+				var accCtrl = $find('ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu_AccordionExtender');
+				if (accCtrl)
+					accCtrl.add_selectedIndexChanging(function(o, a) {
+						var p = accCtrl.get_Pane(a.get_selectedIndex());
+						if (p) {
+							var c = $(p.content).find('a').size();
+							if (c == 0) a.set_cancel(true);
+							var u = $(p.header).find('span.menu-link').attr('href');
+							if (u && c == 0) window.location = u;
+						}
+					});
+			} catch(e) {
+			}
+		}
+
+		initSideMenu({
+			extAccordionMenuClientID: 'ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu',
+			extAccordionMenuID: 'extAccordionMenu',
+			accordionMenuClientID: 'ctl00_ctl00_LeftContentSideMenu_mSideMenu_accordionMenu',
+			accordionMenuID: 'accordionMenu',
+			serviceUrl: '/public/services/uss',
+			mainAccordionMenu: false
+		});
+	
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_EtpScriptControl1
+
+						$(document).ready(function () {
+							$('.advertising-slider').show();
+							$('.advertising-slider').slick({
+								dots: false,
+								infinite: true,
+								slidesToShow: 3,
+								slidesToScroll: 1,
+								autoplay: true,
+								autoplaySpeed: 7000,
+								responsive: [
+									{
+										breakpoint: 1500,
+										settings: {
+											slidesToShow: 2
+										}
+									},
+									{
+										breakpoint: 1100,
+										settings: {
+											slidesToShow: 1
+										}
+									}
+								]
+							});
+						});
+					
+	
+		$("body").append("<div class=\"infos-top\"></div>");
+	
+	
+	$('input[type="text"], textarea').placeholder();
+	
+	function log(msg, url, line, col, error) {
+		try {
+			Sys.Net.WebServiceProxy.invoke(
+				'/public/services/log',
+				"Log", false, { data: { Error: msg.toString(), Url: url, Line: line, Column: col, Stack: error.stack } }, null, null);
+		} catch (e) {
+			consoleLog(e);
+		}
+		return true;
+	}
+	function consoleLog(msg) {
+		window.console && console.log && console.log(msg);
+	}
+	$(function () {
+		window.onerror = log;
+		var $m = $("#ctl00_ctl00_LeftContentSideMenu_mSideMenu_extAccordionMenu");
+		$m.find("a[href$='.pdf']").each(function() {
+			$(this).attr("data-skip-wait", "true");
+		});
+
+		$(".extender2").click(function() {
+			$("#top-menu").find("[id*=Items]").each(function() {
+				$(this).hide();
+			});
+		});
+
+		try{
+			toggler({
+				trigger: $(".extender0"),
+				initialVisible: '',
+				target: $(".left-target"),
+				hideTitle: "Использовать весь экран для показа информации", showTitle: "Показать левое меню",
+				effect: "fade",
+				serviceUrl : '/public/services/uss',
+				onComplete: function (options) {
+					try{
+						Sys.Net.WebServiceProxy.invoke(options.serviceUrl, "SaveControlState", false, { controlID: "extender0", state: "" + options.target.is(":visible") });
+					}catch(e){log(e)}
+				}
+			});
+			toggler({
+				trigger: $(".extender1"),
+				initialVisible: '',
+				target: $(".expand-collapse-target"),
+				hideText: "Скрыть панель поиска", showText: "Показать панель поиска",
+				serviceUrl : '/public/services/uss',
+				onComplete: function (options) {
+					try{
+						Sys.Net.WebServiceProxy.invoke(options.serviceUrl, "SaveControlState", false, { controlID: "extender1", state: "" + options.target.is(":visible") });
+					}catch(e){log(e);}
+				}
+			});
+			toggler({
+				trigger: $(".extender2"),
+				initialVisible: '',
+				target: $(".expand-collapse-target-top"),
+				hideTitle: "Скрыть шапку", showTitle: "Показать шапку",
+				serviceUrl : '/public/services/uss',
+				onComplete: function (options) {
+					try {
+						Sys.Net.WebServiceProxy.invoke(options.serviceUrl, "SaveControlState", false, { controlID: "extender2", state: "" + options.target.is(":visible") });
+					} catch (e) {
+						log(e);
+					}
+				}
+			});
+			toggler({
+				trigger: $(".extender2"),
+				effect: "fade",
+				initialVisible: '',
+				target: $(".expand-fade-target-top"),
+				hideTitle: "Скрыть шапку",
+				showTitle: "Показать шапку"
+			});
+		}catch(e){
+			log(e);
+		};
+
+		$('.clock').click(function() {
+			updateTime('/public/services/datetime/');
+		});
+
+		updateTime('/public/services/datetime/');
+
+		var data = browserDetectNav();      //вызываем функцию, параметр НЕ передаем,
+		if (getCookie("alertBrowser") !== "1" && data[0] !== "MSIE") {
+			if (data[0] == "Edge") {
+				$(".alert").find("span").text("Браузер Microsoft Edge не поддерживает работу c ЭЦП. Для полноценной работы на ЭТП используйте браузер Microsoft Internet Explorer 11.");
+			}
+			$(".content-holder").prepend($(".alert"));
+			$(".alert").show();
+
+			$(".close").click(function () {
+				$("#browser").hide();
+				var name = "alertBrowser"; // имя cookie
+				var tmp = "1"; // записываемое значение
+				setCookie(name, tmp); // устанавливаем cookie с помощью функции setCookie
+			});
+
+			$(".browserAlert").append(data[0]);
+			$(".browserVersion").append(data[1] + "." + data[2]);
+		}
+
+		// долгожданное скругление в IE8
+		if (isIE8orIE9()) {
+			$("<style type='text/css'>" +
+				".ie8-roundable," +
+				"div.notification," +
+				"input.button-2," +
+				"span .button-2 input," +
+				".action-menu-button," +
+				".action-menu-items," + 
+				".action-menu .action-menu-items li.hover input.menu-button" +
+				"{ behavior: url(/Resources/PIE.htc);} </style>").appendTo("head");
+		}
+
+		
+		$('label, table.gridTable tr.gridRow td a, fieldset.viewContainer table td.tdContent span, div.tooltip table td.tdContent span, .jq-wrapped-text').each(function(i, htmlElem) {
+			var $elem = $(htmlElem),
+				wholeText = $elem.text(),
+				maxlen = 30,
+				replaceRegexp = /([;,\.])/g,
+				urlRegexp = /((https?:\/\/|ftp:\/\/|www\.|[^\s:=]+@www\.).*?[a-zа-я_\/0-9\-\#=&])(?=(\.|,|;|\?|\!)?("|'|«|»|\[|\s|\r|\n|$))/i,
+				fixedSizeRegexp = new RegExp('.{1,' + maxlen +'}', 'g');
+			try {
+				if ($elem[0].childElementCount === 0 && wholeText && wholeText.length > maxlen) {
+					var wordsArray = wholeText.split(/\s/g);
+					$.each(wordsArray, function(i, word) {
+						if (word && word.length > maxlen) {
+							if (urlRegexp.test(word)) 
+								return;
+							var len = word.length;
+							
+							wordsArray[i] = word.replace(replaceRegexp, '$1\u200B');
+							if (wordsArray[i].length === len) {
+								var fixedSizeWords = word.match(fixedSizeRegexp);
+								wordsArray[i] = fixedSizeWords.join('\u200B');
+							}
+						}
+					});
+					$elem.text(wordsArray.join(' '));
+				}
+			} catch(ex) {}
+		});   
+		
+	});
+	
+	// "схлапывалка fieldset"
+	var $fs = $("fieldset.common > legend, fieldset.viewContainer > legend, fieldset.editContainer > legend");
+	$fs.css("cursor", "pointer");
+	$fs.mouseover(function () {
+		var $t = $(this);
+		var c = "collapse-over";
+		if (!$t.hasClass(c) && !$t.hasClass("collapsed")) $t.addClass(c);
+	}).mouseout(function() {
+		var $t = $(this);
+		var c = "collapse-over";
+		if ($t.hasClass(c)) $t.removeClass(c);
+	});
+	$fs.click(function () {
+		var $t = $(this);
+		var c = "collapsed";
+		$t.siblings("table, div").fadeToggle();
+		if ($t.hasClass(c)) $t.removeClass(c); else $t.addClass(c);
+	});
+		
+	function trimSelects() {
+		var maxLen = 100;
+		$("select.trim-long").each(function() {
+			// uses when width of ctrl is not changed
+			if($(this).hasClass('default-width')) maxLen = 30;
+			$(this).find('option').each(function() {
+				this.title = this.text.trim();
+				if (this.text.length > maxLen)
+					this.text = this.title.substr(0, maxLen) + "\u2026"; // horizontal ellipsis &#8230; 0x2026
+			});
+		});
+		var f = function () { this.title = $(this).children("option:selected:first").attr("title"); };
+		$("select.trim-long").each(f);
+		$("select.trim-long").change(f);
+	}
+
+	Sys.Application.add_init(function() {
+		trimSelects();
+	});
+	if (typeof($(document).upButton) == 'function')
+		$(document).upButton();
+	
+	$("input.no-auto-complete").attr("autocomplete", "off");
+		
+	$(function() {
+		FogSoft.Common.messages.singleClick = "Пожалуйста, подождите ...";
+		FogSoft.Common.setupSingleClickButton();
+		
+		
+	});
+
+	
+		$(window).resize(function () {
+			var $topInfo = $("div.infos-top");
+			if ($topInfo.length > 0 && $topInfo.is(":visible")) {
+				var el = $("div.content-holder");
+				$topInfo.css("width", el.outerWidth() - 29);
+			}
+		});
+		$(document).scroll(function() {
+			$.each(["div.info", "div.info-message", "div.validationFailed"], function(index, elemSelector) {
+				var el = $("div.content-holder " + elemSelector);
+				if (el.length === 0 || !el.is(":visible"))
+					return;
+				var $topInfo = $("div.infos-top");
+				$topInfo.css("left", el.offset().left - 5 - $(document).scrollLeft());
+				$topInfo.css("width", el.outerWidth() - 4);
+				var $topLine = $("div.top-line");
+				if (!checkInView(el, null, false, $topInfo.outerHeight() + $topLine.height()) && el[0].innerText != "") {
+					if ($topInfo.find(elemSelector).length > 0)
+						return;
+					$topInfo.css("top", $topLine.height());
+					$topInfo.css("left", el.offset().left - 5);
+					$topInfo.css("width", el.outerWidth() - 4);
+					var $toAdd = $(el[0].outerHTML);
+					$toAdd.css("display", "none");
+					$topInfo.append($toAdd);
+					if (!$topInfo.is(":visible"))
+						$topInfo.show();
+					$toAdd.slideDown(400);
+				} else {
+					var $toRemove = $topInfo.find(elemSelector);
+					if ($toRemove.length === 0)
+						return;
+					$toRemove.slideUp(400, function() {
+						$toRemove.remove();
+						if ($topInfo.children().length === 0)
+							$topInfo.hide();
+					});
+				}
+			});
+		});
+	
+	// Яндекс метрика
+	jQuery(function() {
+		var w = window,
+			d = document,
+			c = 'yandex_metrika_callbacks';
+
+		(w[c] = w[c] || []).push(function() {
+			try {
+				w.yaCounter51694295 = new Ya.Metrika({ id: 51694295, enableAll: true });
+			} catch (ex) {
+				log(e);
+			}
+		});
+
+		var e = d.createElement('script');
+		e.type = 'text/javascript';
+		e.async = true;
+		e.src = (d.location.protocol == 'https:' ? 'https:' : 'http:') + '//mc.yandex.ru/metrika/watch.js';
+		var s = d.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(e, s);
+	});
+	$(document).ready(function() {
+// jQuery.SelectInputOnFocus
+
+	$('input, textarea').focus(
+				function()
+				{
+					// only select if the text has not changed
+					if (this.value == this.defaultValue 
+						&& (this.tagName == 'TEXTAREA' || this.tagName == 'INPUT' && $(this).attr('type') == 'text')
+						&& $(this).attr('readonly') == false
+						&& $(this).attr('disabled') == false) {
+						this.select();
+					}
+				}
+			);
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_TopMenu_ctl00_ctl00
+
+		$('div.sub-level-1:has(a.active)').each(function() {
+			$('table.sub-level-0 td#' + $(this).attr('id').replace('Items', '') + ' table').each(function() {
+				$(this).add('a', $(this)).addClass('active');
+			});
+		});
+
+		$('div.sub-level-1').hover(function () {
+			$(this).css('zIndex', 1001);
+		}, function () {
+			$(this).css('zIndex', 1);
+			$(this).hide();
+		});
+	
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_LeftContentLogin_ctl00_ctl00
+
+		// Хак для бага IE с просвечивающим через меню курсором в инпутах логина и пароля
+		if (document.documentMode && document.documentMode < 12) {
+			$(document).on("focus", ".login-input", function (event) {
+				$('#toolbar').on("mouseover", function () {
+					event.target.blur();
+				});
+			});
+		}
+		$('.login-block').find('[tabindex=1]').focus();
+	
+
+// ASP.pages_contract_purchasessearch_aspx ctl00_ctl00_FooterScripts_ctl00
+
+		if (appPath != null && appPath != undefined)
+			appPath = "/public/";
+
+		$(":input.inputmask").inputmask();
+	
+});
+</script>
+
+
+	<link href="/Resources/Client/Scripts/SlickSlider/slick.css" type="text/css" rel="stylesheet">
+	<link href="/Resources/Client/Scripts/SlickSlider/slick-theme.css" type="text/css" rel="stylesheet">
+	<script type="text/javascript" src="/Resources/Client/Scripts/SlickSlider/slick.min.js"></script>
+
+
+
+
+
+<!-- Processed by FogSoft, LLC FogSoft.WorkPlaces 1.0.0.0 in 00:00:00.1176831 seconds -->
+</body></html>

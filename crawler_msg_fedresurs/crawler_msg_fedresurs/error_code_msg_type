@@ -1,0 +1,890 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head></head><body><object id="SIGNCSPIE" classid="CLSID:81B4833C-2A7F-456A-A995-34E699B64F4D" width="0" height="0" style="width: 0px; height: 0px;"></object><object id="SIGNCSPFF" type="application/x-itst-activex" align="baseline" border="0" width="0" height="0" clsid="{81B4833C-2A7F-456A-A995-34E699B64F4D}" style="width: 0px; height: 0px;"></object><div id="ctl00_radWindowManager" style="display:none;">
+        <!-- 2012.3.1016.40 --><div id="ctl00_radWindowManager_alerttemplate" style="display:none;">
+                <div class="rwDialogPopup radalert">
+                        <div class="rwDialogText">
+                        {1}
+                        </div>
+
+                        <div>
+                                <a onclick="$find('{0}').close(true);" class="rwPopupButton" href="javascript:void(0);">
+                                        <span class="rwOuterSpan">
+                                                <span class="rwInnerSpan">##LOC[OK]##</span>
+                                        </span>
+                                </a>
+                        </div>
+                </div>
+                </div><div id="ctl00_radWindowManager_prompttemplate" style="display:none;">
+                 <div class="rwDialogPopup radprompt">
+                            <div class="rwDialogText">
+                            {1}
+                            </div>
+                            <div>
+                                    <script type="text/javascript" async="" src="https://mc.yandex.ru/metrika/watch.js"></script><script type="text/javascript">
+                                    function RadWindowprompt_detectenter(id, ev, input)
+                                    {
+                                            if (!ev) ev = window.event;
+                                            if (ev.keyCode == 13)
+                                            {
+                                                var but = input.parentNode.parentNode.getElementsByTagName("A")[0];
+                                                if (but)
+                                                    {
+                                                            if (but.click) but.click();
+                                                            else if (but.onclick)
+                                                            {
+                                                                but.focus(); var click = but.onclick; but.onclick = null; if (click) click.call(but);
+                                                            }
+                                                    }
+                                               return false;
+                                            }
+                                            else return true;
+                                    }
+                                    </script>
+                                    <input title="Enter Value" onkeydown="return RadWindowprompt_detectenter('{0}', event, this);" type="text" class="rwDialogInput" value="{2}">
+                            </div>
+                            <div>
+                                    <a onclick="$find('{0}').close(this.parentNode.parentNode.getElementsByTagName('input')[0].value);" class="rwPopupButton" href="javascript:void(0);"><span class="rwOuterSpan"><span class="rwInnerSpan">##LOC[OK]##</span></span></a>
+                                    <a onclick="$find('{0}').close(null);" class="rwPopupButton" href="javascript:void(0);"><span class="rwOuterSpan"><span class="rwInnerSpan">##LOC[Cancel]##</span></span></a>
+                            </div>
+                    </div>
+                </div><div id="ctl00_radWindowManager_confirmtemplate" style="display:none;">
+                <div class="rwDialogPopup radconfirm">
+                        <div class="rwDialogText">
+                        {1}
+                        </div>
+                        <div>
+                                <a onclick="$find('{0}').close(true);" class="rwPopupButton" href="javascript:void(0);"><span class="rwOuterSpan"><span class="rwInnerSpan">##LOC[OK]##</span></span></a>
+                                <a onclick="$find('{0}').close(false);" class="rwPopupButton" href="javascript:void(0);"><span class="rwOuterSpan"><span class="rwInnerSpan">##LOC[Cancel]##</span></span></a>
+                        </div>
+                </div>
+                </div><input id="ctl00_radWindowManager_ClientState" name="ctl00_radWindowManager_ClientState" type="hidden">
+</div>
+
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251"><meta name="rating" content="General"><meta name="revisit-after" content="1 day"><meta name="title"><link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"><link rel="icon" href="/favicon.ico" type="image/x-icon"><title>
+        АИС "Сведения о банкротстве"
+</title>
+        <link href="../css/generalMasterTemplate.css" rel="stylesheet" type="text/css">
+        <link href="../css/generalMasterJqueryJdMenu.css" rel="stylesheet" type="text/css">
+        <link href="../css/menu.css" rel="stylesheet" type="text/css">
+        <script src="../js/jquery-1.4.4.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.bgiframe.js" type="text/javascript"></script>
+        <script src="../js/jquery.dimensions.js" type="text/javascript"></script>
+        <script src="../js/jquery.jdMenu.js" type="text/javascript"></script>
+        <script src="../js/jquery.positionBy.js" type="text/javascript"></script>
+        <script src="../js/scripts.js" type="text/javascript"></script>
+        <script src="../js/json2min.js" type="text/javascript"></script>
+        <script src="../js/DigitalSignature/blitzsc.js" type="text/javascript"></script>
+        <script src="../js/DigitalSignature/DigitalSignatureNPAPI.js" type="text/javascript"></script>
+        <script src="../js/DigitalSignature/DigitalSignatureBlitz.js" type="text/javascript"></script>
+        <script src="../js/DigitalSignature/DigitalSignature.js" type="text/javascript"></script>
+        <script src="../js/AuthByCertificate.js" type="text/javascript"></script>
+        <script src="../js/MessageBox.js" type="text/javascript"></script>
+
+
+    <script type="text/javascript">
+        function deleteCookie(name, path, domain) {
+            if (getCookie(name)) {
+                document.cookie = name + "=" + ((path) ? "; path=" + path : "") + ((domain) ? "; domain=" + domain : "") +
+                                "; expires=Thu, 1 Jan 1970 00:00:01 GMT";
+            }
+        }
+        function getCookie(name) {
+            var dc = document.cookie;
+            var prefix = name + "=";
+            var begin = dc.indexOf("; " + prefix);
+            if (begin == -1) {
+                begin = dc.indexOf(prefix);
+                if (begin != 0)
+                    return null;
+            } else
+                begin += 2;
+            var end = document.cookie.indexOf(";", begin);
+            if (end == -1)
+                end = dc.length;
+            return unescape(dc.substring(begin + prefix.length, end));
+        }
+
+        //Для меню
+        function OpenRegistryMenu() {
+            $('#subRegistryMenu').show();
+            $('#subRMVisiblePart').slideDown();
+        }
+
+        function CloseRegistryMenu() {
+            $('#subRegistryMenu').hide();
+            $('#subRMVisiblePart').hide();
+        }
+
+        $(function () {
+            $('#lnkRegistry').mouseover(function () {
+                OpenRegistryMenu();
+                $('#lnkRegistry').addClass("fm_mnu_hover");
+            });
+            $('#subRegistryMenu').mouseleave(function () {
+                CloseRegistryMenu();
+                $('#lnkRegistry').removeClass("fm_mnu_hover");
+            });
+            $('#spnRegistryMenu2').mouseover(function () {
+                CloseRegistryMenu();
+                $('#lnkRegistry').removeClass("fm_mnu_hover");
+            });
+
+        });
+        //----------
+
+    </script>
+<link href="/WebResource.axd?d=fgf0OrataSTmQmMEQbbdr3_0aJhHkEqpkTxx63RP0-14rT7Nz2hRx8iGV1ZA2xyJruC6lP2aTu7x48-7ShX21UxtMzE5tgw1vq0IEVTaYLKRqt7GpSftBj6zUrfE2WTceaRnjg2&amp;t=637381152400000000" type="text/css" rel="stylesheet" class="Telerik_stylesheet"><link href="/WebResource.axd?d=oAiU1MmZoqUktxW9Klyj5GtQtmRNCwJr4O4Cfd4zPJdFugGHtHgWDm1VzdMOhTSXwtRffW4HZglzqMdlYu_udxWw1PKTNlbLjQhroyLxAqsjuynod1s1N80siE16Bfu-JiBX2h8VC6sGp-UQN7zPC0QynN81&amp;t=637381152400000000" type="text/css" rel="stylesheet" class="Telerik_stylesheet"><link href="/WebResource.axd?d=_NSChkBEdLpSfZ5Tu8AU0hz6ktU6FQmNc5ScH6qhdknbqcLhmd0E0Mb8zFnELegW59f-eD3DipKPfbCu6pf2E1Y84uSz-aRO0Ujqc4NBMo22iaRPP0DyXcf_GjO6XJLGXu6oxNTKa4bQKUjqFmG0mAtu9bU1&amp;t=637381152400000000" type="text/css" rel="stylesheet" class="Telerik_stylesheet"><link href="/WebResource.axd?d=M-QyXj8lLfvSb7BOB2B9by95eK62NBpnPf92VL1Pj-a6mVGCxnk_b9srgsU1iP0lPQ2EPEb6_zKt9Br3MDbUUtJTFiUIYx0OnwFF7gYvdl3A1RKweJcUYeA0HBmEyE-CE9C8J3ef1wHFuicYNf4FBtYyZc8o3BQGyLV1FQ1KBRj1GB3y0&amp;t=637381152400000000" type="text/css" rel="stylesheet" class="Telerik_stylesheet">
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/SelectCertificate.css" media="all">
+<script src="/js/SelectCertificate.js" type="text/javascript"></script>
+
+<div data-element-type="select-certificate-background" class="select-certificate-background"></div>
+
+<div data-element-type="select-certificate-dialog" class="select-certificate-dialog" style="display: none;">
+    <div class="title">
+        Выбор сертификата для цифровой подписи
+        <button data-element-type="close-button" class="close-button">
+            <span>×</span>
+        </button>
+    </div>
+    <div data-element-type="certificate-list" class="certificate-list"></div>
+    <div class="buttons">
+        <button data-element-type="cancel-button" class="button">
+            Отмена
+        </button>
+        <button data-element-type="select-button" class="button">
+            OK
+        </button>
+    </div>
+
+    <input data-element-type="selected-certificate-id" type="hidden">
+
+    <a href="#" data-element-type="certificate-item-block" class="certificate-item-block" style="display: none;">
+        <h4 data-element-type="certificate-subject" class="subject"></h4>
+        <p data-element-type="certificate-representative" class="issuer"></p>
+        <p data-element-type="certificate-issuer" class="issuer"></p>
+        <p data-element-type="certificate-date" class="notice"></p>
+    </a>
+</div>
+
+    <div id="testpatch" style="text-align: center; display: none">
+        Данная версия является тестовой и предназначена для получения навыка работы с системой
+    </div>
+    <form method="post" action="./Error.aspx?aspxerrorpath=%2fMessageWindow.aspx" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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">
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=X0JcN1sIiE7dcoIS5QcNfxcHVqXdul7pIFx4YVFzLN5wFND_1vB94pW1txSQc1e9-kkfyn_oX7GsEB_UZ7SPMSvKtxw1&amp;t=637297793819849385" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=Bl_7vkzpwz1QWMrtozDrv6WQ0V2Y2dVK-T7MDdW_bULSjydHZxRhJuHa1C5_1cutPhCDRTxwWxx4SnvkLAQsOIfMtwGi5XeFPJ8tG2W4z-spDMFeJVSbbTQQIiflZRUoHdceg8Uwa-zDCNq6pVnjyOVM8041&amp;t=fffffffff75ebe31" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=XC_EPa-NFhcFmhDzCF_GQDSqBc-9hYoyBQ8WIcJS3EJFZKBbeedxzJz-YKMOUNGgLJJGPhcj5C5DREL7Z4iBNKVGBGaDhRIHTciofw0qO2ophZsywVa9EvdMHmgwrEjmjz0UehFpOV6kao3TEk0xH9_G9Xofgmk3rlqGE5eA_LCQA2qQ0&amp;t=ffffffffce034dab" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=aJzHmpKXsn87ahe2M8kCukoqzBvzW5StRqImOwsbcUKYf6-kUVK0kSlPVCYSNf2nsAV8gjPa_hVXHpsuEK7oRlEUxaOCt6T2fNoWmrNI58TUlF_UuqrR5Ar_G6XkD14Bomcz4qMU-USicl0G3JMwIXj2lNcQ1uvqpelOGcxirbJTZ0me0&amp;t=ffffffffce034dab" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=uxASqN5zbYavJphOoby6oPgMFfhspCdt34AnHfU4b5FaT2Y4ifFAybbDUv_N4o5gGDx-YTW0TWesyieP0Klzjib6dN9KucUOgjnxicggJxb5bY10WpDuB1wKUiPwPUTl4QiguQ2&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=yJdoTplHYXFitrTgtYbgV3XGGLp-3tEEAxlne28WLubQV45R7ZuqB0B43ygvUhjvb62dJC1yQxR8BuESK4UkSVdVnf2GmTt6rT0cmvj07bVe68wrnjzynWqPrw1PSkqRJRRR5PnjUzHQXwwPQ7BwK8HFtjw1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=hYJQDrMl0iQ7ImV5SuDRBc141IkDA5n9ejfLM5aEVX4n7XPVYrooMZL2iHGv2gFZSI4W1gL9YDmttPG1tLEb-G4bFxjh04-hIOYkhlIjSeNjcLLEJDaIiHZCGRSeMJRTrQ-h6GWRJRUzrYpWzNEvnb1Cdy41&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=3CmZBdCtK0FNvJRD8UZL9rRgrHxTsuDV4ekJAFkRHKhcizQghHMmqG5Qte6Ddk-YazhoU5Jy6b2dW8lsMWG_J9_iDUblaHrqMvjFT8SKAynWsIT2Gk41-Cw3bA0poqdytaPv3YW_PyYKdW08TRsf4PHxV94XgSZ3UFRfjT73AM3F56vH0&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=8OUc2dLmljWbfttMS9DSqbi3_y1qyv5EO7uEzQsRGFcU7934pHnt0oECelIqhJYM6Gvgv-wmWtVpL90wSMDqaVgs0DnoEbi1mOCmvzCKab3XChj3muAXiqteshAFeijDxM5O0H4kpKDn8Hbwz0ObuEHGxOM1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=bV0LrU9RIv65kzf_n5Uy60YXtq5zGyDrLSZECtIsjiHyFPdiw9OgwGHCK8-ddgi02EaVGSrVWuqBfLN_GldnIMERRaeb0xc41uiY5RMpiiAyjoJzLkEQndHL6ozVzIwjHB48qppUJJq2yNp17lDNPd1n8YI1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=jzWCUuso8Sd-khMHnnoHu1PaQBaJQCJq5fFOcXqBOYg497lx-Ee2yD-E6ZrrrCFiYeMvGx0Oqqj3cwmKE4Za9rQ4OJQ10B05IAZOtf-7a1zw-tJfb5mA_dKLprh0R2V6XbjIbAXMR3khdeo0ADMoDke9uRQ1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=jaIzBEQxN6n3NsQAJgLTSUwVfrEfzN3NRIT_nOHhgPUTXr6J0SAjtjq5YFZDhHNHvipR-htkNOOq8_KcR1T7tM5EFbKZvttxnR_ENyKiZl9HbYxfbjpbj0_VTL46p0xaXvWr_eT5r6ebGU7nfSqjuwAzOdM1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=Vbxwa8x6ua_CTbVSUr330yPt9JMFbc_MQ2fDBTTGC0YXBciH_df-Z6DGswV2bydb5of5AodxWjFnWXWAJSgltTu5ZgQi_7HlBFUsJmuzRUMHyGAw4TLAaA1RgUVY-_OWSRET1TOsDDMn_pCVo78VDygvikg1&amp;t=1f1fff7f" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div class="aspNetHidden">
+
+        <input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="AB827D4F">
+        <input type="hidden" name="__PREVIOUSPAGE" id="__PREVIOUSPAGE" value="FdcAEJGE3ARByfk0DzXomcY32IXqe4fLcgtdKq7iJ8eHXdMtHegUWzcByY9C-ic1QF3aNGRf_gDkaHOJdO4ZRjGsDlY1">
+</div>
+        <table id="main">
+            <tbody><tr>
+                <td id="top" style="vertical-align: top;">
+                    <table width="100%" class="outline_ie7">
+                        <tbody><tr>
+                            <td style="width: 35px">
+                                <img alt="" src="../img/header/1x1.gif" width="35px" height="1px"></td>
+                            <td style="width: 356px">
+                                <a title="Единый федеральный реестр сведений о банкротстве" href="Default.aspx" style="outline: none;"><img alt="Единый федеральный реестр сведений о банкротстве" src="../img/header/logo.gif" width="356px" height="80px"></a></td>
+                            <td style="text-align: center; white-space: nowrap; padding-top: 20px" class="fm_grey">
+                                <span class="fm_gsm fm_grey">Служба поддержки:</span>
+                                <div><span class="fm_gsm fm_grey">Рабочие дни, 07:00-21:00 (время московское)</span></div>
+                                <div style="padding: 4px 0px;">
+                                    <span class="fm_bigfm_blue">
+                                        8 (495) <b>989-73-68</b>
+                                    </span>
+                                </div>
+                                <div style="padding: 4px 0px;">
+                                    <span class="fm_bigfm_blue">
+                                        8 (800) <b>555-02-24</b>
+                                    </span>
+                                </div>
+                                <span class="fm_gsm fm_grey">e-mail:
+                                    <a id="ctl00_hlTechSupportEmail" href="mailto:bhelp@interfax.ru">bhelp@interfax.ru</a></span>
+                            </td>
+                            <td style="width: 277px; padding: 5px 0px">
+
+
+<table width="290" cellspacing="0" cellpadding="0" style="border-width: 0px;">
+        <tbody><tr>
+                <td style="width: 5px">
+                        <img src="../img/header/form_top_left.gif" width="5px" height="5px" alt=""></td>
+                <td style="background-image: url(../img/header/form_top_bg.gif)">
+                        <img src="../img/header/1x1.gif" width="1px" height="5px" alt=""></td>
+                <td style="width: 5px">
+                        <img src="../img/header/form_top_right.gif" width="5px" height="5px" alt=""></td>
+        </tr>
+        <tr>
+                <td style="width: 5px; background-image: url(../img/header/form_left.gif)">
+                        <img src="../img/header/1x1.gif" width="5px" height="1px" alt=""></td>
+                <td style="padding: 5px 5px 0px 5px;">
+                        <div class="fm_blue fm_gsm" style="padding-left: 20px;">
+                                <img src="../img/header/lock.gif" width="10px" height="10px" alt="">&nbsp; &nbsp; &nbsp; &nbsp;ВХОД В ЛИЧНЫЙ КАБИНЕТ</div>
+                        <div style="margin: 5px 0px; background-color: #d3d7dc; height: 1px;">
+                                <img src="../img/header/1x1.gif" width="5px" height="1px" alt=""></div>
+                        <table>
+                                <tbody><tr>
+                                        <td class="fm_grey fm_gsm">&nbsp; логин &nbsp;</td>
+                                        <td>
+                                                <input name="ctl00$PrivateOffice1$tbLogin" type="text" id="ctl00_PrivateOffice1_tbLogin" class="fm_gsm" style="width:150px;"></td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr>
+                                        <td class="fm_grey fm_gsm">&nbsp; пароль &nbsp;</td>
+                                        <td>
+                                                <input name="ctl00$PrivateOffice1$tbPassword" type="password" id="ctl00_PrivateOffice1_tbPassword" class="fm_gsm" style="width:150px;"></td>
+                                        <td>&nbsp;
+                                                <input type="image" name="ctl00$PrivateOffice1$ibPrivateOfficeEnter" id="ctl00_PrivateOffice1_ibPrivateOfficeEnter" title="Войти" src="img/header/ent.gif" onclick="if (!CheckInfo()) return false;WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$PrivateOffice1$ibPrivateOfficeEnter&quot;, &quot;&quot;, false, &quot;&quot;, &quot;https://bankrot.fedresurs.ru/backoffice/default.aspx&quot;, false, false))" style="height:21px;width:54px;">
+                                        </td>
+                                </tr>
+                        </tbody></table>
+                </td>
+                <td style="width: 5px; background-image: url(../img/header/form_right.gif)">
+                        <img src="../img/header/1x1.gif" width="5" height="1" alt=""></td>
+        </tr>
+        <tr>
+                <td style="width: 5px; background-image: url(../img/header/form_left.gif)">
+                        <img src="../img/header/1x1.gif" width="5px" height="1px" alt=""></td>
+                <td style="padding: 5px 5px 0px 5px;">
+                        <table cellspacing="0" cellpadding="0">
+                                <tbody><tr>
+                                        <td style="width: 51px">&nbsp;</td>
+                                        <td class="fm_grey fm_gsm">
+                                                <input id="ctl00_PrivateOffice1_cbRememberMe" type="checkbox" name="ctl00$PrivateOffice1$cbRememberMe" checked="checked"><label for="ctl00_PrivateOffice1_cbRememberMe">Запомнить меня</label>
+                                                &nbsp;|&nbsp; <a href="Controls/#" id="ctl00_PrivateOffice1_hlRecPsw" class="fm_blue" onclick="return false;">Забыли пароль?</a>
+                                        </td>
+                                </tr>
+                        </tbody></table>
+                </td>
+                <td style="width: 5px; background-image: url(../img/header/form_right.gif)">
+                        <img src="../img/header/1x1.gif" width="5" height="1" alt=""></td>
+        </tr>
+        <tr>
+                <td style="width: 5px; background-image: url(../img/header/form_left.gif); vertical-align: bottom">
+                        <img src="../img/header/form_bot_left.gif" width="5" height="22" alt=""></td>
+                <td style="padding-bottom: 10px; background: url(../img/header/form_bot_bg.gif) repeat-x bottom; vertical-align: top;">
+                        </td>
+                <td style="width: 5px; background-image: url(../img/header/form_right.gif); vertical-align: bottom;">
+                        <img src="../img/header/form_bot_right.gif" width="5px" height="22px" alt=""></td>
+        </tr>
+</tbody></table>
+
+<div id="ctl00_PrivateOffice1_RadToolTip1" style="background-color:#BBD9EC;border-width:0px;display:none;position:absolute;">
+
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$PrivateOffice1$ctl00', 'aspnetForm', ['tctl00$PrivateOffice1$updpRestore',''], [], [], 90, 'ctl00');
+        //]]>
+</script>
+
+        <div id="ctl00_PrivateOffice1_updpRestore">
+
+                        <div style="width: 270px; background-color: #bbd9ec;">
+                                <div style="clear: both; padding-left: 4px; padding-right: 4px;" align="center">
+                                        <table>
+                                                <tbody><tr>
+                                                        <td style="background-color: #bbd9ec;" class="fm_gsm fm_grey">e-mail:&nbsp;&nbsp;
+                                                                         <div id="ctl00_PrivateOffice1_ValidationSummary1" style="display:none;">
+
+                </div>
+                                                                <span id="ctl00_PrivateOffice1_RequiredFieldValidator1" style="display:none;"></span>
+                                                                <span id="ctl00_PrivateOffice1_revEmailValidator" style="display:none;"></span>
+                                                        </td>
+                                                        <td style="background-color: #bbd9ec;">
+                                                                <input name="ctl00$PrivateOffice1$tbEmailForPassword" type="text" maxlength="100" id="ctl00_PrivateOffice1_tbEmailForPassword" class="fm_gsm" style="width:150px;">&nbsp;&nbsp;
+                                                        </td>
+                                                        <td style="background-color: #bbd9ec;">
+                                                                <input type="image" name="ctl00$PrivateOffice1$ibtRestore" id="ctl00_PrivateOffice1_ibtRestore" class="CursorHand" src="img/header/next.gif" alt="Далее" align="absmiddle" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$PrivateOffice1$ibtRestore&quot;, &quot;&quot;, true, &quot;RestorePsw&quot;, &quot;&quot;, false, false))" style="height:21px;width:54px;">
+                                                        </td>
+                                                </tr>
+                                        </tbody></table>
+                                        <div align="center" class="fm_gsm fm_grey">На указанный адрес будет выслан пароль </div>
+                                </div>
+
+                        </div>
+
+        </div>
+<input id="ctl00_PrivateOffice1_RadToolTip1_ClientState" name="ctl00_PrivateOffice1_RadToolTip1_ClientState" type="hidden" autocomplete="off">
+</div>
+
+
+<script type="text/javascript">
+        document.getElementById("ctl00_PrivateOffice1_tbPassword").value = '';
+
+        function CheckInfo() {
+                var password = document.getElementById("ctl00_PrivateOffice1_tbPassword").value;
+                var login = document.getElementById("ctl00_PrivateOffice1_tbLogin").value;
+
+                if (login == "") {
+                        alert('Введите имя пользователя');
+                        return false;
+                }
+
+                if (password == "") {
+                        alert('Введите пароль');
+                        return false;
+                }
+
+                return true;
+        }
+
+        function specialAlert(alertText) {
+                alert(alertText);
+                var radToolTip = $find("ctl00_PrivateOffice1_RadToolTip1");
+                if (radToolTip.isVisible())
+                        radToolTip.hide();
+        }
+
+        function callSpecialAlert(value) {
+                window.setTimeout("specialAlert('" + value + "')", 0);
+        }
+</script>
+
+                            </td>
+                            <td style="width: 35px">
+                                <img alt="" src="../img/header/1x1.gif" width="35px" height="1px"></td>
+                        </tr>
+
+                    </tbody></table>
+
+
+                    <div id="nav" class="personalCabEntry">
+                        <div class="navleft">
+                            <a href="#" id="authLnk" class="lnk-company-cabinet">
+                                <img src="img/header/office.jpg" id="ctl00_Img3" alt="Вход в личный кабинет" width="24" height="24" align="absmiddle"> ВХОД ПО СЕРТИФИКАТУ
+                            </a>
+                        </div>
+                    </div>
+                    <div data-element-type="modal-background" class="modal-background"></div>
+                    <div data-element-type="dialog-message" class="centered hidden auth-dialog-message">
+                        <table>
+                            <tbody><tr><td><pre data-element-type="dialog-message-content"></pre></td></tr>
+                            <tr><td><input type="button" value="OK" data-element-type="close-dialog-message"></td></tr>
+                        </tbody></table>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <td>
+
+                    <div id="content" class="cont">
+                        <table width="100%" cellspacing="0" cellpadding="0" style="position: relative; z-index: 1000;">
+                            <tbody><tr>
+                                <td width="10">
+                                    <img alt="" src="../img/menu/mntop_left.jpg" width="10" height="32"></td>
+                                <td style="background: url(../img/menu/mntop_bg2.gif)" height="32">
+                                    <table cellspacing="0" cellpadding="0" border="0" class="outline_ie7">
+                                        <tbody><tr>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_lnkMessages" onclick="javascript:deleteCookie('Messages');" href="Messages.aspx">СООБЩЕНИЯ</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_lnkAuReports" onclick="javascript:deleteCookie('AuReports');" href="AuReportList.aspx">ОТЧЕТЫ&nbsp;АУ</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_lnkTrades" onclick="javascript:deleteCookie('Trade');" href="TradeList.aspx">ТОРГИ</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a href="#" id="lnkRegistry">РЕЕСТРЫ</a></td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu" id="lnkMonitoring">
+                                                <a id="ctl00_hlMonitoringList" href="https://fedresurs.ru/monitoring">МОНИТОРИНГ</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_HyperLink8" href="BankruptcyInEAEC.aspx">БАНКРОТСТВО&nbsp;В&nbsp;ЕАЭС</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a href="https://fedresurs.ru/news?proj=Bankrot">НОВОСТИ</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_HyperLinkImportantFacts" href="http://www.fedresurs.ru/">ЮРЛИЦА</a>
+                                            </td>
+                                            <td class="fm_lgrey">|</td>
+                                            <td class="fm_mnu">
+                                                <a id="ctl00_HyperLink9" href="help.aspx">ПОМОЩЬ</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="6"></td>
+                                            <td>
+                                                <div id="subRegistryMenu" style="display: none; position: absolute; margin-top: -22px; z-index: 10">
+                                                    <table>
+                                                        <tbody><tr>
+                                                            <td style="background-color: transparent; height: 30px; width: 111px;"></td>
+                                                            <td id="spnRegistryMenu2" style="background-color: transparent; height: 30px; width: 90px;"></td>
+                                                        </tr>
+                                                    </tbody></table>
+
+                                                    <div style="width: 200px; background-color: #bbd9ec; display: none" id="subRMVisiblePart">
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink1" onclick="javascript:deleteCookie('debtorsearch');" href="DebtorsSearch.aspx">
+                                                                Должники
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink2" onclick="javascript:deleteCookie('SroList');" href="SroList.aspx">
+                                                                СРО арбитражных управляющих
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink3" onclick="javascript:deleteCookie('AmListSearch');" href="ArbitrManagersList.aspx">
+                                                                Арбитражные управляющие
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink4" onclick="javascript:deleteCookie('TOListSearch');" href="TradeOrganizers.aspx">
+                                                                Организаторы торгов
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                        <a id="ctl00_HyperLink11" onclick="javascript:deleteCookie('SroTradePlaceList');" href="SroTradePlaceList.aspx">
+                                                            СРО торговых площадок
+                                                        </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink5" href="TradePlaceList.aspx">
+                                                                Торговые площадки
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink6" onclick="javascript:deleteCookie('DisqualifyListSearch');" href="DisqualificantsList.aspx">
+                                                                Дисквалифицированные лица
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink7" href="CommersantMessages.aspx">
+                                                                Сообщения ИД "Коммерсантъ"
+                                                            </a>
+                                                        </div>
+                                                        <div class="fm_spacer">
+                                                            <img src="../img/menu/1x1.gif" width="1" height="1" alt="">
+                                                        </div>
+
+                                                        <div class="fm_mnu2">
+                                                            <a id="ctl00_HyperLink10" href="BankruptcyMoratorium.aspx">
+                                                                Мораторий на банкротство
+                                                            </a>
+                                                        </div>
+
+                                                        <div style="float: left; width: 5px;">
+                                                            <img src="../img/menu/bot_left.gif" width="5" height="5" alt="">
+                                                        </div>
+                                                        <div style="float: right; width: 5px;">
+                                                            <img src="../img/menu/bot_right.gif" width="5" height="5" alt="">
+                                                        </div>
+                                                        <div style="clear: both;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                                </td>
+                                <td width="10">
+                                    <img src="../img/menu/mntop_right.jpg" width="10" height="32" alt=""></td>
+                            </tr>
+
+                        </tbody></table>
+
+
+
+
+
+                        <table width="100%" style="border-width: 0px; margin-top: 35px; position: relative" cellspacing="0" cellpadding="0">
+                            <tbody><tr>
+                                <td width="15" rowspan="2" style="vertical-align: top;">
+                                    <img src="img/menu/bgcontleft.jpg" id="ctl00_Img1" width="15" height="96">
+                                </td>
+                                <td colspan="2" class="contfield">
+                                    <img src="../img/menu/1x1.gif" width="15" height="10" alt=""></td>
+                                <td width="15" rowspan="2" style="vertical-align: top;">
+                                    <img src="img/menu/bgcontright.jpg" id="ctl00_Img2" width="15" height="96">
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <table id="content" class="table-content">
+                                        <tbody><tr>
+                                            <td id="left" class="outline_ie7">
+                                                <div id="ctl00_DebtorSearch1_pDebtorSearchBlock" onkeypress="javascript:return WebForm_FireDefaultButton(event, 'ctl00_DebtorSearch1_ibDebtorSearch')">
+
+    <table>
+        <tbody><tr class="bg_left search">
+            <td width="55">
+                <img src="../img/zoom.png" class="iepng" width="48px" height="46px">
+            </td>
+            <td width="213">
+                <span>Поиск должников</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div id="small">
+                    <table>
+                        <tbody><tr>
+                            <td>
+                                <input name="ctl00$DebtorSearch1$inputDebtor" type="text" id="ctl00_DebtorSearch1_inputDebtor" value="поиск" class="in" onclick="this.value=''">
+                            </td>
+                            <td style="vertical-align:middle !important;">
+                                <input type="image" name="ctl00$DebtorSearch1$ibDebtorSearch" id="ctl00_DebtorSearch1_ibDebtorSearch" title="Найти" src="img/search.jpg" style="vertical-align:middle !important;">
+                            </td>
+                        </tr>
+                    </tbody></table>
+                    <br>
+                    <a href="/DebtorsSearch.aspx?Name=">Расширенный поиск</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+
+</div>
+
+
+<table>
+    <tbody><tr class="bg_left news">
+        <td width="55">
+            <img src="../img/news.png" class="iepng" width="27px" height="40px" alt="">
+        </td>
+        <td width="213">
+            <span>Новости</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <table id="news">
+
+                        <tbody><tr>
+                            <td class="date">
+                                20.10.2020
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text">
+                                <a href="https://fedresurs.ru/news/e68a1783-2052-4262-8ebe-452e983ec90b">
+                                    Конкурсный управляющий "Мишель-Алко" намерен привлечь Ванеева к субсидиарной ответственности на 19 млрд руб.
+                                </a>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="date">
+                                19.10.2020
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text">
+                                <a href="https://fedresurs.ru/news/634c2601-db79-4d9d-9e31-fc9c45fb5c91">
+                                    Запись вебинара "Проблемы регулирования банкротства" 8 октября
+                                </a>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="date">
+                                16.10.2020
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text">
+                                <a href="https://fedresurs.ru/news/e5833d60-7af9-4242-84a1-22f9c30e8326">
+                                    ВС РФ определит порядок наказания арбитражных управляющих со спецстатусом
+                                </a>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="more">
+                        <a href="https://fedresurs.ru/news?proj=Bankrot">Все новости</a>
+                    </td>
+                </tr>
+            </tbody></table>
+        </td>
+    </tr>
+</tbody></table>
+
+<table>
+    <tbody><tr class="bg_left links">
+        <td width="55">
+            <img src="../img/links.png" class="iepng" width="33px" height="35px" alt="">
+        </td>
+        <td width="213">
+            <span>Полезные ссылки</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <ul id="links">
+
+                        <li><a href="http://kad.arbitr.ru/" target="_blank">
+                            Картотека арбитражных дел</a></li>
+
+                        <li><a href="http://www.economy.gov.ru/minec/activity/sections/CorpManagment/" target="_blank">
+                            Минэкономразвития России</a></li>
+
+                        <li><a href="http://egrul.nalog.ru" target="_blank">
+                            ЕГРЮЛ ФНС РФ</a></li>
+
+                        <li><a href="http://test.fedresurs.ru/default.aspx" target="_blank">
+                            Тестовая версия ЕФРСБ</a></li>
+
+                        <li><a href="http://test-facts.interfax.ru/" target="_blank">
+                            Тестовая версия ЕФРСДЮЛ</a></li>
+
+                        <li><a href="  http://forum-fedresurs.interfax.ru/" target="_blank">
+                            Форум Федеральных реестров</a></li>
+
+                        <li><a href="http://bankrot.fedresurs.ru/Help/FAQ_EFRSB.pdf" target="_blank">
+                            Часто задаваемые вопросы (FAQ)</a></li>
+
+            </ul>
+        </td>
+    </tr>
+</tbody></table>
+
+
+        <table>
+            <tbody><tr class="bg_left monitor">
+                <td width="55">
+                    <img src="../img/monitor.png" width="33px" height="29px" class="iepng" alt="">
+                </td>
+                <td width="213">
+                    <span>Подписка на мониторинг</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <table id="monitor">
+                        <tbody><tr>
+                            <td>
+                                На нашем сайте есть возможность подписки на мониторинг
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="more">
+                                <a href="https://fedresurs.ru/monitoring" id="ctl00_Subcribe1_LoginView_hrefAnonymous">Подробнее</a>
+                            </td>
+                        </tr>
+                    </tbody></table>
+                </td>
+            </tr>
+        </tbody></table>
+
+
+                                            </td>
+                                            <td id="right">
+
+    <center>
+        <table height="90%">
+            <tbody><tr>
+                <td valign="middle">
+                    <table id="ctl00_cphBody_tblContent" class="Message" style="color:#CC3300;background-color:#FFB7B7;width:500px;">
+        <tbody><tr>
+                <td id="ctl00_cphBody_tdContent" class="Content" style="font-weight:bold;">
+                В процессе работы приложения произошла непредвиденная ошибка, администраторам приложения отправлено уведомление.
+                При необходимости, Вы можете сообщить нам дополнительную информацию об ошибке по e-mail.<br><br>
+                <span style="font-weight: normal">Для перехода на главную страницу кликните по ссылке.</span>
+                            </td>
+        </tr><tr>
+                <td id="ctl00_cphBody_TableCell1">
+                                <center>
+                                    <a id="ctl00_cphBody_hlGoTo" href="/Default.aspx" style="color:#CC3300;">На главную страницу</a>
+                                </center>
+                            </td>
+        </tr>
+</tbody></table>
+                </td>
+            </tr>
+        </tbody></table>
+    </center>
+
+                                            </td>
+                                        </tr>
+                                    </tbody></table>
+                                </td>
+                            </tr>
+                        </tbody></table>
+
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td id="footer">
+                    Включение сведений, подлежащих опубликованию в соответствии с Федеральным законом от 26 октября 2002 г. № 127-ФЗ «О несостоятельности (банкротстве)» в Единый федеральный реестр сведений о банкротстве, осуществляется с 1 апреля 2011 г. (пункт 2 статьи 4 Федерального закона от 28 декабря 2010 г. № 429-ФЗ) <br>
+                    <a class="link" href="http://group.interfax.ru/ftproot/files/politika.pdf">
+                        Политика АО "Интерфакс" в отношении обработки и защиты персональных данных
+                    </a>
+                </td>
+            </tr>
+        </tbody></table>
+
+<script type="text/javascript">
+//<![CDATA[
+var Page_ValidationSummaries =  new Array(document.getElementById("ctl00_PrivateOffice1_ValidationSummary1"));
+var Page_Validators =  new Array(document.getElementById("ctl00_PrivateOffice1_RequiredFieldValidator1"), document.getElementById("ctl00_PrivateOffice1_revEmailValidator"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var ctl00_PrivateOffice1_ValidationSummary1 = document.all ? document.all["ctl00_PrivateOffice1_ValidationSummary1"] : document.getElementById("ctl00_PrivateOffice1_ValidationSummary1");
+ctl00_PrivateOffice1_ValidationSummary1.showmessagebox = "True";
+ctl00_PrivateOffice1_ValidationSummary1.showsummary = "False";
+ctl00_PrivateOffice1_ValidationSummary1.displaymode = "List";
+ctl00_PrivateOffice1_ValidationSummary1.validationGroup = "RestorePsw";
+var ctl00_PrivateOffice1_RequiredFieldValidator1 = document.all ? document.all["ctl00_PrivateOffice1_RequiredFieldValidator1"] : document.getElementById("ctl00_PrivateOffice1_RequiredFieldValidator1");
+ctl00_PrivateOffice1_RequiredFieldValidator1.controltovalidate = "ctl00_PrivateOffice1_tbEmailForPassword";
+ctl00_PrivateOffice1_RequiredFieldValidator1.focusOnError = "t";
+ctl00_PrivateOffice1_RequiredFieldValidator1.errormessage = "Укажите Ваш e-mail";
+ctl00_PrivateOffice1_RequiredFieldValidator1.display = "None";
+ctl00_PrivateOffice1_RequiredFieldValidator1.validationGroup = "RestorePsw";
+ctl00_PrivateOffice1_RequiredFieldValidator1.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_PrivateOffice1_RequiredFieldValidator1.initialvalue = "";
+var ctl00_PrivateOffice1_revEmailValidator = document.all ? document.all["ctl00_PrivateOffice1_revEmailValidator"] : document.getElementById("ctl00_PrivateOffice1_revEmailValidator");
+ctl00_PrivateOffice1_revEmailValidator.controltovalidate = "ctl00_PrivateOffice1_tbEmailForPassword";
+ctl00_PrivateOffice1_revEmailValidator.focusOnError = "t";
+ctl00_PrivateOffice1_revEmailValidator.errormessage = "Поле «E-mail» содержит некорректный адрес";
+ctl00_PrivateOffice1_revEmailValidator.display = "None";
+ctl00_PrivateOffice1_revEmailValidator.validationGroup = "RestorePsw";
+ctl00_PrivateOffice1_revEmailValidator.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_PrivateOffice1_revEmailValidator.validationexpression = "^([a-zA-Z0-9]+([-_\\.\\+]?[a-zA-Z0-9]+)*)\\@(([a-zA-Z0-9]+([-\\.][a-zA-Z0-9]+)*\\.[a-zA-Z0-9]+)|([а-яА-ЯёЁ0-9]+([-\\.][а-яА-ЯёЁ0-9]+)*\\.[а-яА-ЯёЁ0-9]+))$";
+//]]>
+</script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+
+(function(id) {
+    var e = document.getElementById(id);
+    if (e) {
+        e.dispose = function() {
+            Array.remove(Page_ValidationSummaries, document.getElementById(id));
+        }
+        e = null;
+    }
+})('ctl00_PrivateOffice1_ValidationSummary1');
+
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        Sys.Application.add_init(function() {
+    $create(Telerik.Web.UI.RadWindowManager, {"autoSizeBehaviors":5,"clientStateFieldID":"ctl00_radWindowManager_ClientState","destroyOnClose":true,"formID":"aspnetForm","iconUrl":"/favicon.ico","minimizeIconUrl":"/favicon.ico","name":"radWindowManager","offsetElementID":"main","reloadOnShow":true,"restrictionZoneID":"main","showContentDuringLoad":false,"skin":"Default","visibleStatusbar":false,"windowControls":"[]"}, null, null, $get("ctl00_radWindowManager"));
+});
+
+document.getElementById('ctl00_PrivateOffice1_RequiredFieldValidator1').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_PrivateOffice1_RequiredFieldValidator1'));
+}
+
+document.getElementById('ctl00_PrivateOffice1_revEmailValidator').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_PrivateOffice1_revEmailValidator'));
+}
+Sys.Application.add_init(function() {
+    $create(Telerik.Web.UI.RadToolTip, {"_cssClass":"","_manualCloseButtonText":"Close","clientStateFieldID":"ctl00_PrivateOffice1_RadToolTip1_ClientState","formID":"aspnetForm","hideEvent":4,"position":31,"showCallout":false,"showEvent":2,"skin":"Default","targetControlID":"ctl00_PrivateOffice1_hlRecPsw","width":"280px"}, null, null, $get("ctl00_PrivateOffice1_RadToolTip1"));
+});
+//]]>
+</script>
+</form>
+
+    <input type="hidden" id="userAgreementUrl" value="http://bankrot.fedresurs.ru/help/prod/CurrentRules.pdf">
+    <input type="hidden" id="authByCertificatePostUrl" value="https://bankrot.fedresurs.ru/backoffice/Authentication/Authenticate">
+    <input type="hidden" id="digitalSigningActiveXVersion" value="2">
+    <input type="hidden" id="dataForSigningField" name="dataForSigning" value="0uXx8u7i4P8g8fLw7urgIOTr/yDv8O7i5fDq6CDv7uTv6PHoLg==">
+    <input type="hidden" id="signedDataField" name="signedData">
+    <input type="hidden" id="signatureField" name="signature">
+
+    <script type="text/javascript"> (function (d, w, c) { (w[c] = w[c] || []).push(function() { try { w.yaCounter45311283 = new Ya.Metrika({ id:45311283, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); } catch(e) { } }); var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); }; s.type = "text/javascript"; s.async = true; s.src = "https://mc.yandex.ru/metrika/watch.js"; if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); } })(document, window, "yandex_metrika_callbacks"); </script> <noscript>&lt;div&gt;&lt;img src="https://mc.yandex.ru/watch/45311283" style="position:absolute; left:-9999px;" alt="" /&gt;&lt;/div&gt;</noscript>
+
+
+<div id="authPanel" style="display: none; position: fixed; top: 379px; left: -7px; width: 370px; height: 150px; background-color: rgb(173, 216, 230); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; opacity: 0.95; z-index: 1000;"><div style="text-align: center; color: green; font-size: 1.2em; border: 0px; margin: 2px auto; padding: 2px 5px; width: 97%;">Вход в личный кабинет по сертификату</div><div style="border: 0px; margin: 2px auto; padding: 2px 5px; width: 97%;"><div style="border: 0px; margin: 2px auto; padding: 2px 5px; width: 97%;"><input type="checkbox" id="agreement"><label for="agreement">Согласие с правилами взаимодействия оператора и пользователя ЕФРСБ</label></div><div style="border: 0px; margin: 2px auto; padding: 2px 5px; width: 97%;"><a href="http://bankrot.fedresurs.ru/help/prod/CurrentRules.pdf">Правила взаимодействия оператора и пользователя ЕФРСБ</a></div><div style="position: absolute; width: 30%; left: 35%; bottom: 10px;"><button type="button" id="login" style="border-top-left-radius: 7px; border-top-right-radius: 7px; border-bottom-right-radius: 7px; border-bottom-left-radius: 7px; background-color: rgb(173, 216, 230); width: 100%; height: 30px; display: none;">Войти</button></div></div></div></body><img src="https://mc.yandex.ru/metrika/advert.gif" style="position: absolute; visibility: hidden; width: 0px; height: 0px;"></html>

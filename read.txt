@@ -1,0 +1,3 @@
+sudo apt-get install pkg-config libicu-dev
+pip install --no-binary=:pyicu: pyicu
+sudo apt-get install unrar
