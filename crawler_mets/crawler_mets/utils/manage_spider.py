@@ -40,55 +40,53 @@ def find_link_to_lot(link):
 
 
 def sort_trading_type(text):
-    text = ''.join(filter(lambda x: x.isalpha(), text))
-    offer = ['ОТПП',
-             'ЗТПП',
-             'ОКПП',
-             'ЗКПП']
-    auction = ['ОАОФ',
-               'ОАЗФ',
-               'ЗАОФ',
-               'ЗАЗФ']
-    competition = ['ОКОФ',
-                   'ОКЗФ',
-                   'ЗКОФ',
-                   'ЗКЗФ']
-    match1 = ''.join(filter(lambda x: re.findall(
-        text, x, flags=re.IGNORECASE), auction))
-    match2 = ''.join(filter(lambda x: re.findall(
-        text, x, flags=re.IGNORECASE), offer))
-    match3 = ''.join(filter(lambda x: re.findall(
-        text, x, flags=re.IGNORECASE), competition))
-    if match1:
-        return 'auction'
-    if match2:
-        return 'offer'
-    if match3:
-        return 'competition'
+    d = dict(
+        offer=[
+            'Открытые торги посредством публичного предложения',
+            'Закрытые торги посредством публичного предложения',
+            'Открытые торги (конкурс) посредством публичного предложения',
+            'Открытые торги (конкурс) посредством публичного предложения'
+        ],
+        auction=[
+            'Открытый аукцион с открытой формой представления предложений о цене',
+            'Открытый аукцион с закрытой формой представления предложений о цене',
+            'Закрытый аукцион с открытой формой представления предложений о цене',
+            'Закрытый аукцион с закрытой формой представления предложений о цене'
+        ],
+        competition=[
+            'ОКОФ',
+            'ОКЗФ',
+            'ЗКОФ',
+            'ЗКЗФ'
+        ]
+    )
+    for k, v in d.items():
+        if text in v:
+            return k
 
 
 def get_trading_form(text):
     """get text from trading page - section trading form an type
         :return open or close form
     """
-    text = ''.join(filter(lambda x: x.isalpha(), text))
-    opened = ['ОТПП',
-              'ОКПП',
-              'ОАОФ',
-              'ОАЗФ',
-              'ОКОФ',
-              'ОКЗФ']
-    closed = ['ЗТПП',
-              'ЗКПП',
-              'ЗАОФ',
-              'ЗАЗФ',
-              'ЗКОФ',
-              'ЗКЗФ']
-    match1 = ''.join(filter(lambda x: re.findall(
-        text, x, flags=re.IGNORECASE), opened))
-    match2 = ''.join(filter(lambda x: re.findall(
-        text, x, flags=re.IGNORECASE), closed))
-    if match1:
-        return 'open'
-    if match2:
-        return 'closed'
+    d = dict(
+        opened=[
+            'Открытые торги посредством публичного предложения',
+            'Открытые торги (конкурс) посредством публичного предложения',
+            'Открытый аукцион с открытой формой представления предложений о цене',
+            'Открытый аукцион с закрытой формой представления предложений о цене',
+            'ОКОФ',
+            'ОКЗФ'
+        ],
+        closed=[
+            'Закрытые торги посредством публичного предложения',
+            'Закрытые торги (конкурс) посредством публичного предложения',
+            'Закрытый аукцион с открытой формой представления предложений о цене',
+            'Закрытый аукцион с закрытой формой представления предложений о цене'
+            'ЗКОФ',
+            'ЗКЗФ'
+        ]
+    )
+    for k, v in d.items():
+        if text in v:
+            return k
