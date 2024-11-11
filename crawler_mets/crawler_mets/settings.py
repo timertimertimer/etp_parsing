@@ -10,13 +10,22 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 from random import choice
 
-from crawler_mets.utils.config import referer, agent_list, path_to_proxy
+from .utils.config import referer, agent_list, path_to_proxy
 
 BOT_NAME = 'crawler_mets'
 
 SPIDER_MODULES = ['crawler_mets.spiders']
 NEWSPIDER_MODULE = 'crawler_mets.spiders'
 
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+# PLAYWRIGHT_LAUNCH_OPTIONS = {
+#     "headless": False,
+#     "timeout": 20 * 1000,  # 20 seconds
+# }
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = choice(agent_list)
@@ -24,44 +33,38 @@ USER_AGENT = choice(agent_list)
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-CONCURRENT_REQUESTS = 1
+# CONCURRENT_REQUESTS = 1
 
-DOWNLOAD_DELAY = 7
+# DOWNLOAD_DELAY = 7
 # The download delay setting will honor only one of:
-CONCURRENT_REQUESTS_PER_DOMAIN = 1
-CONCURRENT_REQUESTS_PER_IP = 1
+# CONCURRENT_REQUESTS_PER_DOMAIN = 1
+# CONCURRENT_REQUESTS_PER_IP = 1
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+# COOKIES_ENABLED = False
 # COOKIES_DEBUG = True
 
 DEFAULT_REQUESTS_HEADERS = {
-    ':authority': 'm-ets.ru',
-    ':method': 'GET',
-    ':path': '/search',
-    ':scheme': 'https',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
     'cache-control': 'no-cache',
     'origin': 'www.m-ets.ru',
     'pragma': 'no-cache',
-    'sec-fetch-dest': 'document',
+    'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'navigate',
-    'sec-fetch-site': 'none',
+    'sec-fetch-site': 'same-origin',
     'referer': referer,
     'upgrade-insecure-requests': '1',
     'User-Agent': USER_AGENT
-
-
 }
-LOG_LEVEL = 'ERROR'
-LOG_FILE = './mets.log'
+# LOG_LEVEL = 'ERROR'
+# LOG_FILE = './mets.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 
 #SPLASH_URL = 'http://172.20.0.7:8050/'
-SPLASH_URL = 'http://localhost:8069/'
+SPLASH_URL = 'http://localhost:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -74,6 +77,7 @@ SPIDER_MIDDLEWARES = {
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
+
 DOWNLOADER_MIDDLEWARES = {
     'crawler_mets.middlewares.UserAgentMiddleware': 100,
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,

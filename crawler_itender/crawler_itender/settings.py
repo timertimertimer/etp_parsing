@@ -6,7 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-from crawler_itender.utils.config import path_to_proxy
+from .utils.config import path_to_proxy
 BOT_NAME = 'crawler_itender'
 
 SPIDER_MODULES = ['crawler_itender.spiders']
@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'crawler_itender.spiders'
 # ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 2
+# CONCURRENT_REQUESTS = 2
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -45,16 +45,17 @@ DEFAULT_REQUESTS_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
 }
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = './itender.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './itender.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-# SPIDER_MIDDLEWARES = {
-#    'crawler_itender.middlewares.CrawlerItenderSpiderMiddleware': 543,
-# }
-
+SPLASH_URL = 'http://localhost:8050/'
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
+CLOSESPIDER_PAGECOUNT = 5000
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
@@ -97,6 +98,9 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
+SPLASH_COOKIES_DEBUG = False
+SPLASH_LOG_400 = True
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 #HTTPCACHE_ENABLED = True
 # HTTPCACHE_EXPIRATION_SECS = 3600
 # HTTPCACHE_DIR = 'httpcache'

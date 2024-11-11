@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'crawler_altimeta.spiders'
 # USER_AGENT = 'crawler_altimeta (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 1
@@ -47,7 +47,7 @@ ROBOTSTXT_OBEY = True
 #    'crawler_altimeta.middlewares.CrawlerAltimetaSpiderMiddleware': 543,
 # }
 
-LOG_LEVEL = 'INFO'
+# LOG_LEVEL = 'INFO'
 #LOG_FILE = './altimeta.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class SibtoptradeSpider(CrawlSpider):
     name = bot_name
-    allowed_domains = ['sibtoptrade.ru']
+    allowed_domains = ['sibtoptrade.ru', 'localhost']
     total_iterations = int(finish_page) - int(start_page)
 
     start_url_ = [start_urls.format(n + int(start_page))

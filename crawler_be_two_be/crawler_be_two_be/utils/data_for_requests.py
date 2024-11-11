@@ -46,7 +46,7 @@ script_lua_nojs = """
 	         assert(splash:wait(1))
              assert(splash:go{
              splash.args.url,
-             headers=splash.args.headers,
+             -- headers=splash.args.headers,
              http_method=splash.args.http_method,
              body=splash.args.body,
              })

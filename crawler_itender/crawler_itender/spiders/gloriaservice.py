@@ -32,7 +32,7 @@ class GloriaserviceSpider(Spider):
     start_url = ['https://gloriaservice.ru/']
     data_origin = data_origin['gloriaservice']
     custom_settings = {
-        'LOG_FILE': './gloriaservice.log',
+        # 'LOG_FILE': './gloriaservice.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

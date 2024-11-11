@@ -1,4 +1,4 @@
-scrapy<=2.5.0
+scrapy
 scrapy-rotating-proxies
 requests
 requests[socks]
@@ -7,7 +7,7 @@ scrapy-splash
 mysql-connector-python
 pandas
 pymysql
-scrapy_cookies
+git+https://github.com/scrapedia/scrapy-cookies.git@0.4
 icu
 tqdm
 aiofiles
@@ -20,3 +20,4 @@ py7zr
 icecream
 aiohttp_socks
 aiomysql
+chardet

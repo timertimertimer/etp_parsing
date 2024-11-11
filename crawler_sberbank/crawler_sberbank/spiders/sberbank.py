@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 import logging
 
 import pandas as pd
@@ -47,11 +48,6 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
     http_pass = 'gs:0Kh7%bD5$gBh}'
 
     def start_requests(self):
-        yield SplashRequest(main_url_start, self.post_request, endpoint='execute', encoding='utf-8',
-                            cache_args=['lua_source'], slot_policy=SlotPolicy.PER_DOMAIN,
-                            args={'lua_source': simle2_script_lua, 'headers': DEFAULT_REQUESTS_HEADERS}, session_id=1)
-
-    def post_request(self, response):
         """start requests according periods interval and frequency"""
         date_range = pd.date_range(start_time_from, periods=periods_, freq=format_period)
         for start_time in date_range:
@@ -65,15 +61,19 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
             yield SplashRequest(main_url_start, self.make_second_request, endpoint='execute', encoding='utf-8',
                                 cache_args=['lua_source'],
                                 args={'lua_source': script_lua_first_req, 'headers': headers,
-                                      'time_from': time_from, 'time_to': time_to, 'btn': btn}, session_id=1,
+                                      'time_from': time_from, 'time_to': time_to, 'btn': btn, 'timeout': 60}, session_id=1,
                                 meta={'time_from': start_time,
                                       'time_to': f"{increase_time_days(start_time, self.days_increase)}"},
                                 dont_filter=True)
 
     def make_second_request(self, response):
+        png_bytes = base64.b64decode(response.data["screenshot"])
+        with open("screenshot.png", "wb") as f:
+            f.write(png_bytes)
+
         import math
         """get full data for FormRequest and do it (get sum and amount of lots that period include)"""
-        lot_count = response.xpath(self.loc.count_lots_page_loc).get()
+        lot_count = response.xpath(self.loc.count_lots_page_loc).get()  # lot_count = 0
         # statistics - information about amount lots, total sum of lots and amount of organizers
         statistics = response.xpath(self.loc.statistics_loc).get()
         statistics = BS(statistics, features='lxml')

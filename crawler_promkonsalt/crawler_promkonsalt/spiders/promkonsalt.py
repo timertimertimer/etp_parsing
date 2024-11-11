@@ -2,8 +2,8 @@
 import scrapy
 from bs4 import BeautifulSoup
 from scrapy.loader import ItemLoader
-from crawler_promkonsalt.items import Lot
-from crawler_promkonsalt.config import page_limits, start_time
+from ..items import Lot
+from ..config import page_limits, start_time
 
 
 class PromkonsaltSpider(scrapy.Spider):

@@ -74,7 +74,7 @@ _serp_link = {
     'ausib': 'https://ausib.ru/etp/trade/list.html',
     'seltim': 'https://www.seltim.ru/etp/trade/list.html',
     'atctrade': 'https://atctrade.ru/etp/trade/list.html',
-    'regtorg': 'https://www.regtorg.com/etp/trade/list.html',
+    'regtorg': 'https://regtorg.com/etp/trade/list.html',
     'aukcioncenter': 'https://aukcioncenter.ru/etp/trade/list.html',
     'torgidv': 'https://torgidv.ru/etp/trade/list.html',
     'ptp_center': 'https://ptp-center.ru/etp/trade/list.html',

@@ -49,7 +49,6 @@ data_origin = {
     'alfalot': 'https://bankrupt.alfalot.ru/',
 }
 
-
 def return_auction_link(_data_origin):
     auction_link = 'public/auctions-all/'
     return _data_origin + auction_link

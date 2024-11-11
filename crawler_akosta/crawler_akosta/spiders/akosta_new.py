@@ -4,12 +4,11 @@ from scrapy.spiders import Spider
 from scrapy import Request, FormRequest
 from scrapy_splash import SplashRequest, SlotPolicy, SplashFormRequest
 from twisted.internet.error import DNSLookupError, TCPTimedOutError, TimeoutError
-from scrapy.utils.python import to_native_str, to_unicode
+from scrapy.utils.python import to_unicode
 from ..manage_spider.app import Combo
-from ..settings import DEFAULT_REQUESTS_HEADERS
 from ..utils.data_for_requests import script_lua, script_lua_nojs
 from ..utils.headers import HEADERS_TO_SERP_PAGE
-from ..utils.post_data import post_data_pagination, post_data_to_trade, post_data_query, post_data_debitor, \
+from ..utils.post_data import post_data_pagination, post_data_to_trade, post_data_date_query, post_data_debitor, \
     post_data_lot_tab, post_data_unique_lot_page, post_data_period_offer_page, post_search_query
 from ..utils.config import start_page, end_page, data_origin_url, search_link, start_time, common_link, debtor_link, \
     lot_link, _link_post_period
@@ -161,7 +160,7 @@ class AkostaNewSpider(Spider):
         new_view = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         post_data_debitor['formMain:inputServerTime'] = return_servertime()
         post_data_debitor['javax.faces.ViewState'] = new_view
-        form_number_search = combo.deb.find_correct_form_number()
+        form_number_search = combo.deb.find_correct_form_number_collapsed()
         post_data_debitor[form_number_search] = 'false'
         general_files = combo.main_.download_general(url=common_link, trade_id=''.join(transfer['trading_id']),
                                                      view=new_view,

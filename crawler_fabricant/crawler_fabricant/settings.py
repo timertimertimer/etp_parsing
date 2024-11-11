@@ -42,11 +42,11 @@ DEFAULT_REQUESTS_HEADERS = {
     'User-Agent': USER_AGENT,
 }
 
-LOG_LEVEL = 'DEBUG'
+# LOG_LEVEL = 'DEBUG'
 LOG_FILE = './fabricant.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-SPLASH_URL = 'http://localhost:8049'
+SPLASH_URL = 'http://localhost:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }

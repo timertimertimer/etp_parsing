@@ -183,7 +183,6 @@ class AuctionParse:
                     step_price = _div.findNext('div').get_text().strip()
 
                     return make_float(start_price * int(step_price) / 100)
-
-            logger.error(f'{self.response.url} :: ERROR function {self.get_step_price.__name__}')
+            logger.debug(f'{self.response.url} :: DEBUG function {self.get_step_price.__name__}')
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR function {self.get_step_price.__name__} - {e}')

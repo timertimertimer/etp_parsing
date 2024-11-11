@@ -30,14 +30,7 @@ class LocatorOffer:
     arbitr_org = '//div[contains(text(),"СРО, членом которого является арбитражный")]/following-sibling::div[1]'
     arbitr_inn = '//div[contains(text(),"ИНН арбитражного")]/following-sibling::div[1]'
 
-
-    div_info_lot_offer = '//div[contains(@class,"panel panel-default panel-striped lot_head")]'
-
-    lot_number_loc = '//div[@id="{}"]//div[@class="form_label"]'
-
-    short_name_loc = '//div[@id="{}"]/following::div[contains(text(),"редмет договора (наименование реализуемого имуще")]/following-sibling::div[1]'
-    short_name_loc2 = '//div[@id="{}"]/following::div[contains(text(),"редмет договора")]/following-sibling::div[1]'
-    property_info_loc = '//div[@id="{}"]/following::div[contains(text(),"орядок ознакомления с имущество")]/following-sibling::div[1]'
+    div_info_lot_offer = '//div[contains(@class,"panel panel-default panel-striped")]'
 
     # _PERIOD TABLES
     period_tables_loc = '//div[@id="{}"]/ancestor::div[1]//table'
@@ -54,12 +47,3 @@ class LocatorOffer:
     count_lot_doc_loc = '//li/a[contains(@href,"lot")]'
     doc_lot_amount_loc = '//a[@href[contains(.,"lot")]]/ancestor::li//span[@title]/text()'
     lot_doc_table = '//div[@class="documentation_{}"]//table/tbody/tr'
-
-
-    # NEW AUCTION
-    start_request_auction = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Дата и время начала приема")]/following-sibling::div[1])' # Дата и время начала приема заявок
-    end_request_auction = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Дата и время окончания приема заявок")]/following-sibling::div[1])' # Дата и время окончания приема заявок
-    start_trading_auction = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Дата и время начала аукциона")]/following-sibling::div[1])' # Дата и время начала аукциона
-    end_date_trading_auc = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Дата и время подведения итогов")]/following-sibling::div[1])'  # Дата и время подведения итогов
-    start_price_auc = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Начальная цена предмета договора")]/following-sibling::div[1])'  # Начальная цена предмета договора
-    step_price_auc = 'normalize-space(//div[@id={}]/ancestor::div[1]//div[contains(text(), "Шаг аукциона")]/following-sibling::div[1])'  # Шаг аукциона

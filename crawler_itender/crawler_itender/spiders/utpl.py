@@ -33,7 +33,7 @@ class UtplSpider(Spider):
     # start_url = ['http://utpl.ru/public/public-offers/view/4402/']
     data_origin = data_origin['utpl']
     custom_settings = {
-        'LOG_FILE': './utpl.log',
+        # 'LOG_FILE': './utpl.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

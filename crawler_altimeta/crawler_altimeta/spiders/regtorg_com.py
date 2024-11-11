@@ -21,7 +21,7 @@ TABLE = tables['table_regtorg']
 
 class RegtorgComSpider(Spider):
     name = 'regtorg_com'
-    allowed_domains = ['www.regtorg.com/etp/trade/list.html']
+    allowed_domains = ['regtorg.com']
     data_origin = _data_origin['regtorg']
     lot_link = _lot_link['regtorg']
     serp_link = _serp_link['regtorg']
@@ -32,7 +32,7 @@ class RegtorgComSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './regtorg.log',
+        # 'LOG_FILE': './regtorg.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },
@@ -50,7 +50,7 @@ class RegtorgComSpider(Spider):
 
     def start_requests(self):
         url = self.url.unquote_url(self.start_url[0])
-        yield Request(url, self.make_query_search, headers=hd)
+        yield Request(url, self.make_query_search, headers=hd, dont_filter=True)
 
     def make_query_search(self, response):
         """ request for searching lots in special period """

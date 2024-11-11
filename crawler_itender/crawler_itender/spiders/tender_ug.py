@@ -32,7 +32,7 @@ class TenderUgSpider(Spider):
     start_url = ['https://bankrupt.tender.one/']
     data_origin = data_origin['tender_ug']
     custom_settings = {
-        'LOG_FILE': './tender_ug.log',
+        # 'LOG_FILE': './tender_ug.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

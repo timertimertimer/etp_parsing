@@ -19,9 +19,9 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from icecream import ic
 
-from crawler_eurtp.config import etp_folder, db_connect, base_dir, createTable_query, path_user_agent, path_to_socks5, \
+from .config import etp_folder, db_connect, base_dir, createTable_query, path_user_agent, path_to_socks5, \
     path_absolute, relative_path
-from crawler_eurtp.python_mysql_dbconfig import read_db_config
+from .python_mysql_dbconfig import read_db_config
 
 DB_CONNECT = read_db_config()
 with open(f'{path_user_agent}', 'r') as f:
@@ -80,7 +80,6 @@ class CrawlerEurtpPipeline:
 
     def process_item(self, item, spider):
         item = self.cleaning(item)
-        if datetime(2021, 1, 1) > datetime.strptime(item['start_date_requests'], "%Y-%m-%d %H:%M:%S"): return
         # self.checking(item)
         self.add_to_db(item)
         self.downloading_files(item)
@@ -716,7 +715,8 @@ class CrawlerEurtpPipeline:
             return None
 
         if item['step_price'][0] == 'Проценты' and item['step_price'][1] is not None:
-            return round(item['start_price'] * 0.01 * int(item['step_price'][1]), 2)
+            number = re.search(r'\d+', item['step_price'][1]).group()
+            return round(item['start_price'] * 0.01 * int(number), 2)
         elif item['step_price'][0] == 'Проценты' and item['step_price'][2] is not None:
             return round(item['start_price'] * 0.01 * int(item['step_price'][2]), 2)
 
@@ -755,7 +755,7 @@ class CrawlerEurtpPipeline:
         for row in parser.select('tr')[1:]:
             link = ''
             if row.select('td')[2].get_text().strip().split('.')[-1] in ['jpeg', 'jpg', 'png', 'JPG']:
-                link = f'{relative_path}/%d/%02d/%s_%s' % (datetime.today().year, datetime.today().month,
+                link = f'%d/%02d/%s_%s' % (datetime.today().year, datetime.today().month,
                                                       '_'.join([item[field] for field in db_connect['unique_fields']]),
                                                       row.select('td')[2].get_text().strip())
                 link = link.replace(' ', '_')
@@ -786,7 +786,7 @@ class CrawlerEurtpPipeline:
         return f'{path_absolute}/{self.return_year_now()}/{self.return_month_now()}/'
 
     def downloading_files(self, item):
-        locate_dir = ''
+        locate_dir = path_absolute
 
         if len(item['files']['general']) != 0:
             for _file in item['files']['general']:

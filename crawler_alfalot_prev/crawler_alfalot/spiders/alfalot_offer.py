@@ -13,7 +13,7 @@ from ..items import CrawlerAlfalotItem, CrawlerAlfalotItemLoader
 from ..manage_spiders.app import Combo
 from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
 from ..utils.config import data_origin, start_date_post, return_offer_link
-from ..utils.data_for_requests import script_lua, script_lua_nojs
+# from ..utils.data_for_requests import script_lua, script_lua_nojs
 from ..utils.get_data_from_table import DbConnectCheckLots
 
 from ..utils.post_data_for_spiders.alfalot_post_data import post_data_offer as pdao

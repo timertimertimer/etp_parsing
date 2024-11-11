@@ -37,51 +37,56 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
-tables = {'table_arbitat': 'lots_arbitat',
-          'table_bankrot_zakazrf': 'lots_bankrot_zakazrf',
-          'table_bankrupt_alfalot': 'lots_bankrupt_alfalot',
-          'table_bankrupt_centrr': 'lots_bankrupt_centrr',
-          'table_bankrupt_electro_torgi': 'lots_bankrupt_elec_tor',
-          'table_bankrupt_etpu': 'lots_bankrupt_etpu',
-          'table_bepspb': 'lots_bepspb',
-          'table_etp_bankrotstvo': 'lots_etp_bankrotstvo',
-          'table_etpugra': 'lots_etpugra',
-          'table_gloriaservice': 'lots_gloriaservice',
-          'table_meta_invest': 'lots_meta_invest',
-          'table_propertytrade': 'lots_propertytrade',
-          'table_tender_ug': 'lots_tender_ug',
-          'table_tendergarant': 'lots_tendergarant',
-          'table_torgibankrot': 'lots_torgibankrot',
-          'table_uralbidin': 'lots_uralbidin',
-          'table_utender': 'lots_utender',
-          'table_utpl': 'lots_utpl',
-          'table_vertrades': 'lots_vertrades'}
+tables = {
+    'table_alfalot': 'lots_alfalot',
+    'table_arbitat': 'lots_arbitat',
+    'table_bankrot_zakazrf': 'lots_bankrot_zakazrf',
+    'table_bankrupt_alfalot': 'lots_bankrupt_alfalot',
+    'table_bankrupt_centrr': 'lots_bankrupt_centrr',
+    'table_bankrupt_electro_torgi': 'lots_bankrupt_elec_tor',
+    'table_bankrupt_etpu': 'lots_bankrupt_etpu',
+    'table_bepspb': 'lots_bepspb',
+    'table_etp_bankrotstvo': 'lots_etp_bankrotstvo',
+    'table_etpugra': 'lots_etpugra',
+    'table_gloriaservice': 'lots_gloriaservice',
+    'table_meta_invest': 'lots_meta_invest',
+    'table_propertytrade': 'lots_propertytrade',
+    'table_tender_ug': 'lots_tender_ug',
+    'table_tendergarant': 'lots_tendergarant',
+    'table_torgibankrot': 'lots_torgibankrot',
+    'table_uralbidin': 'lots_uralbidin',
+    'table_utender': 'lots_utender',
+    'table_utpl': 'lots_utpl',
+    'table_vertrades': 'lots_vertrades'
+}
 
 start_time = '0:0:-1'
 start_date = format_parse_date(1)
 
 start_date_post = start_date + ' ' + start_time
 
-data_origin = {'arbitat': 'http://arbitat.ru/',
-               'bankrot_zakazrf': 'http://bankrot.zakazrf.ru/',
-               'bankrupt_alfalot': 'https://bankrupt.alfalot.ru/',
-               'bankrupt_centrr': 'http://bankrupt.centerr.ru/',
-               'bankrupt_electro_torgi': 'https://bankrupt.electro-torgi.ru/',
-               'bankrupt_etpu': 'http://bankrupt.etpu.ru/',
-               'bepspb': 'https://bepspb.ru/',
-               'etp_bankrotstvo': 'https://www.etp-bankrotstvo.ru/',
-               'etpugra': 'http://etpugra.ru/',
-               'gloriaservice': 'https://gloriaservice.ru/',
-               'meta_invest': 'http://meta-invest.ru/',
-               'propertytrade': 'http://propertytrade.ru/',
-               'tender_ug': 'https://bankrupt.tender.one/',
-               'tendergarant': 'http://tendergarant.com/',
-               'torgibankrot': 'https://torgibankrot.ru/',
-               'uralbidin': 'https://www.uralbidin.ru/',
-               'utender': 'http://utender.ru/',
-               'utpl': 'https://bankrupt.utpl.ru/',
-               'vertrades': 'http://vertrades.ru/bankrupt/'
-               }
+data_origin = {
+    'alfalot': 'https://bankrupt.alfalot.ru/',
+    'arbitat': 'http://arbitat.ru/',
+    'bankrot_zakazrf': 'http://bankrot.zakazrf.ru/',
+    'bankrupt_alfalot': 'https://bankrupt.alfalot.ru/',
+    'bankrupt_centrr': 'https://bankrupt.centerr.ru/',
+    'bankrupt_electro_torgi': 'https://bankrupt.electro-torgi.ru/',
+    'bankrupt_etpu': 'https://bankrupt.etpu.ru/',
+    'bepspb': 'https://bepspb.ru/',
+    'etp_bankrotstvo': 'https://www.etp-bankrotstvo.ru/',
+    'etpugra': 'http://etpugra.ru/',
+    'gloriaservice': 'https://gloriaservice.ru/',
+    'meta_invest': 'http://meta-invest.ru/',
+    'propertytrade': 'https://propertytrade.ru/',
+    'tender_ug': 'https://bankrupt.tender.one/',
+    'tendergarant': 'http://tendergarant.com/',
+    'torgibankrot': 'https://torgibankrot.ru/',
+    'uralbidin': 'https://uralbidin.ru/',
+    'utender': 'http://utender.ru/',
+    'utpl': 'https://bankrupt.utpl.ru/',
+    'vertrades': 'https://vertrades.ru/bankrupt/'
+}
 
 
 def return_auction_link(_data_origin):
@@ -99,46 +104,50 @@ def return_compet_link(_data_origin):
     return _data_origin + competition_link
 
 
-path_absolute = {'arbitat': f'{set_absolute}/etp_arbitat',
-                 'bankrot_zakazrf': f'{set_absolute}/etp_bankrot_zakazrf',
-                 'bankrupt_alfalot': f'{set_absolute}/etp_bankrupt_alfalot',
-                 'bankrupt_centrr': f'{set_absolute}/etp_bankrupt_centrr',
-                 'bankrupt_electro_torgi': f'{set_absolute}/etp_bankrupt_electro_torgi',
-                 'bankrupt_etpu': f'{set_absolute}/etp_bankrupt_etpu',
-                 'bepspb': f'{set_absolute}/etp_bepspb',
-                 'etp_bankrotstvo': f'{set_absolute}/etp_bepspb',
-                 'etpugra': f'{set_absolute}/etp_etpugra',
-                 'gloriaservice': f'{set_absolute}/etp_gloriaservice',
-                 'meta_invest': f'{set_absolute}/etp_meta_invest',
-                 'propertytrade': f'{set_absolute}/etp_propertytrade',
-                 'tender_ug': f'{set_absolute}/etp_bankrupt_tender_one',
-                 'tendergarant': f'{set_absolute}/etp_tendergarant',
-                 'torgibankrot': f'{set_absolute}/etp_torgibankrot',
-                 'uralbidin': f'{set_absolute}/etp_uralbidin',
-                 'utender': f'{set_absolute}/etp_utender',
-                 'utpl': f'{set_absolute}/etp_utpl',
-                 'vertrades': f'{set_absolute}/etp_vertrades'
-                 }
+path_absolute = {
+    'alfalot': f'{set_absolute}/etp_alfalot',
+    'arbitat': f'{set_absolute}/etp_arbitat',
+    'bankrot_zakazrf': f'{set_absolute}/etp_bankrot_zakazrf',
+    'bankrupt_alfalot': f'{set_absolute}/etp_bankrupt_alfalot',
+    'bankrupt_centrr': f'{set_absolute}/etp_bankrupt_centrr',
+    'bankrupt_electro_torgi': f'{set_absolute}/etp_bankrupt_electro_torgi',
+    'bankrupt_etpu': f'{set_absolute}/etp_bankrupt_etpu',
+    'bepspb': f'{set_absolute}/etp_bepspb',
+    'etp_bankrotstvo': f'{set_absolute}/etp_bepspb',
+    'etpugra': f'{set_absolute}/etp_etpugra',
+    'gloriaservice': f'{set_absolute}/etp_gloriaservice',
+    'meta_invest': f'{set_absolute}/etp_meta_invest',
+    'propertytrade': f'{set_absolute}/etp_propertytrade',
+    'tender_ug': f'{set_absolute}/etp_bankrupt_tender_one',
+    'tendergarant': f'{set_absolute}/etp_tendergarant',
+    'torgibankrot': f'{set_absolute}/etp_torgibankrot',
+    'uralbidin': f'{set_absolute}/etp_uralbidin',
+    'utender': f'{set_absolute}/etp_utender',
+    'utpl': f'{set_absolute}/etp_utpl',
+    'vertrades': f'{set_absolute}/etp_vertrades'
+}
 
-path_relative = {'arbitat': f'{set_relative}/etp_arbitat',
-                 'bankrot_zakazrf': f'{set_relative}/etp_bankrot_zakazrf',
-                 'bankrupt_alfalot': f'{set_relative}/etp_bankrupt_alfalot',
-                 'bankrupt_centrr': f'{set_relative}/etp_bankrupt_centrr',
-                 'bankrupt_electro_torgi': f'{set_relative}/etp_bankrupt_electro_torgi',
-                 'bankrupt_etpu': f'{set_relative}/etp_bankrupt_etpu',
-                 'bepspb': f'{set_relative}/etp_bepspb',
-                 'etp_bankrotstvo': f'{set_relative}/etp_bepspb',
-                 'etpugra': f'{set_relative}/etp_etpugra',
-                 'gloriaservice': f'{set_relative}/etp_gloriaservice',
-                 'meta_invest': f'{set_relative}/etp_meta_invest',
-                 'propertytrade': f'{set_relative}/etp_propertytrade',
-                 'tender_ug': f'{set_relative}/etp_bankrupt_tender_one',
-                 'tendergarant': f'{set_relative}/etp_tendergarant',
-                 'torgibankrot': f'{set_relative}/etp_torgibankrot',
-                 'uralbidin': f'{set_relative}/etp_uralbidin',
-                 'utender': f'{set_relative}/etp_utender',
-                 'utpl': f'{set_relative}/etp_utpl',
-                 }
+path_relative = {
+    'alfalot': f'{set_relative}/etp_alfalot',
+    'arbitat': f'{set_relative}/etp_arbitat',
+    'bankrot_zakazrf': f'{set_relative}/etp_bankrot_zakazrf',
+    'bankrupt_alfalot': f'{set_relative}/etp_bankrupt_alfalot',
+    'bankrupt_centrr': f'{set_relative}/etp_bankrupt_centrr',
+    'bankrupt_electro_torgi': f'{set_relative}/etp_bankrupt_electro_torgi',
+    'bankrupt_etpu': f'{set_relative}/etp_bankrupt_etpu',
+    'bepspb': f'{set_relative}/etp_bepspb',
+    'etp_bankrotstvo': f'{set_relative}/etp_bepspb',
+    'etpugra': f'{set_relative}/etp_etpugra',
+    'gloriaservice': f'{set_relative}/etp_gloriaservice',
+    'meta_invest': f'{set_relative}/etp_meta_invest',
+    'propertytrade': f'{set_relative}/etp_propertytrade',
+    'tender_ug': f'{set_relative}/etp_bankrupt_tender_one',
+    'tendergarant': f'{set_relative}/etp_tendergarant',
+    'torgibankrot': f'{set_relative}/etp_torgibankrot',
+    'uralbidin': f'{set_relative}/etp_uralbidin',
+    'utender': f'{set_relative}/etp_utender',
+    'utpl': f'{set_relative}/etp_utpl',
+}
 
 lst_exet = ['.jpeg', '.png', '.jpg', '.bmp',
             '.JPG', '.JPEG', '.PNG' 'jpg', 'jpeg', 'JPG', 'JPEG', 'PNG']

@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from pathlib import Path
+
+with open(Path(__file__).parent / "script_lua_search.lua", encoding='utf-8') as f:
+    script_lua_search = f.read()
+
 script_lua = """
          function main(splash)
          splash:on_request(function(request)

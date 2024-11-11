@@ -31,7 +31,7 @@ class BankrotZakazrfSpider(Spider):
     start_url = ['http://bankrot.zakazrf.ru/']
     data_origin = data_origin['bankrot_zakazrf']
     custom_settings = {
-        'LOG_FILE': './bankrot_zakazrf.log',
+        # 'LOG_FILE': './bankrot_zakazrf.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },
@@ -148,8 +148,8 @@ class BankrotZakazrfSpider(Spider):
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
         hd_lot = copy.deepcopy(hd)
-        hd_lot['referer'] = response.url
-        hd_lot['user-agent'] = USER_AGENT
+        hd_lot['Referer'] = response.url
+        hd_lot['User-Agent'] = USER_AGENT
         # lot_info auction
         # lot_link = combo.auc.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -243,8 +243,8 @@ class BankrotZakazrfSpider(Spider):
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
                                                   host=self.allowed_domains[0])
         hd_lot = copy.deepcopy(hd)
-        hd_lot['referer'] = response.url
-        hd_lot['user-agent'] = USER_AGENT
+        hd_lot['Referer'] = response.url
+        hd_lot['User-Agent'] = USER_AGENT
 
         # lot_info
         pagination_on_page: list = combo.auc.pagination
@@ -299,8 +299,8 @@ class BankrotZakazrfSpider(Spider):
             amount_of_page_period = len(pages) + 1
             # if 2 period pages on lot page or more
             hd_lot = copy.deepcopy(hd)
-            hd_lot['referer'] = response.url
-            hd_lot['user-agent'] = USER_AGENT
+            hd_lot['Referer'] = response.url
+            hd_lot['User-Agent'] = USER_AGENT
             cviewstate = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             eventvalidation = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             # first check value of two post param
@@ -348,8 +348,8 @@ class BankrotZakazrfSpider(Spider):
         pages.pop(0)
         if len(pages) > 0:
             hd_lot = copy.deepcopy(hd)
-            hd_lot['referer'] = response.url
-            hd_lot['user-agent'] = USER_AGENT
+            hd_lot['Referer'] = response.url
+            hd_lot['User-Agent'] = USER_AGENT
             cviewstate = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             eventvalidation = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             # first check value of two post param
@@ -476,8 +476,8 @@ class BankrotZakazrfSpider(Spider):
         loader.add_value('start_date_trading', combo.compet.start_date_trading())
         loader.add_value('end_date_trading', None)
         hd_lot = copy.deepcopy(hd)
-        hd_lot['referer'] = response.url
-        hd_lot['user-agent'] = USER_AGENT
+        hd_lot['Referer'] = response.url
+        hd_lot['User-Agent'] = USER_AGENT
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
         # lot_info auction

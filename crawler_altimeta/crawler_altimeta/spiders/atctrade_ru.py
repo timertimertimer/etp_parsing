@@ -20,7 +20,7 @@ TABLE = tables['table_atctrade']
 
 class AtctradeRuSpider(Spider):
     name = 'atctrade_ru'
-    allowed_domains = ['atctrade.ru/etp/trade/list.html']
+    allowed_domains = ['atctrade.ru']
     data_origin = _data_origin['atctrade']
     lot_link = _lot_link['atctrade']
     serp_link = _serp_link['atctrade']
@@ -31,7 +31,7 @@ class AtctradeRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './atctrade.log',
+        # 'LOG_FILE': './atctrade.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
 

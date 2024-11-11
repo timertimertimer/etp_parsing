@@ -1,14 +1,16 @@
 from itertools import chain
 
 import scrapy
+import scrapy_splash
 from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
+from scrapy_splash import SplashRequest
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from crawler_nistpru.settings import DEFAULT_REQUESTS_HEADERS
+from ..settings import DEFAULT_REQUESTS_HEADERS
 from ..items import CrawlerNistpruItemLoader, CrawlerNistpTransferItem, CrawlerNistpruItem
 from ..trades.app import Combo
-from ..utils.config import start_time, _data_origin
+from ..utils.config import start_time, _data_origin, script_lua
 from ..utils.download import agent_list, choice
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.param_data import param_search as ps
@@ -18,8 +20,8 @@ from ..utils.working_with_url import UrlConfig
 
 class NistpSpider(scrapy.Spider):
     name = 'nistp'
-    allowed_domains = ['nistp.ru']
-    start_url = ['http://nistp.ru/']
+    # allowed_domains = ['nistp.ru']
+    start_url = ['https://nistp.ru/']
    
     def __init__(self):
         super(NistpSpider, self).__init__()
@@ -30,6 +32,13 @@ class NistpSpider(scrapy.Spider):
 
     def start_requests(self):
         header = DEFAULT_REQUESTS_HEADERS
+        # yield SplashRequest(url=''.join(self.start_url),
+        #                     endpoint='execute',
+        #                     cache_args=['lua_source'],
+        #                     args={'lua_source': script_lua},
+        #                     slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
+        #                     callback=self.parse_, splash_headers=DEFAULT_REQUESTS_HEADERS, cb_kwargs={'header': header},
+        #               errback=self.errback_httpbin)
         yield Request(url=''.join(self.start_url), callback=self.parse_, headers=header, cb_kwargs={'header': header},
                       errback=self.errback_httpbin)
         
@@ -41,9 +50,7 @@ class NistpSpider(scrapy.Spider):
         except:
             cookie = ''
         ps['app_start_from'] = start_time
-        header['Referer'] = response.url
-        header['User-Agent'] = choice(agent_list)
-        yield FormRequest(url=response.url, callback=self.search_serp, formdata=ps, method='GET', headers=header,
+        yield FormRequest.from_response(response, callback=self.search_serp, formdata=ps, method='GET', headers=header,
                           cb_kwargs={'header': header, 'cookie': cookie}, errback=self.errback_httpbin)
 
     def search_serp(self, response, header, cookie):

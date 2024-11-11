@@ -24,8 +24,8 @@ from ..utils.working_with_time import return_parse_date
 class ZalogRossSpider(Spider):
     name = 'zalog_ross'
     custom_settings = {
-        'SPLASH_URL': 'http://localhost:8059/',
-        'LOG_FILE': './zalog_ross.log',
+        # 'SPLASH_URL': 'http://localhost:8050/',
+        # 'LOG_FILE': './zalog_ross.log',
 
         'ITEM_PIPELINES': {
             'crawler_zalog.pipelines.CrawlerZalogPipeline': 300,

@@ -8,8 +8,8 @@ from scrapy.utils.conf import closest_scrapy_cfg
 proj_root = closest_scrapy_cfg()
 referer = 'https://mets.ru/search'
 
-data_origin_url = 'https://mets.ru/'
-url_start = 'https://mets.ru/search'
+data_origin_url = 'https://m-ets.ru/'
+url_start = 'https://m-ets.ru/search'
 
 home_dir = environ['HOME']
 project_main_dir = PurePosixPath(proj_root).parent.parent.name + '/'
@@ -67,10 +67,12 @@ relative_path = f'{set_relative}/etp_mets_ru'
 lst_exet = ['.jpeg', '.png', '.jpg', '.bmp',
             '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
 
-pattern_without_hash = r'https.+mets.+View.+id=\d+'
+pattern_without_hash = r'https.+m-ets.+generalView.+id=\d+'
 pattern_trade_links = r'https.+mets.+View.+id=\d+.(lot1)$'
 
 test_link_lst = [
     # 'https://m-ets.ru/generalView?id=163534343',
 
 ]
+
+trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'eventsource', 'websocket', 'media', 'ping']

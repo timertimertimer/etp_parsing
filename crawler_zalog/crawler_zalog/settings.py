@@ -33,7 +33,7 @@ ROBOTSTXT_OBEY = False
 
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
-SPLASH_URL = 'http://localhost:8058/'
+SPLASH_URL = 'http://localhost:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -66,7 +66,7 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-LOG_LEVEL = 'INFO'
+# LOG_LEVEL = 'INFO'
 DOWNLOADER_MIDDLEWARES = {
     # 'crawler_zalog.middlewares.CrawlerZalogDownloaderMiddleware': 543,
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,

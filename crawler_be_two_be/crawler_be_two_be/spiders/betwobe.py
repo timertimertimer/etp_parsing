@@ -11,7 +11,7 @@ from scrapy.spiders import Spider
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from crawler_be_two_be.utils.data_for_requests import script_lua_nojs, script_lua_nojs2
+from ..utils.data_for_requests import script_lua_nojs, script_lua_nojs2
 from ..items import CrawlerBeTwoBeItem, CrawlerBeTwoBeItemLoader, CrawlerBeTwoBeTransferItem
 from ..manage_spider.app import Combo
 from ..settings import DEFAULT_REQUEST_HEADERS
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class BetwobeSpider(Spider, ABC):
     name = 'betwobe'
-    start_url = 'https://www.b2b-center.ru/market/'
+    start_url = 'https://b2b-center.ru/market/'
 
     COUNT_MAX = 50
 

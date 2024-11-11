@@ -53,8 +53,8 @@ DOWNLOAD_DELAY = 3
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 CONCURRENT_REQUESTS_PER_IP = 1
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = './sibtoptrade.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './sibtoptrade.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 SPLASH_URL = 'http://localhost:8065'

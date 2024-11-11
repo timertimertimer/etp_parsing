@@ -12,7 +12,7 @@ from crawler_ruTrade24.config import page_limits
 
 class Rutrade24Spider(scrapy.Spider):
     name = 'ruTrade24'
-    start_urls = ['https://www.ru-trade24.ru/Home/Trades?status=1']
+    start_urls = ['https://ru-trade24.ru/Home/Trades?status=1']
 
     all_lots = []
     logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class Rutrade24Spider(scrapy.Spider):
 
         if page_limits['page_start'] <= current_page <= page_limits['page_stop']:
             for trade_container in trade_containers:
-                trade_link = 'https://www.ru-trade24.ru' + \
+                trade_link = 'https://ru-trade24.ru' + \
                     trade_container.css('a::attr(href)').get()
                 status = trade_container.css('.trade-card__status::text').get()
                 if trade_link not in self.previous_lots:
@@ -64,12 +64,12 @@ class Rutrade24Spider(scrapy.Spider):
         if next_href is None:
             return None
         else:
-            return 'http://www.ru-trade24.ru/' + next_href
+            return 'http://ru-trade24.ru/' + next_href
 
     def parse_trade(self, response, status):
         il = ItemLoader(item=Lot(), response=response)
 
-        il.add_value('data_origin', "http://www.ru-trade24.ru/")
+        il.add_value('data_origin', "http://ru-trade24.ru/")
 
         il.add_value('trading_id', response.url)
         il.add_value('trading_link', response.url)

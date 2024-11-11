@@ -17,7 +17,7 @@ SPIDER_MODULES = ['crawler_ruTrade24.spiders']
 NEWSPIDER_MODULE = 'crawler_ruTrade24.spiders'
 
 LOG_FILE = 'rutrade.log'
-LOG_LEVEL = 'INFO'
+# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -51,7 +51,7 @@ DEFAULT_REQUEST_HEADERS = {
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     'DNT': '1',
-    'Host': 'www.ru-trade24.ru',
+    'Host': 'ru-trade24.ru',
     'Pragma': 'no-cache',
     'Upgrade-Insecure-Requests': '1',
     'User-Agent': USER_AGENT,

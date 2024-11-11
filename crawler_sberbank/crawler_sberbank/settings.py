@@ -1,4 +1,4 @@
-from crawler_sberbank.utils.config import headers_brow, path_to_proxy
+from .utils.config import headers_brow, path_to_proxy
 
 BOT_NAME = 'crawler_sberbank'
 
@@ -37,11 +37,11 @@ DEFAULT_REQUESTS_HEADERS = {
     'x-requested-with': 'XMLHttpRequest',
 
 }
-LOG_LEVEL = 'INFO'
-LOG_FILE = './sberbank.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './sberbank.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-SPLASH_URL = 'http://localhost:8055/'
+SPLASH_URL = 'http://localhost:8050/'
 # SPLASH_URL = 'http://172.21.0.7:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,

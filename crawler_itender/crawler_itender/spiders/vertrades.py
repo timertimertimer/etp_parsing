@@ -29,11 +29,11 @@ TABLE = tables['table_vertrades']
 class VertradesSpider(Spider):
     name = 'vertrades'
     allowed_domains = ['vertrades.ru']
-    start_url = ['http://vertrades.ru/bankrupt/']
+    start_url = ['https://bankrot.vertrades.ru/bidding']
     # start_url = ['http://vertrades.ru/bankrupt/public/public-offers/view/4818/']
     data_origin = data_origin['vertrades']
     custom_settings = {
-        'LOG_FILE': './vertrades.log',
+        # 'LOG_FILE': './vertrades.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

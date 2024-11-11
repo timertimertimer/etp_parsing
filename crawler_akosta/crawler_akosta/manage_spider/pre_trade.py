@@ -72,7 +72,7 @@ class PreTradePage:
         except Exception as e:
             logger.error(
                 f'{self.response.url} ::{e}::\n page download with error -> error file name "pagination_error.txt" ')
-            with open('pagination_error.txt', 'w') as f:
+            with open('pagination_error.html', 'w') as f:
                 f.write(self.response.text)
             return None
 
@@ -85,12 +85,12 @@ class PreTradePage:
                 return lst_links
             else:
                 logger.error(f'{self.response.url} :: DURING GETTING LINKS TO TRADE PAGES OCCURE ERROR')
-                with open('getting_links_to_trading_page_1.txt', 'w') as f:
+                with open('getting_links_to_trading_page_1.html', 'w') as f:
                     f.write(self.response.text)
         except Exception as e:
             logger.error(f'{self.response.url} ::{e}:: DURING GETTING LINKS TO TRADE PAGES OCCURE ERROR(1)',
                          exc_info=True)
-            with open('getting_links_to_trading_page.txt', 'w') as f:
+            with open('getting_links_to_trading_page.html', 'w') as f:
                 f.write(self.response.text)
 
     def get_id_a_trade(self):
@@ -106,22 +106,22 @@ class PreTradePage:
             logger.error(f'{self.response.url} :: EMPTY  DATA LINK TO TRADE')
         except Exception as e:
             logger.error(f'{self.response.url} :{e}: ERROR GETTING FORM DATA LIKE A LINK')
-            with open('error_form_data_link.txt', 'w') as f:
+            with open('error_form_data_link.html', 'w') as f:
                 f.write(self.response.text)
 
-    def get_id_a_trade_1(self, tr):
+    def get_post_id_and_trading_id(self, tr):
         """ get tag <tr>. From tr get <a> fetch value of id for put to form data """
         try:
             lst_with_id = list()
             soup_ = BS(str(tr), features='lxml')
-            _id = soup_.find('a').get('id')
+            link_to_trade = soup_.find('a')
+            _id = link_to_trade.get('id')
             if _id:
-                lst_with_id.append(_id)
-            return lst_with_id
+                return _id, link_to_trade.get_text().strip()
             logger.error(f'{self.response.url} :: EMPTY  DATA LINK TO TRADE')
         except Exception as e:
             logger.error(f'{self.response.url} :{e}: ERROR GETTING FORM DATA LIKE A LINK')
-            with open('error_form_data_link.txt', 'w') as f:
+            with open('error_form_data_link.html', 'w') as f:
                 f.write(self.response.text)
 
     def get_only_one_needed_id(self, trade):
@@ -224,7 +224,7 @@ class PreTradePage:
                 temporary_list.append(('trading_number', t))
             return temporary_list
         except Exception as ex:
-            with open(f'{page_number}_error_page_none.txt', 'w') as f:
+            with open(f'{page_number}_error_page_none.html', 'w') as f:
                 f.write(self.response.text)
             logger.error(f' ERROR page number - {page_number}, {ex}')
 

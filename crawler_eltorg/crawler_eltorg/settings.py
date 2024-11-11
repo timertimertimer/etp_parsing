@@ -15,8 +15,8 @@ BOT_NAME = 'crawler_eltorg'
 SPIDER_MODULES = ['crawler_eltorg.spiders']
 NEWSPIDER_MODULE = 'crawler_eltorg.spiders'
 
-LOG_FILE = 'eltorg.log'
-LOG_LEVEL = 'INFO'
+# LOG_FILE = 'eltorg.log'
+# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

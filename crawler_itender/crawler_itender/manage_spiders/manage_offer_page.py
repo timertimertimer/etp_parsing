@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup as BS
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
 from ..utils.code_for_edit_and_format.work_with_path_and_dir import GeneralFilesDir
-from crawler_itender.utils.config import path_absolute, path_relative, lst_exet, data_origin, lst_exet_archive
+from ..utils.config import path_absolute, path_relative, lst_exet, data_origin, lst_exet_archive
 from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
 from ..utils.code_for_edit_and_format.work_with_text_and_number import dedent_func
 from ..utils.code_for_edit_and_format.check_inn_email_phone import CheckIfCorrectContactInfo
@@ -288,7 +288,7 @@ class OfferPage:
                         lot_lst.append({'original_name': file_name, 'link': _path_relative, 'link_etp': link_etp})
                 lot_dict['lot'] = lot_lst
             return lot_dict
-        except:
+        except Exception as e:
             pass
 
     # EXTRA FUNCTIONS - WHEN PERIODS HAS TWO (2) PAGES

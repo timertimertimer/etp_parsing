@@ -40,7 +40,7 @@ def format_parse_date(days_: int, time_format=None):
 
 USER_AGENT = choice(agent_list)
 
-start_time = format_parse_date(1)
+start_time = format_parse_date(2)
 # start_time = '01.05.2021'
 
 db_connect = {

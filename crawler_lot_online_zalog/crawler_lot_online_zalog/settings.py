@@ -35,7 +35,7 @@ DEFAULT_REQUESTS_HEADERS = {
 }
 
 COOKIES_ENABLED = False
-SPLASH_URL = 'http://localhost:8064'
+SPLASH_URL = 'http://localhost:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -49,7 +49,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
 
-LOG_LEVEL = 'INFO'
+# LOG_LEVEL = 'INFO'
 LOG_FILE = './lot_online.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares

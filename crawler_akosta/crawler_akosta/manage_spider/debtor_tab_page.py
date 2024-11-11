@@ -16,15 +16,19 @@ class DebrorTab:
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
-    def find_correct_form_number(self):
+    def find_correct_form_number_collapsed(self):
         """ return form with corret number : formMain:j_idt93_collapsed  or formMain:j_idt82_collapsed """
-        lst = ['formMain:j_idt93_collapsed', 'formMain:j_idt82_collapsed']
-        divs = self.soup.find_all('input', id=re.compile('formMain:j_idt\d+_collapsed'))
-        for div in divs:
-            div = div.get('id')
-            if div in lst:
-                return div
+        return [tag.get('id') for tag in  self.soup.find_all('input', id=re.compile('formMain:j_idt\d+_collapsed'))]
 
+    def find_correct_form_number(self):
+        link = self.soup.find('a', onclick=re.compile(r"mojarra\.jsfcljs"))
+        pattern = r"\{'(formMain:j_idt\d+)':'\1'\}"
+        match = re.search(pattern, link['onclick'])
+        if match:
+            form_number = match.group(1)
+            return form_number
+        else:
+            logger.error(f'{self.response.url} :: Не удалось найти динамический идентификатор')
 
     def get_trading_number(self):
         """ :return trading number """
@@ -134,7 +138,10 @@ class DebrorTab:
     def get_arbitr_company(self):
         """ :return arbitrator company """
         arb = self.return_arbitrator_form()
-        sro = arb.find('label', string=re.compile('СРО', re.IGNORECASE))
+        try:
+            sro = arb.find('label', string=re.compile('СРО', re.IGNORECASE))
+        except Exception as e:
+            return
         if sro:
             sro = sro.parent
             sro = dedent_func(sro.get_text().strip().split(':')[-1].strip())

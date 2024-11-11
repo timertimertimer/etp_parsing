@@ -40,19 +40,19 @@ ROBOTSTXT_OBEY = False
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
 
-    ':authority': 'bankrupt.alfalot.ru',
-    ':method': 'GET',
-    ':scheme': 'https',
+    # ':authority': 'bankrupt.alfalot.ru',
+    # ':method': 'GET',
+    # ':scheme': 'https',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'ru-RU,ru;q=0.9',
     'cache-control': 'no-cache',
-    'connection': 'keep-alive',
+    # 'connection': 'keep-alive',
     'pragma': 'no-cache',
     'sec-fetch-dest': 'document',
     'sec-fetch-mode': 'navigate',
-    'sec-fetch-site': 'none',
-    'sec-fetch-user': '?1',
+    'sec-fetch-site': 'same-origin',
+    # 'sec-fetch-user': '?1',
     'upgrade-insecure-requests': '1',
     'User-Agent': choice(agent_list)
 
@@ -60,7 +60,7 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-SPLASH_URL = 'http://localhost:8063/'
+SPLASH_URL = 'http://localhost:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -76,8 +76,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashMiddleware': 725,
 }
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = './alfalot.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './alfalot.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 ROTATING_PROXY_LIST_PATH = path_to_proxy

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class BetwobeOfferSpider(Spider, ABC):
     name = 'betwobe_offer'
-    start_url = 'https://www.b2b-center.ru/market/'
+    start_url = 'https://b2b-center.ru/market/'
 
     COUNT_MAX = 50
 

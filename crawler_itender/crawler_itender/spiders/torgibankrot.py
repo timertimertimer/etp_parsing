@@ -31,7 +31,7 @@ class TorgibankrotSpider(Spider):
     start_url = ['https://torgibankrot.ru/']
     data_origin = data_origin['torgibankrot']
     custom_settings = {
-        'LOG_FILE': './torgibankrot.log',
+        # 'LOG_FILE': './torgibankrot.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

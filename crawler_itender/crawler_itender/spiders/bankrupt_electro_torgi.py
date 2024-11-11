@@ -32,7 +32,7 @@ class BankruptElectroTorgiSpider(Spider):
     start_url = ['https://bankrupt.electro-torgi.ru/']
     data_origin = data_origin['bankrupt_electro_torgi']
     custom_settings = {
-        'LOG_FILE': './bankrupt_electro.log',
+        # 'LOG_FILE': './bankrupt_electro.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

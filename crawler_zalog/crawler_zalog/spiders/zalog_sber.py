@@ -24,8 +24,8 @@ from ..utils.working_with_time import return_parse_date
 class ZalogSberSpider(Spider):
     name = 'zalog_sber'
     custom_settings = {
-        'LOG_FILE': './zalog_sber.log',
-        'LOG_LEVEL': 'INFO',
+        # 'LOG_FILE': './zalog_sber.log',
+        # 'LOG_LEVEL': 'INFO',
         'ITEM_PIPELINES': {
             'crawler_zalog.pipelines.CrawlerZalogPipeline': 300,
             'crawler_zalog.pipelines.ZalogSberConnect': 350,

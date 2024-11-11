@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
-from crawler_itender.utils.headers_for_spiders.generate_user_agent import USER_AGENT
+from ...utils.headers_for_spiders.generate_user_agent import USER_AGENT
+
+headers_alfalot = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    # 'Host': 'alfalot.ru',
+    'Pragma': 'no-cache',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': USER_AGENT
+}
 
 headers_arbitat = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -176,17 +188,14 @@ headers_propertytrade = {
 }
 
 headers_tender_ug = {
-    ':authority': 'bankrupt.tender.one',
-    ':method': 'GET',
     #':path': '/public/auctions-all/',
-    ':scheme': 'https',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Encoding': 'gzip, deflate, br, zstd',
     'Accept-Language': 'en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'max-age=0',
     'Connection': 'keep-alive',
-    'Host': 'bankrupt.tender.one',
-    'Pragma': 'no-cache',
+    # 'Host': 'bankrupt.tender.one',
+    # 'Pragma': 'no-cache',
     'Upgrade-Insecure-Requests': '1',
     'User-Agent': USER_AGENT
 }
@@ -226,8 +235,8 @@ headers_uralbidin = {
     'Accept-Language': 'en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    'DNT': '1',
-    'Host': 'www.uralbidin.ru',
+    # 'DNT': '1',
+    'Host': 'uralbidin.ru',
     'Pragma': 'no-cache',
     'Sec-Fetch-Dest': 'document',
     'Sec-Fetch-Mode': 'navigate',

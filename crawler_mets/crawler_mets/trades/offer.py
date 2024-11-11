@@ -6,7 +6,7 @@ import pandas as pd
 from bs4 import BeautifulSoup as BS
 from icecream import ic
 from random import randint
-from ..locators.locator_trades import LocatorOffer
+from ..locators.trade_locator import TradeLocator
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from ..utils.config import data_origin_url, pattern_without_hash, lst_exet
 from ..utils.download import DownloadFiles
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class OfferParse():
     def __init__(self, response_):
         self.response = response_
-        self.loc = LocatorOffer
+        self.loc = TradeLocator
         self.check = CheckIfCorrectContactInfo()
         self.url = UrlConfig()
         self.dir_gener = GeneralFilesDir()
@@ -47,13 +47,19 @@ class OfferParse():
     @property
     def trading_number(self):
         """return trading number"""
-        h_3 = self.response.xpath(self.loc.trading_number_loc).get()
-        h_3 = BS(str(h_3), features='lxml').get_text()
-        match = ''.join(re.findall(r'\d+\-\w+', str(h_3)))
+        div = self.response.xpath(self.loc.trading_number_loc).get()
+        div = BS(str(div), features='lxml').get_text()
+        match = ''.join(re.findall(r'\d+\-\w+', str(div)))
         if len(match) < 0:
             logger.error(f'{self.response.url} :: INVALID DATA TRADING NUMBER')
         else:
             return match
+
+    @property
+    def trading_type(self):
+        div = self.response.xpath(self.loc.trading_type_loc).get()
+        div = BS(str(div), features='lxml').get_text().strip()
+        return div
 
     @property
     def trading_org(self):
@@ -67,6 +73,10 @@ class OfferParse():
             logger.warning(
                 f'{self.response.url} :: INVALID DATA ORGANIZER', exc_info=True)
             return None
+
+    @property
+    def trading_org_inn(self):
+        return BS(str(self.response.xpath(self.loc.trading_org_inn_loc).get()), features='lxml').get_text().strip()
 
     def get_phone_number(self):
         """get phone number of organizer"""
@@ -118,9 +128,8 @@ class OfferParse():
                                                                                                          '').strip()
                 else:
                     msg = dedent_func(re.sub(r'\s+', ' ', td_msg))
-                    msg = ' '.join(re.findall(r'(\d{7})', msg))
-                    msg = ' '.join(
-                        [n if int(n) or n == ' ' else '' for n in (re.split(r'\s', msg))])
+                    msg = ' '.join(re.findall(r'(\d{8})', msg))
+                    msg = ' '.join([n if int(n) or n == ' ' else '' for n in (re.split(r'\s', msg))])
                     return msg
             else:
                 return None
@@ -209,94 +218,90 @@ class OfferParse():
         """return list with lot table"""
         return self.response.xpath(self.loc.count_lots_loc).getall()
 
-    def get_lot_title(self, table):
-        table = BS(str(table), features='lxml')
-        title = table.find('th').get_text()
-        return dedent_func(title)
+    @property
+    def lot_title(self):
+        return dedent_func(self.response.xpath(self.loc.lot_title).get())
 
-    def status(self, lot_num: str):
+    @property
+    def status(self):
         """get lot_number; return status(text representation) of lot"""
-        td_stat = self.response.xpath(
-            self.loc.status_loc.format(lot_num)).get()
-        try:
-            td_stat = dedent_func(BS(str(td_stat), features='lxml').get_text())
-            return td_stat
-        except:
-            logger.error(
-                f'{self.response.url} :: LOT {lot_num} INVALID DATA - STATUS')
+        d = dict(
+            active=('идет прием заявок', 'идет приём заявок'),
+            pending=('торги объявлены', 'объявленные торги'),
+            ended=(
+                'заявки рассмотрены', 'идёт аукцион', 'подведение итогов', 'приём заявок завершен',
+                'рассмотрение заявок', 'торги аннулированы', 'торги не состоялись', 'торги отменены',
+                'торги приостановлены', 'торги проведены', 'торги завершены', 'прием заявок завершен'
+            )
+        )
 
-    def lot_number(self, th_lot):
+        status = self.response.xpath(self.loc.status_loc).get().strip().lower()
+        for k, v in d.items():
+            if status in v:
+                return k
+
+    def lot_number(self, lot):
         """return number of lot extract from title"""
-        title = th_lot
+        title = BS(lot, features='lxml').find('div', class_='lot-number').get_text()
         match = re.findall(r'\d+$', title)
         try:
             return ''.join(match)
         except:
-            logger.warning(
-                f'{self.response.url} :: LOT WITHOUT NUMBER - LOT {th_lot}')
+            logger.warning(f'{self.response.url} :: LOT WITHOUT NUMBER - LOT {lot}')
             return None
 
     def short_name(self, lot_num: str):
         """ :arg lot_number
             :return short name of lot
         """
-        td_short_name = self.response.xpath(
-            self.loc.short_name_loc.format(lot_num)).get()
+        short_name = self.response.xpath(self.loc.short_name_loc.format(lot_num)).get()
         try:
-            td_short_name = dedent_func(
-                BS(str(td_short_name), features='lxml').get_text())
-            if td_short_name != 'None':
-                return td_short_name
+            short_name = dedent_func(BS(str(short_name), features='lxml').get_text())
+            if short_name != 'None':
+                return short_name
         except:
-            logger.warning(
-                f'{self.response.url} :: LOT {lot_num} INVALID DATA - SHORT NAME - LOT {lot_num}')
+            logger.warning(f'{self.response.url} :: LOT {lot_num} INVALID DATA - SHORT NAME - LOT {lot_num}')
             return None
 
     def lot_info(self, lot_num: str):
         """:arg lot_number
            :return lot info
         """
-        td_lot_info = self.response.xpath(
-            self.loc.lot_info_loc.format(lot_num)).get()
+        lot_info = self.response.xpath(self.loc.lot_info_loc.format(lot_num)).get()
         try:
-            td_lot_info = dedent_func(
-                BS(str(td_lot_info), features='lxml').get_text())
-            if td_lot_info != 'None':
-                return td_lot_info
+            lot_info = dedent_func(BS(str(lot_info), features='lxml').get_text())
+            if lot_info != 'None':
+                return lot_info
         except:
             logger.warning(
                 f'{self.response.url} :: LOT {lot_num} INVALID DATA - LOT INFO - LOT {lot_num}')
             return None
 
-    def property_info(self, lot_num: str):
+    @property
+    def property_info(self):
         """:arg lot_number
            :return property_information
         """
-        td_property_info = self.response.xpath(
-            self.loc.property_info_loc.format(lot_num)).get()
+        property_info = self.response.xpath(self.loc.property_info_loc).get()
         try:
-            td_property_info = dedent_func(
-                BS(str(td_property_info), features='lxml').get_text())
-            if td_property_info != 'None':
-                return td_property_info
+            property_info = dedent_func(BS(str(property_info), features='lxml').get_text())
+            if property_info != 'None':
+                return property_info
         except:
             logger.warning(
-                f'{self.response.url} :: LOT {lot_num} INVALID DATA - PROPERTY INFO - LOT {lot_num}')
+                f'{self.response.url} :: INVALID DATA - PROPERTY INFO')
             return None
 
     def start_price(self, lot_num: str):
         """:arg lot_number
            :return start price
             """
-        td_start_price = self.response.xpath(
-            self.loc.start_price_loc.format(lot_num)).get()
+        start_price = self.response.xpath(self.loc.start_price_loc.format(lot_num)).get()
         try:
-            td_start_price = dedent_func(
-                BS(str(td_start_price), features='lxml').get_text())
-            td_start_price = normalize_string(td_start_price)
+            start_price = dedent_func(BS(str(start_price), features='lxml').get_text())
+            start_price = normalize_string(start_price)
             pattern = r'^\d+\.\d{1,2}'
-            clean_price = ''.join(
-                filter(lambda x: x.isdigit() or x == ',', td_start_price)).replace(',', '.')
+            clean_price = ''.join(filter(lambda x: x.isdigit() or x == ',', start_price)).replace(',', '.')
             match = ''.join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)
@@ -312,8 +317,7 @@ class OfferParse():
     def period_table(self, lot_num: str):
         """return table(pandas table) with all periods and prices"""
         try:
-            table = self.response.xpath(
-                self.loc.period_table_loc.format(lot_num)).getall()
+            table = self.response.xpath(self.loc.period_table_loc.format(lot_num)).getall()
             soup = BS(str(table[0]), features='lxml')
             class_shortdate = soup.find_all('span', class_='shortdate')
             if len(class_shortdate) > 0:
@@ -448,7 +452,7 @@ class OfferParse():
                     name_suf = pathlib.Path(name).suffix
                     name = name.replace(name_suf, '')
                 except Exception as e:
-                    logger.warning(f'{e }')
+                    logger.warning(f'{e}')
                     extra_name = ''.join(dedent_func(pathlib.Path(str(link)).name))[0:6]
                     name = extra_name + dedent_func(pathlib.Path(str(link)).suffix)
             else:

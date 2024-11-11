@@ -44,7 +44,7 @@ _data_origin = {
 }
 
 _trade_link = {
-    'rus-on': 'https://rus-on.ru/trades'
+    'rus-on': 'https://rus-on.ru/bankrot/trade_list.php'
 }
 
 path_absolute = {

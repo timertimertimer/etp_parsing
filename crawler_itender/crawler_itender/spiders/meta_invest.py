@@ -33,7 +33,7 @@ class MetaInvestSpider(Spider):
     # start_url = ['http://meta-invest.ru/public/auctions/view/5082/']
     data_origin = data_origin['meta_invest']
     custom_settings = {
-        'LOG_FILE': './meta_invest.log',
+        # 'LOG_FILE': './meta_invest.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

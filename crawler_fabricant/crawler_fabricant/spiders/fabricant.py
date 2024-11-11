@@ -11,6 +11,7 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 from scrapy_splash import SplashFormRequest, SlotPolicy
 from ..settings import DEFAULT_REQUESTS_HEADERS
 from ..items import FabricantItem, FabricantItemLoader, CrawlerNistpTransferItem
+from ..trades.lot import LotParse
 from ..utils.data_for_requests import *
 from ..utils.spider_manage import *
 from ..utils.working_with_url import UrlConfig
@@ -57,6 +58,7 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
             start_time = start_time.strftime('%d.%m.%Y')
             # logger.info(f'THIS IS START TIME - {start_time}')
             yield SplashFormRequest.from_response(response=response,
+                                                  url=response.url,
                                                   formdata={'type': '1',
                                                             'org_type': 'org',
                                                             'currency': '0',
@@ -459,11 +461,6 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
     async def parse_offer(self, response):
         offer = OfferParse(response_=response)
         check_if_not_auction = offer.check_trading_type(response)
-        count_pagination_lot = offer.count_pagination_lot()
-        if count_pagination_lot is None:
-            count_pagination_lot = 0
-        else:
-            count_pagination_lot = int(count_pagination_lot)
         if 'Аукцион' not in check_if_not_auction:
             for lot in offer.count_lots():
                 transfer = CrawlerNistpTransferItem()
@@ -509,6 +506,7 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
 
     def documentation_offer(self, response, transfer, referer, div_lot_html, trading_page_response):
         offer = OfferParse(response_=trading_page_response)
+        lot = LotParse(response=response, lot=div_lot_html)
         offer_files = OfferParse(response_=response)
         general = offer_files.iteration_throughout_table_tr(offer.get_table_id(div_lot_html), response.url)
         loader = FabricantItemLoader(FabricantItem(), response=response)
@@ -534,15 +532,15 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
-        loader.add_value('lot_number', offer.get_lot_number(div_lot_html))
-        loader.add_value('short_name', offer.get_short_name(div_lot_html))
-        loader.add_value('property_information', offer.property_info(div_lot_html))
-        loader.add_value('start_date_requests', offer.start_date_request(div_lot_html))
-        loader.add_value('end_date_requests', offer.end_date_request(div_lot_html))
-        loader.add_value('start_date_trading', offer.start_date_trading(div_lot_html))
-        loader.add_value('end_date_trading', offer.end_date_trading(div_lot_html))
-        loader.add_value('start_price', offer.start_price(div_lot_html))
-        loader.add_value('periods', offer.get_all_periods(div_lot_html))
+        loader.add_value('lot_number', lot.get_lot_number())
+        loader.add_value('short_name', lot.get_short_name())
+        loader.add_value('property_information', lot.property_info())
+        loader.add_value('start_date_requests', lot.start_date_request())
+        loader.add_value('end_date_requests', lot.end_date_request())
+        loader.add_value('start_date_trading', lot.start_date_trading())
+        loader.add_value('end_date_trading', lot.end_date_trading())
+        loader.add_value('start_price', lot.start_price())
+        loader.add_value('periods', lot.get_all_periods())
         loader.add_value('created_at', return_parse_date())
         loader.add_value('files', {'general': general, 'lot': lot_file})
         yield loader.load_item()
@@ -586,6 +584,7 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
     def documentation_auction(self, response, transfer, referer, div_lot_html, trading_page_response):
         offer = OfferParse(response_=trading_page_response)
         offer_files = OfferParse(response_=response)
+        lot = LotParse(response=response, lot=div_lot_html)
         general = offer_files.iteration_throughout_table_tr(offer.get_table_id(div_lot_html), response.url)
         loader = FabricantItemLoader(FabricantItem(), response=response)
         lot_file = offer_files.iteration_throughout_lot_table_tr(offer.get_table_id(div_lot_html), referer)
@@ -610,15 +609,15 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
-        loader.add_value('lot_number', offer.get_lot_number(div_lot_html))
-        loader.add_value('short_name', offer.get_short_name(div_lot_html))
-        loader.add_value('property_information', offer.property_info(div_lot_html))
-        loader.add_value('start_date_requests', offer.start_req_auc(div_lot_html))
-        loader.add_value('end_date_requests', offer.end_req_auc(div_lot_html))
-        loader.add_value('start_date_trading', offer.start_trading_auc(div_lot_html))
-        loader.add_value('end_date_trading', offer.end_trading_auc(div_lot_html))
-        loader.add_value('start_price', offer.start_price_auc(div_lot_html))
-        loader.add_value('step_price', offer.step_price_auc(div_lot_html))
+        loader.add_value('lot_number', lot.get_lot_number())
+        loader.add_value('short_name', lot.get_short_name())
+        loader.add_value('property_information', lot.property_info())
+        loader.add_value('start_date_requests', lot.start_req_auc())
+        loader.add_value('end_date_requests', lot.end_req_auc())
+        loader.add_value('start_date_trading', lot.start_trading_auc())
+        loader.add_value('end_date_trading', lot.end_trading_auc())
+        loader.add_value('start_price', lot.start_price_auc())
+        loader.add_value('step_price', lot.step_price_auc())
         loader.add_value('created_at', return_parse_date())
         loader.add_value('files', {'general': general, 'lot': lot_file})
         yield loader.load_item()

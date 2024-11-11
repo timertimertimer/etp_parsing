@@ -13,13 +13,12 @@ xml_data = '<elasticrequest><filters><mainSearchBar><value></value><type>best_fi
 script_lua_first_req = """
          function main(splash, args)
          splash:on_request(function(request)
-             if request.url:find('css') then
-                 request.abort()
-                 end
+            print("Request URL: ", request.url)
+             
              end)
-             splash.images_enabled=false
+
              splash.private_mode_enabled = false
-             splash:init_cookies(splash.args.cookies)
+             splash:autoload("https://code.jquery.com/jquery-1.9.0.min.js")
 	         assert(splash:wait(1))
              assert(splash:go{
              splash.args.url,
@@ -38,13 +37,14 @@ script_lua_first_req = """
              assert(splash:runjs(time_to))
              assert(splash:wait(0.5))
              assert(splash:runjs(btn))
-             assert(splash:wait(5))
+             assert(splash:wait(15))
              return {
                 
                  headers = last_response.headers,
                  http_status = last_response.status,
                  cookies = splash:get_cookies(),
                  html = splash:html(),
+                 screenshot = splash:png(),
                  }
          end
                  """

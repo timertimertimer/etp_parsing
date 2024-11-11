@@ -32,7 +32,7 @@ class UralbidinSpider(Spider):
     start_url = ['https://www.uralbidin.ru/']
     data_origin = data_origin['uralbidin']
     custom_settings = {
-        'LOG_FILE': './uralbidin.log',
+        # 'LOG_FILE': './uralbidin.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

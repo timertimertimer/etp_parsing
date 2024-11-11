@@ -12,7 +12,7 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 import scrapy_splash
 import logging
 from ..download import DownloadFiles
-from crawler_aistorg.settings import DEFAULT_REQUESTS_HEADERS
+from ..settings import DEFAULT_REQUESTS_HEADERS
 from ..get_data_from_table import DbConnectCheckLots
 import pathlib
 from bs4 import BeautifulSoup as BS

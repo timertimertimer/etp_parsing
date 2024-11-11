@@ -1,6 +1,6 @@
 from mysql.connector import MySQLConnection, Error
 from crawler_zalog.utils.config import db_tables
-from crawler_zalog.python_mysql_dbconfig import read_db_config
+from .python_mysql_dbconfig import read_db_config
 
 
 class CrawlerZalogPipeline:
@@ -17,9 +17,19 @@ class CrawlerZalogPipeline:
 class ZalogSberConnect(object):
     def __init__(self):
         self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
+        self.conn = MySQLConnection(**self.db_config, connect_timeout=600)
+
         self.curr = self.conn.cursor()
+        self.set_wait_timeout(600)
         self.create_table()
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.curr.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Error as err:
+            print(f"Error setting wait_timeout: {err}")
 
     def create_table(self):
         self.curr.execute(f"""CREATE TABLE IF NOT EXISTS {db_tables['zalog_sber']}(
@@ -63,6 +73,7 @@ class ZalogSberConnect(object):
                             """)
 
     def store_db(self, item):
+        print(f'store_db: {self.conn.is_connected()}')
         self.curr.execute(
             f"""insert into {db_tables['zalog_sber']}(data_origin,trading_id,trading_link,trading_number,trading_type,
     trading_form,trading_org,trading_org_contacts,status,index_,address,detailed_address,encumbrance,description_encumbrance,

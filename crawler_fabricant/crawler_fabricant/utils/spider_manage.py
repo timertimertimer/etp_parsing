@@ -1,6 +1,6 @@
 from http.cookies import SimpleCookie
-from crawler_fabricant.utils.work_with_text_and_number import *
-from crawler_fabricant.locators.spider_locators import *
+from ..utils.work_with_text_and_number import *
+from ..locators.spider_locators import *
 import logging
 
 logger = logging.getLogger(__name__)

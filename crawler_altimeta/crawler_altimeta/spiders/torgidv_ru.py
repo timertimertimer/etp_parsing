@@ -20,7 +20,7 @@ TABLE = tables['table_torgidv']
 
 class TorgidvRuSpider(Spider):
     name = 'torgidv_ru'
-    allowed_domains = ['torgidv.ru/etp/trade/list.html']
+    allowed_domains = ['torgidv.ru']
     data_origin = _data_origin['torgidv']
     lot_link = _lot_link['torgidv']
     serp_link = _serp_link['torgidv']
@@ -31,7 +31,7 @@ class TorgidvRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './torgidv.log',
+        # 'LOG_FILE': './torgidv.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

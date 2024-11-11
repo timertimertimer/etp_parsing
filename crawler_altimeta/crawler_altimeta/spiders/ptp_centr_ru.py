@@ -20,7 +20,7 @@ TABLE = tables['table_ptp_center']
 
 class PtpCentrRuSpider(Spider):
     name = 'ptp_centr_ru'
-    allowed_domains = ['ptp-center.ru/etp/trade/list.html']
+    allowed_domains = ['ptp-center.ru']
     data_origin = _data_origin['ptp_center']
     lot_link = _lot_link['ptp_center']
     serp_link = _serp_link['ptp_center']
@@ -31,7 +31,7 @@ class PtpCentrRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './ptp_center.log',
+        # 'LOG_FILE': './ptp_center.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

@@ -1,6 +1,6 @@
 class SearchLocator:
 
-    link_to_serp_trades_loc = '//h3[contains(., "имущества банкротов")]/ancestor::a'
+    link_to_serp_trades_loc = '//a[contains(., "Банкротное имущество")]'
 
     links_to_trade_pages_loc = '//div[@id="formMain:lotListTable"]//tr[@data-ri]'
 

@@ -53,8 +53,8 @@ CONCURRENT_REQUESTS_PER_IP = 2
 COOKIES_ENABLED = True
 
 
-LOG_FILE = 'bankruptcy.log'
-LOG_LEVEL = 'INFO'
+# LOG_FILE = 'bankruptcy.log'
+# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 

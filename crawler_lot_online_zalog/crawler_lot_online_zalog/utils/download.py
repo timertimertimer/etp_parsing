@@ -76,7 +76,7 @@ class DownloadFiles(GeneralFilesDir):
             logger.critical(f'{url}:: REQUEST STATUS CODE - {r.status_code} {e}')
             return None
 
-    def request_to_download_general(self, url, referer, original_name, cookies, cp -r post_data, trade_id, attempts=5):
+    def request_to_download_general(self, url, referer, original_name, cookies, post_data, trade_id, attempts=5):
         u = UrlConfig()
         url = url
         url = u.parse_url(url)

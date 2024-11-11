@@ -1,7 +1,7 @@
 from scrapy import Request, FormRequest, Spider
-from crawler_tenderstandartru.utils.config import _data_origin, _auction_trades, _offer_trades, _competition_trades, \
+from ..utils.config import _data_origin, _auction_trades, _offer_trades, _competition_trades, \
     search_url
-from crawler_tenderstandartru.utils.headers import header as hd
+from ..utils.headers import header as hd
 from icecream import ic
 from ..trades.app import Combo
 import logging

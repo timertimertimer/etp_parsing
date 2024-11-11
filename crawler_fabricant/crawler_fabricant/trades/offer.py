@@ -51,7 +51,7 @@ class OfferParse:
     def count_lots(self):
         """count how many <div> with lot info (if len > 1 it mean that trading page has few lots) in this case it's
         just in case. return list of table(s)"""
-        return self.response.xpath(self.loc.div_info_lot_offer).getall()
+        return self.response.xpath(self.loc.div_info_lot_offer).getall()[1:]
 
     @property
     def trading_number(self):
@@ -129,7 +129,7 @@ class OfferParse:
     @property
     def get_phone_org(self):
         try:
-            org_phone = BS(self.response.xpath(self.loc.offer_org_phone_loc).get(), features='lxml').get_text()
+            org_phone = BS(self.response.xpath(self.loc.offer_org_phone_loc).get(), features='lxml').get_text().strip()
             org_phone = self.check.check_phone(org_phone)
             return org_phone
         except:
@@ -138,7 +138,7 @@ class OfferParse:
     @property
     def trading_org_email(self):
         try:
-            org_email = BS(self.response.xpath(self.loc.offer_org_email_loc).get(), features='lxml').get_text()
+            org_email = BS(self.response.xpath(self.loc.offer_org_email_loc).get(), features='lxml').get_text().strip()
             org_email = self.check.check_email(org_email)
             return org_email
         except:
@@ -220,114 +220,16 @@ class OfferParse:
         except:
             logger.warning(f'{self.response.url} :: INVALID DATA TRADING ORG - OFFER ')
 
-    # _ working with lot info
-    @get_lot_number
-    def get_lot_number(self, *args):
-        """return lot number"""
-        lot_desc = self.response.xpath(self.loc.lot_number_loc.format(self.get_table_id(args))).get()
-        lot_desc = BS(str(lot_desc), features='lxml').get_text()
-        return lot_desc.strip()
-
-    def get_short_name(self, *args):
-        """:return short name from lot html div sector"""
-        try:
-            short_name = self.response.xpath(self.loc.short_name_loc.format(self.get_table_id(args))).get()
-            if short_name:
-                short_name = short_name
-            else:
-                short_name = self.response.xpath(self.loc.short_name_loc2.format(self.get_table_id(args))).get()
-            short_name = BS(str(short_name), features='lxml').get_text()
-            return dedent_func(short_name)
-        except:
-            return None
-
-    def property_info(self, *args):
-        """:return property info from lot html div sector"""
-        prop_info = self.response.xpath(self.loc.property_info_loc.format(self.get_table_id(args))).get()
-        prop_info = BS(str(prop_info), features='lxml').get_text()
-        return dedent_func(prop_info)
-
     # _Working with dates and Periods lot
 
     def get_table_id(self, *args):
         """:return div id related to lot table"""
         try:
-            table_id = BS(str(args), features='lxml').find('div', class_='panel-heading').get('id')
+            table_id = BS(str(*args), features='lxml').find('div', class_='panel-heading').get('id')
             return table_id
 
         except (ValueError, TypeError, Exception) as e:
             logger.critical(f'{self.response.url} :: LOT NOT FOUND', exc_info=True)
-
-    def get_periods_table(self, *args):
-        """return list of periods tables"""
-        try:
-            periods = self.response.xpath(self.loc.period_tables_loc.format(self.get_table_id(args))).getall()
-            return periods
-        except:
-            logger.error(f'{self.response.url} :: PERIODS NOT FOUND', exc_info=True)
-
-    def start_date_request(self, *args):
-        """:arg html div with lot info"""
-        lst_periods = self.get_all_periods(args)
-        try:
-            return lst_periods[0].get('start_date_requests')
-        except:
-            return None
-
-    def end_date_request(self, *args):
-        """:arg html div with lot info"""
-        lst_periods = self.get_all_periods(args)
-        try:
-            return lst_periods[-1].get('end_date_requests')
-        except:
-            return None
-
-    def start_date_trading(self, *args):
-        """return function start date request"""
-        return self.start_date_request(args)
-
-    def end_date_trading(self, *args):
-        """:return function end_date_request"""
-        return self.end_date_request(args)
-
-    def start_price(self, *args):
-        """get start price offer lot"""
-        lst_periods = self.get_all_periods(args)
-        try:
-            return lst_periods[0].get('current_price')
-        except:
-            logger.warning(f'{self.response.url} :: INVALID DATA START PRICE OFFER')
-            return None
-
-    def get_all_periods(self, *args):
-        """
-        :arg html div with lot info
-        :return list with dict values of offer periods"""
-        try:
-            periods = list()
-            for table in self.get_periods_table(args):
-                soup = BS(table, features='lxml')
-                try:
-                    table_ = pd.read_html(str(soup.table))
-                except:
-                    pass
-                try:
-                    if len(table_[0]) < 7 and len(table_[0]) > 2:
-                        start = table_[0][1][1]
-                        end = table_[0][1][2]
-                        price = table_[0][1][3]
-                        period = {
-                            'start_date_requests': get_time_data(start, 0, url=self.response.url),
-                            'end_date_requests': get_time_data(end, 0, url=self.response.url),
-                            'end_date_trading': get_time_data(end, 0, url=self.response.url),
-                            'current_price': get_price(price)
-                        }
-                        periods.append(period)
-                except:
-                    continue
-            return periods
-        except:
-            logger.error(f'{self.response.url} :: INVALID DATA PERIODS OFFER', exc_info=True)
 
     # WORKING WITH DOCUMENTS
     def link_doc_page(self, url):
@@ -443,7 +345,7 @@ class OfferParse:
             lot = list()
             referer = self.response.url
             check_lot_tab = self.response.xpath(self.loc.count_lot_doc_loc).get()
-            table = self.get_lot_doc_table(id_, url_)
+            table = self.table_doc_proc(id_)
             amount = self.get_amount_of_lot_doc()
             if table:
                 if amount and dedent_func(amount).isdigit():
@@ -493,65 +395,3 @@ class OfferParse:
         except:
             logger.warning(f'{self.response.url}', exc_info=True)
             return list()
-
-    # AUCTION
-    def start_req_auc(self, *args):
-        _div_start = self.response.xpath(self.loc.start_request_auction.format(self.get_table_id(args))).get()
-        text_time = BS(_div_start, features='lxml').get_text().strip()
-        try:
-            return format_time(text_time)
-        except Exception as e:
-            print(e)
-            return None
-
-    def end_req_auc(self, *args):
-        _div_end = self.response.xpath(self.loc.end_request_auction.format(self.get_table_id(args))).get()
-        text_time = BS(_div_end, features='lxml').get_text().strip()
-        try:
-            return format_time(text_time)
-        except Exception as e:
-            print(e)
-            return None
-
-    def start_trading_auc(self, *args):
-        _div_start = self.response.xpath(self.loc.start_trading_auction.format(self.get_table_id(args))).get()
-        text_time = BS(_div_start, features='lxml').get_text().strip()
-        try:
-            return format_time(text_time)
-        except Exception as e:
-            print(e)
-            return None
-
-    def end_trading_auc(self, *args):
-        _div_end = self.response.xpath(self.loc.end_date_trading_auc.format(self.get_table_id(args))).get()
-        text_time = BS(_div_end, features='lxml').get_text().strip()
-        try:
-            return format_time(text_time)
-        except Exception as e:
-            print(e)
-            return None
-
-    def start_price_auc(self, *args):
-        _div_end = self.response.xpath(self.loc.start_price_auc.format(self.get_table_id(args))).get()
-        price = BS(_div_end, features='lxml').get_text().strip().replace('\xa0', '').replace(',', '.')
-        price = re.search(r'\d+\.\d{1,2}', price)
-        try:
-            if price:
-                return float(price.group())
-        except (ValueError, TypeError) as e:
-            print(e)
-            return None
-
-    def step_price_auc(self, *args):
-        _div_step = self.response.xpath(self.loc.step_price_auc.format(self.get_table_id(args))).get()
-        if _div_step:
-            step = BS(_div_step, features='lxml').get_text().strip().replace('\xa0', '').replace(',', '.')
-            step = ''.join(re.findall(r'^\d+%', step)).replace('%', '')
-            start_price = self.start_price_auc(args)
-
-            try:
-                step = float(step)
-                return round(start_price * step / 100, 2)
-            except (ValueError, TypeError):
-                return None
-

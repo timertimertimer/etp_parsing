@@ -1,5 +1,5 @@
 
-from crawler_tenderstandartru.libraries.libraries import *
+from ..libraries.libraries import *
 
 logger = logging.getLogger(__name__)
 

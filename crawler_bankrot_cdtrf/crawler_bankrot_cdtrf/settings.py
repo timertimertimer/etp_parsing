@@ -38,8 +38,8 @@ DEFAULT_REQUESTS_HEADERS = {
     'User-Agent': USER_AGENT,
 
 }
-LOG_LEVEL = 'INFO'
-LOG_FILE = './bankrot_cd.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './bankrot_cd.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Disable cookies (enabled by default)

@@ -2,9 +2,9 @@ import scrapy
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from crawler_eurtp.items import Lot
+from ..items import Lot
 from scrapy.loader import ItemLoader
-from crawler_eurtp.config import page_limits, start_time
+from ..config import page_limits, start_time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -300,6 +300,7 @@ class EurtpSpider(scrapy.Spider):
             if table_cont.h2.get_text().strip() != 'Общая информация': continue
             for row in table_cont.select('tr'):
                 if not row.select('td')[0].get_text().strip().startswith('Промежуток'): continue
+                if len(row.select('td')) < 2: continue
                 periods.append(row.select('td')[1].get_text().strip())
 
         return periods

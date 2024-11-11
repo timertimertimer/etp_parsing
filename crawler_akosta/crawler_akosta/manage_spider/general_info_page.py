@@ -31,18 +31,18 @@ class MainTradingPage:
         self.soup2 = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                         features='xml')
 
-    def get_link_redirect(self, trade_):
+    def get_link_redirect(self):
         """ get link from redirect page """
         try:
             url = self.soup2.find('partial-response').find('redirect').get('url')
-            if url:
-                return self.url.url_join(self.main_url, url)
-            else:
-                logger.error(f'{self.response.url} :: NO VALUE LINK')
-                with open('redirect_page.txt', 'w') as f:
-                    f.write(self.response.text)
-        except Exception as ex:
-            logger.error(f'{trade_} :: get_link_redirect {ex}')
+        except Exception as e:
+            return
+        if url:
+            return self.url.url_join(self.main_url, url)
+        else:
+            logger.error(f'{self.response.url} :: NO VALUE LINK')
+            with open('redirect_page.txt', 'w') as f:
+                f.write(self.response.text)
 
     def get_debtor_info_link(self, url):
         """ return link to debtor info tab """

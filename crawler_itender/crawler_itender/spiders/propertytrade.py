@@ -29,10 +29,10 @@ TABLE = tables['table_propertytrade']
 class PropertytradeSpider(Spider):
     name = 'propertytrade'
     allowed_domains = ['propertytrade.ru']
-    start_url = ['http://propertytrade.ru/']
+    start_url = ['https://propertytrade.ru/']
     data_origin = data_origin['propertytrade']
     custom_settings = {
-        'LOG_FILE': './propertytrade.log',
+        # 'LOG_FILE': './propertytrade.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

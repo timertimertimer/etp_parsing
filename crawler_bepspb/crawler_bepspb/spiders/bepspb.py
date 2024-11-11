@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class BepspbSpider(Spider):
     name = 'bepspb'
-    allowed_domains = ['bepspb.ru']
+    allowed_domains = ['bepspb.ru', 'localhost']
     data_origin = data_origin['bepspb']
     start_url = ['https://bepspb.ru/']
 

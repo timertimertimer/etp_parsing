@@ -38,7 +38,7 @@ COOKIES_ENABLED = False
 
 # Override the default request headers:
 DEFAULT_REQUEST_HEADERS = {
-    ':authority': 'www.b2b-center.ru',
+    ':authority': 'b2b-center.ru',
     ':method': 'GET',
     ':path': '/market/',
     ':scheme': 'https',
@@ -52,12 +52,12 @@ DEFAULT_REQUEST_HEADERS = {
     'upgrade-insecure-requests': '1',
     'user-agent': USER_AGENT
 }
-LOG_LEVEL = 'INFO'
-LOG_FILE = './b2b.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './b2b.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-SPLASH_URL = 'http://localhost:8057/'
+SPLASH_URL = 'http://localhost:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }

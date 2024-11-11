@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  etp_parsing_db:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - etp_parsing_data:/var/lib/mysql
+
+  etp_parsing_splash:
+    image: scrapinghub/splash
+    container_name: splash
+    restart: always
+    ports:
+      - "8050:8050"
+    command: [ "--maxrss", "1024", "--max-timeout", "3600" ]
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1g
+
+volumes:
+  etp_parsing_data:

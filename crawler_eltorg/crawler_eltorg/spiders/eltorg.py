@@ -10,7 +10,7 @@ from crawler_eltorg.config import page_limits, start_time
 class EltorgSpider(scrapy.Spider):
     name = 'eltorg'
     start_urls = [
-        f'http://el-torg.com/bankrot/trade_list.php?trade_number=&debtor_info=&arbitr_info=&app_start_from={start_time}&app_start_to=&app_end_from=&app_end_to=&trade_type=%D0%9B%D1%8E%D0%B1%D0%BE%D0%B9&trade_state=%D0%9B%D1%8E%D0%B1%D0%BE%D0%B9&pagenum=1'
+        f'https://el-torg.com/bankrot/trade_list.php?trade_number=&debtor_info=&arbitr_info=&app_start_from={start_time}&app_start_to=&app_end_from=&app_end_to=&trade_type=%D0%9B%D1%8E%D0%B1%D0%BE%D0%B9&trade_state=%D0%9B%D1%8E%D0%B1%D0%BE%D0%B9&pagenum=1'
     ]
 
     logger = logging.getLogger(__name__)

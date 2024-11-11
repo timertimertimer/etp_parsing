@@ -33,7 +33,7 @@ class UtenderSpider(Spider):
     # start_url = ['http://utender.ru/public/auctions/view/33208/']
     data_origin = data_origin['utender']
     custom_settings = {
-        'LOG_FILE': './utender.log',
+        # 'LOG_FILE': './utender.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
 

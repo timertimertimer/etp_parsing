@@ -33,8 +33,8 @@ COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 TELNETCONSOLE_ENABLED = False
-LOG_FILE = 'kartoteka.log'
-LOG_LEVEL = 'INFO'
+# LOG_FILE = 'kartoteka.log'
+# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Override the default request headers:

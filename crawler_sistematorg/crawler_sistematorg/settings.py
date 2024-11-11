@@ -41,8 +41,8 @@ DEFAULT_REQUESTS_HEADERS = {
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-LOG_FILE = 'sistematorg.log'
-LOG_LEVEL= 'INFO'
+# LOG_FILE = 'sistematorg.log'
+# LOG_LEVEL= 'INFO'
 #
 #MAIL_FROM = 'xxxxxxxxxx@outlook.com'
 #MAIL_HOST = 'smtp.office365.com'

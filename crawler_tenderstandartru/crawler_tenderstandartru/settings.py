@@ -60,8 +60,8 @@ DEFAULT_REQUEST_HEADERS = {
 # SPIDER_MIDDLEWARES = {
 #    'crawler_tenderstandartru.middlewares.CrawlerTenderstandartruSpiderMiddleware': 543,
 # }
-LOG_LEVEL = 'INFO'
-LOG_FILE = './tenderstandart.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './tenderstandart.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html

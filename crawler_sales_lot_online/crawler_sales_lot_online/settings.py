@@ -47,8 +47,8 @@ DEFAULT_REQUESTS_HEADERS = {
     'User-Agent': USER_AGENT,
 }
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = './lot_online.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './lot_online.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Enable or disable spider middlewares
@@ -56,7 +56,7 @@ LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # SPIDER_MIDDLEWARES = {
 #    'crawler_sales_lot_online.middlewares.CrawlerSalesLotOnlineSpiderMiddleware': 543,
 # }
-SPLASH_URL = 'http://localhost:8056'
+SPLASH_URL = 'http://localhost:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }

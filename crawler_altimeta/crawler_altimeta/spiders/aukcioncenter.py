@@ -20,7 +20,7 @@ TABLE = tables['table_aukcioncenter']
 
 class AukcioncenterSpider(Spider):
     name = 'aukcioncenter'
-    allowed_domains = ['www.aukcioncenter.ru']
+    allowed_domains = ['aukcioncenter.ru']
     data_origin = _data_origin['aukcioncenter']
     lot_link = _lot_link['aukcioncenter']
     serp_link = _serp_link['aukcioncenter']
@@ -32,7 +32,7 @@ class AukcioncenterSpider(Spider):
 
     custom_settings = {
         'DEFAULT_REQUEST_HEADERS': None,
-        'LOG_FILE': './aukcioncenter.log',
+        # 'LOG_FILE': './aukcioncenter.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

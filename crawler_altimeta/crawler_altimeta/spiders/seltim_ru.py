@@ -20,7 +20,7 @@ TABLE = tables['table_seltim']
 
 class SeltimRuSpider(Spider):
     name = 'seltim_ru'
-    allowed_domains = ['www.seltim.ru/etp/trade/list.html']
+    allowed_domains = ['www.seltim.ru']
     data_origin = _data_origin['seltim']
     lot_link = _lot_link['seltim']
     serp_link = _serp_link['seltim']
@@ -31,7 +31,7 @@ class SeltimRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './seltim.log',
+        # 'LOG_FILE': './seltim.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

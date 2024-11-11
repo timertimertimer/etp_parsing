@@ -7,7 +7,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-from crawler_nistpru.utils.config import agent_list, path_to_proxy
+from .utils.config import agent_list, path_to_proxy
 from random import choice
 
 BOT_NAME = 'crawler_nistpru'
@@ -58,15 +58,22 @@ DEFAULT_REQUESTS_HEADERS = {
 # SPIDER_MIDDLEWARES = {
 #    'crawler_nistpru.middlewares.CrawlerNistpruSpiderMiddleware': 543,
 # }
-LOG_LEVEL = 'INFO'
-LOG_FILE = './nistp.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './nistp.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
+SPLASH_URL = 'http://localhost:8050/'
+# SPLASH_URL = 'http://172.21.0.7:8050'
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
 DOWNLOADER_MIDDLEWARES = {
     'crawler_nistpru.middlewares.CrawlerNistpruDownloaderMiddleware': 543,
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
 }
 
 ROTATING_PROXY_LIST_PATH = path_to_proxy
@@ -105,6 +112,9 @@ AUTOTHROTTLE_DEBUG = True
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
+SPLASH_COOKIES_DEBUG = False
+SPLASH_LOG_400 = True
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 # HTTPCACHE_ENABLED = True
 # HTTPCACHE_EXPIRATION_SECS = 0
 # HTTPCACHE_DIR = 'httpcache'

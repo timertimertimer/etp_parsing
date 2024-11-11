@@ -51,11 +51,11 @@ tables = {
 }
 
 _data_origin = {
-    'nistp_ru': 'http://nistp.ru/'
+    'nistp_ru': 'https://nistp.ru/'
 }
 
 _trade_link = {
-    'nistp': 'http://nistp.ru/bankrot'
+    'nistp': 'https://nistp.ru/bankrot'
 }
 
 path_absolute = {
@@ -78,3 +78,34 @@ lst_exeption = ['reshenie', 'protocol', 'Reshenie', 'Protocol', 'Протоко�
                 'ПРОТОКОЛ']
 
 #bad_links_list = ['http://nistp.ru/bankrot/trade_view.php?trade_nid=202636',
+
+
+script_lua = """
+         function main(splash)
+         splash:on_request(function(request)
+             if request.url:find('css') then
+                 request.abort()
+             end 
+             end)
+             splash.images_enabled=false
+             splash.js_enabled=false
+             splash.private_mode_enabled = false
+             splash:init_cookies(splash.args.cookies)
+             assert(splash:go{
+             splash.args.url,
+             headers=splash.args.headers,
+             http_method=splash.args.http_method,
+             body=splash.args.body,
+             })
+             assert(splash:wait(4))
+             local entries = splash:history()
+             local last_response = entries[#entries].response
+             return {
+                 url = splash:url(),
+                 headers = last_response.headers,
+                 http_status = last_response.status,
+                 cookies = splash:get_cookies(),
+                 html = splash:html(),
+                 }
+         end
+                 """

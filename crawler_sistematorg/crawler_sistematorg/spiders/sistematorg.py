@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class SistematorgSpider(CrawlSpider, DownloadFiles):
     name = bot_name
-    allowed_domains = allowed_domain
+    allowed_domains = [allowed_domain]
     start_urls = [main_url_list.format(n+int(start_page)) for n in range(int(finish_page)-int(start_page))]
 
     def __init__(self):

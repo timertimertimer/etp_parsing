@@ -20,7 +20,7 @@ TABLE = tables['table_etp_profit_ru']
 
 class EtpProfitRuSpider(Spider):
     name = 'etp_profit_ru'
-    allowed_domains = ['www.etp-profit.ru/etp/trade/list.html']
+    allowed_domains = ['etp-profit.ru']
     data_origin = _data_origin['etp_profit_ru']
     lot_link = _lot_link['etp_profit_ru']
     serp_link = _serp_link['etp_profit_ru']
@@ -31,7 +31,7 @@ class EtpProfitRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './etp_profit_ru.log',
+        # 'LOG_FILE': './etp_profit_ru.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

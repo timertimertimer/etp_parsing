@@ -22,7 +22,7 @@ TABLE = tables['table_ausib']
 
 class AusibRuSpider(Spider):
     name = 'ausib_ru'
-    allowed_domains = ['ausib.ru/etp/trade/list.html']
+    allowed_domains = ['ausib.ru']
     data_origin = _data_origin['ausib']
     lot_link = _lot_link['ausib']
     serp_link = _serp_link['ausib']

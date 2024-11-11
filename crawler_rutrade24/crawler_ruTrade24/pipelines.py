@@ -722,7 +722,7 @@ class CrawlerRutarde24Pipeline:
             files.append({
                 'original_name': a.get_text().strip(),
                 'link': link,
-                'link_etp': 'http://www.ru-trade24.ru' + a['href']
+                'link_etp': 'http://ru-trade24.ru' + a['href']
             })
 
         return files

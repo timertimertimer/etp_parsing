@@ -32,7 +32,7 @@ class EtpugraSpider(Spider):
     start_url = ['http://etpugra.ru/']
     data_origin = data_origin['etpugra']
     custom_settings = {
-        'LOG_FILE': './etpugra.log',
+        # 'LOG_FILE': './etpugra.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
 

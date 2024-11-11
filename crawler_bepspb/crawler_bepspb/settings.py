@@ -55,7 +55,7 @@ ROBOTSTXT_OBEY = False
 #     'User-Agent': USER_AGENT
 # }
 
-SPLASH_URL = 'http://localhost:8061/'
+SPLASH_URL = 'http://localhost:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -76,8 +76,8 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashMiddleware': 725,
 }
 
-LOG_LEVEL = 'INFO'
-LOG_FILE = './bepspb.log'
+# LOG_LEVEL = 'INFO'
+# LOG_FILE = './bepspb.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 ROTATING_PROXY_LIST_PATH = path_to_proxy

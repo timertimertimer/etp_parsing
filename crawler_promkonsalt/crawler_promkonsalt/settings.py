@@ -15,8 +15,8 @@ BOT_NAME = 'crawler_promkonsalt'
 SPIDER_MODULES = ['crawler_promkonsalt.spiders']
 NEWSPIDER_MODULE = 'crawler_promkonsalt.spiders'
 
-LOG_FILE = 'prom.log'
-LOG_LEVEL = 'INFO'
+# LOG_FILE = 'prom.log'
+# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

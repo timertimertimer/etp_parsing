@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup as BS
 
 from ..utils.work_with_text_and_number import dedent_func
-from ..locators.locator_trades import LocatorAuction
+from ..locators.trade_locator import LocatorAuction
 from ..utils.working_with_time import *
 
 logger = logging.getLogger(__name__)
@@ -20,16 +20,13 @@ class AuctionParse:
            :return step price
             """
         trading_number = ''.join(trading_number)
-        td_step_price = self.response.xpath(
-            self.loc.step_price_loc.format(lot_num)).get()
+        step_price = self.response.xpath(self.loc.step_price_loc.format(lot_num)).get()
         try:
-            td_step_price = dedent_func(
-                BS(str(td_step_price), features='lxml').get_text())
+            step_price = dedent_func(BS(str(step_price), features='lxml').get_text())
             pattern = r'^\d+\.\d{1,2}'
-            if 'руб' in td_step_price:
-                td_step_price = ''.join(re.split(r'руб', td_step_price, maxsplit=1)[0])
-            clean_price = ''.join(
-                filter(lambda x: x.isdigit() or x == ',', td_step_price)).replace(',', '.')
+            if 'руб' in step_price:
+                step_price = ''.join(re.split(r'руб', step_price, maxsplit=1)[0])
+            clean_price = ''.join(filter(lambda x: x.isdigit() or x == ',', step_price)).replace(',', '.')
             match = ''.join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)

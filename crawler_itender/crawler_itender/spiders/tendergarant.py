@@ -28,10 +28,10 @@ TABLE = tables['table_tendergarant']
 class TendergarantSpider(Spider):
     name = 'tendergarant'
     allowed_domains = ['tendergarant.com']
-    start_url = ['http://tendergarant.com/']
+    start_url = ['https://tendergarant.com/']
     data_origin = data_origin['tendergarant']
     custom_settings = {
-        'LOG_FILE': './tendergarant.log',
+        # 'LOG_FILE': './tendergarant.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },

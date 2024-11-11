@@ -40,7 +40,7 @@ post_data_pagination = {
 
 }
 
-post_data_query = {
+post_data_date_query = {
     'javax.faces.partial.ajax': 'true',
     'javax.faces.source': 'formMain:cbLotFilterFindId',
     'javax.faces.partial.execute': '@all',
@@ -48,29 +48,39 @@ post_data_query = {
     'formMain:cbLotFilterFindId': 'formMain:cbLotFilterFindId',
     'formMain': 'formMain',
     'formMain:inputServerTime': '',
-    'formMain:commonSearchCriteriaStr': '',
-    'formMain:inputKeyWordId': '',
-    'formMain:orgSubId': '',
-    'formMain:debtSubId': '',
-    'formMain:fromIdPeriod_input': '',
-    'formMain:toIdPeriod_input': '',
     'formMain:fromIdAcceptancePeriod_input': '',
-    'formMain:toIdAcceptancePeriod_input': '',
-    'formMain:j_idt71': '',
-    'formMain:j_idt73': '',
-    'formMain:sgTable:2:j_idt79_input': 'on',
-    'formMain:sgTablePanel_collapsed': 'false',
+    'formMain:sgTablePanel_collapsed': 'true',
     'formMain:taTablePanel_collapsed': 'true',
     'formMain:stateTablePanel_collapsed': 'true',
-    'formMain:j_idt99_scrollState': '0,0',
+    'formMain:j_idt135_scrollState': '0,0',
     'formMain:selectTreeDlgPanel_collapsed': 'true',
     'formMain:selectRegTreeDlgPanel_collapsed': 'true',
-    'formMain:objFilterPanel_collapsed': 'false',
-    'formMain:lotListTable_rppDD': '50',
-    'formMain:selectTreeDlgTree_selection': '',
+    'formMain:lotDataGridId_rppDD': '12',
     'formMain:selectTreeDlgTree_scrollState': '0,0',
-    'javax.faces.ViewState': '',
+    'javax.faces.ViewState': ''
 }
+
+post_data_panel_list_query = {
+    'javax.faces.partial.ajax': 'true',
+    'javax.faces.source': 'formMain:clTable',
+    'javax.faces.partial.execute': 'formMain:clTable',
+    'javax.faces.partial.render': 'formMain:panelList formMain:showLotsPanel',
+    'formMain:clTable': 'formMain:clTable',
+    'formMain': 'formMain',
+    'formMain:inputServerTime': '',
+    'formMain:fromIdAcceptancePeriod_input': '',
+    'formMain:sgTablePanel_collapsed': 'true',
+    'formMain:taTablePanel_collapsed': 'true',
+    'formMain:stateTablePanel_collapsed': 'true',
+    'formMain:j_idt135_scrollState': '0,0',
+    'formMain:selectTreeDlgPanel_collapsed': 'true',
+    'formMain:selectRegTreeDlgPanel_collapsed': 'true',
+    'formMain:lotDataGridId_rppDD': '12',
+    'formMain:selectTreeDlgTree_scrollState': '0,0',
+    'javax.faces.ViewState': ''
+}
+
+
 
 # data that changing:
 # javax.faces.source
@@ -81,7 +91,6 @@ post_data_to_trade = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "",
     "javax.faces.partial.execute": "@all",
-    # "formMain:lotListTable:43:j_idt122": "formMain:lotListTable:43:j_idt122",
     "formMain": "formMain",
     "formMain:inputServerTime": "",
     "formMain:commonSearchCriteriaStr": "",
@@ -94,7 +103,6 @@ post_data_to_trade = {
     "formMain:toIdAcceptancePeriod_input": "",
     "formMain:j_idt71": "",
     "formMain:j_idt73": "",
-    # "formMain:sgTable:2:j_idt79_input": "on",
     "formMain:sgTablePanel_collapsed": "true",
     "formMain:taTablePanel_collapsed": "true",
     "formMain:stateTablePanel_collapsed": "true",
@@ -112,12 +120,8 @@ post_data_debitor = {
     'formMain': 'formMain',
     'formMain:inputServerTime': '',
     'formMain:commonSearchCriteriaStr': '',
-    'formMain:j_idt59_collapsed': 'false',
-    'formMain:j_idt74_collapsed': 'false',
-    # 'formMain:j_idt93_collapsed': 'false', formMain:j_idt82_collapsed
     'formMain:auctionDocsPanel_collapsed': 'false',
     'javax.faces.ViewState': '',
-    'formMain:j_idt51': 'formMain:j_idt51',
 }
 
 post_data_lot_tab = {
