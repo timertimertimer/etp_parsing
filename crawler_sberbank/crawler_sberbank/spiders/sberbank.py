@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
-import base64
+import asyncio
 import logging
+import math
+from typing import Iterable, Dict
 
 import pandas as pd
+import playwright
 from bs4 import BeautifulSoup as BS
-from icecream import ic
+from playwright.async_api import Page
 from scrapy import FormRequest, Request
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider
+from scrapy_playwright.page import PageMethod
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 import json
-import xmltodict
 import pprint
 
 from ..items import SberbankItemLoader, CrawlerSberbankItem
 from ..locators.locator_spider import LocatorSpider
-from ..settings import DEFAULT_REQUESTS_HEADERS
+from ..settings import DEFAULT_REQUEST_HEADERS
 from ..trades.app import ComposeTrades
 from ..utils.config import *
-from ..utils.data_for_requests import script_lua_first_req, xml_data, script_trading, script_lot, script_lot_nojs, \
-    simle_script_lua, simle2_script_lua, headers
+from ..utils.data_for_requests import xml_data, simle_script_lua, headers
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.manage_spider import *
 from ..utils.work_with_text_and_number import dedent_func
@@ -34,7 +36,41 @@ lst_links = list()
 pp = pprint.PrettyPrinter(indent=4)
 
 
+async def filter_lots(page: Page, time_from, time_to) -> str:
+    text = await page.content()
+    await page.wait_for_selector(selector='div[id="statisticAreaContainer"]', state='attached')
+    await page.evaluate("document.querySelector('input[name=PublicDateMin]').value='{}'".format(time_from))
+    await asyncio.sleep(0.5)
+    await page.evaluate("document.querySelector('input[name=PublicDateMax]').value='{}'".format(time_to))
+    await asyncio.sleep(0.5)
+    await page.evaluate("document.querySelector('input[type=button][value=Поиск]').click()")
+    await asyncio.sleep(5)
+    return page.url
+
+
+async def custom_headers(
+        *,
+        browser_type_name: str,
+        playwright_request: playwright.async_api.Request,
+        scrapy_request_data: dict,
+) -> Dict[str, str]:
+    headers = await playwright_request.all_headers()
+    scrapy_headers = scrapy_request_data["headers"].to_unicode_dict()
+    headers["Cookie"] = scrapy_headers.get("Cookie")
+    return headers
+
+
 class SberbankSpider(CrawlSpider, ComposeTrades):
+    name = 'sberbank'
+
+    custom_settings = {
+        'PLAYWRIGHT_PROCESS_REQUEST_HEADERS': custom_headers,
+        'PLAYWRIGHT_LAUNCH_OPTIONS': {
+            "headless": True,
+            "timeout": 20 * 1000,  # 20 seconds
+        }
+    }
+
     def __init__(self, *args, **kwargs):
         super(SberbankSpider).__init__(*args, **kwargs)
         self.loc = LocatorSpider
@@ -42,39 +78,24 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
 
-    name = 'sberbank'
-    days_increase = time_delta
-    http_user = 'parser'
-    http_pass = 'gs:0Kh7%bD5$gBh}'
-
-    def start_requests(self):
-        """start requests according periods interval and frequency"""
+    def start_requests(self) -> Iterable[Request]:
         date_range = pd.date_range(start_time_from, periods=periods_, freq=format_period)
         for start_time in date_range:
-            logger.info(f'THIS IS START TIME PUBLICATION - {start_time}')
             start_time = start_time.strftime('%d.%m.%Y %H:%M')
-            time_from = "document.querySelector('input[name=PublicDateMin]').value='{}'".format(start_time)
-            time_to = "document.querySelector('input[name=PublicDateMax]').value='{}'".format(
-                f"{increase_time_days(start_time, self.days_increase)}")
-            logger.info(f'THIS IS END DATE PUBLICATION:: {increase_time_days(start_time, self.days_increase)}')
-            btn = "document.querySelector('input[type=button][value=Поиск]').click()"
-            yield SplashRequest(main_url_start, self.make_second_request, endpoint='execute', encoding='utf-8',
-                                cache_args=['lua_source'],
-                                args={'lua_source': script_lua_first_req, 'headers': headers,
-                                      'time_from': time_from, 'time_to': time_to, 'btn': btn, 'timeout': 60}, session_id=1,
-                                meta={'time_from': start_time,
-                                      'time_to': f"{increase_time_days(start_time, self.days_increase)}"},
-                                dont_filter=True)
+            logger.info(f'THIS IS START TIME PUBLICATION - {start_time}')
+            time_to = f"{increase_time_days(start_time, time_delta)}"
+            logger.info(f'THIS IS END DATE PUBLICATION:: {time_to}')
+            yield Request(main_url_start, callback=self.make_second_request, meta=dict(
+                playwright=True,
+                playwright_page_methods=[
+                    PageMethod("wait_for_load_state", "networkidle"),
+                    PageMethod(filter_lots, start_time, time_to),
+                ],
+                time_from=start_time, time_to=time_to, headers=DEFAULT_REQUEST_HEADERS
+            ))
 
     def make_second_request(self, response):
-        png_bytes = base64.b64decode(response.data["screenshot"])
-        with open("screenshot.png", "wb") as f:
-            f.write(png_bytes)
-
-        import math
         """get full data for FormRequest and do it (get sum and amount of lots that period include)"""
-        lot_count = response.xpath(self.loc.count_lots_page_loc).get()  # lot_count = 0
-        # statistics - information about amount lots, total sum of lots and amount of organizers
         statistics = response.xpath(self.loc.statistics_loc).get()
         statistics = BS(statistics, features='lxml')
 
@@ -120,9 +141,6 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
                                       'buMainId': '0',
                                       'personMainId': '0'
                                   },
-                                  # endpoint='execute', cache_args=['lua_source'],
-                                  # args={'lua_source': script_lua}, method='POST',
-                                  # session_id=1,
                                   meta={'total_lots_number': total_lot},
                                   headers={
                                       ':authority': 'utp.sberbank-ast.ru',
@@ -158,45 +176,36 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
             for link in lst_links_set:
                 link = str(link).replace('http', 'https').replace('httpss', 'https')
                 path_headers = ''.join(re.findall(r'/Bankruptcy/NBT/PurchaseView/.+\d+$', link))
-                headers_ = {':authority': 'utp.sberbank-ast.ru',
-                            ':method': 'GET',
-                            ':path': path_headers,
-                            ':scheme': 'https',
-                            'accept': '*/*',
-                            #'accept-encoding': 'gzip, deflate, br',
-                            'accept-language': 'n-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
-                            'cache-control': 'no-cache',
-                            'content-type': 'application/x-www-form-urlencoded',
-                            'origin': 'https://utp.sberbank-ast.ru',
-                            'referer': 'https://utp.sberbank-ast.ru/Bankruptcy/List/BidList',
-                            'pragma': 'no-cache',
-                            'sec-fetch-dest': 'empty',
-                            'sec-fetch-mode': 'cors',
-                            'sec-fetch-site': 'same-origin',
-                            'User-Agent': choice(agent_list)
-                            }
-                yield SplashRequest(link,
-                                    callback=self.sort_trades,
-                                    endpoint='execute',
-                                    args={'lua_source': simle2_script_lua, 'headers': headers_})
+                headers_ = {
+                    'accept': 'application/json',
+                    'accept-encoding': 'gzip, deflate, br',
+                    'accept-language': 'n-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                    'referer': link,
+                    'pragma': 'no-cache',
+                    'sec-fetch-dest': 'empty',
+                    'sec-fetch-mode': 'cors',
+                    'sec-fetch-site': 'same-origin',
+                    'User-Agent': choice(agent_list)
+                }
+                yield FormRequest(
+                    'https://utp.sberbank-ast.ru/api/Processing/main', self.sort_trades, method='POST',
+                    body=json.dumps({'actionType': 'template', 'windowCode': path_headers, 'actionCode': path_headers})
+                )
+                # yield SplashRequest(link,
+                #                     callback=self.sort_trades,
+                #                     endpoint='execute',
+                #                     args={'lua_source': simle2_script_lua, 'headers': headers_})
                 # yield Request(link, callback=self.sort_trades, headers=headers)
 
     def sort_trades(self, response):
         """get response and sort by type trading. Also get and structure ajax xml data"""
-        soup = BS(str(response.text), features='lxml')
-        # with open('response_explore.txt', 'w') as f:
-        #     f.write(soup.decode('utf-8'))
-        form_ajax_data = soup.find(attrs={'id': 'xmlData'})['value']
-        convert_form_to_xml = BS(str(form_ajax_data), features='lxml-xml')
-        convert_to_json = json.dumps(xmltodict.parse(str(convert_form_to_xml)), ensure_ascii=False)
-        ajax_data_dict = json.loads(convert_to_json)
-        # import pprint
-        # pprint.pprint(ajax_data_dict)
+        ajax_data_dict = json.loads(response.text)['Purchase']
+        trading_type_ = ajax_data_dict['PurchaseinfoPanel']['PurchaseInfo']
         try:
-            trading_type = sort_trading_type(dedent_func
-                                             (ajax_data_dict['Purchase']['PurchaseTypeInfo']['PurchaseTypeName']))
-            trading_form = get_trading_form(dedent_func
-                                            (ajax_data_dict['Purchase']['PurchaseTypeInfo']['PurchaseTypeName']))
+            trading_type = sort_trading_type(dedent_func(trading_type_['PurchaseTypeInfo']['PurchaseTypeName']))
+            trading_form = get_trading_form(dedent_func(trading_type_['PurchaseTypeInfo']['PurchaseTypeName']))
         except:
             logger.error(f'{response.url} :: INVALID DATA TRADING TYPE', exc_info=True)
             trading_type = None
@@ -205,22 +214,19 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
         if str(trading_type) == 'auction':
             return self.parse_auction(response=response,
                                       trading_type=trading_type, trading_form=trading_form,
-                                      ajax_data_dict=ajax_data_dict,
-                                      form_ajax_data=form_ajax_data)
+                                      ajax_data_dict=ajax_data_dict)
 
         if str(trading_type) == 'competition':
             return self.parse_auction(response=response,
                                       trading_type=trading_type, trading_form=trading_form,
-                                      ajax_data_dict=ajax_data_dict,
-                                      form_ajax_data=form_ajax_data)
+                                      ajax_data_dict=ajax_data_dict)
 
         if str(trading_type) == 'offer':
             return self.parse_offer(response=response,
                                     trading_type=trading_type, trading_form=trading_form,
-                                    ajax_data_dict=ajax_data_dict,
-                                    form_ajax_data=form_ajax_data)
+                                    ajax_data_dict=ajax_data_dict)
 
-    def parse_auction(self, response, trading_type, trading_form, ajax_data_dict, form_ajax_data):
+    def parse_auction(self, response, trading_type, trading_form, ajax_data_dict):
         combo = ComposeTrades(response_=response)
         lst_link_to_lots = list()
         try:
@@ -295,7 +301,6 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
                 logger.error(f'{response.url} :: INVALID END DATE TRADING AUCTION')
 
             url = _link
-            # if url == 'https://utp.sberbank-ast.ru/Bankruptcy/NBT/BidView/11/0/0/996841':
             if url not in self.previous_lots:
                 files_general = combo.offer.download_general(combo.trading_id_auc(response.url), form_ajax_data)
                 yield SplashRequest(url,

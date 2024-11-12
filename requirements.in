@@ -21,3 +21,5 @@ icecream
 aiohttp_socks
 aiomysql
 chardet
+pytest-playwright
+scrapy_playwright

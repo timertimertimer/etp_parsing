@@ -5,6 +5,12 @@ BOT_NAME = 'crawler_sberbank'
 SPIDER_MODULES = ['crawler_sberbank.spiders']
 NEWSPIDER_MODULE = 'crawler_sberbank.spiders'
 
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
 USER_AGENT = headers_brow['User-Agent']
 
 ROBOTSTXT_OBEY = False
@@ -18,7 +24,7 @@ ROBOTSTXT_OBEY = False
 
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
-DEFAULT_REQUESTS_HEADERS = {
+DEFAULT_REQUEST_HEADERS = {
     ':authority': 'utp.sberbank-ast.ru',
     ':method': 'GET',
     ':path': '/Bankruptcy/SearchQuery/BidList',

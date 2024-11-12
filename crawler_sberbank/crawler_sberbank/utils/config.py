@@ -45,15 +45,15 @@ main_url_start = 'https://utp.sberbank-ast.ru/Bankruptcy/List/BidList'
 part_path_to_trade = r'PurchaseView'
 part_path_to_lot = r'BidView'
 
+time_delta = 7
 # %Y-%m-%d
-start_time_from = format_parse_date(days_=2, time_format='%Y-%m-%d')
+start_time_from = format_parse_date(days_=time_delta, time_format='%Y-%m-%d')
 # format period
 # W - week
 # D - day
 format_period = 'D'
 # periods - how many weeks or days been iteration - FREQUENCY (freq)
 periods_ = 1
-time_delta = 2
 connect_db = {
     'table': 'lots_sberbank'
 
@@ -72,3 +72,5 @@ lst_exet = ['.jpeg', '.png', '.jpg', '.bmp',
 
 pattern_lots_links = r' <objectHrefTerm>(.*?)</objectHrefTerm>'
 first_part_link = 'https://utp.sberbank-ast.ru/Bankruptcy/File/DownloadFile?fid='
+
+trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'eventsource', 'websocket', 'media', 'ping']

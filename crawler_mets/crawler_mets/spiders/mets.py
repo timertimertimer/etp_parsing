@@ -40,8 +40,8 @@ async def filter_lots(page: Page) -> str:
 logger = logging.getLogger(__name__)
 
 
-class MetsPlaywrightSpider(scrapy.Spider):
-    name = 'mets-playwright'
+class MetsSpider(scrapy.Spider):
+    name = 'mets'
     start_urls = ['https://m-ets.ru/search']
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources
