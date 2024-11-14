@@ -14,7 +14,7 @@ class Auction:
 
     def table_trading_page_trade_info(self):
         """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о торгах', re.IGNORECASE))
+        table = self.soup.find('th', string=re.compile('Информация о ходе торгов', re.IGNORECASE))
         if table:
             table = table.find_parent('table')
             return table

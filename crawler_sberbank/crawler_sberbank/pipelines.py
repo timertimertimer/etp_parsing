@@ -21,6 +21,15 @@ class Connect:
         self.db_config = read_db_config()
         self.conn = MySQLConnection(**self.db_config)
         self.curr = self.conn.cursor()
+        self.set_wait_timeout(600)
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.curr.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Error as err:
+            print(f"Error setting wait_timeout: {err}")
 
 
 class CrawlerDbConnect(Connect):

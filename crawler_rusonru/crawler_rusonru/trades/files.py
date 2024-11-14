@@ -18,7 +18,7 @@ class GeneralFiles:
 
     def table_trading_page_trade_info(self):
         """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о торгах', re.IGNORECASE))
+        table = self.soup.find('th', string=re.compile('Документы', re.IGNORECASE))
         if table:
             table = table.find_parent('table')
             return table
@@ -96,7 +96,7 @@ class Lot_Files:
 
     def table_lot_page_lot_info(self):
         """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о лоте', re.IGNORECASE))
+        table = self.soup.find('th', class_='table_header')
         if table:
             table = table.find_parent('table')
             return table

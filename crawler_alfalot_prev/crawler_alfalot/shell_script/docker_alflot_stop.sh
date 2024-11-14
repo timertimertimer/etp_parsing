@@ -1,2 +1,0 @@
-docker stop splash_alflot
-docker rm splash_alflot

@@ -75,7 +75,7 @@ class SerpParse:
         status = dedent_func(status_text)
         active = ('Прием заявок',)
         pending = ('Торги объявлены', 'Ожидает публикации')
-        ended = ('Прием заявок завершен', 'Идут торги', 'Подведение результатов торгов',
+        ended = ('Прием заявок завершен', 'Идут торги', 'Подведение результатов торгов', 'Подведение итогов',
                  'Торги отменены', 'Торги завершены', 'Торги не состоялись', 'Торги приостановлены')
 
         if status in active:
@@ -94,7 +94,7 @@ class SerpParse:
 
     def get_curent_page(self):
         """ retrun current page """
-        current = self.soup.find('li', class_='pager-current')
+        current = self.soup.find('ul', class_='pagination').find('li', class_='active')
         if current:
             current = dedent_func(current.get_text())
             if re.match(r'\d{1,3}', current):
@@ -222,6 +222,6 @@ class SerpParse:
     def get_arbitr_company(self):
         """ return arbitrator company """
         if table := self.table_arbitrator_info():
-            text = 'Организация арбитражных'
+            text = 'Наименование СРО'
             arb_company = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
             return dedent_func(arb_company)

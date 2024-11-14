@@ -12,7 +12,7 @@ class OfferParse:
 
     def table_lot_page_lot_info(self):
         """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о лоте', re.IGNORECASE))
+        table = self.soup.find('th', class_='table_header')
         if table:
             table = table.find_parent('table')
             return table
@@ -23,12 +23,12 @@ class OfferParse:
     def start_price(self):
         """ return start price """
         if table := self.table_lot_page_lot_info():
-            text = r'Стартовая цена'
-            start_price = table.find('td', string=re.compile(text, re.IGNORECASE))
+            text = r'Начальная цена'
+            start_price = table.find('td', string=text)
             if start_price:
-                start_price = start_price.findNextSibling('td').get_text()
-                start_price = re.sub(r'\.$', ' ', start_price)
                 try:
+                    start_price = start_price.findNextSibling('td').get_text()
+                    start_price = re.sub(r'\.$', ' ', start_price)
                     return make_float(start_price)
                 except Exception as e:
                     print(e)
@@ -64,7 +64,7 @@ class OfferParse:
     def get_short_name(self):
         """ return short name without lot number """
         if table := self.table_lot_page_lot_info():
-            text = 'Предмет торгов'
+            text = 'Наименование имущества'
             short_name = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
             return dedent_func(short_name)
 
@@ -82,7 +82,7 @@ class OfferParse:
     def property_info(self):
         """ :return property inforamtion about lot """
         if table := self.table_lot_page_lot_info():
-            text = 'Порядок ознакомления с имуществом должника'
+            text = 'Порядок ознакомления с имуществом'
             property_info = table.find('td', string=re.compile(text, re.IGNORECASE))
             if property_info:
                 property_info = property_info.findNextSibling('td').get_text()
@@ -90,7 +90,7 @@ class OfferParse:
 
     def get_period_table(self):
         """ find and return table with periods """
-        table = self.soup.find('table', class_='views-table int_table')
+        table = self.soup.find('table', class_='views-table inner discount_int')
         if table is None:
             table1 = self.soup.find('th',
                                     string=re.compile(r'Дата окончания приема заявок на интервале', re.IGNORECASE))

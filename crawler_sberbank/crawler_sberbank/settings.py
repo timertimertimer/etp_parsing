@@ -43,6 +43,7 @@ DEFAULT_REQUEST_HEADERS = {
     'x-requested-with': 'XMLHttpRequest',
 
 }
+DEFAULT_REQUESTS_HEADERS = DEFAULT_REQUEST_HEADERS
 # LOG_LEVEL = 'INFO'
 # LOG_FILE = './sberbank.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

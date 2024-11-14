@@ -75,7 +75,7 @@ class RusonSpider(Spider):
         next_page = current_page + 1
         if 0 < next_page < stop_page:
             param_data['pagenum'] = str(next_page)
-            yield FormRequest('https://rus-on.ru/trades', callback=self.parse_serp, headers=hd,
+            yield FormRequest(_trade_link['rus-on'], callback=self.parse_serp, headers=hd,
                               formdata=param_data, method='GET',
                               errback=self.errback_httpbin)
 
