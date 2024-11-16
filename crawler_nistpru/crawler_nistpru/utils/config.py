@@ -87,8 +87,8 @@ script_lua = """
                  request.abort()
              end 
              end)
+             splash:autoload("https://nistp.ru/inc/js/jquery-3.5.1.min.js")
              splash.images_enabled=false
-             splash.js_enabled=false
              splash.private_mode_enabled = false
              splash:init_cookies(splash.args.cookies)
              assert(splash:go{

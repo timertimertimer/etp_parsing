@@ -289,7 +289,7 @@ class OfferPage:
                 lot_dict['lot'] = lot_lst
             return lot_dict
         except Exception as e:
-            pass
+            logger.error(f'{self.response.url} :: SOMETHING WENT WRONG\n{e}')
 
     # EXTRA FUNCTIONS - WHEN PERIODS HAS TWO (2) PAGES
     def concatination_two_list(self):

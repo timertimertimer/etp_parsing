@@ -69,5 +69,9 @@ def alfalot():
     execute(['scrapy', 'crawl', 'alfalot'])
 
 
+def bepspb():
+    execute(['scrapy', 'crawl', 'bepspb'])
+
+
 if __name__ == '__main__':
-    alfalot()
+    vertrades()

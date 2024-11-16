@@ -50,7 +50,7 @@ class NistpSpider(scrapy.Spider):
         except:
             cookie = ''
         ps['app_start_from'] = start_time
-        yield FormRequest.from_response(response, callback=self.search_serp, formdata=ps, method='GET', headers=header,
+        yield FormRequest(url=''.join(self.start_url), callback=self.search_serp, formdata=ps, method='GET', headers=header,
                           cb_kwargs={'header': header, 'cookie': cookie}, errback=self.errback_httpbin)
 
     def search_serp(self, response, header, cookie):
@@ -59,8 +59,8 @@ class NistpSpider(scrapy.Spider):
         current_page = combo.serp.get_current_page()
         next_page = combo.serp.get_next_page()
         for link in combo.serp.links_to_trade():
-            header['Referer'] = response.url
-            header['User-Agent'] = choice(agent_list)
+            # header['Referer'] = response.url
+            # header['User-Agent'] = choice(agent_list)
             yield Request(url=link[0], callback=self.parse_trade, headers=header,
                           cb_kwargs={'header': header, 'cookie': cookie, 'trading_number': link[1]})
 
