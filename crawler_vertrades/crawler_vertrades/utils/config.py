@@ -39,14 +39,24 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
-time_delta = 1
+data_origin_url = 'https://vertrades.ru/'
+main_url = 'https://bankrot.vertrades.ru/'
+time_delta = 30
 start_time_from = format_parse_date(time_delta)
 connect_db = {
     'table': 'lots_vertrades'
 }
 
-absolute_path_to_download = f'{set_absolute}/etp_vertrades'
-
-relative_path = f'{set_relative}/etp_vertrades'
+headers_brow = {
+    "User-Agent": choice(agent_list),
+}
+path_absolute = f'{set_absolute}/etp_vertrades'
+path_relative = f'{set_relative}/etp_vertrades'
 lst_exet = ['.jpeg', '.png', '.jpg', '.bmp',
             '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
+lst_exet_files = ['.jpeg', '.png', '.jpg', '.bmp', '.docx', '.doc', '.pdf',
+                  '.JPG', '.JPEG', '.PNG' 'jpg', 'jpeg', 'JPG', 'JPEG', '.PNG', '.PDF', '.DOC', '.DOCX']
+
+lst_exet_archive = ['.rar', '.zip', '.7z', '.RAR', '.ZIP', '.7Z', '.Rar', '.Zip']
+lst_exeption = ['reshenie', 'protocol', 'Reshenie', 'Protocol', 'Протокол', 'протокол', 'Решение', 'решение',
+                'ПРОТОКОЛ']

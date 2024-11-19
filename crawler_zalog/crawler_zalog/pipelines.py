@@ -1,5 +1,5 @@
 from mysql.connector import MySQLConnection, Error
-from crawler_zalog.utils.config import db_tables
+from .utils.config import db_tables
 from .python_mysql_dbconfig import read_db_config
 
 

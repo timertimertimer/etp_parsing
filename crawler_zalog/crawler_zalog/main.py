@@ -1,5 +1,6 @@
 from scrapy.cmdline import execute
 
+
 def zalog_ross():
     execute(['scrapy', 'crawl', 'zalog_ross'])
 
@@ -8,5 +9,9 @@ def zalog_sber():
     execute(['scrapy', 'crawl', 'zalog_sber'])
 
 
+def zalog_rad():
+    execute(['scrapy', 'crawl', 'zalog_rad'])
+
+
 if __name__ == '__main__':
-    zalog_sber()
+    zalog_rad()
