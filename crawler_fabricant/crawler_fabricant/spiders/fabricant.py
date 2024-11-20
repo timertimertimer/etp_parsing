@@ -397,7 +397,7 @@ class FabricantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
             if (trade_link, lot_number) not in self.previous_lots:
                 loader.add_value('trading_type', combo.compet.trading_form_compet)
                 loader.add_value('trading_form', combo.compet.trading_form_compet)
-                loader.add_value('trading_org', combo.compet.trading_org)
+                loader.add_value('trading_org', combo.compet.trading_org_loc)
                 loader.add_value('msg_number', combo.compet.msg_number(response.url))
                 loader.add_value('case_number', combo.compet.case_number(response.url))
                 loader.add_value('debtor_inn', combo.compet.debitor_inn(response.url))

@@ -74,3 +74,10 @@ class OfferParse:
             return last_element['end_date_requests']
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR END DATE TRADING {e}')
+
+    def get_start_price(self, lst_periods):
+        try:
+            first_element: dict = lst_periods[0]
+            return first_element['current_price']
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR END DATE TRADING {e}')

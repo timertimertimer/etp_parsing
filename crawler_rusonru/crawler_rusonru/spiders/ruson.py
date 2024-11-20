@@ -40,7 +40,7 @@ class RusonSpider(Spider):
         """ parse pagination pages with short lot data (serp) """
         combo = Combo(response_=response)
         hd['Referer'] = response.url
-        for lot_data in combo.serp.get_lots_data():
+        for lot_data in combo.serp.get_lots_data_from_div_table():
             # [0] - trading page; [1] - lot_link; [2] - organizer; [3] - trading type and form; [4] - status
             type_and_form = combo.serp.get_trading_type_and_form(lot_data[3])
             trading_number = combo.serp.get_trading_number(lot_data[3])

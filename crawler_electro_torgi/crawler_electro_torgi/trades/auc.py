@@ -1,0 +1,19 @@
+from bs4 import BeautifulSoup
+
+from ..utils.working_with_time import format_time
+
+
+class Auc:
+    def __init__(self, response):
+        self.response = response
+
+    @property
+    def start_date_trading(self):
+        date = self.response.xpath('//div[contains(normalize-space(text()), "Дата проведения торгов")]/following-sibling::div[1]').get()
+        if date:
+            date = BeautifulSoup(date, 'lxml').get_text().strip()
+            return format_time(date)
+
+    @property
+    def end_date_trading(self):
+        return None

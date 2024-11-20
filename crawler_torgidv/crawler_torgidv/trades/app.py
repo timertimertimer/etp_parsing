@@ -126,7 +126,7 @@ class Combo:
 
     @property
     def id_(self):
-        _id = re.findall(r'\d+', str(self.response.url))
+        _id = re.findall(r'\d+$', str(self.response.url))
         return ''.join(_id)
 
     @property
@@ -259,7 +259,7 @@ class Combo:
             logger.warning(f'{self.response.url} :: INVALID DATA ARBITR NAME')
 
     @property
-    def arbit_inn(self):
+    def arbit_manager_inn(self):
         try:
             arbitr_inn = dedent_func(self.response.xpath(self.loc.arbit_manager_inn_loc).get())
             pattern = re.compile(r'\d{10,12}')

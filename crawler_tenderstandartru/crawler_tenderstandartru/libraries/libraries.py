@@ -1,6 +1,5 @@
 from scrapy import Request, FormRequest, Spider
-from ..utils.config import _data_origin, _auction_trades, _offer_trades, _competition_trades, \
-    search_url
+from ..utils.config import data_origin
 from ..utils.headers import header as hd
 from icecream import ic
 from ..trades.app import Combo
@@ -17,10 +16,10 @@ from ..utils.get_data_from_table import DbConnectCheckLots
 
 __all__ = ['logging',
            'Request', 'FormRequest', 'Spider',
-           '_data_origin', '_auction_trades', '_offer_trades', '_competition_trades',
+           'data_origin',
            'hd',
            'ic',
-           'Combo', 'sp', 'search_url',
+           'Combo', 'sp',
            'HttpError', 'DNSLookupError', 'TCPTimedOutError',
            'make_float', 'return_parse_date',
            'CrawlerTenderstandartruItem', 'CrawlerTenderstandartruItemLoader', 'CrawlerTransferTenderstandartruItem',

@@ -73,5 +73,13 @@ def bepspb():
     execute(['scrapy', 'crawl', 'bepspb'])
 
 
+def arbbitlot():
+    execute(['scrapy', 'crawl', 'arbbitlot'])
+
+
+def ets24():
+    execute(['scrapy', 'crawl', 'ets24'])
+
+
 if __name__ == '__main__':
-    vertrades()
+    ets24()

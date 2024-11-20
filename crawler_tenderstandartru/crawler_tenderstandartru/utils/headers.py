@@ -1,6 +1,6 @@
 from random import choice
 
-from crawler_tenderstandartru.utils.config import agent_list
+from ..utils.config import agent_list
 
 header = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -9,7 +9,6 @@ header = {
     'cache-control': 'no-cache',
     'dnt': '1',
     'pragma': 'no-cache',
-    'referer': 'https://tenderstandart.ru',
     'sec-fetch-dest': 'document',
     'sec-fetch-mode': 'navigate',
     'sec-fetch-site': 'none',

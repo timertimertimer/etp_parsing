@@ -1,25 +1,23 @@
 from ..libraries.libraries import *
+from ..utils.config import trades, tables
+from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
-
+TABLE = tables['tenderstandart']
 
 class TenderstandartruSpider(Spider):
     name = 'tenderstandartru'
-    start_url = _auction_trades['tender_auction']
-    start_urls = [
-        # _auction_trades,
-        _offer_trades,
-        # _competition_trades
-    ]
+    data_origin = data_origin['tenderstandart']
 
     def __init__(self):
         super(TenderstandartruSpider, self).__init__()
         self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        self.previous_lots = self.db_check.get_latest_lot(TABLE)
+        self.url = UrlConfig()
 
     def start_requests(self):
-        for trade in self.start_urls:
-            yield Request(url=trade['tender_auction'], callback=self.parse_auction_main, headers=hd,
+        for trade in trades:
+            yield Request(url=self.url.url_join(self.data_origin, trade), callback=self.parse_auction_main, headers=hd,
                           cb_kwargs={'page': 1})
 
     def parse_auction_main(self, response, page):
@@ -33,7 +31,7 @@ class TenderstandartruSpider(Spider):
         sp['types'] = types_
         sp['_'] = timestamp_
         hd['referer'] = response.url
-        yield FormRequest(url=search_url['tender_search'], callback=self.parse_serp, formdata=sp, method='GET',
+        yield FormRequest(url=self.url.url_join(self.data_origin, 'Trade/AllSearch'), callback=self.parse_serp, formdata=sp, method='GET',
                           headers=hd, cb_kwargs={'page': page, 'trading_type': trading_type}, dont_filter=True,
                           errback=self.errback_httpbin)
 
@@ -41,13 +39,13 @@ class TenderstandartruSpider(Spider):
         """ parse output of lots in period mention in param data """
         combo = Combo(response_=response)
         hd['referer'] = response.url
-        for lot_data in combo.serp.get_lots_data():
+        for lot_data in combo.serp.get_lots_data_from_div_table():
             # [0] - trading page; [1] - lot_link; [2] - lot_number; [3] - organizer; [4] - status; [5] - start price [6] - start date trading
             status = combo.serp.get_status(lot_data[4])
             if status == 'active' or status == 'pending':
                 transfer = CrawlerTransferTenderstandartruItem()
                 transfer['trading_type'] = trading_type
-                transfer['data_origin'] = _data_origin['tenderstandart']
+                transfer['data_origin'] = self.data_origin
                 transfer['trading_id'] = combo.serp.get_trading_id(lot_data[0])
                 transfer['trading_number'] = transfer['trading_id']
                 transfer['trading_link'] = lot_data[0]
@@ -64,7 +62,7 @@ class TenderstandartruSpider(Spider):
                                   dont_filter=True,
                                   errback=self.errback_httpbin)
         page += 1
-        if next_page := combo.serp.get_next_page_link(page):
+        if next_page := combo.serp.get_next_page_link(page, self.data_origin):
             yield Request(url=next_page, callback=self.parse_serp, headers=hd,
                           cb_kwargs={'page': page, 'trading_type': trading_type}, errback=self.errback_httpbin)
 
@@ -93,7 +91,7 @@ class TenderstandartruSpider(Spider):
         combo = Combo(response_=response)
         hd['referer'] = response.url
         page_offer += 1
-        next_page = combo.serp.get_next_page_link(page_offer)
+        next_page = combo.serp.get_next_page_link(page_offer, self.data_origin)
         period = combo.offer.return_periods()
         periods.extend(period)
         if next_page:

@@ -104,7 +104,7 @@ class TorgidvSpider(scrapy.Spider):
         combo = Combo(response)
         loader.add_value('debtor_inn', combo.debtor_inn)
         loader.add_value('arbit_manager', combo.arbit_manager)
-        loader.add_value('arbit_manager_inn', combo.arbit_inn)
+        loader.add_value('arbit_manager_inn', combo.arbit_manager_inn)
         loader.add_value('arbit_manager_org', combo.arbit_manager_org)
         loader.add_value('status', combo.status)
         loader.add_value('lot_id', combo.id_)

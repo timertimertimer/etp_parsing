@@ -45,7 +45,6 @@ DEFAULT_REQUEST_HEADERS = {
     'cache-control': 'no-cache',
     'dnt': '1',
     'pragma': 'no-cache',
-    'referer': 'https://tenderstandart.ru',
     'sec-fetch-dest': 'document',
     'sec-fetch-mode': 'navigate',
     'sec-fetch-site': 'none',

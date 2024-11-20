@@ -39,36 +39,34 @@ def format_parse_date(days_: int, time_format=None):
 
 start_date = format_parse_date(35) + ' 00:00'
 
-_data_origin = {
-    'tenderstandart': 'https://tenderstandart.ru/'
+data_origin = {
+    'au_pro': 'https://au-pro.ru/',
+    'tenderstandart': 'https://tenderstandart.ru/',
+    'torggroup': 'https://bankrot.torggroup.org/',
+    'viomitra': 'https://bankrot.viomitra.ru/'
 }
 
-search_url = {
-    'tender_search': 'https://tenderstandart.ru/Trade/AllSearch'
-}
-
-_auction_trades = {
-    'tender_auction': 'https://tenderstandart.ru/Trade/AuctionTrades'
-}
-
-_offer_trades = {
-    'tender_auction': 'https://tenderstandart.ru/Trade/PublicOfferTrades'
-}
-
-_competition_trades = {
-    'tender_auction': 'https://tenderstandart.ru/Trade/CompetitionTrades'
-}
+trades = ['Trade/AuctionTrades', 'Trade/PublicOfferTrades', 'Trade/CompetitionTrades']
 
 path_absolute = {
-    'tenderstandart': f'{set_absolute}/etp_tenderstandartru'
+    'au_pro': f'{set_absolute}/etp_au_pro',
+    'tenderstandart': f'{set_absolute}/etp_tenderstandartru',
+    'torggroup': f'{set_absolute}/etp_torggroup',
+    'viomitra': f'{set_absolute}/etp_viomitra'
 }
 
 path_relative = {
-    'tenderstandart': f'{set_relative}/etp_tenderstandartru'
+    'au_pro': f'{set_relative}/etp_au_pro',
+    'tenderstandart': f'{set_relative}/etp_tenderstandartru',
+    'torggroup': f'{set_relative}/etp_torggroup',
+    'viomitra': f'{set_relative}/etp_viomitra'
 }
 
 tables = {
+    'au_pro': 'lots_au_pro',
     'tenderstandart': 'lots_tenderstandart',
+    'torggroup': 'lots_torggroup',
+    'viomitra': 'lots_viomitra',
 }
 
 lst_exet = ['.jpeg', '.png', '.jpg', '.bmp',

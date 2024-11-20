@@ -1,3 +1,5 @@
+import pandas as pd
+
 from .libraries import *
 
 logger = logging.getLogger(__name__)
@@ -27,14 +29,14 @@ class SerpParse:
         """ timestamp - param for  request """
         return str(return_timestamp_moskow())
 
-    def get_next_page_link(self, current_page: str):
+    def get_next_page_link(self, current_page: str, data_origin_):
         """ check if next page exists if true - return full link """
         next_page = self.soup.find_all('a', attrs={'data-ajax-complete': 'OnPagerLinkComplete'})
         if len(next_page) > 0:
             next_page_number = list({x for x in next_page if x.get_text().strip() == str(current_page)})
             if len(next_page_number) == 1:
                 _href = next_page_number[0].get('href')
-                full_url = re.sub(r'/$', '', _data_origin['tenderstandart']) + _href
+                full_url = re.sub(r'/$', '', data_origin_) + _href
                 return full_url
 
     def get_status(self, status_text):
@@ -59,17 +61,22 @@ class SerpParse:
         if id_divTradesTable:
             return id_divTradesTable
 
-    def get_lots_data(self):
+    def get_table_with_lots(self):
+        id_tradesTable = self.soup.find('table', class_='trades_table')
+        if id_tradesTable:
+            return id_tradesTable
+
+    def get_lots_data_from_div_table(self):
         """ fetch data (trading_link, lot_link, lot_number, organizer, status) """
         if _div := self.get_div_with_lots():
             short_lot_data = list()
             for lot_data in _div.find_all('div', class_='row item-row'):
                 trading_link = lot_data.find(href=re.compile(r'/Trade/View/\d+$'))
                 if trading_link:
-                    trading_link = re.sub(r'/$', '', _data_origin['tenderstandart']) + trading_link.get('href')
+                    trading_link = re.sub(r'/$', '', data_origin['tenderstandart']) + trading_link.get('href')
                 lot_link = lot_data.find(href=re.compile(r'/TradeLot/View/\d+$'))
                 if lot_link:
-                    lot_link = re.sub(r'/$', '', _data_origin['tenderstandart']) + lot_link.get('href')
+                    lot_link = re.sub(r'/$', '', data_origin['tenderstandart']) + lot_link.get('href')
                 lot_number = lot_data.find('span', class_='item-number')
                 if lot_number:
                     lot_number = lot_number.get_text().replace('№', '').strip()
@@ -100,6 +107,21 @@ class SerpParse:
                         start_date_trading = None
                 short_lot_data.append((trading_link, lot_link, lot_number, organizer, status, start_price, start_date_trading))
             return deque(short_lot_data)
+
+    def get_lots_data_from_table(self, _data_origin):
+        table = self.get_table_with_lots()
+        lots = []
+        try:
+            for lot_data in table.find_all('tr')[1:]:
+                lot_data_splitted = lot_data.find_all('td')
+                trading_link = self.url.url_join(_data_origin, lot_data_splitted[0].find('a').get('href'))
+                lot_number = lot_data_splitted[2].get_text().strip()
+                lot_link = self.url.url_join(_data_origin, lot_data_splitted[3].find('a').get('href'))
+                status = lot_data_splitted[-2].get_text().strip()
+                lots.append((trading_link, lot_link, lot_number, status))
+            return lots
+        except Exception as e:
+            pass
 
     def get_trading_id(self, trading_url):
         """ return last number of trading link """

@@ -33,7 +33,7 @@ class GeneralFiles:
             a_tag = table.find_all(href=re.compile('/Document/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', _data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
                 name = dedent_func(a.get_text())
                 general.append((name, link))
             return deque(general)
@@ -111,7 +111,7 @@ class LotFiles:
             a_tag = _div.find_all(href=re.compile('/Picture/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', _data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
                 name = pathlib.Path(str(link)).stem + '.jpg'
                 lot.append((name, link))
             if len(lot) > 0:
@@ -124,7 +124,7 @@ class LotFiles:
             a_tag = table.find_all(href=re.compile('/Document/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', _data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
                 name = dedent_func(a.get_text())
                 lot.append((name, link))
         if img := self.images_on_lot_page():

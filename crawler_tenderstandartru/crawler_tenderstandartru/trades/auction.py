@@ -10,6 +10,15 @@ class AuctionParse:
         self.soup = soup(self.response)
         self.check = CheckIfCorrectContactInfo()
 
+    def get_organizer_name(self):
+        label = self.soup.find('label', string=re.compile(r'Организатор торгов', re.IGNORECASE))
+        if label:
+            div_inn = label.findNext('div', class_='auction_table').find('div',
+                                                                         string=re.compile(r'Сокращенное наименование:', re.IGNORECASE))
+            if div_inn:
+                div_inn = div_inn.findNextSibling('div')
+                return div_inn.get_text()
+
     def get_organizer_inn(self):
         """ return organizer INN """
         label = self.soup.find('label', string=re.compile(r'Организатор торгов', re.IGNORECASE))
@@ -154,12 +163,25 @@ class AuctionParse:
 
     def end_date_requests_auction(self):
         """ :return trading form """
-        _div = self.soup.find('div',
-                              string=re.compile(r'Дата окончания представления заявок на участие:', re.IGNORECASE))
+        _div = self.response.xpath('//div[contains(text(), "Дата окончания")]/following::div[1]/text()').get()
+        if _div:
+            end_date_req = _div.strip().lower()
+            return format_time_auction(end_date_req)
+        logger.error(f'{self.response.url} :: ERROR function {self.end_date_requests_auction.__name__}')
+
+    def start_date_trading(self):
+        _div = self.soup.find('div', string=re.compile(r'Дата проведения', re.IGNORECASE)) or self.soup.find('div', string=re.compile(r'Подведение результатов торгов:', re.IGNORECASE))
         if _div:
             end_date_req = _div.findNext('div').get_text().strip().lower()
             return format_time_auction(end_date_req)
-        logger.error(f'{self.response.url} :: ERROR function {self.end_date_requests_auction.__name__}')
+        logger.error(f'{self.response.url} :: ERROR function {self.start_date_trading.__name__}')
+
+    def start_price(self):
+        start_price = self.soup.find('div', string=re.compile(r'Начальная цена', re.IGNORECASE))
+        if start_price:
+            start_price = start_price.findNext('div').get_text().strip()
+            if start_price:
+                return make_float(start_price)
 
     def get_msg_number(self):
         """ return msg number  """
