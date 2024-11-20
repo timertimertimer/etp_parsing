@@ -11,10 +11,13 @@ logger = logging.getLogger(__name__)
 
 class GeneralFiles:
 
-    def __init__(self, response_):
+    def __init__(self, response_, data_origin_):
         self.response = response_
         self.soup = soup(self.response)
-        self._dir = GeneralFilesDir(path_absolute=path_absolute['tenderstandart'], path_relative=path_relative['tenderstandart'])
+        for k, v in data_origin.items():
+            if data_origin_ == v:
+                crawler = k
+        self._dir = GeneralFilesDir(path_absolute=path_absolute[crawler], path_relative=path_relative[crawler])
         self.url = UrlConfig()
 
     def section_general_docs(self):
@@ -88,10 +91,13 @@ class GeneralFiles:
 
 class LotFiles:
 
-    def __init__(self, response_):
+    def __init__(self, response_, data_origin_):
         self.response = response_
         self.soup = soup(self.response)
-        self._dir = GeneralFilesDir(path_absolute=path_absolute['tenderstandart'], path_relative=path_relative['tenderstandart'])
+        for k, v in data_origin.items():
+            if data_origin_ == v:
+                crawler = k
+        self._dir = GeneralFilesDir(path_absolute=path_absolute[crawler], path_relative=path_relative[crawler])
         self.url = UrlConfig()
 
     def section_doc_lots(self):
@@ -130,7 +136,6 @@ class LotFiles:
         if img := self.images_on_lot_page():
             lot.extend(img)
         return deque(lot)
-        return list()
 
     def download_files_lot(self, _id, lot_number):
         """ itterate throught list with file info(name and link) """

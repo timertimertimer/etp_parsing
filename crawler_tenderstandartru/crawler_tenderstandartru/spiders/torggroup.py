@@ -29,7 +29,7 @@ class TorggroupSpider(Spider):
 
     def parse_auction_main(self, response, page):
         """ parse response(serp) of current type of trade and make requests with param to search active lots"""
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         trading_type = combo.serp.get_trading_type()
         length = combo.serp.get_length_param()
         types_ = combo.serp.get_types_param()
@@ -45,7 +45,7 @@ class TorggroupSpider(Spider):
 
     def parse_serp(self, response, page, trading_type):
         """ parse output of lots in period mention in param data """
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         hd['referer'] = response.url
         for lot_data in combo.serp.get_lots_data_from_table(self.data_origin):
             trading_link, lot_link, lot_number, status = lot_data
@@ -72,7 +72,7 @@ class TorggroupSpider(Spider):
 
     def parse_trading_page(self, response, transfer, trading_type):
         """ parse trading page - according traing type """
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         transfer['trading_org'] = combo.auc.get_organizer_name()
         transfer['trading_org_inn'] = combo.auc.get_organizer_inn()
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
@@ -93,7 +93,7 @@ class TorggroupSpider(Spider):
 
     def parse_periods_offer(self, response, transfer, page_offer, general_files, periods):
         """ parse periods on offer(lot page) """
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         hd['referer'] = response.url
         page_offer += 1
         next_page = combo.serp.get_next_page_link(page_offer, self.data_origin)
@@ -111,7 +111,7 @@ class TorggroupSpider(Spider):
 
     def parse_auction_lot(self, response, transfer, general_files):
         """ parse lot page """
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         loader = CrawlerTenderstandartruItemLoader(CrawlerTenderstandartruItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
@@ -149,7 +149,7 @@ class TorggroupSpider(Spider):
 
     def parse_offer_lot(self, response, transfer, general_files, periods):
         """ parse lot page """
-        combo = Combo(response_=response)
+        combo = Combo(response, self.data_origin)
         loader = CrawlerTenderstandartruItemLoader(CrawlerTenderstandartruItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
