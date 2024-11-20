@@ -110,6 +110,8 @@ class SerpParse:
 
     def get_lots_data_from_table(self, _data_origin):
         table = self.get_table_with_lots()
+        if not table:
+            return []
         lots = []
         try:
             for lot_data in table.find_all('tr')[1:]:

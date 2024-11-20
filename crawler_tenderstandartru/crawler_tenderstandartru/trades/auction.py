@@ -177,7 +177,7 @@ class AuctionParse:
         logger.error(f'{self.response.url} :: ERROR function {self.start_date_trading.__name__}')
 
     def start_price(self):
-        start_price = self.soup.find('div', string=re.compile(r'Начальная цена', re.IGNORECASE))
+        start_price = self.soup.find('div', string=re.compile(r'^Начальная цена', re.IGNORECASE))
         if start_price:
             start_price = start_price.findNext('div').get_text().strip()
             if start_price:
