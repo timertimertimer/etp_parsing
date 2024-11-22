@@ -66,7 +66,7 @@ class Combo:
         type_ = self.response.xpath(self.loc.trading_type_loc).get()
         type_ = BeautifulSoup(str(type_), features='lxml').get_text().strip()
         d = dict(
-            opened=[
+            open=[
                 'Открытые торги посредством публичного предложения',
                 'Открытые торги (конкурс) посредством публичного предложения',
                 'Открытый аукцион с открытой формой представления предложений о цене',
@@ -253,7 +253,7 @@ class Combo:
         lst_files = self.response.xpath(self.loc.general_files_loc).getall()
         for file in lst_files:
             link_ = BeautifulSoup(str(file), features='lxml').find('a')
-            link = link_.get('href')
+            link = self.url.url_join(main_url, link_.get('href'))
             name = link_.get_text()
             if not any(ele in name for ele in lst_exeption):
                 if pathlib.Path(name).suffix in lst_exet:
@@ -301,7 +301,7 @@ class Combo:
             return []
         for link in lot_files:
             name = link.get_text()
-            link = link.get('href')
+            link = self.url.url_join(main_url, link.get('href'))
             if not any(ele in name for ele in lst_exeption):
                 if pathlib.Path(name).suffix in lst_exet:
                     dir.create_dir()
@@ -378,8 +378,7 @@ class Combo:
             if property_info != 'None':
                 return property_info
         except:
-            logger.warning(
-                f'{self.response.url} :: INVALID DATA - PROPERTY INFO')
+            logger.warning(f'{self.response.url} :: INVALID DATA - PROPERTY INFO')
 
     def start_price(self, lot):
         try:

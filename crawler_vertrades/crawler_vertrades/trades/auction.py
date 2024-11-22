@@ -1,7 +1,9 @@
 import logging
+import re
+
 from bs4 import BeautifulSoup
 
-from ..utils.work_with_text_and_number import contains
+from ..utils.work_with_text_and_number import contains, dedent_func
 from ..utils.working_with_time import format_time
 from ..utils.working_with_url import UrlConfig
 
@@ -27,3 +29,15 @@ class AuctionParse:
         if date:
             return format_time(date.find_next_sibling('td').get_text())
         return None
+
+    def step_price(self, lot):
+        try:
+            p = BeautifulSoup(str(lot), 'lxml').find('td', text=contains('Величина повышения'))
+            if p:
+                p = p.find_next_sibling('td')
+                p = re.sub(r'\s', '', dedent_func(p.get_text().strip()).replace(',', '.'))
+                p = re.search(r"\d+(?:\.\d{1,2})?(?=руб)", p).group()
+                if len(p) > 0:
+                    return round(float(p), 2)
+        except ValueError as e:
+            logger.error(f'{self.response.url} :: INVALID DATA STEP PRICE\n{e}')

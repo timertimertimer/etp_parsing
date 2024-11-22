@@ -1,10 +1,17 @@
+# Define your item pipelines here
+#
+# Don't forget to add your pipeline to the ITEM_PIPELINES setting
+# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 from mysql.connector import MySQLConnection, Error
 
-from crawler_sales_lot_online.python_mysql_dbconfig import read_db_config
-from crawler_sales_lot_online.utils.config import table
+from .python_mysql_dbconfig import read_db_config
+from .utils.config import connect_db
 
-class CrawlerLotOnlinePipeline(object):
+# useful for handling different item types with a single interface
+from itemadapter import ItemAdapter
 
+
+class CrawlerOpentpPipeline:
     def process_item(self, item, spider):
 
         for f in item.fields:
@@ -13,7 +20,6 @@ class CrawlerLotOnlinePipeline(object):
             else:
                 item.setdefault(f, None)
         return item
-
 
 class Connect:
     def __init__(self):
@@ -37,7 +43,7 @@ class CrawlerDbConnect(Connect):
         self.create_table()
 
     def create_table(self):
-        self.curr.execute(f"""CREATE TABLE IF NOT EXISTS {table['table']}(
+        self.curr.execute(f"""CREATE TABLE IF NOT EXISTS {connect_db['table']}(
                         id bigint AUTO_INCREMENT PRIMARY KEY,
                         data_origin text COLLATE utf8mb4_unicode_ci,
                         trading_id varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -70,7 +76,7 @@ class CrawlerDbConnect(Connect):
                         periods mediumtext COLLATE utf8mb4_bin,
                         files mediumtext COLLATE utf8mb4_bin,
                         created_at timestamp,
-                        CONSTRAINT CK_{table['table']} UNIQUE (trading_id, lot_number)
+                        CONSTRAINT CK_{connect_db['table']} UNIQUE (trading_id, lot_number, lot_id)
 
                                                             )
 
@@ -78,7 +84,7 @@ class CrawlerDbConnect(Connect):
 
     def store_db(self, item):
         self.curr.execute(
-            f"""insert into {table['table']}(data_origin,trading_id,trading_link,trading_number,trading_type,
+            f"""insert into {connect_db['table']}(data_origin,trading_id,trading_link,trading_number,trading_type,
 trading_form,trading_org,trading_org_inn,trading_org_contacts,msg_number,case_number,debtor_inn,arbit_manager,
 arbit_manager_inn,arbit_manager_org,status,lot_id,lot_link,lot_number,short_name,lot_info,property_information,
 start_date_requests,end_date_requests,start_date_trading,end_date_trading,start_price,step_price,periods,files,
@@ -158,3 +164,4 @@ created_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
             return item
         except Error as error:
             return error
+

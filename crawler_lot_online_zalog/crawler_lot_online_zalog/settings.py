@@ -50,7 +50,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 # LOG_LEVEL = 'INFO'
-LOG_FILE = './lot_online.log'
+# LOG_FILE = './lot_online.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
