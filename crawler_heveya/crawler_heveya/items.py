@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
+
 import json
 
 import scrapy
@@ -11,14 +12,14 @@ from itemloaders.processors import TakeFirst, Compose
 
 def to_json(value: list):
     try:
-        data = json.dumps(value, indent=1, ensure_ascii=False).encode('utf-8')
+        data = json.dumps(value, indent=1, ensure_ascii=False).encode("utf-8")
         return data
     except:
-        data = json.dumps(value, indent=1, ensure_ascii=True).encode('utf-8')
+        data = json.dumps(value, indent=1, ensure_ascii=True).encode("utf-8")
         return data
 
 
-class CrawlerKartotekaItem(scrapy.Item):
+class CrawlerHeveyaItem(scrapy.Item):
     data_origin = scrapy.Field()
     trading_id = scrapy.Field()
     trading_link = scrapy.Field()
@@ -53,7 +54,7 @@ class CrawlerKartotekaItem(scrapy.Item):
     created_at = scrapy.Field()
 
 
-class CrawlerKartotekaItemLoader(ItemLoader):
+class CrawlerHeveyaItemLoader(ItemLoader):
     data_origin_out = TakeFirst()
     trading_id_out = TakeFirst()
     trading_link_out = TakeFirst()
@@ -61,21 +62,21 @@ class CrawlerKartotekaItemLoader(ItemLoader):
     trading_type_out = TakeFirst()
     trading_form_out = TakeFirst()
     status_out = TakeFirst()
-    msg_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    case_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    debtor_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    trading_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    msg_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    case_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    debtor_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    trading_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     trading_org_inn_out = TakeFirst()
     trading_org_contacts_out = Compose(TakeFirst(), to_json)
-    arbit_manager_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    arbit_manager_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    arbit_manager_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    arbit_manager_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    arbit_manager_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    arbit_manager_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     lot_id_out = TakeFirst()
     lot_link_out = TakeFirst()
     lot_number_out = TakeFirst()
     short_name_out = TakeFirst()
-    lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    property_information_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    property_information_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     start_date_requests_out = TakeFirst()
     end_date_requests_out = TakeFirst()
     start_date_trading_out = TakeFirst()

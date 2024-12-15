@@ -8,7 +8,7 @@
 from mysql.connector import MySQLConnection, Error
 
 from crawler_altimeta.python_mysql_dbconfig import read_db_config
-from crawler_altimeta.utils.config import tables
+from .utils.config import tables
 
 
 class CrawlerAltimetaPipeline:

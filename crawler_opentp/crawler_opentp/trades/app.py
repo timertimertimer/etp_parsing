@@ -161,7 +161,8 @@ class Combo:
                 status = self.get_status(data[2])
                 start_price = self.get_start_price(data[4])
                 lots.append(
-                    [self.url.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, start_price])
+                    [self.url.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, start_price]
+                )
             return lots
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH LOTS\n{e}', exc_info=True)

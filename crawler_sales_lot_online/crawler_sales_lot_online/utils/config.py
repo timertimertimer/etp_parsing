@@ -55,7 +55,7 @@ start_time_from = format_parse_date(1, '%Y-%m-%d')
 format_period = 'D'
 # periods - how many weeks or days been iteration - FREQUENCY (freq)
 periods_ = 1
-time_delta = 10
+time_delta = 1
 table = {
 
     'table': 'lots_lot_online'
