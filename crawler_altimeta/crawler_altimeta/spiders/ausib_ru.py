@@ -33,7 +33,7 @@ class AusibRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './ausib.log',
+        # 'LOG_FILE': './ausib.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },
@@ -103,6 +103,7 @@ class AusibRuSpider(Spider):
             transfer['msg_number'] = combo.serp.get_msg_number()
             transfer['case_number'] = combo.serp.get_case_number()
             transfer['debtor_inn'] = combo.serp.get_debtor_inn()
+            transfer['address'] = combo.serp.get_address()
             transfer['arbit_manager'] = combo.serp.get_arbitr_name()
             transfer['arbit_manager_inn'] = None
             transfer['arbit_manager_org'] = combo.serp.get_arb_org()
@@ -160,6 +161,7 @@ class AusibRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -215,6 +217,7 @@ class AusibRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -269,6 +272,7 @@ class AusibRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

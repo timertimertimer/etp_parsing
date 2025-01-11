@@ -32,6 +32,7 @@ class CrawlerTenderstandartruItem(scrapy.Item):
     msg_number = scrapy.Field()
     case_number = scrapy.Field()
     debtor_inn = scrapy.Field()
+    address = scrapy.Field()
     arbit_manager = scrapy.Field()
     arbit_manager_inn = scrapy.Field()
     arbit_manager_org = scrapy.Field()
@@ -68,6 +69,7 @@ class CrawlerTenderstandartruItemLoader(ItemLoader):
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     debtor_inn_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    address_out = TakeFirst()
     trading_org_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     trading_org_inn_out = TakeFirst()
@@ -111,6 +113,7 @@ class CrawlerTransferTenderstandartruItem(scrapy.Item):
     msg_number = scrapy.Field(output_processor=TakeFirst())
     case_number = scrapy.Field(output_processor=TakeFirst())
     debtor_inn = scrapy.Field(output_processor=TakeFirst())
+    address = scrapy.Field(output_processor=TakeFirst())
     arbit_manager = scrapy.Field(output_processor=TakeFirst())
     arbit_manager_inn = scrapy.Field(output_processor=TakeFirst())
     arbit_manager_org = scrapy.Field(output_processor=TakeFirst())

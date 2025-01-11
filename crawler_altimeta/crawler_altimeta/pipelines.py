@@ -27,6 +27,15 @@ class Connect:
         self.db_config = read_db_config()
         self.conn = MySQLConnection(**self.db_config)
         self.curr = self.conn.cursor()
+        self.set_wait_timeout(600)
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.curr.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Error as err:
+            print(f"Error setting wait_timeout: {err}")
 
 
 class AtcTradeDbConnect(Connect):
@@ -158,12 +167,10 @@ class AtcTradeDbConnect(Connect):
             return error
 
 
-class AukcionCenterDbConnect(object):
+class AukcionCenterDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -290,12 +297,10 @@ class AukcionCenterDbConnect(object):
             return error
 
 
-class AusibDbConnect(object):
+class AusibDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -313,6 +318,7 @@ class AusibDbConnect(object):
                             msg_number varchar(255) COLLATE utf8mb4_unicode_ci,
                             case_number varchar(255) COLLATE utf8mb4_unicode_ci,
                             debtor_inn text(12) COLLATE utf8mb4_unicode_ci,
+                            address varchar(255) COLLATE utf8mb4_unicode_ci,
                             arbit_manager text COLLATE utf8mb4_unicode_ci,
                             arbit_manager_inn text(12) COLLATE utf8mb4_unicode_ci,
                             arbit_manager_org text COLLATE utf8mb4_unicode_ci,
@@ -341,10 +347,10 @@ class AusibDbConnect(object):
     def store_db(self, item):
         self.curr.execute(
             f"""insert into {tables['table_ausib']}(data_origin,trading_id,trading_link,trading_number,trading_type,
-    trading_form,trading_org,trading_org_inn,trading_org_contacts,msg_number,case_number,debtor_inn,arbit_manager,
+    trading_form,trading_org,trading_org_inn,trading_org_contacts,msg_number,case_number,debtor_inn,address,arbit_manager,
     arbit_manager_inn,arbit_manager_org,status,lot_id,lot_link,lot_number,short_name,lot_info,property_information,
     start_date_requests,end_date_requests,start_date_trading,end_date_trading,start_price,step_price,periods,files,
-    created_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+    created_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
     %s) ON DUPLICATE KEY UPDATE trading_id=VALUES(trading_id),
                                         data_origin=VALUES(data_origin),
                                         trading_link=VALUES(trading_link),
@@ -357,6 +363,7 @@ class AusibDbConnect(object):
                                         msg_number=VALUES(msg_number),
                                         case_number = VALUES(case_number),
                                         debtor_inn = VALUES(debtor_inn),
+                                        address = VALUES(address),
                                         arbit_manager = VALUES(arbit_manager),
                                         arbit_manager_inn = VALUES(arbit_manager_inn),
                                         arbit_manager_org=VALUES(arbit_manager_org),
@@ -390,6 +397,7 @@ class AusibDbConnect(object):
                 item['msg_number'],
                 item['case_number'],
                 item['debtor_inn'],
+                item['address'],
                 item['arbit_manager'],
                 item['arbit_manager_inn'],
                 item['arbit_manager_org'],
@@ -422,12 +430,10 @@ class AusibDbConnect(object):
             return error
 
 
-class EtpProfitRuDbConnect(object):
+class EtpProfitRuDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -554,12 +560,10 @@ class EtpProfitRuDbConnect(object):
             return error
 
 
-class PtpCentrRuDbConnect(object):
+class PtpCentrRuDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -686,12 +690,10 @@ class PtpCentrRuDbConnect(object):
             return error
 
 
-class RegtorgDbConnect(object):
+class RegtorgDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -818,11 +820,9 @@ class RegtorgDbConnect(object):
             return error
 
 
-class SeltimDbConnect(object):
+class SeltimDbConnect(Connect):
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -949,12 +949,10 @@ class SeltimDbConnect(object):
             return error
 
 
-class TorgiDvDbConnect(object):
+class TorgiDvDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):
@@ -1081,12 +1079,10 @@ class TorgiDvDbConnect(object):
             return error
 
 
-class TradePlaceVetpDbConnect(object):
+class TradePlaceVetpDbConnect(Connect):
 
     def __init__(self):
-        self.db_config = read_db_config()
-        self.conn = MySQLConnection(**self.db_config)
-        self.curr = self.conn.cursor()
+        super().__init__()
         self.create_table()
 
     def create_table(self):

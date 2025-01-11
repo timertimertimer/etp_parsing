@@ -104,7 +104,7 @@ class NistpSpider(scrapy.Spider):
             transfer['end_date_requests'] = combo.auc.end_date_request_auc()
             transfer['start_date_trading'] = combo.auc.start_date_trading_auc()
             transfer['end_date_trading'] = None
-        general_files = combo.doc_gen.download_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.doc_gen.download_trade(_id=''.join(transfer['trading_id']))
         lots_table = combo.auc.count_lots()
         if 'auction' in trade_type:
             return self.parse_auction(response=response, transfer_=transfer, header=header,

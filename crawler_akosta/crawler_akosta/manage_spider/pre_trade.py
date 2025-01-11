@@ -202,59 +202,12 @@ class PreTradePage:
         except:
             logger.error(f'{self.response.url} :: INVALID DATA VIEWSTATE (when page >= 2', exc_info=True)
 
-    def get_trade_links_2(self, page_number, total_pages):
+    def get_trade_links_2(self):
         """ post data for trading pages on page 2 (pagination) or highter different then on page one """
-        try:
-            temporary_list = list()
-            lst = list()
-            lst_exc = ['<', '>', '!', '[', ']', 'C', 'D', 'A', 'T', 'A', '\'']
-            trading_text = re.findall(r'\d{3,5}-\D{4}', str(self.response.text))
-            if len(trading_text) < 50:
-                print('NOT ALL ', page_number)
-                clean_lst = list()
-                extra_search = re.findall(r'\d{1,4}\]\]><\!\[CDATA\[\d{1,3}-\D{4}', ''.join(self.response.text))
-                for i in extra_search:
-                    number = ''.join(filter(lambda x: x not in lst_exc, i))
-                    clean_lst.append(('trading_number', number))
-                # with open(f'{page_number}_text.txt', 'w') as f:
-                #     f.write(self.response.text)
-                temporary_list.extend(clean_lst)
-            for t in trading_text:
-                t = ''.join(filter(lambda x: x not in lst_exc, t))
-                temporary_list.append(('trading_number', t))
-            return temporary_list
-        except Exception as ex:
-            with open(f'{page_number}_error_page_none.html', 'w') as f:
-                f.write(self.response.text)
-            logger.error(f' ERROR page number - {page_number}, {ex}')
-
-    # def get_trade_links_2(self, page_number):
-    #     """ post data for trading pages on page 2 (pagination) or highter different then on page one """
-    #     try:
-    #         temporary_list = list()
-    #         lst = list()
-    #         trading_text = re.findall(r'\d{4}-\D{4}', self.response.text)
-    #         for a in self.soup.find_all('a'):
-    #             _id = a.get('id')
-    #             if _id:
-    #                 _id = re.sub(r'\]\]\>\<\!\[CDATA\[', '', str(_id)).strip()
-    #             if 'OpenCard' not in _id:
-    #                 # trading_text = self.soup.find('a', id=_id)
-    #                 temporary_list.append(_id)
-    #         # print(len(temporary_list), 'tem')
-    #         # print(len(trading_text), 'text')
-    #         for n, _id in enumerate(temporary_list):
-    #             try:
-    #                 text = dedent_func(trading_text[n].strip())
-    #             except IndexError as ex:
-    #                 text = None
-    #                 with open(f'{page_number}_error_page_none.txt', 'w') as f:
-    #                     f.write(self.response.text)
-    #                 logger.error(f' ERROR page number - {page_number}, {ex}')
-    #             lst.append((_id, text))
-    #         return lst
-    #     except:
-    #         logger.error(f'{self.response.url} ::: ERROR GETTITNG POST DATA WHEN PAGE > 2', exc_info=True)
+        sources = dict()
+        for el in self.soup.find_all('a', id=lambda x: x and 'j_idt' in x):
+            sources[dedent_func(el.text)] = el.get('id')
+        return sources
 
     def count_total_pages(self, html):
         """ count total pages from getting number of total lots

@@ -1,6 +1,8 @@
 import re
 
 from bs4 import BeautifulSoup as BS
+
+from location import get_region
 from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
 from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
@@ -14,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class AuctionPage:
     """ fetch info from serp (infjrmation after request - current page, next page, links to trading page """
-
+    addresses = dict()
     def __init__(self, _response):
         self.response = _response
         self.loc = LocatorSerp
@@ -153,6 +155,19 @@ class AuctionPage:
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR INN DEBTOR\n{e}')
 
+    def get_address(self):
+        try:
+            address = self.response.xpath(self.loc_auc.address_loc).get()
+            if address:
+                address = BS(str(address), features='lxml').get_text()
+                if address.lower() == 'не определен':
+                    address = BS(str(self.response.xpath(self.loc_auc.sud_loc).get()), 'lxml').get_text()
+                if address not in self.addresses:
+                    self.addresses[address] = get_region(address)
+                return self.addresses[address]
+        except Exception as e:
+            logger.error(f'{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}')
+
     def get_arbitr_name(self):
         """ retur arbitr name"""
         try:
@@ -176,6 +191,10 @@ class AuctionPage:
                     return company
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR company NAME\n{e}')
+
+    def get_arbitr_inn(self):
+        if self.get_arbitr_name() == self.get_organizer():
+            return self.get_org_inn()
 
     # lot
     def get_status_lot(self):

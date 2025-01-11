@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup as BS
 import re
+
+from location import get_region
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class SerpPage:
+    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -230,3 +233,10 @@ class SerpPage:
         _inn = self.response.xpath(self.loc_trade.debtor_inn_loc).get()
         _inn = BS(str(_inn), features='lxml').get_text().strip()
         return self.check.check_inn(_inn)
+
+    def get_address(self):
+        address = self.response.xpath(self.loc_trade.address_loc).get()
+        address = BS(str(address), features='lxml').get_text().strip()
+        if address not in self.addresses:
+            self.addresses[address] = get_region(address)
+        return self.addresses[address]

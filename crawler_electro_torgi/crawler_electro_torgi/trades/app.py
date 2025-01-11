@@ -14,11 +14,13 @@ from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
 from ..utils.work_with_text_and_number import dedent_func
 from ..utils.working_with_time import format_time
 from ..utils.working_with_url import UrlConfig
+from location import get_region
 
 logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
     def __init__(self, response):
         self.response = response
         self.check = CheckIfCorrectContactInfo()
@@ -28,6 +30,7 @@ class Combo:
         self.lot_dir = LotFilesDir()
         self.auc = Auc(response)
         self.offer = Offer(response)
+        self.soup = BeautifulSoup(response.text, 'lxml')
 
     def get_lots(self):
         lots = self.response.xpath(self.loc.lots_loc).getall()
@@ -47,7 +50,7 @@ class Combo:
             pending = ('объявлены', 'объявлен', 'на утверждении')
             ended = ('приём заявок завершен', 'в стадии проведения', 'подводятся итоги',
                      'торги завершены', 'торги отменены', 'прием заявок завершен',
-                     'идёт приём заявок (приостановлены)', 'торги приостановлены')
+                     'идёт приём заявок (приостановлены)', 'торги приостановлены', 'торги по лоту отменены')
             try:
                 if status in active:
                     return 'active'
@@ -267,6 +270,16 @@ class Combo:
             return None
 
     @property
+    def address(self):
+        try:
+            address = dedent_func(self.response.xpath(self.loc.region_loc).get())
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return self.addresses[address]
+        except:
+            return None
+
+    @property
     def arbit_manager(self):
         try:
             arbit_manager = self.response.xpath(self.loc.arbit_manager_loc).get()
@@ -285,7 +298,7 @@ class Combo:
             if pattern:
                 return ''.join(pattern.findall(arbitr_inn))
         except:
-            return None
+            pass
 
     @property
     def arbit_manager_org(self):
@@ -339,15 +352,16 @@ class Combo:
 
     @property
     def start_price(self):
-        try:
-            p = self.response.xpath(self.loc.start_price_auc_loc).get()
-            if p:
-                p = re.sub(r'\s', '', dedent_func(p.strip()).replace(',', '.').rstrip('.'))
-                p = ''.join([x for x in p if x.isdigit() or x == '.'])
-                if len(p) > 0:
-                    return round(float(p), 2)
-        except ValueError as e:
-            logger.error(f'{self.response.url} :: INVALID DATA START PRICE\n{e}')
+        prices = self.response.xpath(self.loc.start_price_auc_loc).getall()
+        for p in prices:
+            try:
+                if p:
+                    p = re.sub(r'\s', '', dedent_func(p.strip()).replace(',', '.').rstrip('.'))
+                    p = ''.join([x for x in p if x.isdigit() or x == '.'])
+                    if len(p) > 0:
+                        return round(float(p), 2)
+            except Exception as e:
+                logger.warning(f'{self.response.url} :: INVALID DATA START PRICE\n{e}')
 
     @property
     def step_price(self):

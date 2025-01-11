@@ -54,7 +54,7 @@ DEFAULT_REQUEST_HEADERS = {
 
 }
 # LOG_LEVEL = 'INFO'
-# LOG_FILE = './akosta.log'
+LOG_FILE = './akosta.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html

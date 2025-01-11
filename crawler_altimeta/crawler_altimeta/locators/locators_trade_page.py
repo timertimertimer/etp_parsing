@@ -22,6 +22,7 @@ class LocatorTradePage:
     msg_number_loc = '//th[contains(., "нформация для интеграции с ЕФРС")]/ancestor::table[1]//td[contains(., "омер торгов на ЕФРСБ")]//following-sibling::td[1]'
     case_number_loc = '//th[contains(., "ведения о банкротств")]/ancestor::table[1]//td[contains(., "омер дела о банкротств")]//following-sibling::td[1]'
     debtor_inn_loc = '//th[contains(., "ведения о должник")]/ancestor::table[1]//td[contains(., "ИНН")]//following-sibling::td[1]'
+    address_loc = '//th[contains(., "ведения о банкротств")]/ancestor::table[1]//td[contains(., "аименование арбитражного суд")]//following-sibling::td[1]'
 
     # dates of events of auction and competition
     start_date_request_loc = '//th[contains(., "нформация о торга")]/ancestor::table[1]//td[contains(., "ачало предоставления заявок на уча")]//following-sibling::td[1]'

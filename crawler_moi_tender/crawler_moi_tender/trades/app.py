@@ -1,81 +1,142 @@
+import pathlib
 import re
 
 from bs4 import BeautifulSoup
 
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.work_with_text_and_number import dedent_func, contains
+from ..utils.config import lst_exet_archive, lst_exeption, lst_exet, data_origin_url
+from ..utils.download import DownloadFiles
+from ..utils.work_with_path_and_dir import GeneralFilesDir
+from ..utils.work_with_text_and_number import dedent_func, contains, make_float
 from ..utils.working_with_time import format_time
+from ..utils.working_with_url import UrlConfig
 
 
 class Combo:
     def __init__(self, response):
         self.response = response
-        self.soup = BeautifulSoup(response, 'lxml')
+        self.soup = BeautifulSoup(response.text, 'lxml')
         self.check = CheckIfCorrectContactInfo()
+        self.general = GeneralFilesDir()
+        self.url = UrlConfig()
 
     def get_lots(self):
-        lots = self.soup.find_all('div', class_=re.compile('tender'))
+        # tenders = self.soup.find('div', class_='tenders')
+        # if not tenders:
+        #     return []
+        lots = self.soup.find_all('div', class_='tender')
         lots_data = []
         for lot in lots:
-            procedure_type = lot.find('div', class_='type').get_text(strip=True)
-            if 'закрыт' in procedure_type.lower():  # Доступ по паролю
-                continue
-            trading_id = trading_number = dedent_func(lot.find('div', class_='num').get_text(strip=True))
-            status = self.parse_status(dedent_func(lot.find('div', class_='status').get_text(strip=True)))
-            trading_org = dedent_func(lot.find('div', class_='company').get_text(strip=True))
-            category = dedent_func(lot.find('div', class_='tender-cat').get_text(strip=True))
+            status = dedent_func(lot.find('div', class_='status').get_text(strip=True))
+            if 'закрыт' in status.lower():  # Доступ по паролю
+                trading_form = 'closed'
+                status = 'ended'
+            else:
+                trading_form = 'open'
+                status = 'active'
             short_desc = lot.find('div', class_='short-desc')
             trading_link = short_desc.find('a')['href']
             short_name = dedent_func(short_desc.find('a').get_text(strip=True))
-            start_price = lot.find('div', class_='price').get_text(strip=True)
+
+            region_city = lot.find('div', class_='region-city')
+            span = region_city.find('span')
+            detailed_address = dedent_func(span.find('b').get_text())
+            address = dedent_func(region_city.find_all('b')[1].text)
+
+            trading_id = trading_number = dedent_func(lot.find('div', class_='num').get_text(strip=True).replace('№', ''))
+            start_price = lot.find('div', class_='price')
+            if start_price:
+                start_price = start_price.findNext('div').get_text().strip()
+                if start_price:
+                    return make_float(start_price)
+            category = dedent_func(lot.find('div', class_='tender-cat').find('b').get_text(strip=True))
+
             company = lot.find('div', class_='company').find('a')
             org = dedent_func(company.get_text(strip=True))
             org_link = dedent_func(company['href'])
-            lots_data.append((
-                trading_link, trading_id, trading_number, status, trading_org, category, short_name, start_price, org,
-                org_link
-            ))
+
+            lots_data.append(
+                {
+                    'trading_id': trading_id, 'trading_link': trading_link, 'trading_number': trading_number,
+                    'trading_form': trading_form, 'start_price': start_price,
+                    'category': category, 'org': org, 'org_link': org_link, 'status': status, 'short_name': short_name,
+                    'address': address, 'detailed_address': detailed_address
+                }
+            )
         return lots_data
 
-    def parse_status(self, status: str):
-        status = status.strip().lower()
-        if status == 'процедура закрыта':
-            return 'closed'
-        else:
-            return 'open'
-
-    def download_general(self):
-        ...
+    def download_trade(self, trading_id):
+        dir = self.general
+        download = DownloadFiles()
+        general_lst = list()
+        links = self.soup.find('div', class_='title', text=contains('Документация'))
+        if links:
+            links = links.parent.find_all('div', class_='isfile')
+        for link in links or []:
+            a = link.find('a')
+            name = a.get_text().strip()
+            link = self.url.url_join(data_origin_url, a.get("href"))
+            if not any(ele in name for ele in lst_exeption):
+                if pathlib.Path(name).suffix in lst_exet:
+                    dir.create_dir()
+                    if len(name) > 75:
+                        file_name_server = name[0][:30] + "_" + name[0][-35::1]
+                    else:
+                        file_name_server = name[0]
+                    name_on_server = dir.name_file_on_server(trading_id, file_name_server)
+                    _path_absolute = dir.return_absolute_path(name_on_server)
+                    download.request_to_download_general(url=link, referer=self.response.url, _abs_path=_path_absolute)
+                    _path_relative = dir.name_in_column_files(name_on_server, )
+                    general_lst.append(
+                        {"original_name": name, "link": _path_relative, "link_etp": link}
+                    )
+                    # FILES INSIDE ARCHIVE
+                elif pathlib.Path(name).suffix in lst_exet_archive:
+                    if len(name) > 75:
+                        file_name_server = name[:30] + "_" + name[-35::1]
+                    else:
+                        file_name_server = name
+                    name_on_server = dir.name_file_on_server(trading_id, file_name_server)
+                    _path_absolute = dir.return_absolute_path(name_on_server)
+                    dir.create_dir()
+                    lst_files = download.request_to_download_general(
+                        url=link,
+                        referer=self.response.url,
+                        _abs_path=_path_absolute,
+                        _id=trading_id,
+                        _relative_path=dir.return_download_dir_etp(),
+                    )
+                    general_lst.extend(lst_files)
+                else:
+                    general_lst.append({"original_name": name, "link": "", "link_etp": link})
+        return general_lst
 
     def download_lot(self):
-        ...
-
-    @property
-    def trading_form(self):
-        ...
+        return []
 
     @property
     def trading_org_contacts(self):
-        email = self.soup.find('a', href=re.compile('mailto:'))
+        phone = None
+        profile_page = self.get_profile_page()
+        email = profile_page.find('a', href=re.compile('mailto:'))
         if email:
-            email = self.check.check_email(dedent_func(email.get_text()))
-            phone = email.find_next('div', class_='value').get_text()
-            phone = self.check.check_phone(phone)
-            return {"email": email, "phone": phone}
+            email_ = self.check.check_email(dedent_func(email.get('href').removeprefix('mailto:')))
+            phone = email.find_next('div', class_='value')
+            if phone:
+                phone = self.check.check_phone(phone.get_text())
+            email = email_
+        return {"email": email, "phone": phone}
 
     @property
-    def index(self):
-        ...
+    def trading_org_inn(self):
+        profile_page = self.get_profile_page()
+        inn = profile_page.find('div', class_='value', text=contains('ИНН'))
+        if inn:
+            inn = inn.get_text(strip=True).split()[-1]
+            return dedent_func(self.check.check_inn(inn))
 
-    @property
-    def address(self):
-        region = dedent_func(self.soup.find('div', class_='label', text='Регион').find_next('div').get_text(strip=True))
-        city = dedent_func(self.soup.find('div', class_='label', text='Город').find_next('div').get_text(strip=True))
-        return f'{region}, {city}'
-
-    @property
-    def detailed_address(self):
-        ...
+    def get_profile_page(self):
+        return self.soup.find('div', class_='profile-page')
 
     @property
     def encumbrance(self):
@@ -105,9 +166,9 @@ class Combo:
 
     @property
     def end_date_requests(self):
-        start = self.soup.find('div', class_='label', text=contains('Дата публикации извещения')).find_next(
-            'div').get_text(strip=True)
-        return format_time(start)
+        end = self.soup.find('div', class_='label', text=contains('Дата окончания приема заявок ')).find_next(
+            'span', class_='my_timer').get_text(strip=True)
+        return end
 
     @property
     def start_date_trading(self):
@@ -115,6 +176,10 @@ class Combo:
 
     @property
     def end_date_trading(self):
+        ...
+
+    @property
+    def index(self):
         ...
 
     @property

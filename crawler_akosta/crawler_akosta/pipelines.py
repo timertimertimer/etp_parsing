@@ -7,8 +7,8 @@
 # useful for handling different item types with a single interface
 from mysql.connector import Error, MySQLConnection
 
-from crawler_akosta.python_mysql_dbconfig import read_db_config
-from crawler_akosta.utils.config import connect_db
+from .python_mysql_dbconfig import read_db_config
+from .utils.config import connect_db
 
 
 class CrawlerAkostaPipeline(object):
@@ -28,6 +28,15 @@ class Connect:
         self.db_config = read_db_config()
         self.conn = MySQLConnection(**self.db_config)
         self.curr = self.conn.cursor()
+        self.set_wait_timeout(600)
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.curr.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Error as err:
+            print(f"Error setting wait_timeout: {err}")
 
 
 class CrawlerDbConnect(Connect):
@@ -51,6 +60,7 @@ class CrawlerDbConnect(Connect):
                         msg_number varchar(255) COLLATE utf8mb4_unicode_ci,
                         case_number varchar(255) COLLATE utf8mb4_unicode_ci,
                         debtor_inn text(12) COLLATE utf8mb4_unicode_ci,
+                        debtor_address varchar(255) COLLATE utf8mb4_unicode_ci,
                         arbit_manager text COLLATE utf8mb4_unicode_ci,
                         arbit_manager_inn text(12) COLLATE utf8mb4_unicode_ci,
                         arbit_manager_org text COLLATE utf8mb4_unicode_ci,
@@ -78,77 +88,63 @@ class CrawlerDbConnect(Connect):
 
     def store_db(self, item):
         self.curr.execute(
-            f"""insert into {connect_db['table']}(data_origin,trading_id,trading_link,trading_number,trading_type,
-trading_form,trading_org,trading_org_inn,trading_org_contacts,msg_number,case_number,debtor_inn,arbit_manager,
-arbit_manager_inn,arbit_manager_org,status,lot_id,lot_link,lot_number,short_name,lot_info,property_information,
-start_date_requests,end_date_requests,start_date_trading,end_date_trading,start_price,step_price,periods,files,
-created_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-%s) ON DUPLICATE KEY UPDATE trading_id=VALUES(trading_id),
-                                    data_origin=VALUES(data_origin),
-                                    trading_link=VALUES(trading_link),
-                                    trading_number=VALUES(trading_number),
-                                    trading_type=VALUES(trading_type),
-                                    trading_form=VALUES(trading_form),
-                                    trading_org=VALUES(trading_org),
-                                    trading_org_inn=VALUES(trading_org_inn),
-                                    trading_org_contacts=VALUES(trading_org_contacts),
-                                    msg_number=VALUES(msg_number),
-                                    case_number = VALUES(case_number),
-                                    debtor_inn = VALUES(debtor_inn),
-                                    arbit_manager = VALUES(arbit_manager),
-                                    arbit_manager_inn = VALUES(arbit_manager_inn),
-                                    arbit_manager_org=VALUES(arbit_manager_org),
-                                    status=VALUES(status),
-                                    lot_id=VALUES(lot_id),
-                                    lot_link=VALUES(lot_link),
-                                    lot_number=VALUES(lot_number),
-                                    short_name=VALUES(short_name),
-                                    lot_info=VALUES(lot_info),
-                                    property_information=VALUES(property_information),
-                                    start_date_requests=VALUES(start_date_requests),
-                                    end_date_requests=VALUES(end_date_requests), 
-                                    start_date_trading=VALUES(start_date_trading), 
-                                    end_date_trading=VALUES(end_date_trading),
-                                    start_price=VALUES(start_price), 
-                                    step_price=VALUES(step_price),
-                                    periods=VALUES(periods), 
-                                    files=VALUES(files),
-                                    created_at=VALUES(created_at)
-                                    """,
+            f"""INSERT INTO {connect_db['table']}(
+                data_origin, trading_id, trading_link, trading_number, trading_type,
+                trading_form, trading_org, trading_org_inn, trading_org_contacts, 
+                msg_number, case_number, debtor_inn, debtor_address, arbit_manager,
+                arbit_manager_inn, arbit_manager_org, status, lot_id, lot_link, 
+                lot_number, short_name, lot_info, property_information,
+                start_date_requests, end_date_requests, start_date_trading, 
+                end_date_trading, start_price, step_price, periods, files, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+                trading_id = VALUES(trading_id),
+                data_origin = VALUES(data_origin),
+                trading_link = VALUES(trading_link),
+                trading_number = VALUES(trading_number),
+                trading_type = VALUES(trading_type),
+                trading_form = VALUES(trading_form),
+                trading_org = VALUES(trading_org),
+                trading_org_inn = VALUES(trading_org_inn),
+                trading_org_contacts = VALUES(trading_org_contacts),
+                msg_number = VALUES(msg_number),
+                case_number = VALUES(case_number),
+                debtor_inn = VALUES(debtor_inn),
+                debtor_address = VALUES(debtor_address),
+                arbit_manager = VALUES(arbit_manager),
+                arbit_manager_inn = VALUES(arbit_manager_inn),
+                arbit_manager_org = VALUES(arbit_manager_org),
+                status = VALUES(status),
+                lot_id = VALUES(lot_id),
+                lot_link = VALUES(lot_link),
+                lot_number = VALUES(lot_number),
+                short_name = VALUES(short_name),
+                lot_info = VALUES(lot_info),
+                property_information = VALUES(property_information),
+                start_date_requests = VALUES(start_date_requests),
+                end_date_requests = VALUES(end_date_requests),
+                start_date_trading = VALUES(start_date_trading),
+                end_date_trading = VALUES(end_date_trading),
+                start_price = VALUES(start_price),
+                step_price = VALUES(step_price),
+                periods = VALUES(periods),
+                files = VALUES(files),
+                created_at = VALUES(created_at)
+            """,
             (
-                item['data_origin'],
-                item['trading_id'],
-                item['trading_link'],
-                item['trading_number'],
-                item['trading_type'],
-                item['trading_form'],
-                item['trading_org'],
-                item['trading_org_inn'],
-                item['trading_org_contacts'],
-                item['msg_number'],
-                item['case_number'],
-                item['debtor_inn'],
-                item['arbit_manager'],
-                item['arbit_manager_inn'],
-                item['arbit_manager_org'],
-                item['status'],
-                item['lot_id'],
-                item['lot_link'],
-                item['lot_number'],
-                item['short_name'],
-                item['lot_info'],
-                item['property_information'],
-                item['start_date_requests'],
-                item['end_date_requests'],
-                item['start_date_trading'],
-                item['end_date_trading'],
-                item['start_price'],
-                item['step_price'],
-                item['periods'],
-                item['files'],
+                item['data_origin'], item['trading_id'], item['trading_link'],
+                item['trading_number'], item['trading_type'], item['trading_form'],
+                item['trading_org'], item['trading_org_inn'], item['trading_org_contacts'],
+                item['msg_number'], item['case_number'], item['debtor_inn'],
+                item['debtor_address'], item['arbit_manager'], item['arbit_manager_inn'],
+                item['arbit_manager_org'], item['status'], item['lot_id'],
+                item['lot_link'], item['lot_number'], item['short_name'],
+                item['lot_info'], item['property_information'], item['start_date_requests'],
+                item['end_date_requests'], item['start_date_trading'], item['end_date_trading'],
+                item['start_price'], item['step_price'], item['periods'], item['files'],
                 item['created_at']
-
-            ))
+            )
+        )
 
         self.conn.commit()
 

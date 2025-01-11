@@ -13,6 +13,8 @@ class AuctionLocator:
     case_number_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "омер дела о банкротстве")]//following-sibling::td[1]'
 
     debtor_inn_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "ИНН")]//following-sibling::td[1]'
+    address_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "Регион")]//following-sibling::td[1]'
+    sud_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "Наименование арбитражного суда")]//following-sibling::td[1]'
 
     arbitr_name_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "рбитражный управляющи")]//following-sibling::td[1]'
     arbitr_org_loc = '//legend[contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "именование организации арбитражных упр")]//following-sibling::td[1]'

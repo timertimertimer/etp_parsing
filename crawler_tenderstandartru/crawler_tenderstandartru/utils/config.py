@@ -37,7 +37,7 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
-start_date = format_parse_date(35) + ' 00:00'
+start_date = format_parse_date(30, '%d.%m.%Y %H:%M')
 
 data_origin = {
     'au_pro': 'https://au-pro.ru/',

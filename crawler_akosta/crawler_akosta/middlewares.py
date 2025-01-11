@@ -196,12 +196,10 @@ class CrawlerAkostaDownloaderMiddleware:
         return None
 
     def process_response(self, request, response, spider):
-        # Called with the response returned from the downloader.
-
-        # Must either;
-        # - return a Response object
-        # - return a Request object
-        # - or raise IgnoreRequest
+        if response.url == 'https://www.akosta.info/akosta/sessionExpired.xhtml':
+            logger.debug(f'{response.url} :: SESSION EXPIRED')
+            new_request = request.replace(cookies={}, dont_filter=True)
+            return new_request
         return response
 
     def process_exception(self, request, exception, spider):

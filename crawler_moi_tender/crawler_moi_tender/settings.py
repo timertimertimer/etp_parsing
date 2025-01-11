@@ -6,13 +6,15 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-from crawler_moi_tender.crawler_moi_tender.utils.config import headers_brow
+from .utils.config import headers_brow
 
 BOT_NAME = "crawler_moi_tender"
 
 SPIDER_MODULES = ["crawler_moi_tender.spiders"]
 NEWSPIDER_MODULE = "crawler_moi_tender.spiders"
 
+LOG_FILE = 'moi_tender.log'
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = headers_brow["User-Agent"]
@@ -63,7 +65,7 @@ DEFAULT_REQUEST_HEADERS = {
 DOWNLOADER_MIDDLEWARES = {
     'crawler_moi_tender.middlewares.CookiesMiddleware': 120,
     'crawler_moi_tender.middlewares.UserAgentMiddleware': 150,
-    "crawler_moi_tender.middlewares.CrawlerVertradesDownloaderMiddleware": 543,
+    "crawler_moi_tender.middlewares.CrawlerMoiTenderDownloaderMiddleware": 543,
 }
 
 # Enable or disable extensions

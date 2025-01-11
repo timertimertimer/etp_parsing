@@ -82,4 +82,4 @@ def ets24():
 
 
 if __name__ == '__main__':
-    ets24()
+    zakazrf()

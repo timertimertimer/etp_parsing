@@ -34,4 +34,4 @@ def aukcioncenter():
 
 
 if __name__ == '__main__':
-    torgidv_ru()
+    ausib_ru()

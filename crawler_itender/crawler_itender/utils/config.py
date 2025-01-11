@@ -63,7 +63,7 @@ tables = {
 }
 
 start_time = '0:0:-1'
-start_date = format_parse_date(60)
+start_date = format_parse_date(30)
 
 start_date_post = start_date + ' ' + start_time
 

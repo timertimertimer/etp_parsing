@@ -22,6 +22,8 @@ from crawler_ruTrade24.config import etp_folder, createTable_query, db_connect, 
     path_to_socks5, relative_path, path_absolute
 from crawler_ruTrade24.python_mysql_dbconfig import read_db_config
 
+from location import get_region
+
 DB_CONNECT = read_db_config()
 
 with open(f'{path_user_agent}', 'r') as f:
@@ -35,6 +37,7 @@ socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 class CrawlerRutarde24Pipeline:
     included = []
+    addresses = dict()
 
     logger = logging.getLogger(__name__)
 
@@ -45,6 +48,16 @@ class CrawlerRutarde24Pipeline:
                                     host=host,
                                     charset='utf8mb4', use_unicode=True)
         self.cursor = self.conn.cursor()
+        self.set_wait_timeout(600)
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.cursor.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Exception as err:
+            print(f"Error setting wait_timeout: {err}")
+
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -102,7 +115,6 @@ class CrawlerRutarde24Pipeline:
             item[field] = items[field]
 
         item['lot_number'] = item['lot_number'][index]
-        item['short_name'] = item['short_name'][index]
         item['periods'] = item['periods'][index]
         item['files'] = [item['files'][0], item['files'][1][index]]
 
@@ -125,6 +137,7 @@ class CrawlerRutarde24Pipeline:
         item['msg_number'] = self.cleaning_msgNumber(item)
         item['case_number'] = self.cleaning_caseNumber(item)
         item['debtor_inn'] = self.cleaning_debtorInn(item)
+        item['address'] = self.cleaning_address(item)
 
         item['arbit_manager'] = self.cleaning_arbitManager(item)
         item['arbit_manager_inn'] = self.cleaning_arbitManagerInn(item)
@@ -135,7 +148,7 @@ class CrawlerRutarde24Pipeline:
         item['lot_link'] = None
         item['lot_number'] = self.cleaning_lotNumber(item)
 
-        item['lot_info'] = None
+        item['short_name'] = None
         item['property_information'] = None
 
         item['periods'] = self.cleaning_periods(item)
@@ -395,14 +408,12 @@ class CrawlerRutarde24Pipeline:
             )
             return None
 
-        case_number = None
-
-        if '№' in item['case_number']:
-            case_number = item['case_number'][2:]
+        case_number = item['case_number'].replace(' ', '').replace('№', '')
+        case_number = ''.join(re.findall(r'[А-ЯA-Z]{1,2}\d{1,}-\d{1,}(?:-\d{1,})?\/\d{1,}', case_number))
+        if case_number:
+            return case_number
         else:
-            case_number = item['case_number']
-
-        return case_number
+            pass
 
     def cleaning_debtorInn(self, item):
         if 'debtor_inn' not in item.keys():
@@ -428,6 +439,20 @@ class CrawlerRutarde24Pipeline:
             debtor_inn = item['debtor_inn']
 
         return debtor_inn
+
+    def cleaning_address(self, item):
+        if 'address' not in item.keys():
+            self.logger.warning(
+                'Площадка: ru-trade24.ru. ' +
+                'Cсылка: %s. ' % item['trading_link'] +
+                'Значение address не получено при парсинге.',
+                exc_info=True
+            )
+            return None
+        address = item['address']
+        if address not in self.addresses:
+            self.addresses[address] = get_region(address)
+        return self.addresses[address]
 
     def cleaning_arbitManager(self, item):
         if 'arbit_manager' not in item.keys():
@@ -610,6 +635,7 @@ class CrawlerRutarde24Pipeline:
         return None
 
     def cleaning_date(self, date_str):
+        date_str = date_str.strip()
         for templ in [
             '%d.%m.%Y %H:%M',
             '%d.%m.%Y в %H:%M',
@@ -755,17 +781,18 @@ class CrawlerRutarde24Pipeline:
             'case_number',
             'data_origin',
             'debtor_inn',
+            'address',
             'end_date_requests',
             'end_date_trading',
             'files',
             # 'lot_id',
-            # 'lot_info',
+            'lot_info',
             # 'lot_link',
             'lot_number',
             'msg_number',
             'periods',
             # 'property_information',
-            'short_name',
+            # 'short_name',
             'start_date_requests',
             'start_date_trading',
             'start_price',
@@ -839,6 +866,7 @@ class CrawlerRutarde24Pipeline:
                                                                    'case_number = %s, '
                                                                    'data_origin = %s, '
                                                                    'debtor_inn = %s, '
+                                                                   'address = %s, '
                                                                    'end_date_requests = %s, '
                                                                    'end_date_trading = %s, '
                                                                    'files = %s, '
@@ -874,6 +902,7 @@ class CrawlerRutarde24Pipeline:
                      'case_number, '
                      'data_origin, '
                      'debtor_inn, '
+                     'address, '
                      'end_date_requests, '
                      'end_date_trading, '
                      'files, '
@@ -899,7 +928,7 @@ class CrawlerRutarde24Pipeline:
                      'trading_org_inn, '
                      'trading_type)'
                      'VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '
-                     '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)')
+                     '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)')
 
             self.included.append(
                 '_'.join([item[field] for field in db_connect['unique_fields']]))
@@ -916,6 +945,7 @@ class CrawlerRutarde24Pipeline:
             item['case_number'],
             item['data_origin'],
             item['debtor_inn'],
+            item['address'],
             item['end_date_requests'],
             item['end_date_trading'],
             json.dumps(item['files'], ensure_ascii=False),

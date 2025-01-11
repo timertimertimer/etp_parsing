@@ -120,7 +120,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
                 loader.add_value('end_date_trading', combo.auc.get_end_date_trading)
             url = _link
             if url not in self.previous_lots:
-                files_general = combo.offer.download_general(
+                files_general = combo.offer.download_trade(
                     combo.auc.trading_id, data['Purchase']['PurchaseinfoPanel']['ContractInfo']['contractdoc']['file']
                 )
                 path = url.removeprefix('https://utp.sberbank-ast.ru')
@@ -157,7 +157,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
         photos = data['BidView']['Bids']['BidDebtorInfo'].get('BidPicture', [])
         if photos:
             photos = [photos['file']] if isinstance(photos['file'], dict) else photos['file']
-        files_lot = combo.offer.download_general(combo.auc.get_lot_id, docs + photos)
+        files_lot = combo.offer.download_trade(combo.auc.get_lot_id, docs + photos)
         loader.add_value('files', {'general': files, 'lot': files_lot})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

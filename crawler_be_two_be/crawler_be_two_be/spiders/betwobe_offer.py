@@ -111,7 +111,7 @@ class BetwobeOfferSpider(Spider, ABC):
         transfer['arbit_manager_inn'] = combo.trade.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.trade.get_arbitr_company()
         transfer['property_information'] = combo.trade.get_property_info()
-        general_docs = combo.general.download_general(_id=''.join(transfer['trading_id']))
+        general_docs = combo.general.download_trade(_id=''.join(transfer['trading_id']))
         list_with_general_file_names = combo.general.lst_files_names(**general_docs)
         link_to_organizer = combo.trade.get_organizer_link()
         url_to_lot = combo.trade.get_url_lot_tab()

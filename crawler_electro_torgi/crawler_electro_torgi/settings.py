@@ -13,6 +13,7 @@ BOT_NAME = "crawler_electro_torgi"
 SPIDER_MODULES = ["crawler_electro_torgi.spiders"]
 NEWSPIDER_MODULE = "crawler_electro_torgi.spiders"
 
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = headers_brow["User-Agent"]

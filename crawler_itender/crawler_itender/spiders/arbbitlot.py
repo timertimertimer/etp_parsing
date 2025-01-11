@@ -30,7 +30,7 @@ class ArbbitlotSpider(Spider):
     start_url = ['https://torgi.arbbitlot.ru/']
     data_origin = data_origin['arbbitlot']
     custom_settings = {
-        # 'LOG_FILE': './arbitat.log',
+        'LOG_FILE': './arbbitlot.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
 
@@ -138,8 +138,11 @@ class ArbbitlotSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('detailed_address', None)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.auc.start_date_request())
         loader.add_value('end_date_requests', combo.auc.end_date_request())
@@ -233,8 +236,11 @@ class ArbbitlotSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('detailed_address', None)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
@@ -442,8 +448,11 @@ class ArbbitlotSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('address', combo.auc.get_address())
+        # loader.add_value('detailed_address', None)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.compet.start_date_request())
         loader.add_value('end_date_requests', combo.compet.end_date_request())

@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
+from typing import Iterable
+
 import scrapy
 import logging
 from bs4 import BeautifulSoup
 from icecream import ic
+from scrapy import Request, FormRequest
 from scrapy.loader import ItemLoader
 
-from crawler_ruTrade24.get_data_from_table import DbConnectCheckLots
-from crawler_ruTrade24.items import Lot
-from crawler_ruTrade24.config import page_limits
+from ..get_data_from_table import DbConnectCheckLots
+from ..items import Lot
+from ..config import page_limits, start_from, formdata
 
 
 class Rutrade24Spider(scrapy.Spider):
     name = 'ruTrade24'
-    start_urls = ['https://ru-trade24.ru/Home/Trades?status=1']
+    start_urls = ['https://ru-trade24.ru/query/Filter']
 
     all_lots = []
     logger = logging.getLogger(__name__)
@@ -21,6 +24,9 @@ class Rutrade24Spider(scrapy.Spider):
         super(Rutrade24Spider, self).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
+
+    def start_requests(self) -> Iterable[Request]:
+        yield FormRequest(self.start_urls[0], self.parse, method='POST', formdata=formdata)
 
     def parse(self, response):
         current_page = self.get_currentPage(response)
@@ -37,8 +43,7 @@ class Rutrade24Spider(scrapy.Spider):
 
         if page_limits['page_start'] <= current_page <= page_limits['page_stop']:
             for trade_container in trade_containers:
-                trade_link = 'https://ru-trade24.ru' + \
-                    trade_container.css('a::attr(href)').get()
+                trade_link = 'https://ru-trade24.ru' + trade_container.css('a::attr(href)').get()
                 status = trade_container.css('.trade-card__status::text').get()
                 if trade_link not in self.previous_lots:
                     yield scrapy.Request(
@@ -48,10 +53,8 @@ class Rutrade24Spider(scrapy.Spider):
                     )
 
         if nextPage_url is not None and current_page <= page_limits['page_stop']:
-            yield scrapy.Request(
-                self.get_next_page(response),
-                callback=self.parse
-            )
+            formdata['page'] = str(current_page + 1)
+            yield FormRequest(self.start_urls[0], method='POST', formdata=formdata, callback=self.parse)
 
     def get_currentPage(self, response):
         for page in response.css('div.paging a'):
@@ -128,6 +131,10 @@ class Rutrade24Spider(scrapy.Spider):
             'Сведения о должнике',
             'ИНН', response
         ))
+        il.add_value('address', self.get_table_value_by(
+            'Основные сведения',
+            'Наименование арбитражного суда, рассматривающего дело о банкротстве', response
+        ))
 
         il.add_value('arbit_manager', [
             self.get_table_value_by(
@@ -157,9 +164,10 @@ class Rutrade24Spider(scrapy.Spider):
         il.add_value('lot_link', None)
         il.add_value('lot_number', [lot_number.get(
         ) for lot_number in response.css('div#lotlist > h5::text')])
-        il.add_value('short_name', self.get_value_by(
-            'Сведения об имуществе должника (состав, характеристики, описание, порядок ознакомления с имуществом (предприятием) должника)', response))
-        il.add_value('lot_info', None)
+        il.add_value('short_name', None)
+        il.add_value('lot_info', self.get_value_by(
+            'Сведения об имуществе должника (состав, характеристики, описание, порядок ознакомления с имуществом (предприятием) должника)',
+            response))
         il.add_value('property_information', None)
 
         il.add_value('start_date_requests', self.get_table_value_by(
@@ -216,7 +224,8 @@ class Rutrade24Spider(scrapy.Spider):
 
     def get_value_by(self, name_row, response):
         parser = BeautifulSoup(response.text, "html.parser")
-        return [label.findNext("div", {'class': 'info__title'}).get_text().strip() for label in parser.find_all("label", text=name_row)]
+        return [label.findNext("div", {'class': 'info__title'}).get_text().strip() for label in
+                parser.find_all("label", text=name_row)]
 
     def get_lotFiles(self, response):
         parser = BeautifulSoup(response.text, "html.parser")
@@ -231,7 +240,8 @@ class Rutrade24Spider(scrapy.Spider):
 
             if child.name == 'h5':
                 files_html = ''
-            if child.select_one('div.info__name') is not None and child.select_one('div.info__name').get_text() == 'Дополнительная информация':
+            if child.select_one('div.info__name') is not None and child.select_one(
+                    'div.info__name').get_text() == 'Дополнительная информация':
                 files_html = str(child.select_one('div.info__title'))
                 result.append(files_html)
 
@@ -252,7 +262,8 @@ class Rutrade24Spider(scrapy.Spider):
 
             if child.name == 'h5':
                 files_html = ''
-            if child.select_one('div.info__name') is not None and child.select_one('div.info__name').get_text() == 'Периоды снижения цены':
+            if child.select_one('div.info__name') is not None and child.select_one(
+                    'div.info__name').get_text() == 'Периоды снижения цены':
                 files_html = str(child.select_one('div.info__title'))
                 result.append(files_html)
 

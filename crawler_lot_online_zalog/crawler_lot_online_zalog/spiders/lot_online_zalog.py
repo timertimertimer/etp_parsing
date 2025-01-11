@@ -192,11 +192,11 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             loader.add_value('start_price', combo.lot.start_price())
             loader.add_value('step_price', combo.lot.step_price())
             body = response.body.decode('utf-8')
-            general_files = combo.downspider.download_general(url_for_post_download,
-                                                              combo.lot.trading_number(),
-                                                              cookies=cookie_ + '; primefaces.download=true'.strip(),
-                                                              view=view_value,
-                                                              body=body)
+            general_files = combo.downspider.download_trade(url_for_post_download,
+                                                            combo.lot.trading_number(),
+                                                            cookies=cookie_ + '; primefaces.download=true'.strip(),
+                                                            view=view_value,
+                                                            body=body)
             lot_file = combo.downspider.download_lot_img(url_id=combo.lot.trading_number(), lot_num='1',
                                                          cookie=cookie_ + '; primefaces.download=true'.strip(),
                                                          )
@@ -256,11 +256,11 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             loader.add_value('unit', None)
             loader.add_value('deposit', combo.lot.get_deposit())
             body = response.body.decode('utf-8')
-            general_files = combo.downspider.download_general(url_for_post_download,
-                                                              combo.lot.trading_number(),
-                                                              cookies=cookie_ + '; primefaces.download=true'.strip(),
-                                                              view=view_value,
-                                                              body=body)
+            general_files = combo.downspider.download_trade(url_for_post_download,
+                                                            combo.lot.trading_number(),
+                                                            cookies=cookie_ + '; primefaces.download=true'.strip(),
+                                                            view=view_value,
+                                                            body=body)
             lot_file = combo.downspider.download_lot_img(url_id=combo.lot.trading_number(), lot_num='1',
                                                          cookie=cookie_ + '; primefaces.download=true'.strip(),
                                                          )

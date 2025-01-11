@@ -37,7 +37,7 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
-start_time = format_parse_date(1)
+start_time = format_parse_date(30)
 stop_page = 10
 
 

@@ -1,15 +1,20 @@
 from bs4 import BeautifulSoup as BS
 import logging
 import re
+import requests
+from string import punctuation
 
 from icecream import ic
 
 from crawler_akosta.utils.work_with_text_and_number import check_case_number, dedent_func
 
+from crawler_electro_torgi.crawler_electro_torgi.utils.location import get_region
+
 logger = logging.getLogger(__name__)
 
 
 class DebrorTab:
+    addresses = dict()
 
     def __init__(self, _response):
         self.response = _response
@@ -82,6 +87,23 @@ class DebrorTab:
                 logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INN (1)')
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INN {ex}')
+
+    def get_debtor_address(self):
+        try:
+            div_debtor = self.soup.find('div', string='Должник')
+            if div_debtor:
+                div_debtor = div_debtor.parent
+                address = (
+                        div_debtor.find('label', string=re.compile('Юридический адрес', re.IGNORECASE)) or
+                        div_debtor.find('label', string=re.compile('Почтовый адрес', re.IGNORECASE))
+                )
+                if address:
+                    address = dedent_func(address.parent.get_text().strip().split(':')[-1].strip())
+                    if address not in self.addresses:
+                        self.addresses[address] = get_region(address)
+                    return self.addresses[address]
+        except Exception as ex:
+            logger.error(f'{self.response.url} :: INVALID DATA DEBTOR ADDRESS {ex}')
 
     def return_arbitrator_form(self):
         """ return block with arbitrator info """

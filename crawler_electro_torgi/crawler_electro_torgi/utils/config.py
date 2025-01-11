@@ -39,6 +39,9 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
+start_date = format_parse_date(30, "%Y-%m-%d 00:01")
+end_date = format_parse_date(0, "%d.%m.%Y 23:59")
+
 data_origin = {
     'vetp': 'https://xn--80ab2alglp.xn--b1a0ai7b.xn--p1ai/',
     'uralbidin': 'https://uralbidin.ru/',

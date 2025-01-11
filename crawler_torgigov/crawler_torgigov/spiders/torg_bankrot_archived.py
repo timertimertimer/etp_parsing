@@ -269,7 +269,7 @@ class TorgiBankrotSpider(Spider, ABC):
                 yield loader.load_item()
             if (get_previous_files is None) or (len(get_previous_files['general']) == 0):
                 if len(FILES_REDIRECT) == 0:
-                    general = combo.doc_gen.download_general(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
+                    general = combo.doc_gen.download_trade(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
                     loader.add_value('files', {'general': general, 'lot': []})
                     FILES_TO_DOWNLOAD.clear()
                     yield loader.load_item()
@@ -280,7 +280,7 @@ class TorgiBankrotSpider(Spider, ABC):
                                                                    response=response, header_aio=header_aio,
                                                                    trading_link=trading_link,
                                                                    cookie_aio=cookie_aio)
-                    general = combo.doc_gen.download_general(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
+                    general = combo.doc_gen.download_trade(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
                     loader.add_value('files', {'general': general, 'lot': []})
                     FILES_TO_DOWNLOAD.clear()
                     FILES_REDIRECT.clear()
@@ -303,7 +303,7 @@ class TorgiBankrotSpider(Spider, ABC):
                                                                        response=response, header_aio=header_aio,
                                                                        trading_link=trading_link,
                                                                        cookie_aio=cookie_aio)
-                        general = combo.doc_gen.download_general(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
+                        general = combo.doc_gen.download_trade(FILES_TO_DOWNLOAD, self.name, id_lot, general_link)
                         loader.add_value('files', {'general': general, 'lot': []})
                         FILES_TO_DOWNLOAD.clear()
                         FILES_REDIRECT.clear()

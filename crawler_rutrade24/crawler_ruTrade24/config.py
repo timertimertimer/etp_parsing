@@ -38,6 +38,13 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
+start_from = format_parse_date(30, "%d.%m.%Y %H:%M")
+formdata = {
+    'MainPageFilterPartpAppDateBegin': start_from,
+    'MainPageFilterTradeType': 'Undefined',
+    'MainPageFilterTradeStatus': '0'
+}
+
 USER_AGENT = choice(agent_list)
 db_connect = {
     'table_name': 'lots_rutrade24',
@@ -58,37 +65,38 @@ base_dir = f'{set_absolute}'  # путь к папке downloads
 etp_folder = '/etp_rutrade24'
 
 createTable_query = 'CREATE TABLE IF NOT EXISTS %s (' % db_connect['table_name'] + \
-    'id BIGINT AUTO_INCREMENT PRIMARY KEY,' + \
-    'data_origin text,' + \
-    'trading_id varchar(255),' + \
-    'trading_link text,' + \
-    'trading_number varchar(255),' + \
-    'trading_type text,' + \
-    'trading_form text,' + \
-    'trading_org text,' + \
-    'trading_org_inn tinytext,' + \
-    'trading_org_contacts text COLLATE utf8mb4_bin,' + \
-    'msg_number varchar(255),' + \
-    'case_number varchar(255),' + \
-    'debtor_inn tinytext,' + \
-    'arbit_manager text,' + \
-    'arbit_manager_inn tinytext,' + \
-    'arbit_manager_org text,' + \
-    'status varchar(255),' + \
-    'lot_id varchar(255),' + \
-    'lot_link text,' + \
-    'lot_number smallint,' + \
-    'short_name mediumtext,' + \
-    'lot_info mediumtext,' + \
-    'property_information mediumtext,' + \
-    'start_date_requests timestamp NULL DEFAULT NULL,' + \
-    'end_date_requests timestamp NULL DEFAULT NULL,' + \
-    'start_date_trading timestamp NULL DEFAULT NULL,' + \
-    'end_date_trading timestamp NULL DEFAULT NULL,' + \
-    'start_price double,' + \
-    'step_price double,' + \
-    'periods mediumtext COLLATE utf8mb4_bin,' + \
-    'files mediumtext COLLATE utf8mb4_bin,' + \
-    'created_at timestamp) ' + \
-    'ENGINE=INNODB,' + \
-    'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+                    'id BIGINT AUTO_INCREMENT PRIMARY KEY,' + \
+                    'data_origin text,' + \
+                    'trading_id varchar(255),' + \
+                    'trading_link text,' + \
+                    'trading_number varchar(255),' + \
+                    'trading_type text,' + \
+                    'trading_form text,' + \
+                    'trading_org text,' + \
+                    'trading_org_inn tinytext,' + \
+                    'trading_org_contacts text COLLATE utf8mb4_bin,' + \
+                    'msg_number varchar(255),' + \
+                    'case_number varchar(255),' + \
+                    'debtor_inn tinytext,' + \
+                    'address varchar(255),' + \
+                    'arbit_manager text,' + \
+                    'arbit_manager_inn tinytext,' + \
+                    'arbit_manager_org text,' + \
+                    'status varchar(255),' + \
+                    'lot_id varchar(255),' + \
+                    'lot_link text,' + \
+                    'lot_number smallint,' + \
+                    'short_name mediumtext,' + \
+                    'lot_info mediumtext,' + \
+                    'property_information mediumtext,' + \
+                    'start_date_requests timestamp NULL DEFAULT NULL,' + \
+                    'end_date_requests timestamp NULL DEFAULT NULL,' + \
+                    'start_date_trading timestamp NULL DEFAULT NULL,' + \
+                    'end_date_trading timestamp NULL DEFAULT NULL,' + \
+                    'start_price double,' + \
+                    'step_price double,' + \
+                    'periods mediumtext COLLATE utf8mb4_bin,' + \
+                    'files mediumtext COLLATE utf8mb4_bin,' + \
+                    'created_at timestamp) ' + \
+                    'ENGINE=INNODB,' + \
+                    'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'

@@ -54,7 +54,7 @@ connect_db = {
     'table': 'lots_akosta'
 
 }
-start_time = format_parse_date(1)
+start_time = format_parse_date(7)
 end_time = ''
 start_page = 1
 # page include current number

@@ -5,9 +5,11 @@ from ..utils.working_with_url import UrlConfig
 logger = logging.getLogger(__name__)
 TABLE = tables['tenderstandart']
 
+
 class TenderstandartruSpider(Spider):
     name = 'tenderstandartru'
     data_origin = data_origin['tenderstandart']
+    custom_settings = {'LOG_FILE': 'tenderstandart.log'}
 
     def __init__(self):
         super(TenderstandartruSpider, self).__init__()
@@ -31,7 +33,8 @@ class TenderstandartruSpider(Spider):
         sp['types'] = types_
         sp['_'] = timestamp_
         hd['referer'] = response.url
-        yield FormRequest(url=self.url.url_join(self.data_origin, 'Trade/AllSearch'), callback=self.parse_serp, formdata=sp, method='GET',
+        yield FormRequest(url=self.url.url_join(self.data_origin, 'Trade/AllSearch'), callback=self.parse_serp,
+                          formdata=sp, method='GET',
                           headers=hd, cb_kwargs={'page': page, 'trading_type': trading_type}, dont_filter=True,
                           errback=self.errback_httpbin)
 
@@ -41,7 +44,7 @@ class TenderstandartruSpider(Spider):
         hd['referer'] = response.url
         for lot_data in combo.serp.get_lots_data_from_div_table():
             # [0] - trading page; [1] - lot_link; [2] - lot_number; [3] - organizer; [4] - status; [5] - start price [6] - start date trading
-            status = combo.serp.get_status(lot_data[4])
+            status = combo.serp.get_status(lot_data[4]) if any(lot_data) else None
             if status == 'active' or status == 'pending':
                 transfer = CrawlerTransferTenderstandartruItem()
                 transfer['trading_type'] = trading_type
@@ -77,7 +80,7 @@ class TenderstandartruSpider(Spider):
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
         hd['referer'] = response.url
-        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']), data_origin=self.data_origin)
         if trading_type == 'offer':
             yield Request(url=''.join(transfer['lot_link']), callback=self.parse_periods_offer, headers=hd,
                           cb_kwargs={'transfer': transfer, 'general_files': general_files,
@@ -136,7 +139,8 @@ class TenderstandartruSpider(Spider):
         loader.add_value('start_price', transfer['start_price'])
         loader.add_value('step_price', combo.auc.get_step_price(loader.get_collected_values('start_price')))
         lot_files = combo.lot.download_files_lot(_id=''.join(loader.get_collected_values('lot_id')),
-                                                 lot_number=''.join(loader.get_collected_values('lot_number')))
+                                                 lot_number=''.join(loader.get_collected_values('lot_number')),
+                                                 data_origin=self.data_origin)
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)
@@ -175,7 +179,8 @@ class TenderstandartruSpider(Spider):
         loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods))
         loader.add_value('start_price', transfer['start_price'])
         lot_files = combo.lot.download_files_lot(_id=''.join(loader.get_collected_values('lot_id')),
-                                                 lot_number=''.join(loader.get_collected_values('lot_number')))
+                                                 lot_number=''.join(loader.get_collected_values('lot_number')),
+                                                 data_origin=self.data_origin)
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)

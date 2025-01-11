@@ -25,6 +25,7 @@ class Lot(scrapy.Item):
     msg_number = scrapy.Field(output_processor=TakeFirst())
     case_number = scrapy.Field(output_processor=TakeFirst())
     debtor_inn = scrapy.Field(output_processor=TakeFirst())
+    address = scrapy.Field(output_processor=TakeFirst())
 
     arbit_manager = scrapy.Field()
     arbit_manager_inn = scrapy.Field(output_processor=TakeFirst())

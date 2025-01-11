@@ -262,10 +262,10 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('start_price', combo.offer.start_price_offer)
         loader.add_value('periods', combo.offer.return_periods)
         # fetch and download files
-        general_files = combo.auc.download_general(url_for_post_download,
-                                                   combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
-                                                   view=view_value,
-                                                   body=body)
+        general_files = combo.auc.download_trade(url_for_post_download,
+                                                 combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
+                                                 view=view_value,
+                                                 body=body)
         lot_file = combo.auc.download_lot_img(url_id=combo.auc.trading_number(text), lot_num=combo.auc.lot_number(),
                                               cookie=arbitr_cookies.strip())
         loader.add_value('files', {'general': general_files, 'lot': lot_file})
@@ -336,10 +336,10 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('start_price', combo.offer.start_price_offer)
         loader.add_value('step_price', combo.auc.step_price(text=text))
         # fetch and download files
-        general_files = combo.auc.download_general(url_for_post_download,
-                                                   combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
-                                                   view=view_value,
-                                                   body=body)
+        general_files = combo.auc.download_trade(url_for_post_download,
+                                                 combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
+                                                 view=view_value,
+                                                 body=body)
         lot_file = combo.auc.download_lot_img(url_id=combo.auc.trading_number(text), lot_num=combo.auc.lot_number(),
                                               cookie=arbitr_cookies.strip())
         loader.add_value('files', {'general': general_files, 'lot': lot_file})

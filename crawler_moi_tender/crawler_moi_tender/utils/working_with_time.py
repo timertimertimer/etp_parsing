@@ -55,11 +55,14 @@ def format_time_strftime(func):
 
 @format_time_strftime
 def format_time(strtime):
-    pattern = re.compile(r'\d{1,2}\.\d{1,2}\.\d{2,4}.*?\d{1,2}:\d{1,2}')
+    pattern = re.compile(r'\d{1,2}\.\d{1,2}\.\d{2,4}(?:.*?\d{1,2}:\d{1,2})?')
     strtime = ''.join(pattern.findall(strtime))
     if strtime:
         date = strtime
-        return datetime.strptime(date, '%d.%m.%Y %H:%M')
+        try:
+            return datetime.strptime(date, '%d.%m.%Y %H:%M')
+        except ValueError:
+            return datetime.strptime(date, '%d.%m.%Y')
 
 
 @format_time_strftime

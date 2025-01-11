@@ -16,6 +16,9 @@ NEWSPIDER_MODULE = "crawler_opentp.spiders"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = headers_brow["User-Agent"]
 
+LOG_FILE = 'opentp.log'
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 

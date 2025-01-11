@@ -35,8 +35,9 @@ class CrawlerDbConnect(Connect):
 
     def __init__(self):
         super(CrawlerDbConnect, self).__init__()
+        self.create_table()
 
-    def create_table(self, spider):
+    def create_table(self):
         self.curr.execute(f"""CREATE TABLE IF NOT EXISTS {connect_db['table']}(
                                         id bigint AUTO_INCREMENT PRIMARY KEY,
                                         data_origin text COLLATE utf8mb4_unicode_ci,
@@ -77,7 +78,7 @@ class CrawlerDbConnect(Connect):
 
                                         """)
 
-    def store_db(self, item, spider):
+    def store_db(self, item):
         self.curr.execute(
             f"""insert into {connect_db['table']}(data_origin,trading_id,trading_link,trading_number,trading_type,
                 trading_form,trading_org,trading_org_contacts,status,index_,address,detailed_address,encumbrance,description_encumbrance,
@@ -153,3 +154,10 @@ class CrawlerDbConnect(Connect):
             ))
 
         self.conn.commit()
+
+    def process_item(self, item, spider):
+        self.store_db(item)
+        try:
+            return item
+        except Error as error:
+            return error

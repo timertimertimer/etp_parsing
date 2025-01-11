@@ -41,8 +41,7 @@ def format_parse_date(days_: int, time_format=None):
 
 data_origin_url = 'https://мойтендер.рф/'
 main_url = 'https://xn--d1abbnoievn.xn--p1ai/tenders.html'
-time_delta = 30
-start_time_from = format_parse_date(time_delta)
+start_time_from = format_parse_date(60)
 connect_db = {
     'table': 'lots_moi_tender',
 }

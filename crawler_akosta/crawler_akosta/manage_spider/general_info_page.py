@@ -260,7 +260,7 @@ class MainTradingPage:
         _post[a_id] = a_id
         return _post
 
-    def download_general(self, url, trade_id, cookies, view):
+    def download_trade(self, url, trade_id, cookies, view):
         """unpack tupels from function -> sort_data_files_general and download all files
         :arg url -> link for request (url_for_post_download in config.py)
         :arg trade_id
@@ -273,8 +273,10 @@ class MainTradingPage:
         lst_general = list()
         for t in self.get_documents_table():
             dir_.create_dir()
-            a_id, origin_name = t
-            name_on_server = dir_.name_file_on_server(_id=trade_id, original_name=origin_name)
+            a_id, name = t
+            if len(name) > 75:
+                name = name[:30] + '_' + name[-35::1]
+            name_on_server = dir_.name_file_on_server(_id=trade_id, original_name=name)
             if "Протокол" not in name_on_server and "протокол" not in name_on_server \
                     and "Решение" not in name_on_server:
                 relative_path = dir_.name_in_column_files(original_name=name_on_server)
@@ -284,7 +286,7 @@ class MainTradingPage:
                                                      post_data=self.return_post_data(view_state=view, a_id=a_id),
                                                      trade_id=trade_id)
                     del post_data_download[a_id]
-                    lst_general.append({'original_name': origin_name,
+                    lst_general.append({'original_name': name,
                                         'link': relative_path, 'link_etp': relative_path})
                 elif pathlib.Path(name_on_server).suffix in ['.zip', '.rar', '.7z']:
                     archive_lst = load.request_to_download_general(url=url, referer=self.response.url,

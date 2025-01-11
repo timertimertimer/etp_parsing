@@ -116,7 +116,7 @@ class BetwobeSpider(Spider, ABC):
         transfer['start_date_requests'] = combo.trade.get_start_date_request_auc()
         transfer['end_date_requests'] = combo.trade.get_end_date_request_auc()
         transfer['start_date_trading'] = combo.trade.get_start_date_trading_auc()
-        general_docs = combo.general.download_general(_id=''.join(transfer['trading_id']))
+        general_docs = combo.general.download_trade(_id=''.join(transfer['trading_id']))
         list_with_general_file_names = combo.general.lst_files_names(**general_docs)
         link_to_organizer = combo.trade.get_organizer_link()
         url_to_lot = combo.trade.get_url_lot_tab()

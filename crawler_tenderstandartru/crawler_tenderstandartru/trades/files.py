@@ -29,22 +29,22 @@ class GeneralFiles:
             logger.error(
                 f'{self.response.url} :: ERROR function class GeneralFiles {self.section_general_docs.__name__}')
 
-    def find_general_files(self):
+    def find_general_files(self, data_origin):
         """ find and return general fiels in tuple packed in list(deque) """
         if table := self.section_general_docs():
             general = list()
             a_tag = table.find_all(href=re.compile('/Document/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin) + link
                 name = dedent_func(a.get_text())
                 general.append((name, link))
             return deque(general)
         return list()
 
-    def download_files_general(self, _id):
+    def download_files_general(self, _id, data_origin):
         """ itterate throught list with file info(name and link) """
-        if lst := self.find_general_files():
+        if lst := self.find_general_files(data_origin):
             download = DownloadFiles()
             general_lst = list()
             general_dict = dict()
@@ -109,7 +109,7 @@ class LotFiles:
             logger.error(
                 f'{self.response.url} :: ERROR function class GeneralFiles {self.section_doc_lots.__name__}')
 
-    def images_on_lot_page(self) -> list or None:
+    def images_on_lot_page(self, data_origin) -> list or None:
         """ fetch info from section on lot page """
         _div = self.soup.find('div', class_='links picture-links')
         if _div:
@@ -117,29 +117,29 @@ class LotFiles:
             a_tag = _div.find_all(href=re.compile('/Picture/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin) + link
                 name = pathlib.Path(str(link)).stem + '.jpg'
                 lot.append((name, link))
             if len(lot) > 0:
                 return lot
 
-    def find_lot_files(self):
+    def find_lot_files(self, data_origin):
         """ find and return general fiels in tuple packed in list(deque) """
         lot = list()
         if table := self.section_doc_lots():
             a_tag = table.find_all(href=re.compile('/Document/.+/.+'))
             for a in a_tag:
                 link = a.get('href')
-                link = re.sub(r'/$', '', data_origin['tenderstandart']) + link
+                link = re.sub(r'/$', '', data_origin) + link
                 name = dedent_func(a.get_text())
                 lot.append((name, link))
-        if img := self.images_on_lot_page():
+        if img := self.images_on_lot_page(data_origin):
             lot.extend(img)
         return deque(lot)
 
-    def download_files_lot(self, _id, lot_number):
+    def download_files_lot(self, _id, lot_number, data_origin):
         """ itterate throught list with file info(name and link) """
-        if lst := self.find_lot_files():
+        if lst := self.find_lot_files(data_origin):
             download = DownloadFiles()
             lot_lst = list()
             lot_dict = dict()

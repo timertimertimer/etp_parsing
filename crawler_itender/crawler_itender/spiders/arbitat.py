@@ -30,7 +30,7 @@ class ArbitatSpider(Spider):
     # start_url = ['http://arbitat.ru/public/public-offers/view/2975/']
     data_origin = data_origin['arbitat']
     custom_settings = {
-        # 'LOG_FILE': './arbitat.log',
+        'LOG_FILE': './arbitat.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
 
@@ -154,8 +154,9 @@ class ArbitatSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.auc.start_date_request())
         loader.add_value('end_date_requests', combo.auc.end_date_request())
@@ -252,8 +253,9 @@ class ArbitatSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
@@ -372,6 +374,7 @@ class ArbitatSpider(Spider):
             pdop['__VIEWSTATE'] = post_data_period['__VIEWSTATE']
             pdop['__SCROLLPOSITIONY'] = post_data_period['__SCROLLPOSITIONY']
             pdop['__EVENTVALIDATION'] = eventvalidation
+            pdop['__EVENTVALIDATION'] = eventvalidation
             period_from_current_page = combo.offer.return_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
@@ -471,8 +474,9 @@ class ArbitatSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.compet.start_date_request())
         loader.add_value('end_date_requests', combo.compet.end_date_request())

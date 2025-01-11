@@ -1,9 +1,11 @@
+from location import get_region
 from .libraries import *
 
 logger = logging.getLogger(__name__)
 
 
 class AuctionParse:
+    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -99,6 +101,18 @@ class AuctionParse:
                 div_inn = div_inn.findNextSibling('div')
                 inn = div_inn.get_text()
                 return self.check.check_inn(inn)
+
+    def get_address(self):
+        label = self.soup.find('label', string=re.compile(r'Сведения о банкротстве', re.IGNORECASE))
+        if label:
+            div_bankrot_info = label.findNext('div', class_='auction_table') \
+                .find('div', string=re.compile(r'Наименование арбитражного суда:', re.IGNORECASE))
+            if div_bankrot_info:
+                div_bankrot_info = div_bankrot_info.findNextSibling('div')
+                address = div_bankrot_info.get_text().strip()
+                if address not in self.addresses:
+                    self.addresses[address] = get_region(address)
+                return self.addresses[address]
 
     def get_property_information(self):
         """ :return property_information """

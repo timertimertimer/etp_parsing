@@ -7,6 +7,7 @@ class LocatorTrade:
     msg_number_loc = '//div[normalize-space(text())="Идентификационный номер торгов на ЕФРСБ"]/following-sibling::div[1]/text()'
     case_number_loc = '//div[normalize-space(text())="Номер дела о банкротстве"]/following-sibling::div[1]/text()'
     debitor_inn_loc = '//div[normalize-space(text())="Сведения о должнике"]/following::div[contains(text(), "ИНН") and following::div[contains(text(), "Сведения о банкротстве")]]/following-sibling::div/text()'
+    region_loc = '//div[normalize-space(text())="Сведения о банкротстве"]/following::div[contains(text(), "Наименование арбитражного суда")]/following-sibling::div/text()'
     arbit_manager_loc = '//div[normalize-space(text())="Фамилия, имя, отчество"]/following-sibling::div[1]/text()'
     arbit_manager_inn_loc = '//div[normalize-space(text())="Арбитражный управляющий"]/following::div[contains(text(), "ИНН") and following::div[contains(text(), "Сведения о должнике")]]/following-sibling::div/text()'
     arbit_manager_org_loc = '//div[contains(normalize-space(text()), "Название саморегулируемой организации")]/following-sibling::div/text()'

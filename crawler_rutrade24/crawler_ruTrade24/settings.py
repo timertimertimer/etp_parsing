@@ -17,7 +17,6 @@ SPIDER_MODULES = ['crawler_ruTrade24.spiders']
 NEWSPIDER_MODULE = 'crawler_ruTrade24.spiders'
 
 LOG_FILE = 'rutrade.log'
-# LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

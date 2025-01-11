@@ -14,7 +14,8 @@ class ViomitraSpider(Spider):
         'ITEM_PIPELINES': {
             'crawler_tenderstandartru.pipelines.CrawlerTenderstandartruPipeline': 300,
             'crawler_tenderstandartru.pipelines.ViomitraDbConnect': 350,
-        }
+        },
+        'LOG_FILE': 'viomitra.log'
     }
 
     def __init__(self):
@@ -79,11 +80,12 @@ class ViomitraSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
+        transfer['address'] = combo.auc.get_address()
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
         hd['referer'] = response.url
-        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']), data_origin=self.data_origin)
         if trading_type == 'offer':
             yield Request(url=''.join(transfer['lot_link']), callback=self.parse_periods_offer, headers=hd,
                           cb_kwargs={'transfer': transfer, 'general_files': general_files,
@@ -126,6 +128,7 @@ class ViomitraSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
@@ -141,7 +144,8 @@ class ViomitraSpider(Spider):
         loader.add_value('start_price', combo.auc.start_price())
         loader.add_value('step_price', combo.auc.get_step_price(loader.get_collected_values('start_price')))
         lot_files = combo.lot.download_files_lot(_id=''.join(loader.get_collected_values('lot_id')),
-                                                 lot_number=''.join(loader.get_collected_values('lot_number')))
+                                                 lot_number=''.join(loader.get_collected_values('lot_number')),
+                                                 data_origin=self.data_origin)
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)
@@ -164,6 +168,7 @@ class ViomitraSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
@@ -180,7 +185,8 @@ class ViomitraSpider(Spider):
         loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods))
         loader.add_value('start_price', combo.offer.get_start_price(periods))
         lot_files = combo.lot.download_files_lot(_id=''.join(loader.get_collected_values('lot_id')),
-                                                 lot_number=''.join(loader.get_collected_values('lot_number')))
+                                                 lot_number=''.join(loader.get_collected_values('lot_number')),
+                                                 data_origin=self.data_origin)
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)

@@ -1,10 +1,12 @@
 import logging
 import pathlib
 import re
+import math
 
 import pandas as pd
 from bs4 import BeautifulSoup
 
+from location import get_region
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from ..utils.config import lst_exeption, lst_exet, lst_exet_archive, main_url, data_origin_url
 from ..utils.download import DownloadFiles
@@ -17,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -159,9 +162,14 @@ class Combo:
                 lot_number = data[0]
                 short_name = dedent_func(data[1])
                 status = self.get_status(data[2])
+                address = (data[3].strip() if isinstance(data[3], str) else None) or self.get_sud_address()
+                if address not in self.addresses:
+                    self.addresses[address] = get_region(address) or get_region(self.get_sud_address())
+                address = self.addresses[address]
                 start_price = self.get_start_price(data[4])
                 lots.append(
-                    [self.url.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, start_price]
+                    [self.url.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, address,
+                     start_price]
                 )
             return lots
         except Exception as e:
@@ -172,7 +180,9 @@ class Combo:
         d = dict(
             active=('идет прием заявок', 'идет приём заявок', 'прием заявок'),
             pending=(
-            'торги объявлены', 'объявленные торги', 'ожидание подведения итогов', 'определение участников торгов'),
+                'торги объявлены', 'объявленные торги', 'ожидание подведения итогов', 'определение участников торгов',
+                'извещение опубликовано'
+            ),
             ended=(
                 'заявки рассмотрены', 'идёт аукцион', 'подведение итогов', 'приём заявок завершен',
                 'рассмотрение заявок', 'торги аннулированы', 'торги не состоялись', 'торги отменены',
@@ -292,6 +302,14 @@ class Combo:
             return self.check.check_inn(inn)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH DEBITOR INN\n{e}', exc_info=True)
+
+    def get_sud_address(self):
+        try:
+            address = self.get_debtor().find('b',
+                                             text=re.compile('Наименование арбитражного суда')).next_sibling.get_text()
+            return dedent_func(address)
+        except Exception as e:
+            logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH SUD ADDRESS\n{e}', exc_info=True)
 
     @property
     def arbitr_manager(self):

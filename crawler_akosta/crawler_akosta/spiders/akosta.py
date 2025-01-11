@@ -18,12 +18,12 @@ from ..utils.working_with_time import return_servertime, return_parse_date
 logger = logging.getLogger(__name__)
 
 
-class AkostaFullSpider(Spider):
-    name = 'akosta_full'
+class AkostaSpider(Spider):
+    name = 'akosta'
     start_urls = ['https://www.akosta.info/akosta/lots.xhtml']
 
     def __init__(self, *args, **kwargs):
-        super(AkostaFullSpider, self).__init__(*args, **kwargs)
+        super(AkostaSpider, self).__init__(*args, **kwargs)
         self.down = DownloadFiles()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
@@ -43,9 +43,9 @@ class AkostaFullSpider(Spider):
         )
 
     def refresh_from_date(self, response):
-        yield Request(response.url, self.post_panel_list, dont_filter=True)
+        yield Request(response.url, self.post_make_panel_list, dont_filter=True)
 
-    def post_panel_list(self, response):
+    def post_make_panel_list(self, response):
         combo = Combo(response)
         viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         post_data_panel_list_query["formMain:inputServerTime"] = return_servertime()
@@ -58,10 +58,11 @@ class AkostaFullSpider(Spider):
 
     def refresh_panel_list(self, response):
         yield Request(
-            response.url, self.get_panel_list, cb_kwargs={'page_number': 1, 'total_pages': 0}, dont_filter=True
+            response.url, self.parse_panel_list, cb_kwargs={'page_number': 1, 'total_pages': 0, 'viewstate': None},
+            dont_filter=True
         )
 
-    def get_panel_list(self, response, page_number, total_pages):
+    def parse_panel_list(self, response, page_number, total_pages, viewstate):
         combo = Combo(response)
         if page_number == 1:
             current_page, total_pages = combo.pre.get_total_and_current_page
@@ -73,13 +74,13 @@ class AkostaFullSpider(Spider):
                 if id_ not in sources:
                     sources[id_] = data
         else:
-            sources = combo.pre.get_trade_links_2(page_number, total_pages)
+            sources = combo.pre.get_trade_links_2()
         if sources:
-            yield from self.process_trade(response, sources, page_number, total_pages)
+            yield from self.process_trade_one_by_one(response, sources, page_number, total_pages, viewstate)
 
-    def process_trade(self, response, sources, page_number, total_pages):
+    def process_trade_one_by_one(self, response, sources, page_number, total_pages, viewstate):
         combo = Combo(response)
-        viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
+        viewstate = viewstate or combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         if sources:
             id_, data = sources.popitem()
             post_data = copy.deepcopy(post_data_to_trade)
@@ -105,8 +106,8 @@ class AkostaFullSpider(Spider):
                 post_data_pagination["formMain:inputServerTime"] = return_servertime()
                 post_data_pagination["javax.faces.ViewState"] = viewstate
                 yield FormRequest.from_response(
-                    response, callback=self.get_panel_list, formdata=post_data_pagination, dont_filter=True,
-                    cb_kwargs={'page_number': page_number, 'total_pages': total_pages}
+                    response, callback=self.parse_panel_list, formdata=post_data_pagination, dont_filter=True,
+                    cb_kwargs={'page_number': page_number, 'total_pages': total_pages, 'viewstate': viewstate}
                 )
 
     def redirect_trade_page(self, response, trading_id, sources, page_number, total_pages):
@@ -132,7 +133,6 @@ class AkostaFullSpider(Spider):
         transfer['trading_type'] = trading_type
         transfer['trading_form'] = combo.trade.get_trading_form()
         transfer['trading_org'] = combo.trade.get_org_name()
-        transfer['trading_org_inn'] = None
         transfer['trading_org_contacts'] = combo.trade.get_org_contacts()
         if trading_type in ('auction', 'competition'):
             transfer['start_date_requests'] = combo.main_.start_date_req_auc()
@@ -142,7 +142,7 @@ class AkostaFullSpider(Spider):
 
         # !!! DOCS !!!
         new_view = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
-        general_files = combo.main_.download_general(
+        general_files = combo.main_.download_trade(
             url=common_link, trade_id=''.join(transfer['trading_id']), view=new_view,
             cookies=response.request.headers['Cookie'].decode()
         )
@@ -169,54 +169,70 @@ class AkostaFullSpider(Spider):
         transfer['trading_number'] = combo.deb.get_trading_number()
         transfer['msg_number'] = combo.deb.get_msg_number()
         transfer['case_number'] = combo.deb.get_case_number()
-        transfer['debtor_inn'] = combo.deb.get_debtor_inn()
-        transfer['arbit_manager'] = combo.deb.get_arbitr_full_name()
         transfer['arbit_manager_inn'] = combo.deb.get_arbitr_inn()
+        transfer['arbit_manager'] = combo.deb.get_arbitr_full_name()
         transfer['arbit_manager_org'] = combo.deb.get_arbitr_company()
+        transfer['debtor_inn'] = combo.deb.get_debtor_inn()
+        if combo.deb.soup.find('input', type='checkbox')['checked']:
+            transfer['trading_org_inn'] = transfer['arbit_manager_inn']
+        transfer['debtor_address'] = combo.deb.get_debtor_address()
         post_data_lot_tab['formMain:inputServerTime'] = return_servertime()
         post_data_lot_tab['javax.faces.ViewState'] = debtor_view_state
         yield FormRequest(
             debtor_link, callback=self.parse_lot_tab, formdata=post_data_lot_tab, dont_filter=True,
             cb_kwargs={
-                'transfer': transfer, 'trading_type': trading_type, 'files': files, 'lots_id': None,
+                'transfer': transfer, 'trading_type': trading_type, 'files': files, 'lots': None,
                 'sources': sources, 'page_number': page_number, 'total_pages': total_pages
             },
         )
 
-    def parse_lot_tab(self, response, transfer, trading_type, files, lots_id, sources, page_number,
-                      total_pages):
+    def parse_lot_tab(self, response, transfer, trading_type, files, lots, sources, page_number,
+                      total_pages, current_lot=None):
         """ fetch post data to all unique lot and make post request """
         combo = Combo(_response=response)
-        lot_viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
-        count_lots = lots_id if lots_id else combo.trade.get_post_lot_data()
-        data_lot = count_lots.pop(0)
+        lot_tab_link = response.url
+        if not current_lot:
+            lots = lots if lots else combo.trade.get_post_lot_data()
+            current_lot = lots.pop(0)
         post_lot = copy.deepcopy(post_data_unique_lot_page)
-        post_lot['javax.faces.source'] = data_lot
-        post_lot[data_lot] = data_lot
+        post_lot['javax.faces.source'] = current_lot
+        post_lot[current_lot] = current_lot
         post_lot['formMain:inputServerTime'] = return_servertime()
-        post_lot['javax.faces.ViewState'] = lot_viewstate
-        lot_number = combo.trade.get_lot_number(_id=data_lot)
+        viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
+        post_lot['javax.faces.ViewState'] = viewstate
+        lot_number = combo.trade.get_lot_number(_id=current_lot)
         yield FormRequest(
             lot_link, callback=self.parse_pre_lot_page, formdata=post_lot, dont_filter=True,
             cb_kwargs={
                 'files': files, 'trading_type': trading_type, 'transfer': transfer, 'lot_number': lot_number,
-                'sources': sources, 'page_number': page_number, 'total_pages': total_pages
+                'sources': sources, 'page_number': page_number, 'total_pages': total_pages, 'lots': lots,
+                'current_lot': current_lot, 'lot_tab_link': lot_tab_link
             }
         )
-        if len(count_lots) > 0:
-            yield FormRequest.from_response(
-                response, callback=self.parse_lot_tab, cb_kwargs={
+        if len(lots) > 0:
+            yield Request(
+                lot_tab_link, callback=self.parse_lot_tab, cb_kwargs={
                     'transfer': transfer,
                     'trading_type': trading_type,
                     'files': files,
-                    'lots_id': count_lots,
+                    'lots': lots,
                     'sources': sources, 'page_number': page_number, 'total_pages': total_pages
                 },
                 dont_filter=True
             )
+        else:
+            yield Request(
+                search_link, self.process_trade_one_by_one, dont_filter=True,
+                cb_kwargs={
+                    'sources': sources,
+                    'page_number': page_number,
+                    'total_pages': total_pages,
+                    'viewstate': None
+                }
+            )
 
     def parse_pre_lot_page(self, response, transfer, trading_type, files, lot_number, sources, page_number,
-                           total_pages):
+                           total_pages, lots, current_lot, lot_tab_link):
         """ get link to lot """
         combo = Combo(_response=response)
         url_to_trade = combo.main_.get_link_redirect()
@@ -244,7 +260,17 @@ class AkostaFullSpider(Spider):
                     }
                 )
         else:
-            logger.error(f'{response.url} :: ERROR REDIRECT PAGE TO LOT')
+            yield Request(
+                lot_link, callback=self.parse_lot_tab, cb_kwargs={
+                    'transfer': transfer,
+                    'trading_type': trading_type,
+                    'files': files,
+                    'lots': lots,
+                    'sources': sources, 'page_number': page_number, 'total_pages': total_pages,
+                    'current_lot': current_lot
+                },
+                dont_filter=True
+            )
 
     def parse_lot_offer(self, response, url_to_trade, transfer, lot_number, files: list, sources, page_number,
                         total_pages):
@@ -263,6 +289,7 @@ class AkostaFullSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('debtor_address', transfer['debtor_address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -315,16 +342,9 @@ class AkostaFullSpider(Spider):
             loader.add_value('periods', period_first_page)
             loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
-            yield Request(
-                search_link, self.process_trade, dont_filter=True,
-                cb_kwargs={
-                    'sources': sources,
-                    'page_number': page_number,
-                    'total_pages': total_pages
-                }
-            )
 
-    def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number, total_pages):
+    def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number,
+                                 total_pages):
         combo = Combo(_response=response)
         next_periods: list = combo.offer.return_next_periods()
         periods_.extend(next_periods)
@@ -347,14 +367,6 @@ class AkostaFullSpider(Spider):
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods_))
             loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
-            yield Request(
-                search_link, self.process_trade, dont_filter=True,
-                cb_kwargs={
-                    'sources': sources,
-                    'page_number': page_number,
-                    'total_pages': total_pages
-                }
-            )
 
     def parse_lot_auction(self, response, url_to_trade, transfer, lot_number, files, sources, page_number, total_pages):
         """ parse lot page of auction and competition """
@@ -374,6 +386,7 @@ class AkostaFullSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('debtor_address', transfer['debtor_address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -397,11 +410,3 @@ class AkostaFullSpider(Spider):
         loader.add_value('files', total_files)
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()
-        yield Request(
-            search_link, self.process_trade, dont_filter=True,
-            cb_kwargs={
-                'sources': sources,
-                'page_number': page_number,
-                'total_pages': total_pages
-            }
-        )

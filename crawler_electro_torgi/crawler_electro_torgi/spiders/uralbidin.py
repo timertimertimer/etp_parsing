@@ -5,7 +5,7 @@ from scrapy import Request, FormRequest
 
 from ..items import CrawlerElectroTorgiItemLoader, CrawlerElectroTorgiItem
 from ..trades.app import Combo
-from ..utils.config import format_parse_date, data_origin, tables
+from ..utils.config import format_parse_date, data_origin, tables, start_date, end_date
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.working_with_time import return_parse_date
 from ..utils.working_with_url import UrlConfig
@@ -19,7 +19,8 @@ class UralbidinSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'crawler_electro_torgi.pipelines.CrawlerElectroTorgiPipeline': 300,
             'crawler_electro_torgi.pipelines.UralbidinDbConnect': 350,
-        }
+        },
+        'LOG_FILE': 'uralbidin.log'
     }
 
     def __init__(self):
@@ -29,8 +30,6 @@ class UralbidinSpider(scrapy.Spider):
         self.url = UrlConfig()
 
     def start_requests(self) -> Iterable[Request]:
-        start_date = format_parse_date(30, "%Y-%m-%d 00:01")
-        end_date = format_parse_date(0, "%d.%m.%Y 23:59")
         params_data = {
             'applications_start_date': f'{start_date} ⇆ {end_date}',
             'applications_start_date_from': start_date,
@@ -60,6 +59,7 @@ class UralbidinSpider(scrapy.Spider):
         msg_number = combo.msg_number
         case_number = combo.case_number
         debtor_inn = combo.debtor_inn
+        address = combo.address
         arbit_manager = combo.arbit_manager
         arbit_manager_inn = combo.arbit_manager_inn
         arbit_manager_org = combo.arbit_manager_org
@@ -80,6 +80,7 @@ class UralbidinSpider(scrapy.Spider):
             loader.add_value('msg_number', msg_number)
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
+            loader.add_value('address', address)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)
