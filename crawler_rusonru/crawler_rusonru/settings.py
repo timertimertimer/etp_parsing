@@ -61,7 +61,7 @@ DEFAULT_REQUEST_HEADERS = {
 #    'crawler_rusonru.middlewares.CrawlerRusonruSpiderMiddleware': 543,
 # }
 # LOG_LEVEL = 'INFO'
-# LOG_FILE = './ruson.log'
+LOG_FILE = './ruson.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html

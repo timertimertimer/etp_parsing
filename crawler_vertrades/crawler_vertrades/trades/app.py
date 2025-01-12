@@ -4,6 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
+from location import get_region
 from .auction import AuctionParse
 from .offer import OfferParse
 from .serp import SerpParse
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -193,6 +195,19 @@ class Combo:
             return None
 
     @property
+    def address(self):
+        try:
+            address = self.response.xpath(self.loc.address_loc).get()
+            if not address:
+                address = self.response.xpath(self.loc.sud_loc).get()
+            address = dedent_func(BeautifulSoup(address, features='lxml').get_text())
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return self.addresses[address]
+        except Exception as e:
+            logger.error(f'{self.response.url} :: INVALID DATA ADDRESS\n{e}')
+
+    @property
     def arbitr_manager(self):
         try:
             td_org = self.response.xpath(self.loc.arbitr_manag_loc).get()
@@ -230,8 +245,7 @@ class Combo:
                         [x if len(td_company) > 0 else None for x in re.split(r'\(', td_company, maxsplit=1)[0]])
                 return ''.join(dedent_func(td_company))
         except:
-            logger.warning(
-                f'{self.response.url} :: INVALID DATA ARBITR COMPANY')
+            logger.warning(f'{self.response.url} :: INVALID DATA ARBITR COMPANY')
 
     @property
     def start_date_requests(self):

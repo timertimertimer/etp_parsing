@@ -32,6 +32,15 @@ class Connect:
         self.db_config = read_db_config()
         self.conn = MySQLConnection(**self.db_config)
         self.curr = self.conn.cursor()
+        self.set_wait_timeout(600)
+
+    def set_wait_timeout(self, timeout):
+        """Устанавливает wait_timeout для текущей сессии."""
+        try:
+            self.curr.execute(f"SET SESSION wait_timeout = {timeout};")
+            print(f"Session wait_timeout set to {timeout} seconds.")
+        except Error as err:
+            print(f"Error setting wait_timeout: {err}")
 
 
 class CrawlerDbConnect(Connect):
@@ -55,6 +64,7 @@ class CrawlerDbConnect(Connect):
                         msg_number varchar(255) COLLATE utf8mb4_unicode_ci,
                         case_number varchar(255) COLLATE utf8mb4_unicode_ci,
                         debtor_inn text(12) COLLATE utf8mb4_unicode_ci,
+                        address varchar(255) COLLATE utf8mb4_unicode_ci,
                         arbit_manager text COLLATE utf8mb4_unicode_ci,
                         arbit_manager_inn text(12) COLLATE utf8mb4_unicode_ci,
                         arbit_manager_org text COLLATE utf8mb4_unicode_ci,
@@ -85,14 +95,14 @@ class CrawlerDbConnect(Connect):
             f"""insert into {connect_db['table']}(data_origin,trading_id,
                             trading_link,trading_number,trading_type,
                             trading_form,trading_org,trading_org_inn,trading_org_contacts,
-                            msg_number,case_number,debtor_inn,arbit_manager,
+                            msg_number,case_number,debtor_inn,address,arbit_manager,
                             arbit_manager_inn,arbit_manager_org,status,
                             lot_id,lot_link,lot_number,short_name,lot_info,
                             property_information,start_date_requests,
                             end_date_requests,start_date_trading,end_date_trading,
                             start_price,step_price,periods,files,created_at) 
                             values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-                                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                                     ON DUPLICATE KEY UPDATE trading_id=VALUES(trading_id), 
                                     created_at=VALUES(created_at),
                                     arbit_manager_org=VALUES(arbit_manager_org),
@@ -121,6 +131,7 @@ class CrawlerDbConnect(Connect):
                 item['msg_number'],
                 item['case_number'],
                 item['debtor_inn'],
+                item['address'],
                 item['arbit_manager'],
                 item['arbit_manager_inn'],
                 item['arbit_manager_org'],

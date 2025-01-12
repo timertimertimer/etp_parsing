@@ -29,8 +29,8 @@ def bankrupt_electro_torgi():
     execute(['scrapy', 'crawl', 'bankrupt_electro_torgi'])
 
 
-def tender_ug():
-    execute(['scrapy', 'crawl', 'tender_ug'])
+def tender_one():
+    execute(['scrapy', 'crawl', 'tender_one'])
 
 
 def utender():
@@ -80,6 +80,9 @@ def arbbitlot():
 def ets24():
     execute(['scrapy', 'crawl', 'ets24'])
 
+def selt_online():
+    execute(['scrapy', 'crawl', 'selt_online'])
+
 
 if __name__ == '__main__':
-    zakazrf()
+    tender_one()

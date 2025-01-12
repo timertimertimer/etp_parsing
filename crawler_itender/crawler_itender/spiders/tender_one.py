@@ -6,7 +6,7 @@ from scrapy import Request, FormRequest
 from itertools import chain
 from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers_for_spiders.spiders_header import headers_tender_ug as hd
+from ..utils.headers_for_spiders.spiders_header import headers_tender_one as hd
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_competition as pdcom
@@ -23,22 +23,22 @@ from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 import logging
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_tender_ug']
+TABLE = tables['table_tender_one']
 
 
 class TenderUgSpider(Spider):
-    name = 'tender_ug'
+    name = 'tender_one'
     allowed_domains_ = ['bankrupt.tender.one']
     start_url = ['https://bankrupt.tender.one/']
-    data_origin = data_origin['tender_ug']
+    data_origin = data_origin['tender_one']
     custom_settings = {
-        # 'LOG_FILE': './tender_ug.log',
+        'LOG_FILE': './tender_one.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },
         'ITEM_PIPELINES': {
             'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
-            'crawler_itender.pipelines.TenderUgDbConnect': 350,
+            'crawler_itender.pipelines.TenderOneDbConnect': 350,
         }
 
     }
@@ -139,6 +139,7 @@ class TenderUgSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -237,6 +238,7 @@ class TenderUgSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -469,6 +471,7 @@ class TenderUgSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())

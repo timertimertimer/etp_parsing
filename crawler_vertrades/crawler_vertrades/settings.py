@@ -87,6 +87,9 @@ ITEM_PIPELINES = {
     'crawler_vertrades.pipelines.CrawlerDbConnect': 350,
 }
 
+LOG_FILE = 'vertrades.log'
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
 RETRY_ENABLED = True
 RETRY_TIMES = 7
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522,

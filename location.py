@@ -9,8 +9,12 @@ with open(Path(__file__).parent / 'yandex_api_keys.json') as f:
 
 punctuation = r"""!"#$%&'()*+,./:;<=>?@[\]^_`{|}~"""
 
+
 def get_region(address: str):
-    if 'суд' in address.lower():
+    if any([
+        'суд' in address.lower().split(),
+        'суда' in address.lower().split()
+    ]):
         pattern = r"(?i)(?:арбитражн\w*\s+)?суд\w*\s+(.+)"
         try:
             address = re.search(pattern, address).group(1)
@@ -55,4 +59,4 @@ def get_region(address: str):
 
 
 if __name__ == '__main__':
-    print(get_region('РО'))
+    print(get_region('Арбитражный суда Магаданской области'))

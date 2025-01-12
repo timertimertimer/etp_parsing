@@ -1,3 +1,4 @@
+from location import get_region
 from .libraries import *
 import logging
 
@@ -5,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class SerpParse:
+    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -106,7 +108,8 @@ class SerpParse:
 
     def table_trading_page_trade_info(self):
         """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о проведении торгов', re.IGNORECASE)).find_parent('table')
+        table = self.soup.find('th', string=re.compile('Информация о проведении торгов', re.IGNORECASE)).find_parent(
+            'table')
         if table:
             return table
         else:
@@ -197,9 +200,41 @@ class SerpParse:
             org_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
             return self.check.check_inn(dedent_func(org_inn))
 
+    def get_address(self):
+        try:
+            if table := self.table_debtor_info():
+                address = table.find('td', string='Адрес')
+                if address:
+                    address = address.findNextSibling('td').get_text(strip=True)
+
+                sud = table.find('td', string='Наименование суда')
+                if sud:
+                    sud = sud.findNextSibling('td').get_text(strip=True)
+
+                region = table.find('td', string='Регион')
+                if region:
+                    region = region.findNextSibling('td').get_text(strip=True)
+
+                if not any([address, sud]):
+                    return region
+
+                if not address:
+                    address = sud
+                if address not in self.addresses:
+                    self.addresses[address] = (
+                            get_region(address) or
+                            (get_region(sud) if sud else None) or
+                            (get_region(region) if region else None)
+                    )
+                return self.addresses[address]
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR function {self.get_address.__name__}')
+
     def table_arbitrator_info(self):
         """ return table with title "Information about arbitrator" """
-        table = self.soup.find('th', string=re.compile('Информация об арбитражном управляющем', re.IGNORECASE)).find_parent('table')
+        table = self.soup.find('th',
+                               string=re.compile('Информация об арбитражном управляющем', re.IGNORECASE)).find_parent(
+            'table')
         if table:
             return table
         else:

@@ -15,6 +15,8 @@ class LocatorTrade:
 
     debitor_inn_loc = '//th[normalize-space(text())="Сведения о должнике"]/following::td[normalize-space(text())="ИНН" and following::th[normalize-space(text())="Финансовый управляющий"]]/following-sibling::td[1]'
     debitor_inn_loc_2 = '//th[normalize-space(text())="Сведения о должнике"]/following::td[normalize-space(text())="ИНН" and following::th[normalize-space(text())="Арбитражный управляющий"]]/following-sibling::td[1]'
+    address_loc = '//th[normalize-space(text())="Сведения о должнике"]/following::td[normalize-space(text())="Адрес"]/following-sibling::td[1]'
+    sud_loc = '//td[normalize-space(text())="Наименование арбитражного суда"]/following-sibling::td'
     arbitr_manag_loc = '//th[normalize-space(text())="Арбитражный управляющий"]/following::td[normalize-space(text())="ФИО" and following::th[normalize-space(text())="Информация для интеграции с ЕФРСБ"]]/following-sibling::td[1]'
     finance_manag_loc = '//th[normalize-space(text())="Финансовый управляющий"]/following::td[normalize-space(text())="ФИО" and following::th[normalize-space(text())="Информация для интеграции с ЕФРСБ"]]/following-sibling::td[1]'
     arbitr_inn_loc = '//th[normalize-space(text())="Арбитражный управляющий"]/following::td[normalize-space(text())="ИНН" and following::th[normalize-space(text())="Информация для интеграции с ЕФРСБ"]]/following-sibling::td[1]'

@@ -30,6 +30,8 @@ phone_org_loc = trade_org_info_loc + td_phone + foll_sibling + ')'
 deb_info = 'normalize-space(//h3[contains(.,"нформация о должнике")]'
 td_deb_inn = '/following::tr//following::td[contains(.,"ИНН")]'
 debitor_inn = deb_info + td_deb_inn + foll_sibling + ')'
+td_deb_address = '/following::tr//following::td[contains(.,"Место нахождения")]'
+debitor_address = deb_info + td_deb_address + foll_sibling + ')'
 
 # ________ARBITR________INFO____________________
 arbitr_info = 'normalize-space(//h3[contains(.,"нформация об арбитражном управляю")]'

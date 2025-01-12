@@ -54,10 +54,10 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 1
 CONCURRENT_REQUESTS_PER_IP = 1
 
 # LOG_LEVEL = 'INFO'
-# LOG_FILE = './sibtoptrade.log'
+LOG_FILE = './sibtoptrade.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-SPLASH_URL = 'http://localhost:8065'
+SPLASH_URL = 'http://localhost:8050'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }
@@ -106,7 +106,7 @@ AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-SPLASH_COOKIES_DEBUG = True
+SPLASH_COOKIES_DEBUG = False
 SPLASH_LOG_400 = True
 DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 HTTPCACHE_ENABLED = True

@@ -6,7 +6,7 @@ from scrapy import Request, FormRequest
 from itertools import chain
 from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers_for_spiders.spiders_header import headers_propertytrade as hd
+from ..utils.headers_for_spiders.spiders_header import headers_alfalot as hd
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_competition as pdcom
@@ -23,48 +23,31 @@ from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 import logging
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_propertytrade']
+TABLE = tables['table_selt_online']
 
-
-class PropertytradeSpider(Spider):
-    name = 'propertytrade'
-    allowed_domains = ['propertytrade.ru']
-    start_url = ['https://propertytrade.ru/']
-    data_origin = data_origin['propertytrade']
+class SeltOnlineSpider(Spider):
+    name = 'selt_online'
+    allowed_domains = ['selt-online.ru']
+    start_url = ['https://selt-online.ru/']
+    data_origin = data_origin['selt_online']
     custom_settings = {
-        'LOG_FILE': './propertytrade.log',
+        'LOG_FILE': './selt_online.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },
         'ITEM_PIPELINES': {
             'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
-            'crawler_itender.pipelines.PropertytradeDbConnect': 350,
+            'crawler_itender.pipelines.SeltOnlineDbConnect': 350,
         }
-
     }
 
     def __init__(self):
-        super(PropertytradeSpider, self).__init__()
+        super(SeltOnlineSpider, self).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot(TABLE)
 
     def start_requests(self):
         yield Request(self.start_url[0], self.choose_datatype, headers=hd)
-        # for i in range(5):
-        #     if i == 0:
-        #         link_lot = 'http://meta-invest.ru/public/auctions/lots/view/15870/'
-        #     elif i == 1:
-        #         link_lot = 'http://meta-invest.ru/public/auctions/lots/view/15871/'
-        #     elif i == 2:
-        #         link_lot = 'http://meta-invest.ru/public/auctions/lots/view/15872/'
-        #     elif i == 3:
-        #         link_lot = 'http://meta-invest.ru/public/auctions/lots/view/15873/'
-        #     elif i == 4:
-        #         link_lot = 'http://meta-invest.ru/public/auctions/lots/view/15874/'
-        #     else:
-        #         return None
-        #     yield Request(self.start_url[0], self.parse_trading_page_auction, headers=hd,
-        #                   cb_kwargs={'lot_number': str(i + 1), 'lot_link': link_lot, 'attemp': 1}, dont_filter=True)
 
     def choose_datatype(self, response):
         for _type in ['auction', 'offer', 'competition']:

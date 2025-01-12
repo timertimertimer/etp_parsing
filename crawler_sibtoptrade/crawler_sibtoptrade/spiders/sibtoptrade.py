@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from icecream import ic
 
+from location import get_region
 from ..config import *
 from scrapy.spiders import CrawlSpider
 from scrapy_splash import SplashRequest
@@ -26,6 +27,7 @@ class SibtoptradeSpider(CrawlSpider):
     name = bot_name
     allowed_domains = ['sibtoptrade.ru', 'localhost']
     total_iterations = int(finish_page) - int(start_page)
+    addresses = dict()
 
     start_url_ = [start_urls.format(n + int(start_page))
                   for n in range(total_iterations)]
@@ -63,13 +65,16 @@ class SibtoptradeSpider(CrawlSpider):
         #     cookies = cookie_parser(cookie)
         # ic(cookies)
         soup = BS(str(response.body.decode('utf-8')), 'lxml')
-        all_links = soup.find_all(href=re.compile(pattern_trade_links))
-        for l in all_links:
-            trading_number = ''.join(l.get_text())
-            link = l.get("href")
-            yield Request(url=link, callback=self.parse_lots,
+        trades = soup.find('tbody').find_all('tr')
+        for trade in trades:
+            if trade.find('td', class_='td-divider'):
+                continue
+            link = trade.find('a')
+            trading_number = ''.join(link.get_text())
+            status = trade.find('td', class_='center').find_next_sibling().get_text().strip().lower()
+            yield Request(url=link.get("href"), callback=self.parse_lots,
                           errback=self.errback_httpbin,
-                          meta={'trading_number': trading_number})
+                          meta={'trading_number': trading_number, 'status': status})
 
     def parse_lots(self, response):
         if str(response.status) != '200':
@@ -93,7 +98,7 @@ class SibtoptradeSpider(CrawlSpider):
                 loader.add_value('trading_id', ''.join(
                     trade_id(response.url)).strip())
                 loader.add_value('trading_link', ''.join(response.url))
-                # loader.add_value('trading_number', response.meta['trading_number'])
+                loader.add_value('trading_number', response.meta['trading_number'])
                 loader.add_xpath('trading_type', trade_type_loc)
                 loader.add_xpath('trading_form', trade_type_loc)
                 loader.add_value('msg_number', check_msg_number(''.join(response.url),
@@ -102,6 +107,10 @@ class SibtoptradeSpider(CrawlSpider):
                                                                   response.xpath(get_case_number()).get()))
                 loader.add_value('debtor_inn', check_inn(
                     ''.join(response.xpath(get_debitor_inn()).get())))
+                address = ''.join(response.xpath(get_address()).get())
+                if address not in self.addresses:
+                    self.addresses[address] = get_region(address)
+                loader.add_value('address', self.addresses[address])
                 loader.add_value('trading_org', check_name(
                     ''.join(response.xpath(get_org_name()).get())))
                 loader.add_value('trading_org_inn', check_inn(
@@ -115,7 +124,7 @@ class SibtoptradeSpider(CrawlSpider):
                     ''.join(response.xpath(get_arbitr_inn()).get())))
                 loader.add_value('arbit_manager_org', check_name(
                     ''.join(response.xpath(get_arbitr_org()).get())))
-                loader.add_value('status', 'active')
+                loader.add_value('status', response.meta['status'])
                 loader.add_value('lot_id', None)
                 loader.add_value('lot_link', None)
                 loader.add_value('lot_info', None)

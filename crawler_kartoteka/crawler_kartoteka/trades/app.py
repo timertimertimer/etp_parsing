@@ -121,6 +121,10 @@ class Combo:
         return "".join(pattern.findall(trade_inn))
 
     @property
+    def address(self):
+        return dedent_func(BeautifulSoup(self.response.xpath(self.loc.address_loc).get(), "lxml").get_text())
+
+    @property
     def arbit_manager(self):
         try:
             td_org = dedent_func(

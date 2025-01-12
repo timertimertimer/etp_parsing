@@ -1,6 +1,8 @@
 import re
 from icecream import ic
 from bs4 import BeautifulSoup as BS
+
+from location import get_region
 from ..locators.locator_auction import LocatorAuction
 from ..utils.work_with_text_and_number import dedent_func
 import logging
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class AuctionParse:
+    addresses = dict()
     def __init__(self, resposne_):
         self.response = resposne_
         self.loc_auc = LocatorAuction
@@ -184,6 +187,36 @@ class AuctionParse:
                 return self.check.check_inn(inn)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INN {ex}')
+
+    def get_address(self):
+        try:
+            if table := self.get_block_debtor_info():
+                address = table.find('td', string='Адрес')
+                if address:
+                    address = address.findNextSibling('td').get_text(strip=True)
+
+                sud = table.find('td', string='Наименование суда')
+                if sud:
+                    sud = sud.findNextSibling('td').get_text(strip=True)
+
+                region = table.find('td', string='Регион')
+                if region:
+                    region = region.findNextSibling('td').get_text(strip=True)
+
+                if not any([address, sud]):
+                    return region
+
+                if not address:
+                    address = sud
+                if address not in self.addresses:
+                    self.addresses[address] = (
+                            get_region(address) or
+                            (get_region(sud) if sud else None) or
+                            (get_region(region) if region else None)
+                    )
+                return self.addresses[address]
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR function {self.get_address.__name__}')
 
     def get_arbitr_block(self):
         """ :return block with arbitr info """

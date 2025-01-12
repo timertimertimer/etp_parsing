@@ -95,6 +95,7 @@ class KartotekaSpider(scrapy.Spider):
         loader.add_value("msg_number", combo.msg_number)
         loader.add_value("case_number", combo.case_number)
         loader.add_value("debtor_inn", combo.debitor_inn)
+        loader.add_value('address', combo.address)
         loader.add_value("arbit_manager", combo.arbit_manager)
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)

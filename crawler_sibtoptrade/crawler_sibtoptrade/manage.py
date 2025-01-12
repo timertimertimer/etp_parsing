@@ -182,6 +182,9 @@ def get_arbitr_org():
 def get_debitor_inn():
     return debitor_inn
 
+def get_address():
+    return debitor_address
+
 
 def get_case_number():
     return case_num_loc
@@ -247,7 +250,7 @@ def check_name(string_: str):
         return ''
 
 
-def check_case_number(value, url):
+def check_case_number(url, value):
     try:
         if value and len(value) < 32:
             pattern = r'\w.+\/\d{2,4}.*'
@@ -263,7 +266,7 @@ def check_case_number(value, url):
                 return logger.error(f'{url} case_number length less than 0')
 
     except Exception as e:
-        logger.warning(f'{url} HASN\'T CASE NUMBER OR DATA INVALID {e}')
+        logger.error(f'{url} HASN\'T CASE NUMBER OR DATA INVALID {e}')
 
 
 def check_msg_number(url, value: str):

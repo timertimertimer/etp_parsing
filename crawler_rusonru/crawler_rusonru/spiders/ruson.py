@@ -40,7 +40,7 @@ class RusonSpider(Spider):
         """ parse pagination pages with short lot data (serp) """
         combo = Combo(response_=response)
         hd['Referer'] = response.url
-        for lot_data in combo.serp.get_lots_data_from_div_table():
+        for lot_data in combo.serp.get_lots_data():
             # [0] - trading page; [1] - lot_link; [2] - organizer; [3] - trading type and form; [4] - status
             type_and_form = combo.serp.get_trading_type_and_form(lot_data[3])
             trading_number = combo.serp.get_trading_number(lot_data[3])
@@ -96,6 +96,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
+        transfer['address'] = combo.serp.get_address()
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -123,6 +124,7 @@ class RusonSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -165,6 +167,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
+        transfer['address'] = combo.serp.get_address()
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -189,6 +192,7 @@ class RusonSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

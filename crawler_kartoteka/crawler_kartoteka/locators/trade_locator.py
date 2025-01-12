@@ -3,6 +3,7 @@ class TradeLocator:
     trading_org_loc = '//div[@class="property__cards_subtitle" and b[text()="Организация:"]]/span'
     case_number_loc = '//div[@class="property__cards_subtitle" and b[text()="№ дела:"]]/span'
     debtor_inn_loc = '//div[@class="property__cards_info-item" and b[text()="ИНН дебитора:"]]/span/text()'
+    address_loc = '//div[@class="property__cards_subtitle" and b[text()="Регион:"]]/span/text()'
     arbit_manager_loc = '//div[@class="property__cards_person-item" and span[text()="Арбитражный управляющий"]]//div[b[text()="ФИО:"]]/span'
     arbit_manager_org_loc = '//div[@class="property__cards_person-item" and span[text()="Арбитражный управляющий"]]//div[b[text()="СРО:"]]/span'
     status_loc = '//div[@class="property__cards_text-status"]/text()'

@@ -18,10 +18,10 @@ def check_trading_type(string_):
     :param string_:str
     :return:
     """
-    offer = ['Публичное предложение']
+    offer = ['Публичное предложение', 'Закрытое публичное предложение']
     auction = ['Открытый аукцион',
                'Закрытый аукцион']
-    competition = ['Конкурс']
+    competition = ['Конкурс', 'Закрытый конкурс']
 #    pattern = r'(\D{4}$)'
 #    match = ''.join(re.findall(pattern, str(code).strip()))
     string_ = (''.join(string_)).strip()
@@ -44,7 +44,7 @@ def check_trading_form(string_):
     open_form = ['Открытый аукцион',
                  'Конкурс',
                  'Публичное предложение']
-    close_form = ['Закрытый аукцион']
+    close_form = ['Закрытый аукцион', 'Закрытое публичное предложение', 'Закрытый конкурс']
 #    pattern = r'(\D{4}$)'
 #    match = ''.join(re.findall(pattern, str(code).strip()))
     string_ = (''.join(string_)).strip()
@@ -133,6 +133,7 @@ class SibtopItem(scrapy.Item):
     msg_number = scrapy.Field()
     case_number = scrapy.Field()
     debtor_inn = scrapy.Field()
+    address = scrapy.Field()
     arbit_manager = scrapy.Field()
     arbit_manager_inn = scrapy.Field()
     arbit_manager_org = scrapy.Field()
@@ -169,6 +170,7 @@ class SibtopItemLoader(ItemLoader):
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     debtor_inn_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    address_out = TakeFirst()
     trading_org_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     trading_org_inn_out = TakeFirst()

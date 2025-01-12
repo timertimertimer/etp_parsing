@@ -13,7 +13,8 @@ class TorggroupSpider(Spider):
         'ITEM_PIPELINES': {
             'crawler_tenderstandartru.pipelines.CrawlerTenderstandartruPipeline': 300,
             'crawler_tenderstandartru.pipelines.TorggroupDbConnect': 350,
-        }
+        },
+        'LOG_FILE': 'torggroup.log'
     }
 
     def __init__(self):
@@ -78,6 +79,7 @@ class TorggroupSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
+        transfer['address'] = combo.auc.get_address()
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
@@ -125,6 +127,7 @@ class TorggroupSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
@@ -164,6 +167,7 @@ class TorggroupSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])

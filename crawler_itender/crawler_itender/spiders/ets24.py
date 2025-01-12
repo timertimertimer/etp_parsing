@@ -30,7 +30,7 @@ class Ets24Spider(Spider):
     start_url = ["http://bankrupt.ets24.ru/"]
     data_origin = data_origin['ets24']
     custom_settings = {
-        # 'LOG_FILE': './arbitat.log',
+        'LOG_FILE': './arbitat.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
 
@@ -138,6 +138,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -233,6 +234,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -442,6 +444,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
