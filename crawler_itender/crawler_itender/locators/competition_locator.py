@@ -3,7 +3,7 @@ class CompetLocator:
     trading_num_loc = '//legend[contains(., "Информация о конкурсе №")]'
 
     lot_table = '//legend[contains(., "Лоты конкурса")]/ancestor::fieldset'
-    property_info_loc = '//legend[contains(., "нформация о конкурсе")]/ancestor::fieldset//td[contains(., "орядок ознакомления с имущество")]//following-sibling::td[1]'
+    property_info_loc = '//legend[contains(., "нформация о конкурсе") or contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "орядок ознакомления с имущество")]//following-sibling::td[1]'
 
     trading_form_loc = '//legend[contains(., "нформация о конкурсе")]/ancestor::fieldset//td[contains(., "Форма торга по составу участников:")]/following-sibling::td[1]'
 

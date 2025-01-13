@@ -7,11 +7,8 @@ script_lua = """
                  end
              end)
              splash.images_enabled=false
-             -- splash:autoload("https://code.jquery.com/jquery-1.7.1.min.js")
-end)
              splash.private_mode_enabled = false
              splash.plugins_enabled = false
-             -- splash.js_enabled = false
              splash:init_cookies(splash.args.cookies)
 	         assert(splash:wait(1))
              assert(splash:go{

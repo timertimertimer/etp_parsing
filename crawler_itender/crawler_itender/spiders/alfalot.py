@@ -4,14 +4,17 @@ import logging
 import re
 from itertools import chain
 from random import randint
+from typing import Iterable
+
 from scrapy import FormRequest, Request
 from scrapy.spiders import Spider
+from scrapy_playwright.page import PageMethod
 from scrapy_splash import SplashRequest, SlotPolicy
 from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 from ..manage_spiders.app import Combo
 from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
 from ..utils.config import return_auction_link, data_origin, start_date_post, tables, return_offer_link, \
-    return_compet_link
+    return_compet_link, trash_resources
 from ..utils.data_for_requests import script_lua, script_lua_nojs
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.headers_for_spiders.generate_user_agent import USER_AGENT
@@ -23,7 +26,8 @@ from ..utils.post_data_for_spiders.arbitat_post_data import post_data_competitio
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_auction_pagination as pdapag
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_arbitat']
+TABLE = tables['table_alfalot']
+
 
 class AlfalotSpider(Spider):
     name = 'alfalot'
@@ -31,17 +35,20 @@ class AlfalotSpider(Spider):
     data_origin = data_origin['alfalot']
     start_url = ['https://bankrupt.alfalot.ru/']
     custom_settings = {
-        # 'LOG_FILE': './alflot.log',
+        'LOG_FILE': './alfalot.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
-            'scrapy_splash.SplashCookiesMiddleware': 723,
-            'scrapy_splash.SplashMiddleware': 725,
         },
         'ITEM_PIPELINES': {
             'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
             'crawler_itender.pipelines.AlfalotDbConnect': 350,
-        }
-
+        },
+        'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
+        'DOWNLOAD_HANDLERS': {
+            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+        },
+        'TWISTED_REACTOR': "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
     }
 
     def __init__(self):
@@ -49,24 +56,24 @@ class AlfalotSpider(Spider):
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot(TABLE)
 
-    def start_requests(self):
-        yield SplashRequest(self.start_url[0], self.choose_datatype, endpoint='execute',
-                            cache_args=['lua_source'], args={'lua_source': script_lua},
-                            slot_policy=SlotPolicy.PER_DOMAIN, dont_send_headers=True, dont_filter=True
-                            )
+    def start_requests(self) -> Iterable[Request]:
+        for url in self.start_url:
+            yield Request(url, callback=self.choose_datatype, meta=dict(playwright=True))
 
     def choose_datatype(self, response):
-        cookies = response.data['cookies']
         for _type in ['auction', 'offer', 'competition']:
             if _type == 'auction':
-                yield Request(return_auction_link(self.data_origin), self.parse_, headers=hd, cookies=cookies,
-                              cb_kwargs={'_type': 'auction'})
+                yield Request(
+                    return_auction_link(self.data_origin), self.parse_, headers=hd, cb_kwargs={'_type': 'auction'}
+                )
             if _type == 'offer':
-                yield Request(return_offer_link(self.data_origin), self.parse_, headers=hd, cookies=cookies,
-                              cb_kwargs={'_type': 'offer'})
+                yield Request(
+                    return_offer_link(self.data_origin), self.parse_, headers=hd, cb_kwargs={'_type': 'offer'}
+                )
             if _type == 'competition':
-                yield Request(return_compet_link(self.data_origin), self.parse_, headers=hd, cookies=cookies,
-                              cb_kwargs={'_type': 'competition'})
+                yield Request(
+                    return_compet_link(self.data_origin), self.parse_, headers=hd, cb_kwargs={'_type': 'competition'}
+                )
 
     async def parse_(self, response, _type):
         first_post = None
@@ -94,9 +101,9 @@ class AlfalotSpider(Spider):
         first_post['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         yield FormRequest(response.url, formdata=first_post, headers=hd, callback=function_for_parse,
                           cb_kwargs={'first_post': first_post})
-            # yield FormRequest(link, formdata=first_post, cookies=cookies,
-            #                           callback=self.parse_serp_auction,
-            #                           cb_kwargs={'first_post': first_post}, dont_filter=True)
+        # yield FormRequest(link, formdata=first_post, cookies=cookies,
+        #                           callback=self.parse_serp_auction,
+        #                           cb_kwargs={'first_post': first_post}, dont_filter=True)
 
     # PARSE AUCTION
     def parse_serp_auction(self, response, first_post):
@@ -123,7 +130,8 @@ class AlfalotSpider(Spider):
             if link not in self.previous_lots:
                 yield Request(link[0],
                               callback=self.parse_trading_page_auction, headers=hd,
-                              cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'link_trade': link[0], 'attemp': 1}, dont_filter=True)
+                              cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'link_trade': link[0],
+                                         'attemp': 1}, dont_filter=True)
                 # yield SplashRequest(link[0], callback=self.parse_trading_page_auction, endpoint='execute',
                 #                     cache_args=['lua_source'], args={'lua_source': script_lua_nojs},
                 #                     slot_policy=SlotPolicy.PER_DOMAIN, dont_send_headers=True,
@@ -162,6 +170,7 @@ class AlfalotSpider(Spider):
             loader.add_value('msg_number', combo.auc.msg_number)
             loader.add_value('case_number', combo.auc.case_number)
             loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+            loader.add_value('address', combo.auc.get_address())
             loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -172,7 +181,8 @@ class AlfalotSpider(Spider):
             loader.add_value('start_date_trading', start_date_trading)
             loader.add_value('end_date_trading', None)
             _id = ''.join(loader.get_collected_values('trading_id'))
-            general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
+            general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
+                                                      host=self.allowed_domains[0])
             hd_lot = copy.deepcopy(hd)
             hd_lot['referer'] = response.url
             hd_lot['user-agent'] = USER_AGENT
@@ -185,9 +195,9 @@ class AlfalotSpider(Spider):
             pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
             yield Request(lot_link, callback=self.parse_lot_page,
                           headers=hd_lot, cb_kwargs={'loader': loader,
-                                     'lot_number': lot_number,
-                                     'general': general_files,
-                                     }, dont_filter=True)
+                                                     'lot_number': lot_number,
+                                                     'general': general_files,
+                                                     }, dont_filter=True)
             # yield SplashRequest(lot_link, callback=self.parse_lot_page, endpoint='execute',
             #                     cache_args=['lua_source'], args={'lua_source': script_lua_nojs},
             #                     slot_policy=SlotPolicy.PER_DOMAIN, dont_send_headers=True,
@@ -276,6 +286,7 @@ class AlfalotSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -368,7 +379,7 @@ class AlfalotSpider(Spider):
                                          'pages': pages,
                                          'post_data_period': pdop}, dont_filter=True)
 
-    async def parse_lot_page_offer_next_page(self, response, loader, lot_number, general,  post_data_period, pages: list,
+    async def parse_lot_page_offer_next_page(self, response, loader, lot_number, general, post_data_period, pages: list,
                                              period_current_page: list):
         """ parse next page with periods """
         combo = Combo(_response=response)
@@ -495,6 +506,7 @@ class AlfalotSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())

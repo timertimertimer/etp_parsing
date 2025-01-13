@@ -85,4 +85,4 @@ def selt_online():
 
 
 if __name__ == '__main__':
-    tender_one()
+    alfalot()

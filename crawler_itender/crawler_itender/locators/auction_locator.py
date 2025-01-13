@@ -32,7 +32,7 @@ class AuctionLocator:
 
     short_name_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Наименование")]//following-sibling::td[1]'
     lot_info_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "ведения об имуществе должника, его состав")]//following-sibling::td[1]'
-    property_info_loc = '//legend[contains(., "нформация об аукционе")]/ancestor::fieldset//td[contains(., "орядок ознакомления с имущество")]//following-sibling::td[1]'
+    property_info_loc = '//legend[contains(., "нформация об аукционе") or contains(., "нформация о должнике")]/ancestor::fieldset//td[contains(., "орядок ознакомления с имущество")]//following-sibling::td[1]'
 
     start_price_auc_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Начальная цена")]//following-sibling::td[1]'
     start_price_extra_auc_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Начальная цена")]//following-sibling::td[2]'
