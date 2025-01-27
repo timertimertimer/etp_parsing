@@ -39,7 +39,7 @@ DEFAULT_REQUESTS_HEADERS = {
 
 }
 # LOG_LEVEL = 'INFO'
-# LOG_FILE = './bankrot_cd.log'
+# LOG_FILE = 'bankrot_cdtrf.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Disable cookies (enabled by default)

@@ -1,15 +1,11 @@
 import logging
-from typing import Iterable
-
 import scrapy
-from scrapy import Request, FormRequest
+from scrapy import Request
 
-from ..items import CrawlerOpentpItem, CrawlerOpentpItemLoader
+from general_utils import UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..trades.app import Combo
 from ..utils.config import data_origin_url
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.working_with_time import return_parse_date
-from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +18,6 @@ class OpentpSpider(scrapy.Spider):
         super(OpentpSpider, self).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
-        self.url = UrlConfig()
 
     def parse(self, response, unique_links: set = None):
         combo = Combo(response_=response)
@@ -31,7 +26,7 @@ class OpentpSpider(scrapy.Spider):
         next_page = combo.get_next_page()
         if next_page:
             yield Request(
-                self.url.url_join(data_origin_url, next_page), self.parse, cb_kwargs={"unique_links": unique_links}
+                UrlConfig.url_join(data_origin_url, next_page), self.parse, cb_kwargs={"unique_links": unique_links}
             )
         else:
             for link in list(unique_links):
@@ -55,8 +50,8 @@ class OpentpSpider(scrapy.Spider):
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
         general_files = combo.download_general()
-        for lot_link, lot_number, short_name, status, address, start_price in combo.get_lots():
-            loader = CrawlerOpentpItemLoader(CrawlerOpentpItem(), response=response)
+        for lot_link, lot_number, short_name, status, address, region, start_price in combo.get_lots():
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', response.url)
@@ -70,6 +65,7 @@ class OpentpSpider(scrapy.Spider):
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
             loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)
@@ -83,14 +79,14 @@ class OpentpSpider(scrapy.Spider):
             loader.add_value('start_date_trading', combo.start_date_trading)
             loader.add_value('end_date_trading', combo.end_date_trading)
             loader.add_value('start_price', start_price)
-            yield Request(lot_link, self.parse_lot, cb_kwargs={'loader': loader, 'general_files': general_files})
+            yield Request(lot_link, self.parse_lot, cb_kwargs={'loader': loader, 'general_files': general_files, 'lot_number': lot_number})
 
-    def parse_lot(self, response, loader, general_files):
+    def parse_lot(self, response, loader, general_files, lot_number):
         combo = Combo(response)
         loader.add_value('lot_id', combo.lot_id)
         loader.add_value('lot_info', combo.lot_info)
         if loader.get_collected_values('trading_type')[0] == 'auction':
             loader.add_value('step_price', combo.step_price)
-        loader.add_value('files', {'general': general_files, 'lot': combo.download_lot()})
+        loader.add_value('files', {'general': general_files, 'lot': combo.download_lot(lot_number)})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

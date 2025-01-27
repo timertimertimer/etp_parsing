@@ -1,4 +1,3 @@
-import copy
 import logging
 import re
 from itertools import chain
@@ -6,11 +5,10 @@ from itertools import chain
 from scrapy import Request, FormRequest
 from scrapy.spiders import Spider
 
-from ..items import CrawlerAltimetaItem, CrawlerAltimetaItemLoader, CrawlerAltimetaTransferItem
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
 from ..manage_spiders.app import Combo
 from ..utils.config import _data_origin, _serp_link, _lot_link, _doc_link, path_absolute, path_relative, url_file, tables
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers.spiders_header import headers_atctrade as hd
 from ..utils.query_parameters import query_param
 from ..utils.working_with_time import return_parse_date
 from ..utils.working_with_url import UrlConfig
@@ -31,16 +29,7 @@ class AtctradeRuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        # 'LOG_FILE': './atctrade.log',
-        'DOWNLOADER_MIDDLEWARES': {
-            'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
-
-        },
-        'ITEM_PIPELINES': {
-            'crawler_altimeta.pipelines.CrawlerAltimetaPipeline': 300,
-            'crawler_altimeta.pipelines.AtcTradeDbConnect': 350,
-        }
-
+        # 'LOG_FILE': f'{name}.log',
     }
 
     def __init__(self, *args, **kwargs):
@@ -51,7 +40,7 @@ class AtctradeRuSpider(Spider):
 
     def start_requests(self):
         url = self.url.unquote_url(self.start_url[0])
-        yield Request(url, self.make_query_search, headers=hd)
+        yield Request(url, self.make_query_search)
 
     def make_query_search(self, response):
         """ request for searching lots in special period """
@@ -64,13 +53,11 @@ class AtctradeRuSpider(Spider):
             for link in links:
                 url = self.url.unquote_url(self.start_url[0].replace('/index.html', '').strip())
                 url = self.url.url_join(url, link)
-                header = copy.deepcopy(hd)
-                header['Referer'] = response.url
                 if prev := self.previous_lots:
                     if url not in prev:
-                        yield Request(url, callback=self.parse_trade_page, headers=header, dont_filter=True)
+                        yield Request(url, callback=self.parse_trade_page, dont_filter=True)
                 else:
-                    yield Request(url, callback=self.parse_trade_page, headers=header, dont_filter=True)
+                    yield Request(url, callback=self.parse_trade_page, dont_filter=True)
         # pagination
         next_page = combo.serp.get_one_next_link()
         if next_page:
@@ -80,7 +67,7 @@ class AtctradeRuSpider(Spider):
 
     # def start_requests(self):
     #     for url in bad_links_list:
-    #         yield Request(url, self.parse_trade_page, headers=hd)
+    #         yield Request(url, self.parse_trade_page)
 
     def parse_trade_page(self, response):
         """ parse trading page and get same info for the all types """
@@ -88,7 +75,7 @@ class AtctradeRuSpider(Spider):
         trading_form = combo.serp.get_trading_form()
         if trading_form:
             trading_type = combo.serp.get_trading_type()
-            transfer = CrawlerAltimetaTransferItem()
+            transfer = CrawlerBankruptItem()
             transfer['data_origin'] = self.data_origin
             id_trade = combo.serp.get_trading_id(url=response.url)
             transfer['trading_id'] = id_trade
@@ -102,6 +89,7 @@ class AtctradeRuSpider(Spider):
             transfer['msg_number'] = combo.serp.get_msg_number()
             transfer['case_number'] = combo.serp.get_case_number()
             transfer['debtor_inn'] = combo.serp.get_debtor_inn()
+            transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
             transfer['arbit_manager'] = combo.serp.get_arbitr_name()
             transfer['arbit_manager_inn'] = None
             transfer['arbit_manager_org'] = combo.serp.get_arb_org()
@@ -110,17 +98,15 @@ class AtctradeRuSpider(Spider):
                 transfer['end_date_requests'] = combo.auc.end_date_request_auc()
                 transfer['start_date_trading'] = combo.auc.start_date_trading_auc()
                 transfer['end_date_trading'] = combo.auc.end_date_trading_auc()
-            header = copy.deepcopy(hd)
-            header['Referer'] = response.url
             try:
                 yield Request(self.doc_link + f'{id_trade}&&id={id_trade}',
-                              callback=self.parse_doc_page, headers=header, dont_filter=True,
-                              cb_kwargs={'header': header, 'transfer': transfer, '_id': id_trade,
+                              callback=self.parse_doc_page, dont_filter=True,
+                              cb_kwargs={'transfer': transfer, '_id': id_trade,
                                          'trading_type': trading_type})
             except Exception as e:
                 logger.error(f'{response.url} :: ERROR DURING REQUEST TO DOC PAGE {self.doc_link} {e}')
 
-    def parse_doc_page(self, response, transfer, header, _id, trading_type):
+    def parse_doc_page(self, response, transfer, _id, trading_type):
         """ parse page with docs """
         callback_func = None
         combo = Combo(response_=response)
@@ -138,15 +124,15 @@ class AtctradeRuSpider(Spider):
         if trading_type == 'competition':
             callback_func = self.parse_competition_lot
         if callback_func:
-            yield Request(local_lot_link, callback=callback_func, headers=header, dont_filter=True,
-                          cb_kwargs={'header': header, 'general_docs': general_docs, 'current_page': current_page,
+            yield Request(local_lot_link, callback=callback_func, dont_filter=True,
+                          cb_kwargs={'general_docs': general_docs, 'current_page': current_page,
                                      'transfer': transfer, 'link': local_lot_link})
 
-    def parse_auction_lot(self, response, transfer, general_docs, current_page, header, link):
+    def parse_auction_lot(self, response, transfer, general_docs, current_page, link):
         """ parse page with lots """
         combo = Combo(response_=response)
         for table in combo.auc.get_all_lot_tables():
-            loader = CrawlerAltimetaItemLoader(CrawlerAltimetaItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -159,6 +145,8 @@ class AtctradeRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
+            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -189,19 +177,19 @@ class AtctradeRuSpider(Spider):
                 if isinstance(int(next_page), int):
                     current_page += 1
                     link = re.sub(r'page=\d+', f'page={current_page}', link)
-                    yield Request(link, callback=self.parse_auction_lot, headers=header, dont_filter=True,
-                                  cb_kwargs={'header': header, 'general_docs': general_docs,
+                    yield Request(link, callback=self.parse_auction_lot, dont_filter=True,
+                                  cb_kwargs={'general_docs': general_docs,
                                              'current_page': current_page,
                                              'transfer': transfer, 'link': link})
             except Exception as e:
                 logger.error(f'{response.url} :: ERROR NEXT PAGE {e}', exc_info=True)
 
     # OFFER ____________________________________
-    def parse_offer_lot(self, response, transfer, general_docs, current_page, header, link):
+    def parse_offer_lot(self, response, transfer, general_docs, current_page, link):
         """ parse trades where trading type is OFFER """
         combo = Combo(response_=response)
         for table in combo.offer.get_lot_tables():
-            loader = CrawlerAltimetaItemLoader(CrawlerAltimetaItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -214,6 +202,8 @@ class AtctradeRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
+            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -244,18 +234,18 @@ class AtctradeRuSpider(Spider):
                 if isinstance(int(next_page), int):
                     current_page += 1
                     link = re.sub(r'page=\d+', f'page={current_page}', link)
-                    yield Request(link, callback=self.parse_offer_lot, headers=header, dont_filter=True,
-                                  cb_kwargs={'header': header, 'general_docs': general_docs,
+                    yield Request(link, callback=self.parse_offer_lot, dont_filter=True,
+                                  cb_kwargs={'general_docs': general_docs,
                                              'current_page': current_page,
                                              'transfer': transfer, 'link': link})
             except Exception as e:
                 logger.error(f'{response.url} :: ERROR NEXT PAGE {e}', exc_info=True)
 
-    def parse_competition_lot(self, response, transfer, general_docs, current_page, header, link):
+    def parse_competition_lot(self, response, transfer, general_docs, current_page, link):
         """ parse trades where trading type is AUCTION """
         combo = Combo(response_=response)
         for table in combo.auc.get_all_lot_tables():
-            loader = CrawlerAltimetaItemLoader(CrawlerAltimetaItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -268,6 +258,8 @@ class AtctradeRuSpider(Spider):
             loader.add_value('msg_number', transfer['msg_number'])
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
+            loader.add_value('address', transfer['address'])
+            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -298,8 +290,8 @@ class AtctradeRuSpider(Spider):
                 if isinstance(int(next_page), int):
                     current_page += 1
                     link = re.sub(r'page=\d+', f'page={current_page}', link)
-                    yield Request(link, callback=self.parse_competition_lot, headers=header, dont_filter=True,
-                                  cb_kwargs={'header': header, 'general_docs': general_docs,
+                    yield Request(link, callback=self.parse_competition_lot, dont_filter=True,
+                                  cb_kwargs={'general_docs': general_docs,
                                              'current_page': current_page,
                                              'transfer': transfer, 'link': link})
             except Exception as e:

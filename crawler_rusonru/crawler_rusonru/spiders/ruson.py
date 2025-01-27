@@ -1,19 +1,15 @@
+import logging
 from itertools import chain
 
-from icecream import ic
 from scrapy import Spider, Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from ..items import CrawlerRusonTransferItem, CrawlerRusonruItem, CrawlerRusonruItemLoader
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..trades.app import Combo
-from ..utils.config import _data_origin, _trade_link, stop_page
+from ..utils.config import data_origin, trade_link, stop_page
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers import header as hd
-import logging
-
 from ..utils.pagination_param_data import param_data
-from ..utils.working_with_time import return_parse_date
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +17,7 @@ logger = logging.getLogger(__name__)
 class RusonSpider(Spider):
     name = 'ruson'
     allowed_domains = ['rus-on.ru']
-    start_url = _data_origin['rus-on']
+    start_url = data_origin
 
     def __init__(self):
         super(RusonSpider, self).__init__()
@@ -33,13 +29,11 @@ class RusonSpider(Spider):
 
     def parse_main(self, response):
         """ parse main page and make request to serp with  """
-        hd['Referer'] = response.url
-        yield Request(_trade_link['rus-on'], callback=self.parse_serp, headers=hd, errback=self.errback_httpbin)
+        yield Request(trade_link, callback=self.parse_serp, errback=self.errback_httpbin)
 
     def parse_serp(self, response):
         """ parse pagination pages with short lot data (serp) """
         combo = Combo(response_=response)
-        hd['Referer'] = response.url
         for lot_data in combo.serp.get_lots_data():
             # [0] - trading page; [1] - lot_link; [2] - organizer; [3] - trading type and form; [4] - status
             type_and_form = combo.serp.get_trading_type_and_form(lot_data[3])
@@ -51,19 +45,19 @@ class RusonSpider(Spider):
             if data_check_with_db not in self.previous_lots:
                 if status == 'active' or status == 'pending':
                     if trading_type == 'auction':
-                        yield Request(url=lot_data[0], callback=self.parse_auction, headers=hd,
+                        yield Request(url=lot_data[0], callback=self.parse_auction,
                                       cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
                                                  'status': status, 'trading_form': trading_form,
                                                  'trading_number': trading_number, 'lot_link': lot_data[1]},
                                       errback=self.errback_httpbin, dont_filter=True)
                     elif trading_type == 'offer':
-                        yield Request(url=lot_data[0], callback=self.parse_offer, headers=hd,
+                        yield Request(url=lot_data[0], callback=self.parse_offer,
                                       cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
                                                  'status': status, 'trading_form': trading_form,
                                                  'trading_number': trading_number, 'lot_link': lot_data[1]},
                                       errback=self.errback_httpbin, dont_filter=True)
                     elif trading_type == 'competition':
-                        yield Request(url=lot_data[0], callback=self.parse_auction, headers=hd,
+                        yield Request(url=lot_data[0], callback=self.parse_auction,
                                       cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
                                                  'status': status, 'trading_form': trading_form,
                                                  'trading_number': trading_number, 'lot_link': lot_data[1]},
@@ -75,15 +69,15 @@ class RusonSpider(Spider):
         next_page = current_page + 1
         if 0 < next_page < stop_page:
             param_data['pagenum'] = str(next_page)
-            yield FormRequest(_trade_link['rus-on'], callback=self.parse_serp, headers=hd,
+            yield FormRequest(trade_link, callback=self.parse_serp,
                               formdata=param_data, method='GET',
                               errback=self.errback_httpbin)
 
     def parse_auction(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
         """ page auction and competition page """
         combo = Combo(response_=response)
-        transfer = CrawlerRusonTransferItem()
-        transfer['data_origin'] = _data_origin['rus-on']
+        transfer = CrawlerBankruptItem()
+        transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
         transfer['trading_link'] = response.url,
         transfer['trading_number'] = trading_number
@@ -96,7 +90,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'] = combo.serp.get_address()
+        transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -104,14 +98,14 @@ class RusonSpider(Spider):
         transfer['end_date_requests'] = combo.auc.end_date_requests()
         transfer['start_date_trading'] = combo.auc.start_date_trading()
         general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
-        yield Request(url=lot_link, callback=self.parse_auction_lot, headers=hd,
+        yield Request(url=lot_link, callback=self.parse_auction_lot,
                       cb_kwargs={'general_files': general_files, 'transfer': transfer},
                       errback=self.errback_httpbin)
 
     def parse_auction_lot(self, response, general_files, transfer):
         """ page lot of auction and competition """
         combo = Combo(response_=response)
-        loader = CrawlerRusonruItemLoader(CrawlerRusonruItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -125,6 +119,7 @@ class RusonSpider(Spider):
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
         loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -153,8 +148,8 @@ class RusonSpider(Spider):
         """ parse offer page """
 
         combo = Combo(response_=response)
-        transfer = CrawlerRusonTransferItem()
-        transfer['data_origin'] = _data_origin['rus-on']
+        transfer = CrawlerBankruptItem()
+        transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
         transfer['trading_link'] = response.url
         transfer['trading_number'] = trading_number
@@ -167,19 +162,19 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'] = combo.serp.get_address()
+        transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
         general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
-        yield Request(url=lot_link, callback=self.parse_offer_lot, headers=hd,
+        yield Request(url=lot_link, callback=self.parse_offer_lot,
                       cb_kwargs={'general_files': general_files, 'transfer': transfer},
                       errback=self.errback_httpbin)
 
     def parse_offer_lot(self, response, general_files, transfer):
         """ parse lot of offer """
         combo = Combo(response_=response)
-        loader = CrawlerRusonruItemLoader(CrawlerRusonruItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -193,6 +188,7 @@ class RusonSpider(Spider):
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
         loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

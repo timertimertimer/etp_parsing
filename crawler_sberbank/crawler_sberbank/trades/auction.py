@@ -1,21 +1,19 @@
-import re
 import logging
-from ..locators.locator_trades import LoacatorAuction
+import re
+
+from general_utils import dedent_func, CheckIfCorrectContactInfo, get_region, format_time_auction
 from ..utils.manage_spider import deep_get_dict, sort_trading_type, get_trading_form
-from ..utils.working_with_time import format_time
-from ..utils.work_with_text_and_number import *
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from bs4 import BeautifulSoup as BS
 
 logger = logging.getLogger(__name__)
 
 
 class AuctionParse:
+    addresses = dict()
+
     def __init__(self, data, url):
         self.url = url
         self.data = data
-        self.loc = LoacatorAuction
-        self.check = CheckIfCorrectContactInfo()
 
     @property
     def trading_id(self):
@@ -80,7 +78,7 @@ class AuctionParse:
                 self.data, 'Purchase.PurchaseinfoPanel.OrganizatorInfo.orginn'
             )
             text_inn = dedent_func(BS(str(td_inn), features='lxml').get_text()).strip()
-            return self.check.check_inn(text_inn)
+            return CheckIfCorrectContactInfo.check_inn(text_inn)
         except:
             return None
 
@@ -89,7 +87,7 @@ class AuctionParse:
         try:
             phone = deep_get_dict(self.data, 'Purchase.PurchaseinfoPanel.OrganizatorInfo.orgphone', default='')
             phone = dedent_func(BS(str(phone), features='lxml').get_text()).replace(';', '').strip()
-            return self.check.check_phone(phone)
+            return CheckIfCorrectContactInfo.check_phone(phone)
         except:
             return None
 
@@ -98,7 +96,7 @@ class AuctionParse:
         try:
             email = deep_get_dict(self.data, 'Purchase.PurchaseinfoPanel.OrganizatorInfo.orgemail', default='')
             email = dedent_func(BS(str(email), features='lxml').get_text()).replace(';', '').strip()
-            return self.check.check_email(email)
+            return CheckIfCorrectContactInfo.check_email(email)
         except:
             return None
 
@@ -141,9 +139,18 @@ class AuctionParse:
         try:
             td_inn = deep_get_dict(self.data, 'Purchase.DebtorInfo.DebtorInfo.DebtorINN')
             text_inn = dedent_func(BS(str(td_inn), features='lxml').get_text()).strip()
-            return self.check.check_inn(text_inn)
+            return CheckIfCorrectContactInfo.check_inn(text_inn)
         except:
             return None
+
+    def get_address(self):
+        try:
+            address = deep_get_dict(self.data, 'Purchase.DebtorInfo.BusinesInfo.businessname')
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return address, self.addresses[address]
+        except:
+            logger.warning(f'{self.url} :: INVALID DATA ADDRESS DEBITOR')
 
     @property
     def get_arbitr_manager(self):
@@ -165,7 +172,7 @@ class AuctionParse:
                 self.data, 'Purchase.DebtorInfo.CrisicManagerInfo.crisismanagerinn'
             )
             text_inn = dedent_func(BS(str(td_inn), features='lxml').get_text()).strip()
-            return self.check.check_inn(text_inn)
+            return CheckIfCorrectContactInfo.check_inn(text_inn)
         except:
             return None
 
@@ -190,28 +197,28 @@ class AuctionParse:
     @property
     def get_start_date_requests(self):
         try:
-            return format_time(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStartDate'))
+            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStartDate'))
         except:
             logger.error(f'{self.url} :: INVALID DATA START DATE REQUEST AUCTION')
 
     @property
     def get_end_date_requests(self):
         try:
-            return format_time(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStopDate'))
+            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStopDate'))
         except:
             logger.error(f'{self.url} :: INVALID DATA END DATE REQUEST AUCTION')
 
     @property
     def get_start_date_trading(self):
         try:
-            return format_time(deep_get_dict(self.data, 'Purchase.Step6.Terms.PurchaseAuctionStartDate'))
+            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.Terms.PurchaseAuctionStartDate'))
         except:
             logger.error(f'{self.url} :: INVALID START DATE TRADING AUCTION')
 
     @property
     def get_end_date_trading(self):
         try:
-            return format_time(deep_get_dict(self.data, 'Purchase.Step6.ResultInfo.AuctionResultDate'))
+            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.ResultInfo.AuctionResultDate'))
         except:
             logger.error(f'{self.url} :: INVALID END DATE TRADING AUCTION')
 
@@ -266,66 +273,6 @@ class AuctionParse:
             return None
 
     @property
-    def start_date_request(self):
-        """return start date request"""
-        try:
-            td_date = self.response.xpath(self.loc.start_date_request_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text()).strip()
-            td_date = ''.join(re.sub(r'\s+', ' ', td_date))
-            if td_date:
-                return format_time(td_date)
-            else:
-                logger.error(f'{self.response.url} :: INVALID DATA DATES')
-        except:
-            logger.error(f'{self.response.url} :: INVALID DATA START DATE REQUEST AUCTION')
-            return None
-
-    @property
-    def end_date_request(self):
-        """return end date request"""
-        try:
-            td_date = self.response.xpath(self.loc.end_date_request_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text()).strip()
-            td_date = ''.join(re.sub(r'\s+', ' ', td_date))
-            if td_date:
-                return format_time(td_date)
-            else:
-                logger.error(f'{self.response.url} :: INVALID DATA DATES')
-        except:
-            logger.error(f'{self.response.url} :: INVALID DATA END DATE REQUEST AUCTION')
-            return None
-
-    @property
-    def start_date_trading(self):
-        """return start date trading"""
-        try:
-            td_date = self.response.xpath(self.loc.start_date_trading_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text()).strip()
-            td_date = ''.join(re.sub(r'\s+', ' ', td_date))
-            if td_date:
-                return format_time(td_date)
-            else:
-                logger.error(f'{self.response.url} :: INVALID DATA DATES')
-        except:
-            logger.error(f'{self.response.url} :: INVALID DATA START DATE TRADING AUCTION')
-            return None
-
-    @property
-    def end_date_trading(self):
-        """return end date trading"""
-        try:
-            td_date = self.response.xpath(self.loc.end_date_trading_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text()).strip()
-            td_date = ''.join(re.sub(r'\s+', ' ', td_date))
-            if td_date:
-                return format_time(td_date)
-            else:
-                logger.error(f'{self.response.url} :: INVALID DATA DATES')
-        except:
-            logger.error(f'{self.response.url} :: INVALID DATA END DATE TRADING AUCTION')
-            return None
-
-    @property
     def get_start_price(self):
         start_price = deep_get_dict(self.data, 'BidView.Bids.BidTenderInfo.BidPrice')
         start_price = re.sub(r'\s', '', start_price)
@@ -354,5 +301,5 @@ class AuctionParse:
                 step_price = round(float(step_price), 2)
             return round(float(self.get_start_price * (step_price / 100)), 2)
         except:
-            logger.error(f'{self.response.url} :: INVALID DATA STEP PRICE AUCTION')
+            logger.error(f'{self.url} :: INVALID DATA STEP PRICE AUCTION')
             return None

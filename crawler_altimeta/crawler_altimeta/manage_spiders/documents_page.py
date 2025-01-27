@@ -1,8 +1,9 @@
 import pathlib
 import re
 from bs4 import BeautifulSoup as BS
+
+from general_utils.config import lst_exet, lst_exet_archive
 from ..locators.locators_trade_page import LocatorTradePage
-from ..utils.config import lst_exet, lst_exet_archive
 from ..utils.work_with_text_and_number import dedent_func
 from ..utils.working_with_url import UrlConfig
 from ..utils.download import DownloadFiles

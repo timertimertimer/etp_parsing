@@ -4,9 +4,9 @@ from random import randint
 from scrapy.spiders import Spider
 from scrapy import Request, FormRequest
 from itertools import chain
-from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
+
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers_for_spiders.spiders_header import headers_bankrupt_etpu as hd
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_competition as pdcom
@@ -14,11 +14,9 @@ from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction_pagination as pdapag
 from ..manage_spiders.app import Combo
-from ..utils.config import start_date_post, return_auction_link, data_origin, return_offer_link, return_compet_link, \
+from ..utils.config import start_date, return_auction_link, data_origin, return_offer_link, return_compet_link, \
     tables
 import copy
-from ..utils.headers_for_spiders.generate_user_agent import USER_AGENT
-from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 
 import logging
 
@@ -33,16 +31,7 @@ class BankruptEtpuSpider(Spider):
     # start_url = ['http://bankrupt.etpu.ru/public/public-offers/view/16248/']
     data_origin = data_origin['bankrupt_etpu']
     custom_settings = {
-        # 'LOG_FILE': './bankrupt_etpu.log',
-        'DOWNLOADER_MIDDLEWARES': {
-            'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
-
-        },
-        'ITEM_PIPELINES': {
-            'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
-            'crawler_itender.pipelines.BankruptEtpuDbConnect': 350,
-        }
-
+        # 'LOG_FILE': f'{name}.log',
     }
 
     def __init__(self):
@@ -51,20 +40,20 @@ class BankruptEtpuSpider(Spider):
         self.previous_lots = self.db_check.get_latest_lot(TABLE)
 
     def start_requests(self):
-        yield Request(self.start_url[0], self.choose_datatype, headers=hd)
-        # yield Request(self.start_url[0], self.parse_trade_page_offer, headers=hd,
+        yield Request(self.start_url[0], self.choose_datatype)
+        # yield Request(self.start_url[0], self.parse_trade_page_offer,
         #               cb_kwargs={'lot_number': '2', 'lot_link': 'http://bankrupt.etpu.ru/public/public-offers/lots/view/52382/', 'attemp': 1}, dont_filter=True)
 
     def choose_datatype(self, response):
         for _type in ['auction', 'offer', 'competition']:
             if _type == 'auction':
-                yield Request(return_auction_link(self.data_origin), self.parse_, headers=hd,
+                yield Request(return_auction_link(self.data_origin), self.parse_,
                               cb_kwargs={'_type': 'auction'})
             if _type == 'offer':
-                yield Request(return_offer_link(self.data_origin), self.parse_, headers=hd,
+                yield Request(return_offer_link(self.data_origin), self.parse_,
                               cb_kwargs={'_type': 'offer'})
             if _type == 'competition':
-                yield Request(return_compet_link(self.data_origin), self.parse_, headers=hd,
+                yield Request(return_compet_link(self.data_origin), self.parse_,
                               cb_kwargs={'_type': 'competition'})
 
     async def parse_(self, response, _type):
@@ -75,24 +64,24 @@ class BankruptEtpuSpider(Spider):
             first_post = copy.deepcopy(pdac)
             function_for_parse = self.parse_serp_auction
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
         if _type == 'offer':
             first_post = copy.deepcopy(pdao)
             function_for_parse = self.parse_serp_offer
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date
         if _type == 'competition':
             first_post = copy.deepcopy(pdcom)
             function_for_parse = self.parse_competiton_serp
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
 
         first_post['__EVENTTARGET'] = combo.mpost.get_post_data_values(tag_html='input', post_argument='__EVENTTARGET')
         first_post['__EVENTARGUMENT'] = combo.mpost.get_post_data_values('input', '__EVENTARGUMENT')
         first_post['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
         first_post['__VIEWSTATE'] = combo.mpost.get_post_data_values('input', '__VIEWSTATE')
         first_post['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
-        yield FormRequest(response.url, formdata=first_post, headers=hd, callback=function_for_parse,
+        yield FormRequest(response.url, formdata=first_post, callback=function_for_parse,
                           cb_kwargs={'first_post': first_post})
 
     # PARSE AUCTION
@@ -118,19 +107,19 @@ class BankruptEtpuSpider(Spider):
             # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
             if link not in self.previous_lots:
-                yield Request(link[0], callback=self.parse_trading_page_auction, headers=hd,
+                yield Request(link[0], callback=self.parse_trading_page_auction,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True)
 
         if current_page and next_page:
             if int(current_page) < int(next_page):
-                yield FormRequest(response.url, formdata=first_post, headers=hd,
+                yield FormRequest(response.url, formdata=first_post,
                                   callback=self.parse_serp_auction,
                                   cb_kwargs={'first_post': first_post})
 
     async def parse_trading_page_auction(self, response, lot_number, lot_link, attemp):
         """parse trade page"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -143,6 +132,9 @@ class BankruptEtpuSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -151,10 +143,7 @@ class BankruptEtpuSpider(Spider):
         loader.add_value('start_date_trading', combo.auc.start_date_trading())
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
-        hd_lot = copy.deepcopy(hd)
-        hd_lot['Referer'] = response.url
-        hd_lot['User-Agent'] = USER_AGENT
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
         # lot_info auction
         # lot_link = combo.auc.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -163,7 +152,7 @@ class BankruptEtpuSpider(Spider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page,
-                      headers=hd_lot, cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files}, dont_filter=True)
 
@@ -183,7 +172,7 @@ class BankruptEtpuSpider(Spider):
             loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -216,19 +205,19 @@ class BankruptEtpuSpider(Spider):
         # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
             if link not in self.previous_lots:
-                yield Request(link[0], callback=self.parse_trade_page_offer, headers=hd,
+                yield Request(link[0], callback=self.parse_trade_page_offer,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True)
 
         if current_page and next_page:
             if int(current_page) < int(next_page):
-                yield FormRequest(response.url, formdata=first_post, headers=hd,
+                yield FormRequest(response.url, formdata=first_post,
                                   callback=self.parse_serp_offer,
                                   cb_kwargs={'first_post': first_post})
 
     def parse_trade_page_offer(self, response, lot_number, lot_link, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -241,15 +230,15 @@ class BankruptEtpuSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
-                                                  host=self.allowed_domains[0])
-        hd_lot = copy.deepcopy(hd)
-        hd_lot['Referer'] = response.url
-        hd_lot['User-Agent'] = USER_AGENT
+                                                  host=self.allowed_domains[0], crawler_name=self.name)
 
         # lot_info
         pagination_on_page: list = combo.auc.pagination
@@ -258,7 +247,7 @@ class BankruptEtpuSpider(Spider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_offer,
-                      headers=hd_lot, cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files,
                                                  'pdata_lot_page_period': pdapag}, dont_filter=True)
@@ -284,7 +273,7 @@ class BankruptEtpuSpider(Spider):
             loader.add_value('start_price', combo.offer.price_offer)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -299,13 +288,10 @@ class BankruptEtpuSpider(Spider):
         else:
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             pages = combo.serp.fetch_pagination_links_lot_page()
             amount_of_page_period = len(pages) + 1
             # if 2 period pages on lot page or more
-            hd_lot = copy.deepcopy(hd)
-            hd_lot['Referer'] = response.url
-            hd_lot['User-Agent'] = USER_AGENT
             cviewstate = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             eventvalidation = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             # first check value of two post param
@@ -336,7 +322,7 @@ class BankruptEtpuSpider(Spider):
                 pdop_without_doc['__EVENTVALIDATION'] = eventvalidation
                 post_query = pdop_without_doc
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=post_query,
-                              headers=hd_lot,
+                              
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -352,9 +338,6 @@ class BankruptEtpuSpider(Spider):
         combo = Combo(_response=response)
         pages.pop(0)
         if len(pages) > 0:
-            hd_lot = copy.deepcopy(hd)
-            hd_lot['Referer'] = response.url
-            hd_lot['User-Agent'] = USER_AGENT
             cviewstate = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             eventvalidation = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             # first check value of two post param
@@ -377,7 +360,7 @@ class BankruptEtpuSpider(Spider):
             period_from_current_page = combo.offer.return_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
-                              headers=hd_lot,
+                              
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -411,7 +394,7 @@ class BankruptEtpuSpider(Spider):
                 loader.add_value('start_price', price_offer)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0])
+                                                 host=self.allowed_domains[0], crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:
@@ -447,12 +430,12 @@ class BankruptEtpuSpider(Spider):
         # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
             if link not in self.previous_lots:
-                yield Request(link[0], callback=self.parse_trade_page_competition, headers=hd,
+                yield Request(link[0], callback=self.parse_trade_page_competition,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True)
 
         if current_page and next_page:
             if int(current_page) < int(next_page):
-                yield FormRequest(response.url, formdata=first_post, headers=hd,
+                yield FormRequest(response.url, formdata=first_post,
                                   callback=self.parse_competiton_serp,
                                   cb_kwargs={'first_post': first_post})
 
@@ -460,7 +443,7 @@ class BankruptEtpuSpider(Spider):
     async def parse_trade_page_competition(self, response, lot_number, lot_link, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -473,6 +456,9 @@ class BankruptEtpuSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -480,11 +466,8 @@ class BankruptEtpuSpider(Spider):
         loader.add_value('end_date_requests', combo.compet.end_date_request())
         loader.add_value('start_date_trading', combo.compet.start_date_trading())
         loader.add_value('end_date_trading', None)
-        hd_lot = copy.deepcopy(hd)
-        hd_lot['Referer'] = response.url
-        hd_lot['User-Agent'] = USER_AGENT
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
         # lot_info auction
         # lot_link = combo.compet.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -493,7 +476,7 @@ class BankruptEtpuSpider(Spider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_competition,
-                      headers=hd_lot, cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files}, dont_filter=True)
 
@@ -514,7 +497,7 @@ class BankruptEtpuSpider(Spider):
             loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:

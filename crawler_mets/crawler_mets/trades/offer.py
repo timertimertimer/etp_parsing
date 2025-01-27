@@ -4,11 +4,13 @@ import time
 import json
 import pandas as pd
 from bs4 import BeautifulSoup as BS
-from icecream import ic
 from random import randint
+
+from general_utils import get_region
+from general_utils.config import lst_exet
 from ..locators.trade_locator import TradeLocator
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import data_origin_url, pattern_without_hash, lst_exet
+from ..utils.config import data_origin_url, pattern_without_hash
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
 from ..utils.work_with_text_and_number import dedent_func, make_float, normalize_string
@@ -18,7 +20,9 @@ from ..utils.working_with_url import UrlConfig
 logger = logging.getLogger(__name__)
 
 
-class OfferParse():
+class OfferParse:
+    addresses = dict()
+
     def __init__(self, response_):
         self.response = response_
         self.loc = TradeLocator
@@ -36,13 +40,11 @@ class OfferParse():
     def trading_id(self):
         """return numbers of the end of the url"""
         _id = re.findall(r'\d+', str(self.trading_link))
-        return ''.join(_id)
+        return _id[0]
 
     @property
     def trading_link(self):
-        """return trading link without hash tag"""
-        clean_url = re.findall(pattern_without_hash, self.response.url)
-        return ''.join(clean_url)
+        return '-'.join(self.response.url.split('-')[:-1])
 
     @property
     def trading_number(self):
@@ -226,7 +228,7 @@ class OfferParse():
     def status(self):
         """get lot_number; return status(text representation) of lot"""
         d = dict(
-            active=('идет прием заявок', 'идет приём заявок'),
+            active=('идет прием заявок', 'идет приём заявок', 'торги в стадии приема заявок'),
             pending=('торги объявлены', 'объявленные торги'),
             ended=(
                 'заявки рассмотрены', 'идёт аукцион', 'подведение итогов', 'приём заявок завершен',
@@ -239,6 +241,10 @@ class OfferParse():
         for k, v in d.items():
             if status in v:
                 return k
+
+    def lot_link(self, lot_num):
+        """return link to lot"""
+        return f'{self.trading_link}-{lot_num}'
 
     def lot_number(self, lot):
         """return number of lot extract from title"""
@@ -276,6 +282,16 @@ class OfferParse():
             logger.warning(
                 f'{self.response.url} :: LOT {lot_num} INVALID DATA - LOT INFO - LOT {lot_num}')
             return None
+
+    def get_address(self):
+        address = self.response.xpath(self.loc.region_loc).get()
+        if not address:
+            address = self.response.xpath(self.loc.sud_loc).get()
+        address = BS(str(address), features='lxml').get_text(strip=True)
+        if address:
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return address, self.addresses[address]
 
     @property
     def property_info(self):
@@ -350,7 +366,6 @@ class OfferParse():
                 periods.append(period)
             except:
                 logger.error(f'{self.response.url}', exc_info=True)
-                ic(table)
                 continue
         return periods
 
@@ -440,7 +455,6 @@ class OfferParse():
         for file in lst_files:
             link = BS(str(file), features='lxml').find('a').get('href')
             name = dedent_func(BS(str(file), features='lxml').find('a').get_text())
-            ic(name)
 
             parse_link = self.url.parse_url(self.url.url_join(data_origin_url, link))
             if (len(name) < 3) or (len(name) == 0) or (name is None) or (

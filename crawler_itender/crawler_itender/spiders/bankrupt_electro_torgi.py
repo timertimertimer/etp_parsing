@@ -4,7 +4,6 @@ from random import randint
 from scrapy.spiders import Spider
 from scrapy import Request, FormRequest
 from itertools import chain
-from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.headers_for_spiders.spiders_header import headers_bankrupt_electro as hd
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
@@ -14,11 +13,10 @@ from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction_pagination as pdapag
 from ..manage_spiders.app import Combo
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
-from ..utils.config import start_date_post, return_auction_link, data_origin, return_offer_link, return_compet_link, \
+from ..utils.config import start_date, return_auction_link, data_origin, return_offer_link, return_compet_link, \
     tables
 import copy
 from ..utils.headers_for_spiders.generate_user_agent import USER_AGENT
-from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 
 import logging
 
@@ -32,7 +30,7 @@ class BankruptElectroTorgiSpider(Spider):
     start_url = ['https://bankrupt.electro-torgi.ru/']
     data_origin = data_origin['bankrupt_electro_torgi']
     custom_settings = {
-        # 'LOG_FILE': './bankrupt_electro.log',
+        # 'LOG_FILE': f'{name}.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
         },
@@ -71,17 +69,17 @@ class BankruptElectroTorgiSpider(Spider):
             first_post = copy.deepcopy(pdac)
             function_for_parse = self.parse_serp_auction
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
         if _type == 'offer':
             first_post = copy.deepcopy(pdao)
             function_for_parse = self.parse_serp_offer
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date
         if _type == 'competition':
             first_post = copy.deepcopy(pdcom)
             function_for_parse = self.parse_competiton_serp
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
 
         first_post['__EVENTTARGET'] = combo.mpost.get_post_data_values(tag_html='input', post_argument='__EVENTTARGET')
         first_post['__EVENTARGUMENT'] = combo.mpost.get_post_data_values('input', '__EVENTARGUMENT')

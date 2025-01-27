@@ -31,7 +31,7 @@ class TorgiGovernmentSpider(Spider):
     name = 'torgi_government'
     start_url = 'https://gosbar.gosuslugi.ru/sites/torgi.gov.ru'
     custom_settings = {
-        'LOG_FILE': './torgi_gover.log',
+        # 'LOG_FILE': f'{name}.log',
         'LOG_LEVEL': 'INFO',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_torgigov.middlewares.CrawlerTorgigovDownloaderMiddleware': 543,

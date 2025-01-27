@@ -1,9 +1,8 @@
-
-
+from general_utils.config import lst_exet, lst_exet_archive
 from .libraries import *
 import logging
 
-from ..utils.config import lst_exet, lst_exet_archive, path_absolute, path_relative
+from ..utils.config import path_absolute, path_relative
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,7 @@ class GeneralFiles:
     def __init__(self, response_):
         self.response = response_
         self.soup = soup(self.response)
-        self._dir = GeneralFilesDir(path_absolute=path_absolute['rus-on'], path_relative=path_relative['rus-on'])
+        self._dir = GeneralFilesDir(path_absolute=path_absolute, path_relative=path_relative)
         self.url = UrlConfig()
 
     def table_trading_page_trade_info(self):
@@ -91,7 +90,7 @@ class Lot_Files:
     def __init__(self, response_):
         self.response = response_
         self.soup = soup(self.response)
-        self._dir = GeneralFilesDir(path_absolute=path_absolute['rus-on'], path_relative=path_relative['rus-on'])
+        self._dir = GeneralFilesDir(path_absolute=path_absolute, path_relative=path_relative)
         self.url = UrlConfig()
 
     def table_lot_page_lot_info(self):

@@ -4,7 +4,8 @@ from random import randint
 from scrapy.spiders import Spider
 from scrapy import Request, FormRequest
 from itertools import chain
-from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
+
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.headers_for_spiders.spiders_header import headers_propertytrade as hd
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
@@ -14,11 +15,10 @@ from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction_pagination as pdapag
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
 from ..manage_spiders.app import Combo
-from ..utils.config import start_date_post, return_auction_link, data_origin, return_offer_link, return_compet_link, \
+from ..utils.config import start_date, return_auction_link, data_origin, return_offer_link, return_compet_link, \
     tables
 import copy
 from ..utils.headers_for_spiders.generate_user_agent import USER_AGENT
-from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
 
 import logging
 
@@ -30,17 +30,9 @@ class PropertytradeSpider(Spider):
     name = 'propertytrade'
     allowed_domains = ['propertytrade.ru']
     start_url = ['https://propertytrade.ru/']
-    data_origin = data_origin['propertytrade']
+    data_origin = data_origin[name]
     custom_settings = {
-        'LOG_FILE': './propertytrade.log',
-        'DOWNLOADER_MIDDLEWARES': {
-            'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
-        },
-        'ITEM_PIPELINES': {
-            'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
-            'crawler_itender.pipelines.PropertytradeDbConnect': 350,
-        }
-
+        # 'LOG_FILE': f'{name}.log',
     }
 
     def __init__(self):
@@ -86,17 +78,17 @@ class PropertytradeSpider(Spider):
             first_post = copy.deepcopy(pdac)
             function_for_parse = self.parse_serp_auction
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
         if _type == 'offer':
             first_post = copy.deepcopy(pdao)
             function_for_parse = self.parse_serp_offer
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date
         if _type == 'competition':
             first_post = copy.deepcopy(pdcom)
             function_for_parse = self.parse_competiton_serp
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
 
         first_post['__EVENTTARGET'] = combo.mpost.get_post_data_values(tag_html='input', post_argument='__EVENTTARGET')
         first_post['__EVENTARGUMENT'] = combo.mpost.get_post_data_values('input', '__EVENTARGUMENT')
@@ -141,7 +133,7 @@ class PropertytradeSpider(Spider):
     async def parse_trading_page_auction(self, response, lot_number, lot_link, attemp):
         """parse trade page"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -154,7 +146,9 @@ class PropertytradeSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        loader.add_value('address', combo.auc.get_address())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -163,7 +157,7 @@ class PropertytradeSpider(Spider):
         loader.add_value('start_date_trading', combo.auc.start_date_trading())
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
         hd_lot = copy.deepcopy(hd)
         hd_lot['referer'] = response.url
         hd_lot['user-agent'] = USER_AGENT
@@ -195,7 +189,7 @@ class PropertytradeSpider(Spider):
             loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -240,7 +234,7 @@ class PropertytradeSpider(Spider):
     def parse_trade_page_offer(self, response, lot_number, lot_link, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -253,13 +247,15 @@ class PropertytradeSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        loader.add_value('address', combo.auc.get_address())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
-                                                  host=self.allowed_domains[0])
+                                                  host=self.allowed_domains[0], crawler_name=self.name)
         hd_lot = copy.deepcopy(hd)
         hd_lot['referer'] = response.url
         hd_lot['user-agent'] = USER_AGENT
@@ -297,7 +293,7 @@ class PropertytradeSpider(Spider):
             loader.add_value('start_price', combo.offer.price_offer)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -312,7 +308,7 @@ class PropertytradeSpider(Spider):
         else:
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             pages = combo.serp.fetch_pagination_links_lot_page()
             amount_of_page_period = len(pages) + 1
             # if 2 period pages on lot page or more
@@ -424,7 +420,7 @@ class PropertytradeSpider(Spider):
                 loader.add_value('start_price', price_offer)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0])
+                                                 host=self.allowed_domains[0], crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:
@@ -473,7 +469,7 @@ class PropertytradeSpider(Spider):
     async def parse_trade_page_competition(self, response, lot_number, lot_link, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -486,7 +482,9 @@ class PropertytradeSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        loader.add_value('address', combo.auc.get_address())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -498,7 +496,7 @@ class PropertytradeSpider(Spider):
         hd_lot['referer'] = response.url
         hd_lot['user-agent'] = USER_AGENT
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
         # lot_info auction
         # lot_link = combo.compet.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -528,7 +526,7 @@ class PropertytradeSpider(Spider):
             loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:

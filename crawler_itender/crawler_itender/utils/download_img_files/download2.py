@@ -6,16 +6,12 @@ import time
 import requests
 import urllib3
 
-from crawler_itender.utils.code_for_edit_and_format.work_with_path_and_dir import GeneralFilesDir
 from random import choice
 import logging
-from crawler_itender.utils.code_for_edit_and_format.working_with_url import UrlConfig
 import shutil
 
-from crawler_itender.utils.config import path_user_agent, path_to_socks5, lst_exet_archive
-from crawler_itender.utils.rar_file_manager import RarFiles
-from crawler_itender.utils.seven_z import SevenZFiles
-from crawler_itender.utils.zip_file_manager import ZipFiles
+from general_utils import UrlConfig, ZipFiles, RarFiles, SevenZFiles
+from general_utils.config import socks_list, headers, lst_exet_archive
 
 logger = logging.getLogger(__name__)
 try:
@@ -25,18 +21,9 @@ except:
     pass
 
 logger = logging.getLogger(__name__)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
-
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 
-class DownloadFiles(GeneralFilesDir):
-    general = GeneralFilesDir()
-
+class DownloadFiles:
     if len(socks_list) > 0 and socks_list[0] != '':
         proxies = {
             'http': 'socks5://' + choice(socks_list),
@@ -48,26 +35,12 @@ class DownloadFiles(GeneralFilesDir):
             "http": '',
             "https": '',
         }
-    headers = {
-        'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.",
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cache-Control': 'no-cach',
-        'Connection': 'keep-alive',
-        'Pragma': 'no-cache',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-User': '?1',
-        'User-Agent': choice(agent_list)
-    }
 
     def make_request(self, url, referer):
-        u = UrlConfig()
-        url = u.parse_url(url)
+        url = UrlConfig.parse_url(url)
         session = requests.Session()
         session.proxies.update(self.proxies)
-        session.headers.update(self.headers)
+        session.headers.update(headers)
         session.headers.update({'Referer': referer})
         try:
             with session.get(url, allow_redirects=False) as r:
@@ -84,7 +57,6 @@ class DownloadFiles(GeneralFilesDir):
             return None
 
     def request_to_download_general(self, url, referer, _abs_path, host, _relative_path, _id, lot_num='', attempts=5):
-        u = UrlConfig()
         url_ = url
         # url_ = u.parse_url(url_)
         session = requests.Session()
@@ -93,7 +65,7 @@ class DownloadFiles(GeneralFilesDir):
         for attempt in range(1, attempts + 1):
             try:
                 session.proxies.update(self.proxies)
-                session.headers.update(self.headers)
+                session.headers.update(headers)
                 session.headers.update({'Referer': referer, 'Host': host})
                 if attempt > 1:
                     time.sleep(2)  # 2 seconds wait time between downloads
@@ -142,15 +114,15 @@ class DownloadFiles(GeneralFilesDir):
                             zip_.write(res.content)
                     # p -> tuple with etp dir and zip's name
                     p = os.path.split(_abs_path)
-                    objectZip = ZipFiles(_path=_abs_path, _root_dir=p[0], _file_name=p[1], _id=_id, lot_number=lot_num,
-                                         url=url, rel_path=_relative_path)
+                    objectZip = ZipFiles(absolute_path=_abs_path, root_directory=p[0], file_name=p[1], trading_id=_id,
+                                         lot_number=lot_num,
+                                         url=url, relative_path=_relative_path)
                     lst_files = objectZip.extract_zip_files()
                     objectZip.delete_zip()
                     logger.info(f'Download finished successfully ZIP')
                     return lst_files
                 elif pathlib.Path(_abs_path).suffix == '.rar':
                     if 'uralbidin' in url_ or 'utender' in url_:
-                        res = session.get(url_, stream=True, verify=False, timeout=20)
                         if attempt == 3:
                             with requests.get(url, stream=True, proxies=self.proxies, verify=False,
                                               timeout=15) as response:
@@ -166,9 +138,10 @@ class DownloadFiles(GeneralFilesDir):
                                         out_file.write(chunk)
                         # p -> tuple with etp dir and zip's name
                         p = os.path.split(_abs_path)
-                        objectRar = RarFiles(_path=_abs_path, _root_dir=p[0], _file_name=p[1], _id=_id,
+                        objectRar = RarFiles(absolute_path=_abs_path, root_directory=p[0], file_name=p[1],
+                                             trading_id=_id,
                                              lot_number=lot_num,
-                                             url=url, rel_path=_relative_path)
+                                             url=url, relative_path=_relative_path)
                         lst_files = objectRar.extract_rar_files()
                         objectRar.delete_rar()
                         logger.info(f'Download finished successfully Rar')
@@ -187,9 +160,10 @@ class DownloadFiles(GeneralFilesDir):
                                         out_file.write(chunk)
                         # p -> tuple with etp dir and zip's name
                         p = os.path.split(_abs_path)
-                        objectRar = RarFiles(_path=_abs_path, _root_dir=p[0], _file_name=p[1], _id=_id,
+                        objectRar = RarFiles(absolute_path=_abs_path, root_directory=p[0], file_name=p[1],
+                                             trading_id=_id,
                                              lot_number=lot_num,
-                                             url=url, rel_path=_relative_path)
+                                             url=url, relative_path=_relative_path)
                         lst_files = objectRar.extract_rar_files()
                         objectRar.delete_rar()
                         return lst_files
@@ -202,9 +176,11 @@ class DownloadFiles(GeneralFilesDir):
                         zip_.write(res.content)
                     # p -> tuple with etp dir and zip's name
                     p = os.path.split(_abs_path)
-                    objectZip = SevenZFiles(_path=_abs_path, _root_dir=p[0], _file_name=p[1], _id=_id,
-                                            lot_number=lot_num,
-                                            url=url, rel_path=_relative_path)
+                    objectZip = SevenZFiles(
+                        absolute_path=_abs_path, root_directory=p[0], file_name=p[1], trading_id=_id,
+                        lot_number=lot_num,
+                        url=url, relative_path=_relative_path
+                    )
                     lst_files = objectZip.extract_zip_files()
                     objectZip.delete_zip()
                     logger.info(f'Download finished successfully 7Z')
@@ -218,4 +194,3 @@ class DownloadFiles(GeneralFilesDir):
                     print(f'{ex} :: ERROR lot file -  Attempt - {attempt} - referer - {referer}')
 
         return ''
-

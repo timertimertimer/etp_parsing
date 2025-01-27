@@ -7,7 +7,7 @@ from random import choice
 
 import urllib3
 
-from .config import path_user_agent, path_to_socks5
+from general_utils.config import socks_list, headers
 from ..utils.zip_file_manager import ZipFiles
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
@@ -16,15 +16,8 @@ import requests
 
 from ..utils.working_with_url import UrlConfig
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
-
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class DownloadFiles:
@@ -40,20 +33,6 @@ class DownloadFiles:
             "https": '',
         }
 
-    headers = {
-        'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.",
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cache-Control': 'no-cach',
-        'Connection': 'keep-alive',
-        'Pragma': 'no-cache',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-User': '?1',
-        'User-Agent': choice(agent_list)
-    }
-
     def request_to_download_general(self, url, referer, _abs_path, host='rus-on.ru', attempts=6, _relative_path=None,
                                     _id=None, lot_num=None):
         u = UrlConfig()
@@ -63,12 +42,12 @@ class DownloadFiles:
         session = requests.Session()
         if self.proxies:
             session.proxies.update(self.proxies)
-        session.headers.update(self.headers)
+        session.headers.update(headers)
         session.headers.update({'Referer': referer, 'Host': host})
         abs_path = _abs_path
         for attempt in range(1, attempts + 1):
             try:
-                _headers = self.headers
+                _headers = headers
                 _headers['Referer'] = referer
                 _headers['Host'] = host
                 if self.proxies:

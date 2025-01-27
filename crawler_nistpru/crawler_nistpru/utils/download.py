@@ -7,7 +7,7 @@ from random import choice
 
 from icecream import ic
 
-from .config import path_user_agent, path_to_socks5
+from .config import path_user_agent, path_to_socks5, lst_exet_archive
 from ..utils.zip_file_manager import ZipFiles
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
@@ -27,7 +27,7 @@ socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and  socks_list[0] != '':
+    if len(socks_list) > 0 and socks_list[0] != '':
         proxies = {
             'http': 'socks5://' + choice(socks_list),
             'https': 'socks5://' + choice(socks_list)
@@ -35,10 +35,9 @@ class DownloadFiles:
         }
     else:
         proxies = {
-                  "http": '',
-                  "https": '',
-                    }
-
+            "http": '',
+            "https": '',
+        }
 
     headers = {
         'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.",
@@ -75,8 +74,10 @@ class DownloadFiles:
             logger.critical(f'{url}:: REQUEST STATUS CODE - {r.status_code}')
             return None
 
-    def request_to_download_general(self, url, referer, _abs_path, host='nistp.ru', attempts=1, _relative_path=None,
-                                    _id=None, lot_num=None):
+    def request_to_download_general(
+            self, url, referer, _abs_path, host='nistp.ru', attempts=1, _relative_path=None,
+                                    _id=None, lot_num=None
+    ):
         u = UrlConfig()
         url_ = url
         host = u.return_netloc(host)
@@ -97,37 +98,10 @@ class DownloadFiles:
                 if attempt > 1:
                     time.sleep(2)  # 2 seconds wait time between downloads
 
-                if pathlib.Path(abs_path).suffix not in ['.zip', '.rar', '.7z']:
-                    if attempt == 5:
-                        with requests.get(url, stream=True, proxies=self.proxies, verify=False) as response:
-                            response.raise_for_status()
-                            with open(abs_path, 'wb') as out_file:
-                                for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB chunks
-                                    out_file.write(chunk)
-                        logger.info(f'Download finished successfully - attempt == {attempt}')
-                        return 0
-                    else:
-                        with requests.get(url, stream=True, proxies=self.proxies) as response:
-                            with open(abs_path, 'wb') as out_file:
-                                response.raw.decode_content = True
-                                shutil.copyfileobj(response.raw, out_file)
-                            logger.info(f'Download finished successfully')
-                            return 0
+                if pathlib.Path(abs_path).suffix not in lst_exet_archive:
+                    self.download_files(attempt, url, abs_path)
                 elif pathlib.Path(abs_path).suffix == '.zip':
-                    if attempt == 5:
-                        res = requests.get(url, stream=True, proxies=self.proxies, verify=False)
-                    else:
-                        res = requests.get(url, stream=True, proxies=self.proxies)
-                    with open(abs_path, "wb") as zip_:
-                        zip_.write(res.content)
-                    # p -> tuple with etp dir and zip's name
-                    p = os.path.split(abs_path)
-                    objectZip = ZipFiles(_path=abs_path, _root_dir=p[0], _file_name=p[1], _id=_id, lot_number=lot_num,
-                                         url=url, rel_path=_relative_path)
-                    lst_files = objectZip.extract_zip_files()
-                    objectZip.delete_zip()
-                    logger.info(f'Download finished successfully ZIP')
-                    return lst_files
+                    self.download_zip(attempt, url, abs_path, _id, lot_num, _relative_path)
                 elif pathlib.Path(abs_path).suffix == '.rar':
                     if attempt == 3:
                         with requests.get(url, stream=True, proxies=self.proxies) as response:
@@ -173,3 +147,36 @@ class DownloadFiles:
                 if attempt == 5:
                     logger.error(f'Attempt #{attempt} failed with error: {ex} Referer - {referer}')
         return ''
+
+    def download_files(self, attempt: int, url: str, absolute_path: str):
+        if attempt == 5:
+            with requests.get(url, stream=True, proxies=self.proxies, verify=False) as response:
+                response.raise_for_status()
+                with open(absolute_path, 'wb') as out_file:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB chunks
+                        out_file.write(chunk)
+            logger.info(f'Download finished successfully - attempt == {attempt}')
+        else:
+            with requests.get(url, stream=True, proxies=self.proxies) as response:
+                with open(absolute_path, 'wb') as out_file:
+                    response.raw.decode_content = True
+                    shutil.copyfileobj(response.raw, out_file)
+                logger.info(f'Download finished successfully')
+
+    def download_zip(self, attempt: int, url: str, absolute_path: str, id_: str, lot_number: str, relative_path: str):
+        if attempt == 5:
+            res = requests.get(url, stream=True, proxies=self.proxies, verify=False)
+        else:
+            res = requests.get(url, stream=True, proxies=self.proxies)
+        with open(absolute_path, "wb") as zip_:
+            zip_.write(res.content)
+        # p -> tuple with etp dir and zip's name
+        p = os.path.split(absolute_path)
+        objectZip = ZipFiles(
+            absolute_path=absolute_path, root_directory=p[0], file_name=p[1], _id=id_, lot_number=lot_number,
+            url=url, rel_path=relative_path
+        )
+        lst_files = objectZip.extract_zip_files()
+        objectZip.delete_zip()
+        logger.info(f'Download finished successfully ZIP')
+        return lst_files

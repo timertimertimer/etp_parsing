@@ -1,11 +1,11 @@
 import scrapy
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
-from ..items import Lot
-from scrapy.loader import ItemLoader
-from ..config import page_limits, start_time
+from general_utils import DBHelper, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, UrlConfig
+from general_utils.location import Region
+from ..app import Combo
+from ..config import start_date, categories, end_date
 import logging
+
+from ..config import data_origin
 
 logger = logging.getLogger(__name__)
 
@@ -14,297 +14,100 @@ class EurtpSpider(scrapy.Spider):
     name = 'eurtp'
     start_urls = ['http://eurtp.ru/']
 
-    # logger = logging.getLogger(__name__)
+    def __init__(self):
+        super(EurtpSpider, self).__init__()
+        self.db_check = DBHelper(f'lots_{self.name}')
+        self.previous_lots = self.db_check.get_latest_lot()
 
     def parse(self, response):
-        parse_categories = [
-            {
-                'name_category': 'auctionClose',
-                'url_category': f'https://eurtp.ru/Home/AuctionOpen?DateStart={start_time[0]}%2F{start_time[1]}%2F{start_time[2]}%2000%3A00%3A00&page=1'
-            },
-            {
-                'name_category': 'auctionOpen',
-                'url_category': f'https://eurtp.ru/Home/AuctionClose?DateStart={start_time[0]}%2F{start_time[1]}%2F{start_time[2]}%2000%3A00%3A00&page=1'
-            },
-            {
-                'name_category': 'competition',
-                'url_category': f'https://eurtp.ru/Home/Competition?DateStart={start_time[0]}%2F{start_time[1]}%2F{start_time[2]}%2000%3A00%3A00&page=1'
-            },
-            {
-                'name_category': 'offer',
-                'url_category': f'https://eurtp.ru/Home/PublicOffering?DateStart={start_time[0]}%2F{start_time[1]}%2F{start_time[2]}%2000%3A00%3A00&page=1'
-            }
-        ]
-
-        for category in parse_categories:
-            yield scrapy.Request(
-                url=category['url_category'],
-                cb_kwargs=dict(trading_type=category['name_category']),
-                callback=self.collect_links,
+        for category in categories:
+            yield scrapy.FormRequest(
+                url=category,
+                method='GET',
+                formdata={'page': '1', 'DateStart': start_date, 'DateFinish': end_date},
+                callback=self.collect_links
             )
 
-        return
-
-    def collect_links(self, response, trading_type):
-        links_on_page = [tr.css('td:nth-child(2)>a::attr(href)').get() for tr in
-                         response.css('.table-responsive table:nth-child(2) tr')[1:]]
-        next_page_url = self.get_nextPageUrl(response)
-        current_page = self.get_currentPage(response)
-
-        if page_limits[trading_type]['page_start'] <= current_page and \
-                page_limits[trading_type]['page_stop'] >= current_page:
-            for link in links_on_page:
+    def collect_links(self, response, current_page: int = 1, all_links: set = None):
+        links_on_page = {tr.css('td:nth-child(2)>a::attr(href)').get() for tr in
+                         response.css('.table-responsive table:nth-child(2) tr')[1:]}
+        all_links = all_links or set()
+        all_links.update(links_on_page)
+        pages = response.xpath('//div[@class="pager"]/a')
+        if pages:
+            next_page = pages[-2]
+            next_page_number = int(next_page.xpath('./@data-page').get())
+            next_page_url = next_page.xpath('./@href').get()
+            if next_page_number > current_page:
+                current_page = next_page_number
                 yield scrapy.Request(
-                    url='http://eurtp.ru' + link,
-                    cb_kwargs=dict(
-                        trading_type=trading_type
-                    ),
-                    callback=self.parse_trades
+                    url=UrlConfig.url_join(data_origin, next_page_url),
+                    cb_kwargs=dict(current_page=current_page, all_links=all_links),
+                    callback=self.collect_links
                 )
+                return
+        for link in all_links:
+            link = UrlConfig.url_join(data_origin, link)
+            yield scrapy.Request(url=link, callback=self.parse_trades)
 
-        if len(links_on_page) == 0 or current_page > page_limits[trading_type]['page_stop']: return
-        yield scrapy.Request(
-            url=next_page_url,
-            cb_kwargs=dict(trading_type=trading_type),
-            callback=self.collect_links
-        )
-
-    def get_currentPage(self, response):
-        for url_param in response.url.split('?')[1].split('&'):
-            if url_param.split('=')[0] != 'page': continue
-            return int(url_param.split('=')[1])
-
-    def get_nextPageUrl(self, response):
-        current_page = self.get_currentPage(response)
-        return response.url.replace('page=' + str(current_page), 'page=' + str(current_page + 1))
-
-    def parse_trades(self, response, trading_type):
+    def parse_trades(self, response):
+        combo = Combo(response)
         lots_on_page = [tr.css('td:nth-child(2)>a::attr(href)').get() for tr in
                         response.css('.table-responsive:first-child table:nth-child(2) tr')[1:]]
-
+        trading_id = combo.trading_id
+        trading_link = combo.trading_link
+        trading_number = combo.trading_number
+        trading_type = combo.trading_type
+        trading_form = combo.trading_form
+        trading_org = combo.trading_org
+        trading_org_contacts = combo.trading_org_contacts
+        case_number = combo.case_number
+        debtor_inn = combo.debtor_inn
+        address = combo.address
+        region = Region.get_region(address)
+        arbit_manager = combo.arbit_manager
+        arbit_manager_inn = combo.arbit_manager_inn
+        arbit_manager_org = combo.arbit_manager_org
+        general_files = combo.download()
         for lot_link in lots_on_page:
+            loader = CrawlerBankruptItemLoader(item=CrawlerBankruptItem(), response=response)
+            loader.add_value('data_origin', 'http://eurtp.ru/')
+            loader.add_value('trading_id', trading_id)
+            loader.add_value('trading_link', trading_link)
+            loader.add_value('trading_number', trading_number)
+            loader.add_value('trading_type', trading_type)
+            loader.add_value('trading_form', trading_form)
+            loader.add_value('trading_org', trading_org)
+            loader.add_value('trading_org_contacts', trading_org_contacts)
+            loader.add_value('case_number', case_number)
+            loader.add_value('debtor_inn', debtor_inn)
+            loader.add_value('address', address)
+            loader.add_value('region', region)
+            loader.add_value('arbit_manager', arbit_manager)
+            loader.add_value('arbit_manager_inn', arbit_manager_inn)
+            loader.add_value('arbit_manager_org', arbit_manager_org)
             yield scrapy.Request(
-                url='http://eurtp.ru' + lot_link,
-                cb_kwargs=dict(
-                    trading_type=trading_type,
-                    trade_response=response
-                ),
-                callback=self.parse_lot
+                url=UrlConfig.url_join(data_origin, lot_link), callback=self.parse_lot,
+                cb_kwargs={'loader': loader, 'general_files': general_files}
             )
 
-    def parse_lot(self, response, trading_type, trade_response):
-        il = ItemLoader(item=Lot(), response=response)
-
-        ### TRADE
-
-        il.add_value('data_origin', 'http://eurtp.ru/')
-
-        il.add_value('trading_id', trade_response.url)
-        il.add_value('trading_link', trade_response.url)
-        il.add_value('trading_number', trade_response.url)
-
-        il.add_value('trading_type', trade_response.css('h1::text').get())
-        il.add_value('trading_form', trade_response.css('h1::text').get())
-
-        il.add_value('trading_org', self.get_table_value(
-            'Контактное лицо',
-            'ФИО',
-            trade_response
-        ))
-        il.add_value('trading_org_contacts', [
-            self.get_table_value(
-                'Контактное лицо',
-                'Телефон',
-                trade_response
-            ),
-            self.get_table_value(
-                'Контактное лицо',
-                'Адрес электронной почты',
-                trade_response
-            )
-        ])
-
-        il.add_value('case_number', self.get_table_value(
-            'Информация о должнике',
-            'Номер дела о банкротстве',
-            trade_response
-        ))
-        il.add_value('debtor_inn', [
-            self.get_table_value(
-                'Данные должника - физического лица',
-                'ИНН',
-                trade_response
-            ),
-            self.get_table_value(
-                'Данные должника - юридического лица',
-                'ИНН',
-                trade_response
-            ),
-            self.get_table_value(
-                'Данные должника - ИП',
-                'ИНН',
-                trade_response
-            )
-        ])
-
-        il.add_value('arbit_manager', [
-            self.get_table_value(
-                'Информация об арбитражном управляющем',
-                'Фамилия',
-                trade_response
-            ),
-            self.get_table_value(
-                'Информация об арбитражном управляющем',
-                'Имя',
-                trade_response
-            ),
-            self.get_table_value(
-                'Информация об арбитражном управляющем',
-                'Отчество',
-                trade_response
-            )
-        ])
-        il.add_value('arbit_manager_inn', self.get_table_value(
-            'Информация об арбитражном управляющем',
-            'ИНН',
-            trade_response
-        ))
-        il.add_value('arbit_manager_org', self.get_table_value(
-            'Информация об арбитражном управляющем',
-            'Наименование СРО',
-            trade_response
-        ))
-
-        ### LOT
-
-        il.add_value('lot_id', response.url)
-        il.add_value('lot_link', response.url)
-        il.add_value('lot_number', self.get_table_value(
-            'Общая информация',
-            'Номер',
-            response
-        ))
-
-        il.add_value('short_name', self.get_table_value(
-            'Общая информация',
-            'Наименование',
-            response
-        ))
-        il.add_value('lot_info', self.get_table_value(
-            'Общая информация',
-            'Сведения об имуществе, его составе и характеристиках, описание',
-            response
-        ))
-        il.add_value('property_information', self.get_table_value(
-            'Общая информация',
-            'Порядок ознакомления с имуществом',
-            response
-        ))
-
-        ### MULTIPLLE
-
-        il.add_value('start_date_requests', [
-            self.get_table_value(
-                'Датирование',
-                'Дата начала приема заявок на участие в открытом аукционе',
-                trade_response
-            ),
-            self.get_table_value(
-                'Датирование',
-                'Дата начала приема заявок на участие в конкурсе',
-                trade_response
-            )
-        ])
-        il.add_value('end_date_requests', [
-            self.get_table_value(
-                'Датирование',
-                'Дата окончания приема заявок на участие в открытом аукционе',
-                trade_response
-            ),
-            self.get_table_value(
-                'Датирование',
-                'Дата окончания приема заявок на участие в конкурсе',
-                trade_response
-            )
-        ])
-        il.add_value('start_date_trading', [
-            self.get_table_value(
-                'Датирование',
-                'Дата проведения открытого аукциона',
-                trade_response
-            ),
-            self.get_table_value(
-                'Датирование',
-                'Дата проведения конкурса',
-                trade_response
-            )
-        ])
-
-        il.add_value('start_price', self.get_table_value(
-            'Общая информация',
-            'Начальная цена',
-            response
-        ))
-        il.add_value('step_price', [
-            self.get_table_value(
-                'Общая информация',
-                'Единицы шага',
-                response
-            ),
-            self.get_table_value(
-                'Общая информация',
-                'Введите значение шага',
-                response
-            ),
-            self.get_table_value(
-                'Общая информация',
-                'Значение шага',
-                response
-            )
-        ])
-
-        il.add_value('periods', self.get_periods(response))
-        il.add_value('files', [
-            self.get_files(trade_response),
-            self.get_files(response)
-        ])
-
-        return il.load_item()
-
-    def get_table_value(self, name_table, name_row, response):
-        parser = BeautifulSoup(response.text, "html.parser")
-
-        for table_cont in parser.select('.etp-block'):
-            if table_cont.h2 is None: continue
-            if table_cont.h2.get_text().strip() != name_table: continue
-            for row in table_cont.select('tr'):
-                try:
-                    if row.select('td')[0].get_text().strip() == row.select('td')[1].get_text().strip(): return \
-                        row.select('td')[1].get_text().strip()
-                    if row.select('td')[0].get_text().strip() != name_row: continue
-
-                    return row.select('td')[1].get_text().strip()
-                except Exception as e:
-                   
-                    return None
-
-        return None
-
-    def get_periods(self, response):
-        parser = BeautifulSoup(response.text, "html.parser")
-
-        periods = []
-
-        for table_cont in parser.select('.etp-block'):
-            if table_cont.h2 is None: continue
-            if table_cont.h2.get_text().strip() != 'Общая информация': continue
-            for row in table_cont.select('tr'):
-                if not row.select('td')[0].get_text().strip().startswith('Промежуток'): continue
-                if len(row.select('td')) < 2: continue
-                periods.append(row.select('td')[1].get_text().strip())
-
-        return periods
-
-    def get_files(self, response):
-        parser = BeautifulSoup(response.text, "html.parser")
-        return parser.select_one('.etp-main-content>.row:last-child table:last-child')
+    def parse_lot(self, response, loader, general_files):
+        combo = Combo(response)
+        loader.add_value('lot_id', combo.lot_id)
+        loader.add_value('lot_link', combo.lot_link)
+        loader.add_value('lot_number', combo.lot_number)
+        loader.add_value('short_name', combo.short_name)
+        loader.add_value('lot_info', combo.lot_info)
+        loader.add_value('property_information', combo.property_information)
+        loader.add_value('start_date_requests', combo.start_date_requests)
+        loader.add_value('end_date_requests', combo.end_date_requests)
+        loader.add_value('start_date_trading', combo.start_date_trading)
+        if loader.get_collected_values('trading_type')[0] == 'offer':
+            loader.add_value('end_date_trading', combo.end_date_trading)
+            loader.add_value('periods', combo.periods)
+        loader.add_value('start_price', combo.start_price)
+        if loader.get_collected_values('trading_type')[0] in ['auction', 'competition']:
+            loader.add_value('step_price', combo.step_price)
+        loader.add_value('files', {'general': general_files, 'lot': combo.download(combo.lot_number)})
+        loader.add_value('created_at', return_parse_date())
+        yield loader.load_item()

@@ -1,5 +1,5 @@
 from .working_with_time import datetime
-from .config import absolute_path_to_download, relative_path
+from .config import absolute_path, relative_path
 from pathlib import Path
 
 
@@ -21,10 +21,10 @@ class GeneralFilesDir:
         return day
 
     def create_dir(self):
-        return Path(f'{absolute_path_to_download}/{self.return_year_now()}/{self.return_month_now()}').mkdir(parents=True, exist_ok=True)
+        return Path(f'{absolute_path}/{self.return_year_now()}/{self.return_month_now()}').mkdir(parents=True, exist_ok=True)
 
     def return_absolute_path(self):
-        return f'{absolute_path_to_download}/{self.return_year_now()}/{self.return_month_now()}/'
+        return f'{absolute_path}/{self.return_year_now()}/{self.return_month_now()}/'
 
     def name_file_on_server(self, id, original_name):
         original_name = id + '_~~_' + \

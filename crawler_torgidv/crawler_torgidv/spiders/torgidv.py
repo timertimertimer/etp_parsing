@@ -4,13 +4,11 @@ import scrapy
 from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
-from ..items import CrawlerTorgidvItem, CrawlerTorgidvItemLoader
+from general_utils import UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..trades.app import Combo
 from ..utils.config import main_url, data_origin_url
 from ..utils.data_for_requests import form_data
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.working_with_time import return_parse_date
-from ..utils.working_with_url import UrlConfig
 
 
 class TorgidvSpider(scrapy.Spider):
@@ -21,12 +19,11 @@ class TorgidvSpider(scrapy.Spider):
         super(TorgidvSpider).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
-        self.url = UrlConfig()
         self.trades = set()
         self.pending_requests = 0
 
     def parse(self, response):
-        match = re.search(r"'bitrix_sessid':'([a-f0-9]{32})'", response.text)
+        match = re.search(r'"bitrix_sessid":"([a-f0-9]{32})"', response.text)
         sessid = match.group(1)
         url_params = {
             "mode": "class",
@@ -45,7 +42,7 @@ class TorgidvSpider(scrapy.Spider):
         for link in [el[0] for el in data['data']]:
             link = BeautifulSoup(link, 'lxml').a['href']
             self.pending_requests += 1
-            yield Request(self.url.url_join(main_url, link), self.get_trade_links)
+            yield Request(UrlConfig.url_join(main_url, link), self.get_trade_links)
 
         if self.pending_requests == 0:
             yield from self.process_trades()
@@ -63,7 +60,6 @@ class TorgidvSpider(scrapy.Spider):
             if link not in self.previous_lots:
                 yield Request(link, self.parse_trade)
 
-
     def parse_trade(self, response):
         combo = Combo(response)
         trading_id = trading_number = combo.id_
@@ -73,6 +69,7 @@ class TorgidvSpider(scrapy.Spider):
         trading_org = combo.trading_org
         trading_org_inn = combo.trading_org_inn
         trading_org_contacts = combo.trading_org_contacts
+        address, region = combo.get_address() or (None, None)
         msg_number = combo.msg_number
         case_number = combo.case_number
         start_date_requests = combo.start_date_requests
@@ -81,7 +78,7 @@ class TorgidvSpider(scrapy.Spider):
         end_date_trading = combo.end_date_trading
         files = combo.download_general()
         for lot in combo.get_lots():
-            loader = CrawlerTorgidvItemLoader(CrawlerTorgidvItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', trading_link)
@@ -91,14 +88,16 @@ class TorgidvSpider(scrapy.Spider):
             loader.add_value('trading_org', trading_org)
             loader.add_value('trading_org_inn', trading_org_inn)
             loader.add_value('trading_org_contacts', trading_org_contacts)
+            loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('msg_number', msg_number)
             loader.add_value('case_number', case_number)
             loader.add_value('start_date_requests', start_date_requests)
             loader.add_value('end_date_requests', end_date_requests)
             loader.add_value('start_date_trading', start_date_trading)
             loader.add_value('end_date_trading', end_date_trading)
-            yield Request(self.url.url_join(main_url, lot), self.parse_lot, cb_kwargs={'loader': loader, 'general_files': files})
-
+            yield Request(UrlConfig.url_join(main_url, lot), self.parse_lot,
+                          cb_kwargs={'loader': loader, 'general_files': files})
 
     def parse_lot(self, response, loader, general_files):
         combo = Combo(response)

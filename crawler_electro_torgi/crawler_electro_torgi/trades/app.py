@@ -4,30 +4,25 @@ import re
 
 from bs4 import BeautifulSoup
 
+from general_utils import DownloadFiles, FilesDir, UrlConfig, dedent_func, format_time
+from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
+from general_utils.models import RequestData
+from ..config import data_origin, path_absolute, path_relative
 from ..trades.auc import Auc
 from ..trades.offer import Offer
 from ..locators.locator_trade import LocatorTrade
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import lst_exeption, lst_exet, lst_exet_archive, data_origin, path_absolute, path_relative
-from ..utils.download import DownloadFiles
-from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
-from location import get_region
+from general_utils.location import get_region
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
 
 
 class Combo:
     addresses = dict()
+
     def __init__(self, response):
         self.response = response
-        self.check = CheckIfCorrectContactInfo()
         self.loc = LocatorTrade()
-        self.url = UrlConfig()
-        self.general_dir = GeneralFilesDir()
-        self.lot_dir = LotFilesDir()
         self.auc = Auc(response)
         self.offer = Offer(response)
         self.soup = BeautifulSoup(response.text, 'lxml')
@@ -46,124 +41,112 @@ class Combo:
         return lots_data
 
     def get_status(self, status):
-            active = ('идёт приём заявок', 'идет прием заявок')
-            pending = ('объявлены', 'объявлен', 'на утверждении')
-            ended = ('приём заявок завершен', 'в стадии проведения', 'подводятся итоги',
-                     'торги завершены', 'торги отменены', 'прием заявок завершен',
-                     'идёт приём заявок (приостановлены)', 'торги приостановлены', 'торги по лоту отменены')
-            try:
-                if status in active:
-                    return 'active'
-                elif status in pending:
-                    return 'pending'
-                elif status in ended:
-                    return 'ended'
-                else:
-                    return None
-            except:
-                return None
+        active = ('идёт приём заявок', 'идет прием заявок')
+        pending = ('объявлены', 'объявлен', 'на утверждении')
+        ended = ('приём заявок завершен', 'в стадии проведения', 'подводятся итоги',
+                 'торги завершены', 'торги отменены', 'прием заявок завершен',
+                 'идёт приём заявок (приостановлены)', 'торги приостановлены', 'торги по лоту отменены')
+        if status in active:
+            return 'active'
+        elif status in pending:
+            return 'pending'
+        elif status in ended:
+            return 'ended'
 
-    def download_general(self, data_origin_url):
-        dir = self.general_dir
-        download = DownloadFiles()
-        general_lst = list()
-        lst_files = self.response.xpath(self.loc.files_loc).getall()
+    def get_paths(self, data_origin_url: str):
+        current_path_absolute = None
+        current_path_relative = None
         for k, v in data_origin.items():
             if v == data_origin_url:
-                _path_absolute = path_absolute[k]
-                _path_relative = path_relative[k]
-        for file in lst_files:
+                current_path_absolute = path_absolute[k]
+                current_path_relative = path_relative[k]
+        return current_path_relative, current_path_absolute
+
+    def download_general(self, data_origin_url: str):
+        current_path_relative, current_path_absolute = self.get_paths(data_origin_url)
+        files_dir = FilesDir(current_path_relative, current_path_absolute)
+        load = DownloadFiles()
+        lst_general = list()
+        for file in self.response.xpath(self.loc.files_loc).getall():
             link_ = BeautifulSoup(str(file), features='lxml').find('a', target="_blank")
             link = link_.get('href')
             name = link_.get_text()
+            if len(name) > 75:
+                name = name[:30] + '_' + name[-35::1]
+            name_on_server = files_dir.name_file_on_server(self.id_, name)
+            absolute_path = files_dir.return_absolute_path(name_on_server)
+            relative_path = files_dir.return_relative_path(name_on_server)
             if not any(ele in name for ele in lst_exeption):
+                files_dir.create_dir()
+                request_data = RequestData(url=link, referer=self.response.url)
                 if pathlib.Path(name).suffix in lst_exet:
-                    dir.create_dir(_path_absolute)
-                    if len(name) > 75:
-                        file_name_server = name[0][:30] + '_' + name[0][-35::1]
-                    else:
-                        file_name_server = name[0]
-                    name_on_server = dir.name_file_on_server(self.id_, file_name_server)
-                    _abs_path = dir.return_absolute_path(name_on_server, _path_absolute)
-                    download.request_to_download_general(url=link,
-                                                         referer=self.response.url,
-                                                         _abs_path=_abs_path)
-                    _path_relative = dir.name_in_column_files(name_on_server, _path_relative)
-                    general_lst.append(
-                        {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
-                    # FILES INSIDE ARCHIVE
+                    load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=absolute_path, relative_path=relative_path,
+                        trading_id=self.id_,
+                    )
+                    lst_general.append(
+                        {
+                            'original_name': name,
+                            'link': relative_path.as_posix(),
+                            'link_etp': UrlConfig.parse_url(link)
+                        }
+                    )
                 elif pathlib.Path(name).suffix in lst_exet_archive:
-                    if len(name) > 75:
-                        file_name_server = name[:30] + '_' + name[-35::1]
-                    else:
-                        file_name_server = name
-                    self.general_dir.create_dir(_path_absolute)
-                    name_on_server = dir.name_file_on_server(self.id_, file_name_server)
-                    _abs_path = dir.return_absolute_path(name_on_server, _path_absolute)
-                    lst_files = download.request_to_download_general(url=link,
-                                                                     referer=self.response.url,
-                                                                     _abs_path=_abs_path,
-                                                                     _id=self.id_,
-                                                                     _relative_path=dir.return_download_dir_etp(_path_relative))
-                    general_lst.extend(lst_files)
+                    archive_lst = load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=absolute_path, relative_path=relative_path,
+                        trading_id=self.id_
+                    )
+                    lst_general.extend(archive_lst)
                 else:
-                    general_lst.append(
-                        {'original_name': name, 'link': '', 'link_etp': self.url.url_join(data_origin_url, link)})
-        return general_lst
+                    lst_general.append(
+                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(data_origin_url, link)}
+                    )
+        return lst_general
 
     def download_lot(self, lot_number, data_origin_url):
-        dir = self.lot_dir
-        download = DownloadFiles()
+        current_path_relative, current_path_absolute = self.get_paths(data_origin_url)
+        files_dir = FilesDir(current_path_relative, current_path_absolute)
+        load = DownloadFiles()
         lot_list = list()
-        _path_relative = ''
         try:
-            lst_files = self.response.xpath(self.loc.files_loc).getall()
-            for k, v in data_origin.items():
-                if v == data_origin_url:
-                    _path_absolute = path_absolute[k]
-                    _path_relative = path_relative[k]
-            for link in lst_files:
+            for link in self.response.xpath(self.loc.files_loc).getall():
                 link = BeautifulSoup(str(link), features='lxml').find('a', target="_blank")
                 name = link.get_text()
                 link = link.get('href')
+                if len(name) > 75:
+                    name = name[:30] + '_' + name[-35::1]
+                name_on_server = files_dir.name_file_lot_on_server(self.id_, lot_number, name)
+                absolute_path = files_dir.return_absolute_path(name_on_server)
+                relative_path = files_dir.return_relative_path(name_on_server)
                 if not any(ele in name for ele in lst_exeption):
+                    files_dir.create_dir()
+                    request_data = RequestData(url=link, referer=self.response.url)
                     if pathlib.Path(name).suffix in lst_exet:
-                        dir.create_dir(_path_absolute)
-                        if len(name) > 75:
-                            file_name_server = name[:30] + '_' + name[-35::1]
-                        else:
-                            file_name_server = name
-                        name_on_server = dir.name_file_lot_on_server(_id=self.id_,
-                                                                     lot_num=lot_number,
-                                                                     original_name=file_name_server)
-                        _abs_path = dir.return_absolute_path(name_on_server, _path_absolute)
-                        download.request_to_download_general(url=link,
-                                                             referer=self.response.url,
-                                                             _abs_path=_abs_path)
-                        _path_relative = dir.name_in_column_files(name_on_server, _path_relative)
+                        load.request_to_download_general(
+                            request_data=request_data,
+                            absolute_path=absolute_path, relative_path=relative_path,
+                            trading_id=self.id_, lot_number=lot_number
+                        )
                         lot_list.append(
-                            {'original_name': name, 'link': _path_relative,
-                             'link_etp': self.url.parse_url(link)})
-                    # FILES INSIDE ARCHIVE
+                            {
+                                'original_name': name,
+                                'link': relative_path.as_posix(),
+                                'link_etp': UrlConfig.parse_url(link)
+                            }
+                        )
                     elif pathlib.Path(name).suffix in lst_exet_archive:
-                        if len(name) > 75:
-                            file_name_server = name[:30] + '_' + name[-35::1]
-                        else:
-                            file_name_server = name
-                        dir.create_dir(_path_absolute)
-                        name_on_server = dir.name_file_lot_on_server(_id=self.id_,
-                                                                     lot_num=lot_number,
-                                                                     original_name=file_name_server)
-                        _abs_path = dir.return_absolute_path(name_on_server, _path_absolute)
-                        lst_files = download.request_to_download_general(url=link,
-                                                                         referer=self.response.url,
-                                                                         _abs_path=_abs_path,
-                                                                         _id=self.id_,
-                                                                         _relative_path=dir.return_download_dir_etp(_path_relative))
-                        lot_list.extend(lst_files)
+                        archive_lst = load.request_to_download_general(
+                            request_data=request_data,
+                            absolute_path=absolute_path, relative_path=relative_path,
+                            trading_id=self.id_, lot_number=lot_number
+                        )
+                        lot_list.extend(archive_lst)
                     else:
-                        lot_list.append({'original_name': name, 'link': '', 'link_etp': self.url.url_join(data_origin_url, link)})
+                        lot_list.append(
+                            {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(data_origin_url, link)}
+                        )
             return lot_list
         except Exception as e:
             return []
@@ -214,7 +197,7 @@ class Combo:
         try:
             td_org_inn = self.response.xpath(self.loc.trading_org_inn_loc).get()
             if td_org_inn:
-                return self.check.check_inn(dedent_func(td_org_inn.strip()))
+                return CheckIfCorrectContactInfo.check_inn(dedent_func(td_org_inn.strip()))
         except:
             logger.warning(f'{self.response.url} :: INVALID DATA ORGANIZER INN', exc_info=True)
 
@@ -234,7 +217,7 @@ class Combo:
         """get phone number of organizer"""
         try:
             phone = dedent_func(self.response.xpath(self.loc.phone_org_loc).get()).replace(';', '').strip()
-            return self.check.check_phone(phone)
+            return CheckIfCorrectContactInfo.check_phone(phone)
         except:
             return None
 
@@ -242,7 +225,7 @@ class Combo:
         """get email of organizer"""
         try:
             email = dedent_func(self.response.xpath(self.loc.email_org_loc).get()).replace(';', '').strip()
-            return self.check.check_email(email)
+            return CheckIfCorrectContactInfo.check_email(email)
         except:
             return None
 
@@ -254,7 +237,8 @@ class Combo:
 
     @property
     def case_number(self):
-        return self.check.check_case_number(dedent_func(self.response.xpath(self.loc.case_number_loc).get()))
+        return CheckIfCorrectContactInfo.check_case_number(
+            dedent_func(self.response.xpath(self.loc.case_number_loc).get()))
 
     @property
     def debtor_inn(self):
@@ -275,9 +259,9 @@ class Combo:
             address = dedent_func(self.response.xpath(self.loc.region_loc).get())
             if address not in self.addresses:
                 self.addresses[address] = get_region(address)
-            return self.addresses[address]
+            return address, self.addresses[address]
         except:
-            return None
+            pass
 
     @property
     def arbit_manager(self):

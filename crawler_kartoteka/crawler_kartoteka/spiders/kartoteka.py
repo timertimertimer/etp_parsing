@@ -5,28 +5,26 @@ from bs4 import BeautifulSoup
 import scrapy
 from scrapy import Request, FormRequest
 
-from ..items import CrawlerKartotekaItem, CrawlerKartotekaItemLoader
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import return_parse_date
-
+from general_utils import dedent_func, UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils.config import trash_resources, format_parse_date, start_date
 from ..locators.serp_locator import SerpLocator
 from ..trades.app import Combo
-from ..utils.config import format_parse_date, time_delta, trash_resources, data_origin_url
+from ..utils.config import data_origin_url
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data import form_data
-from ..utils.working_with_url import UrlConfig
 
 
 class KartotekaSpider(scrapy.Spider):
     name = "kartoteka"
     start_urls = ["https://www.kartoteka.ru/bankruptcy2/"]
-    custom_settings = {"PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources}
+    custom_settings = {
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources
+    }
 
     def __init__(self):
         super(KartotekaSpider, self).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
-        self.url = UrlConfig()
         self.loc = SerpLocator
 
     def start_requests(self):
@@ -41,7 +39,7 @@ class KartotekaSpider(scrapy.Spider):
 
     def get_validate_data(self, response) -> Iterable[Request]:
         validate_data = response.xpath('//input[@name="validate"]/@value').get()
-        data_trade_begin = format_parse_date(time_delta)
+        data_trade_begin = start_date
         form_data["data-trade-begin"] = data_trade_begin
         form_data["validate"] = validate_data
         yield FormRequest(
@@ -59,7 +57,7 @@ class KartotekaSpider(scrapy.Spider):
     def parse_serp(self, response):
         trade_cards = response.xpath(self.loc.trade_card_loc)
         for trade in trade_cards:
-            link = self.url.url_join(data_origin_url, trade.xpath(self.loc.link_to_trade_loc).get())
+            link = UrlConfig.url_join(data_origin_url, trade.xpath(self.loc.link_to_trade_loc).get())
             if link not in self.previous_lots:
                 status = trade.xpath(self.loc.status_loc).get()
                 short_name = dedent_func(trade.xpath(self.loc.short_name_loc).get())
@@ -82,7 +80,7 @@ class KartotekaSpider(scrapy.Spider):
         trading_type, trading_form = combo.trading_type_and_form
         trading_id = trading_number = combo.trading_id
         status = combo.parse_status(status)
-        loader = CrawlerKartotekaItemLoader(CrawlerKartotekaItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value("data_origin", data_origin_url)
         loader.add_value("trading_id", trading_id)
         loader.add_value("trading_link", response.url)
@@ -95,7 +93,9 @@ class KartotekaSpider(scrapy.Spider):
         loader.add_value("msg_number", combo.msg_number)
         loader.add_value("case_number", combo.case_number)
         loader.add_value("debtor_inn", combo.debitor_inn)
-        loader.add_value('address', combo.address)
+        address, region = combo.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value("arbit_manager", combo.arbit_manager)
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)

@@ -2,9 +2,10 @@ import pathlib
 import re
 import shutil
 import py7zr
-from crawler_tenderstandartru.utils.config import lst_exet_files
 import os
 import logging
+
+from general_utils.config import lst_exet_files
 
 logger = logging.getLogger(__name__)
 

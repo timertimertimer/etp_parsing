@@ -2,11 +2,11 @@ import pathlib
 import re
 import shutil
 from zipfile import ZipFile
-from crawler_tenderstandartru.utils.config import lst_exet_files
 import os
 import logging
 
-from crawler_tenderstandartru.utils.work_with_text_and_number import count_cyrillic
+from general_utils import count_cyrillic
+from general_utils.config import lst_exet_files
 
 logger = logging.getLogger(__name__)
 

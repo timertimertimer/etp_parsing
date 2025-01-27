@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as BS
 import re
 
-from location import get_region
+from general_utils import get_region
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
@@ -159,6 +159,15 @@ class SerpPage:
         match = re.findall(r'\d{4,}$', str(url).strip())
         return ''.join(match)
 
+    def get_trading_number_from_serp_page(self):
+        tr_with_links = self.response.xpath(self.loc_serp.links_to_trade_page).getall()
+        pattern = re.compile(r"window.location.+(\/trade\/view\/purchase\/general\.html\?id=\d+).+")
+        links = []
+        for link in tr_with_links:
+            soup = BS(str(link), features='lxml')
+            links.append([''.join(pattern.findall(link)), soup.find('td').get_text(strip=True)])
+        return links
+
     def get_trading_number(self) -> str or None:
         """ trading_number from h1 tag """
         _h1 = self.soup.h1.get_text()
@@ -239,4 +248,4 @@ class SerpPage:
         address = BS(str(address), features='lxml').get_text().strip()
         if address not in self.addresses:
             self.addresses[address] = get_region(address)
-        return self.addresses[address]
+        return address, self.addresses[address]

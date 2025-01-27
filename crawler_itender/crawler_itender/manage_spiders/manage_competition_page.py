@@ -1,13 +1,11 @@
 import re
 
 from bs4 import BeautifulSoup as BS
+
+from general_utils import UrlConfig, dedent_func, format_time_auction
 from ..locators.serp_locator import LocatorSerp
 from ..locators.competition_locator import CompetLocator
-from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
-from ..utils.code_for_edit_and_format.work_with_text_and_number import dedent_func
-from ..utils.code_for_edit_and_format.check_inn_email_phone import CheckIfCorrectContactInfo
 import logging
-from ..utils.code_for_edit_and_format.working_with_time import format_time_auction
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +17,6 @@ class CompetitionPage:
         self.response = _response
         self.loc = LocatorSerp
         self.loc_comp = CompetLocator
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
@@ -47,7 +43,7 @@ class CompetitionPage:
                     link = table.find('a', string=lot_number)
                     if link:
                         link = link.get('href')
-                        return self.url.url_join(data_origin, link)
+                        return UrlConfig.url_join(data_origin, link)
         except Exception as e:
             logger.critical(f'{self.response.url} :{e}: INVALID DATA LOT TABLE', exc_info=True)
             return None
@@ -94,7 +90,7 @@ class CompetitionPage:
                     link = table.find('a', string=lot_number)
                     if link:
                         link = link.get('href')
-                        return self.url.url_join(_data_origin, link)
+                        return UrlConfig.url_join(_data_origin, link)
         except Exception as e:
             logger.critical(f'{self.response.url} :{e}: INVALID DATA LOT TABLE', exc_info=True)
             return None

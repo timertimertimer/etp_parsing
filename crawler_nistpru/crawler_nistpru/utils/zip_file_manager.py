@@ -16,14 +16,14 @@ logger = logging.getLogger(__name__)
 
 class ZipFiles:
 
-    def __init__(self, _path, _root_dir, _file_name, _id, lot_number, url, rel_path):
-        self.abs_path = _path
-        self.root_dir = _root_dir
-        self._file_name = _file_name
+    def __init__(self, absolute_path, root_directory, file_name, _id, lot_number, url, rel_path):
+        self.abs_path = absolute_path
+        self.root_directory = root_directory
+        self.file_name = file_name
         self._id = _id
         self.lot_number = lot_number
         self.url = url
-        self.rel_path = rel_path + '/'
+        self.relative_path = rel_path + '/'
         self.zip = ZipFile(self.abs_path, 'r')
 
     def show_files_in_dir(self) -> list:
@@ -62,20 +62,20 @@ class ZipFiles:
                         new_file_name = _name_file.replace('-', '_').replace(' ', '_').replace('(', '_').replace(')',
                                                                                                          '_')
                         try:
-                            self.zip.extract(fileName, self.root_dir)
+                            self.zip.extract(fileName, self.root_directory)
                             if self.lot_number is not None:
                                 new_file_name = f'{self._id}_{self.lot_number}_{count_cyrillic(new_file_name)}'
                             else:
                                 new_file_name = f'{self._id}_{count_cyrillic(new_file_name)}'
                             # path to folder with pictures
-                            path_to_folder = os.path.join(self.root_dir, _root)
+                            path_to_folder = os.path.join(self.root_directory, _root)
                         except:
                             continue
                         # iterate throught picture (1) in directory
                         for pic in os.listdir(path_to_folder):
                             # move file to etp directory
                             old_name = f'{path_to_folder}/{pic}'
-                            new_name = f'{self.root_dir}/{new_file_name}'
+                            new_name = f'{self.root_directory}/{new_file_name}'
                             if os.path.isdir(old_name):
                                 old_name = old_name + '/' + _name_file
                                 os.rename(old_name, new_name)
@@ -94,14 +94,14 @@ class ZipFiles:
                     if size > 4500:
                         new_file_name: str = self.return_file_name_extra(file_name=_name_file)
                         try:
-                            self.zip.extract(fileName, self.root_dir)
-                            os.rename(f'{self.root_dir}/{fileName}', f'{self.root_dir}/{new_file_name}')
+                            self.zip.extract(fileName, self.root_directory)
+                            os.rename(f'{self.root_directory}/{fileName}', f'{self.root_directory}/{new_file_name}')
                         except:
                             continue
                 else:
                     new_file_name = ''
                 files_list.append(
-                    {'original_name': count_cyrillic(fileName), 'link': self.rel_path + new_file_name.strip(), 'link_etp': self.url})
+                    {'original_name': count_cyrillic(fileName), 'link': self.relative_path + new_file_name.strip(), 'link_etp': self.url})
             else:
                 files_list.append({'original_name': count_cyrillic(fileName), 'link': '', 'link_etp': self.url})
         return files_list

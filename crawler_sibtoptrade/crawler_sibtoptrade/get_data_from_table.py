@@ -1,10 +1,8 @@
 
 from mysql.connector import MySQLConnection
 
-from crawler_sibtoptrade.python_mysql_dbconfig import read_db_config
-from crawler_sibtoptrade.config import connect_db, format_parse_date
-
-TABLE = connect_db['table']
+from general_utils import read_db_config
+from general_utils.config import format_parse_date
 
 
 class DbConnectCheckLots(object):
@@ -18,7 +16,7 @@ class DbConnectCheckLots(object):
         """ fetch all lots that have been added for 2 days  """
         try:
             self.curr.execute(
-                f""" SELECT trading_link, lot_link, status FROM {TABLE} where created_at >= "{format_parse_date(10, '%Y-%m-%d %H:%M:%S')}" """)
+                f""" SELECT trading_link FROM lots_sibtoptrade where created_at >= "{format_parse_date(10, '%Y-%m-%d %H:%M:%S')}" """)
             data = self.curr.fetchall()
             self.curr.close()
             self.conn.close()

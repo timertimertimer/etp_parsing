@@ -3,11 +3,10 @@ import os
 import pathlib
 import re
 import shutil
-
 import rarfile
 
-from ..utils.config import lst_exet_files
-from ..utils.work_with_text_and_number import count_cyrillic
+from general_utils import count_cyrillic
+from general_utils.config import lst_exet_files
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +101,8 @@ class RarFiles:
                 else:
                     new_file_name = ''
                 files_list.append(
-                    {'original_name': count_cyrillic(fileName), 'link': self.rel_path + new_file_name.strip(), 'link_etp': self.url})
+                    {'original_name': count_cyrillic(fileName), 'link': self.rel_path + new_file_name.strip(),
+                     'link_etp': self.url})
             else:
                 files_list.append({'original_name': count_cyrillic(fileName), 'link': '', 'link_etp': self.url})
         return files_list

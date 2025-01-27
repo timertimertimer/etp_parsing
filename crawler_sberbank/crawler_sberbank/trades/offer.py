@@ -1,13 +1,11 @@
 import re
 
-from ..locators.locator_trades import LocatorOffer
-from ..utils.config import first_part_link, lst_exet
+from general_utils import format_time_auction, dedent_func
+from general_utils.config import lst_exet
+from ..utils.config import first_part_link
 from bs4 import BeautifulSoup as BS
-import pandas as pd
 
 from ..utils.manage_spider import deep_get_dict
-from ..utils.working_with_time import format_time
-from ..utils.work_with_text_and_number import *
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
 from ..utils.download import DownloadFiles
 import logging
@@ -15,11 +13,11 @@ import pathlib
 
 logger = logging.getLogger(__name__)
 
+
 class OfferParse(GeneralFilesDir):
     def __init__(self, data, url):
         self.url = url
         self.data = data
-        self.loc = LocatorOffer
         self.lot_dir = LotFilesDir
 
     @property
@@ -35,9 +33,9 @@ class OfferParse(GeneralFilesDir):
             end = period['PeriodEndDate']
             price = re.sub(r'\s', '', period['BidAmount'])
             period = {
-                'start_date_requests': format_time(start),
-                'end_date_requests': format_time(end),
-                'end_date_trading': format_time(end),
+                'start_date_requests': format_time_auction(start),
+                'end_date_requests': format_time_auction(end),
+                'end_date_trading': format_time_auction(end),
                 'current_price': round(float(price), 2)
             }
             periods.append(period)
@@ -85,11 +83,6 @@ class OfferParse(GeneralFilesDir):
             logger.error(f'{self.url} :: INVALID DATA START PRICE OFFER')
             return None
 
-    @property
-    def get_all_file_names(self):
-        lst_names = self.response.xpath(self.loc.file_gen_loc).getall()
-        return lst_names
-
     # working with files general
     def get_xml_data(self, xml_data: str):
         """get and return response with xml data (trading page)"""
@@ -106,10 +99,10 @@ class OfferParse(GeneralFilesDir):
         names = clean_name
         links = lst_hash_links
         return names, links
+
     # end working with files general
 
-    # download files general
-    def download_general(self, id, file):
+    def download(self, id, file):
         dir_ = GeneralFilesDir()
         load = DownloadFiles()
         lst_dict = list()
@@ -122,5 +115,5 @@ class OfferParse(GeneralFilesDir):
                 relative_path_f = dir_.name_in_column_files(url=id, original_name=name[i])
                 load.request_to_download(link[i], referer=self.url, original_name=name_on_server)
             lst_dict.append({'original_name': name[i],
-                            'link': relative_path_f, 'link_etp': link[i]})
+                             'link': relative_path_f, 'link_etp': link[i]})
         return lst_dict

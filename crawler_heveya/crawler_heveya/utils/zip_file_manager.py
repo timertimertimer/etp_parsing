@@ -2,10 +2,10 @@ import pathlib
 import re
 import shutil
 from zipfile import ZipFile
-from ..utils.config import lst_exet_files
 import os
 import logging
 
+from general_utils.config import lst_exet_files
 from ..utils.work_with_text_and_number import count_cyrillic
 
 logger = logging.getLogger(__name__)

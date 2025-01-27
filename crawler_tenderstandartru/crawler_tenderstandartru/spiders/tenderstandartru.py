@@ -1,3 +1,4 @@
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
 from ..libraries.libraries import *
 from ..utils.config import trades, tables
 from ..utils.working_with_url import UrlConfig
@@ -9,7 +10,9 @@ TABLE = tables['tenderstandart']
 class TenderstandartruSpider(Spider):
     name = 'tenderstandartru'
     data_origin = data_origin['tenderstandart']
-    custom_settings = {'LOG_FILE': 'tenderstandart.log'}
+    custom_settings = {
+        # 'LOG_FILE': f'{name}.log',
+    }
 
     def __init__(self):
         super(TenderstandartruSpider, self).__init__()
@@ -19,7 +22,7 @@ class TenderstandartruSpider(Spider):
 
     def start_requests(self):
         for trade in trades:
-            yield Request(url=self.url.url_join(self.data_origin, trade), callback=self.parse_auction_main, headers=hd,
+            yield Request(url=self.url.url_join(self.data_origin, trade), callback=self.parse_auction_main, 
                           cb_kwargs={'page': 1})
 
     def parse_auction_main(self, response, page):
@@ -32,21 +35,19 @@ class TenderstandartruSpider(Spider):
         sp['Length'] = length
         sp['types'] = types_
         sp['_'] = timestamp_
-        hd['referer'] = response.url
         yield FormRequest(url=self.url.url_join(self.data_origin, 'Trade/AllSearch'), callback=self.parse_serp,
                           formdata=sp, method='GET',
-                          headers=hd, cb_kwargs={'page': page, 'trading_type': trading_type}, dont_filter=True,
+                           cb_kwargs={'page': page, 'trading_type': trading_type}, dont_filter=True,
                           errback=self.errback_httpbin)
 
     def parse_serp(self, response, page, trading_type):
         """ parse output of lots in period mention in param data """
         combo = Combo(response, self.data_origin)
-        hd['referer'] = response.url
         for lot_data in combo.serp.get_lots_data_from_div_table():
             # [0] - trading page; [1] - lot_link; [2] - lot_number; [3] - organizer; [4] - status; [5] - start price [6] - start date trading
             status = combo.serp.get_status(lot_data[4]) if any(lot_data) else None
             if status == 'active' or status == 'pending':
-                transfer = CrawlerTransferTenderstandartruItem()
+                transfer = CrawlerBankruptItem()
                 transfer['trading_type'] = trading_type
                 transfer['data_origin'] = self.data_origin
                 transfer['trading_id'] = combo.serp.get_trading_id(lot_data[0])
@@ -61,12 +62,12 @@ class TenderstandartruSpider(Spider):
                 data_check_with_db = (lot_data[0], lot_data[1], status)
                 if data_check_with_db not in self.previous_lots:
                     yield Request(url=lot_data[0], callback=self.parse_trading_page,
-                                  headers=hd, cb_kwargs={'transfer': transfer, 'trading_type': trading_type},
+                                   cb_kwargs={'transfer': transfer, 'trading_type': trading_type},
                                   dont_filter=True,
                                   errback=self.errback_httpbin)
         page += 1
         if next_page := combo.serp.get_next_page_link(page, self.data_origin):
-            yield Request(url=next_page, callback=self.parse_serp, headers=hd,
+            yield Request(url=next_page, callback=self.parse_serp, 
                           cb_kwargs={'page': page, 'trading_type': trading_type}, errback=self.errback_httpbin)
 
     def parse_trading_page(self, response, transfer, trading_type):
@@ -76,41 +77,40 @@ class TenderstandartruSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
+        transfer['address'], transfer['region'] = combo.auc.get_address() or (None, None)
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
-        hd['referer'] = response.url
         general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']), data_origin=self.data_origin)
         if trading_type == 'offer':
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_periods_offer, headers=hd,
+            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_periods_offer, 
                           cb_kwargs={'transfer': transfer, 'general_files': general_files,
                                      'page_offer': 1, 'periods': list()})
         else:
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_auction_lot, headers=hd,
+            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_auction_lot, 
                           cb_kwargs={'transfer': transfer, 'general_files': general_files})
 
     def parse_periods_offer(self, response, transfer, page_offer, general_files, periods):
         """ parse periods on offer(lot page) """
         combo = Combo(response, self.data_origin)
-        hd['referer'] = response.url
         page_offer += 1
         next_page = combo.serp.get_next_page_link(page_offer, self.data_origin)
         period = combo.offer.return_periods()
         periods.extend(period)
         if next_page:
-            yield Request(url=next_page, callback=self.parse_periods_offer, headers=hd,
+            yield Request(url=next_page, callback=self.parse_periods_offer, 
                           cb_kwargs={'transfer': transfer, 'general_files': general_files, 'page_offer': page_offer,
                                      'periods': periods},
                           errback=self.errback_httpbin)
         else:
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_offer_lot, headers=hd,
+            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_offer_lot, 
                           cb_kwargs={'transfer': transfer, 'general_files': general_files, 'periods': periods},
                           dont_filter=True)
 
     def parse_auction_lot(self, response, transfer, general_files):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerTenderstandartruItemLoader(CrawlerTenderstandartruItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -123,6 +123,8 @@ class TenderstandartruSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])
@@ -150,7 +152,7 @@ class TenderstandartruSpider(Spider):
     def parse_offer_lot(self, response, transfer, general_files, periods):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerTenderstandartruItemLoader(CrawlerTenderstandartruItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -163,6 +165,8 @@ class TenderstandartruSpider(Spider):
         loader.add_value('msg_number', combo.auc.get_msg_number())
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
+        loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
         loader.add_value('status', transfer['status'])

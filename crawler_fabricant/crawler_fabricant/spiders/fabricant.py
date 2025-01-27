@@ -2,7 +2,6 @@
 import pandas as pd
 import urllib.parse
 
-from icecream import ic
 from scrapy.spiders import CrawlSpider
 from scrapy_splash import SplashRequest
 from scrapy.spidermiddlewares.httperror import HttpError

@@ -1,9 +1,6 @@
 from mysql.connector import MySQLConnection
 
-from crawler_sistematorg.python_mysql_dbconfig import read_db_config
-from crawler_sistematorg.config import format_parse_date, connect_db
-
-TABLE = connect_db['table']
+from general_utils import read_db_config
 
 
 class DbConnectCheckLots(object):
@@ -13,11 +10,11 @@ class DbConnectCheckLots(object):
         self.conn = MySQLConnection(**self.db_config)
         self.curr = self.conn.cursor()
 
-    def get_latest_lot(self, table=TABLE, day=20) -> list or None:
+    def get_latest_lot(self, day=30) -> list or None:
         """ fetch all lots that have been added for 2 days  """
         try:
             self.curr.execute(
-                f""" SELECT trading_link, CONVERT(lot_number,char) FROM {table} where created_at >= "{format_parse_date(day, '%Y-%m-%d %H:%M:%S')}" """)
+                f""" SELECT trading_link, CONVERT(lot_number,char) FROM lots_sistematorg where created_at >= "{format_parse_date(day, '%Y-%m-%d %H:%M:%S')}" """)
             data = self.curr.fetchall()
             return data
         except Exception as e:

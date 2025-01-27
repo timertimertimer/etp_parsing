@@ -1,9 +1,7 @@
 from mysql.connector import MySQLConnection
 
-from crawler_sberbank.python_mysql_dbconfig import read_db_config
-from crawler_sberbank.utils.config import connect_db, format_parse_date
-
-TABLE = connect_db['table']
+from general_utils import read_db_config
+from general_utils.config import format_parse_date
 
 
 class DbConnectCheckLots(object):
@@ -17,7 +15,7 @@ class DbConnectCheckLots(object):
         """ fetch all lots that have been added for 2 days  """
         try:
             self.curr.execute(
-                f""" SELECT lot_link FROM {TABLE} where created_at >= "{format_parse_date(7, '%Y-%m-%d %H:%M:%S')}" """)
+                f""" SELECT lot_link FROM lots_sberbank where created_at >= "{format_parse_date(30, '%Y-%m-%d %H:%M:%S')}" """)
             data = self.curr.fetchall()
             links = list(map(lambda y: ''.join(y).strip(), (map(lambda x: x, set(data)))))
             return links
@@ -26,5 +24,3 @@ class DbConnectCheckLots(object):
             self.curr.close()
             self.conn.close()
             return list()
-
-

@@ -1,8 +1,9 @@
 import re
 
 from bs4 import BeautifulSoup as BS
+
+from general_utils import UrlConfig
 from ..locators.serp_locator import LocatorSerp
-from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,12 +15,11 @@ class SerpPageSearchInfo:
     def __init__(self, _response):
         self.response = _response
         self.loc = LocatorSerp
-        self.url = UrlConfig()
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
     def return_url_if_scheme(self, url):
-        return self.url.check_url_scheme(url)
+        return UrlConfig.check_url_scheme(url)
 
     def fetch_pagination_links(self):
         """ fetch link (.NET "doPostBack) """
@@ -51,7 +51,7 @@ class SerpPageSearchInfo:
             for a in self.fetch_pagination_links():
                 a = BS(str(a), features='lxml').find('a')
                 if a:
-                    a_href = ''.join(re.findall(r'ctl.*\d', self.url.make_url_unquote(a.get('href'))))
+                    a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
                     a_text = a.get_text()
                     lst_href.append(a_href)
                     lst_num_page.append(a_text)
@@ -68,7 +68,7 @@ class SerpPageSearchInfo:
             for a in self.fetch_pagination_links_lot_page():
                 a = BS(str(a), features='lxml').find('a')
                 if a:
-                    a_href = ''.join(re.findall(r'ctl.*\d', self.url.make_url_unquote(a.get('href'))))
+                    a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
                     a_text = a.get_text()
                     lst_href.append(a_href)
                     lst_num_page.append(a_text)
@@ -206,7 +206,7 @@ class SerpPageSearchInfo:
                     if link:
                         link = link.get('href')
                         if link:
-                            link = self.url.url_join(data_origin, link)
+                            link = UrlConfig.url_join(data_origin, link)
                     # td[2] -> contains lot number
                     lot_ = BS(str(tr), features='lxml').find_all('td')[2].find('a')
                     if lot_:
@@ -217,7 +217,7 @@ class SerpPageSearchInfo:
                         else:
                             logger.error(f'{link} :: current page {current_page} :: WITHOUT LOT NUMBER')
                             return list()
-                        lst_link_lot.append((link, lot, self.url.url_join(data_origin, lot_link)))
+                        lst_link_lot.append((link, lot, UrlConfig.url_join(data_origin, lot_link)))
                 return lst_link_lot
             else:
                 return list()

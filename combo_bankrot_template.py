@@ -4,13 +4,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-from ..utils.download import DownloadFiles
-from ..utils.work_with_path_and_dir import GeneralFilesDir
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
-from ..utils.config import lst_exeption, lst_exet, lst_exet_archive
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
+from general_utils import DownloadFiles, FilesDir, format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +13,6 @@ logger = logging.getLogger(__name__)
 class Combo:
     def __init__(self, response):
         self.response = response
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
-        self.general_dir = GeneralFilesDir()
 
     def download_general(self): ...
 
@@ -58,6 +50,12 @@ class Combo:
 
     @property
     def debtor_inn(self): ...
+
+    @property
+    def address(self): ...
+
+    @property
+    def region(self): ...
 
     @property
     def arbit_manager(self): ...

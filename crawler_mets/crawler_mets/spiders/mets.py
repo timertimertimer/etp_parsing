@@ -11,17 +11,20 @@ from scrapy_playwright.page import PageMethod
 from bs4 import BeautifulSoup as BS
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from ..items import MetsItemLoader, CrawlerMetsItem
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.config import trash_resources, start_date
 from ..trades.combo import ComposeTrades
 from ..utils.manage_spider import sort_trading_type, get_trading_form
 from ..utils.working_with_time import return_parse_date
 from ..locators.serp_locator import SerpLocator
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.working_with_url import UrlConfig
-from ..utils.config import format_parse_date, data_origin_url, trash_resources
+from ..utils.config import data_origin_url, start_date
+
 
 async def filter_lots(page: Page) -> str:
-    await page.route("**/*", lambda route, request: route.abort() if request.resource_type in trash_resources else route.continue_())
+    await page.route("**/*", lambda route,
+                                    request: route.abort() if request.resource_type in trash_resources else route.continue_())
     is_bankr_selector = 'input[name="isbankr"]'
     await page.wait_for_selector(selector=is_bankr_selector, state="attached")
     await page.evaluate("document.querySelector('input[name=\"isbankr\"]').click()")
@@ -30,7 +33,7 @@ async def filter_lots(page: Page) -> str:
     await asyncio.sleep(0.5)
     await page.evaluate("document.querySelector('input[name=\"ispub\"]').click()")
     await asyncio.sleep(0.5)
-    await page.evaluate(f"document.querySelector('input[name=\"date_nach_ot\"]').value = '{format_parse_date(1)}'")
+    await page.evaluate(f"document.querySelector('input[name=\"date_nach_ot\"]').value = '{start_date}'")
     await asyncio.sleep(0.5)
     await page.click('.search-submit')
     await asyncio.sleep(5)
@@ -65,16 +68,12 @@ class MetsSpider(scrapy.Spider):
     def parse(self, response: scrapy.http.Response, **kwargs) -> Iterable[Request]:
         self.formatted_url = self.formatted_url or response.url
         current_page = response.meta.get('current_page', 1)
-        amount_page = int(response.xpath(self.loc.count_pagination_loc).get() or current_page)
-        links_to_trade = response.xpath(self.loc.link_to_trade_loc).getall()
+        # amount_page = int(response.xpath(self.loc.count_pagination_loc).get() or current_page)
+        amount_page = 5
+        links_to_lots = response.xpath(self.loc.link_to_trade_loc).getall()
         trade_links = response.meta.get('trade_links', set())
-        for link in links_to_trade:
-            link = BS(str(link), features='lxml').find('a').get('href')
-            link = self.url.url_join(data_origin_url, link)
-            link = ''.join(re.sub(r'\#lot\d+', '', link)).strip()
-            if link:
-                link = re.sub(r'&.+$', '', link).strip()
-                trade_links.add(link)
+        for link in links_to_lots:
+            trade_links.add('-'.join(link.split('-')[:-1]) + '-1')
         if amount_page > 1 and int(current_page) < amount_page:
             current_page = int(current_page) + 1
             yield Request(
@@ -82,7 +81,6 @@ class MetsSpider(scrapy.Spider):
                 meta={"current_page": current_page, "trade_links": trade_links}
             )
         else:
-            trade_links = set(trade_links)
             for link in trade_links:
                 yield Request(self.url.parse_url(link), callback=self.sort_trades, errback=self.errback_httpbin)
 
@@ -108,15 +106,15 @@ class MetsSpider(scrapy.Spider):
         property_info = comp.offer.property_info
         status = comp.offer.status
         for lot in comp.offer.count_lots:
-            loader = MetsItemLoader(CrawlerMetsItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
             loader.add_value('trading_id', comp.offer.trading_id)
-            loader.add_value('trading_link', response.url)
+            loader.add_value('trading_link', comp.offer.trading_link)
             loader.add_value('trading_number', comp.offer.trading_number)
             loader.add_value('trading_type', trading_type)
             loader.add_value('trading_form', trading_form)
             trading_number = loader.get_collected_values('trading_number')
-            loader.add_value('trading_org', comp.offer.trading_org_loc)
+            loader.add_value('trading_org', comp.offer.trading_org)
             loader.add_value('trading_org_inn', comp.offer.trading_org_inn)
             loader.add_value('trading_org_contacts', comp.offer.trading_org_contacts)
             loader.add_value('msg_number', comp.offer.msg_number)
@@ -128,11 +126,14 @@ class MetsSpider(scrapy.Spider):
             # PARSE LOT
             lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
-            loader.add_value('lot_link', response.url + ('&lot=' + lot_number if lot_number != '1' else ''))
+            loader.add_value('lot_link', comp.offer.lot_link(lot_number))
             if (response.url, lot_number) not in self.previous_lots:
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
+                address, region = comp.offer.get_address() or (None, None)
+                loader.add_value('address', address)
+                loader.add_value('region', region)
                 loader.add_value('property_information', property_info)
                 loader.add_value('start_price', comp.offer.start_price(lot_number))
                 loader.add_value('step_price', comp.auc.step_price(trading_number, lot_number))
@@ -153,14 +154,14 @@ class MetsSpider(scrapy.Spider):
         property_info = comp.offer.property_info
         status = comp.offer.status
         for lot in comp.offer.count_lots:
-            loader = MetsItemLoader(CrawlerMetsItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
             loader.add_value('trading_id', comp.offer.trading_id)
             loader.add_value('trading_link', comp.offer.trading_link)
             loader.add_value('trading_number', comp.offer.trading_number)
             loader.add_value('trading_type', trading_type)
             loader.add_value('trading_form', trading_form)
-            loader.add_value('trading_org', comp.offer.trading_org_loc)
+            loader.add_value('trading_org', comp.offer.trading_org)
             loader.add_value('trading_org_inn', comp.offer.trading_org_inn)
             loader.add_value('trading_org_contacts', comp.offer.trading_org_contacts)
             loader.add_value('msg_number', comp.offer.msg_number)
@@ -172,11 +173,14 @@ class MetsSpider(scrapy.Spider):
             # PARSE LOT
             lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
-            loader.add_value('lot_link', response.url + ('&lot=' + lot_number if lot_number != '1' else ''))
-            if (response.url, lot_number) not in self.previous_lots:
+            loader.add_value('lot_link', comp.offer.lot_link(lot_number))
+            if (comp.offer.trading_link, lot_number) not in self.previous_lots:
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
+                address, region = comp.offer.get_address() or (None, None)
+                loader.add_value('address', address)
+                loader.add_value('region', region)
                 loader.add_value('property_information', property_info)
                 loader.add_value('start_price', comp.offer.start_price(lot_number))
                 loader.add_value('start_date_requests', comp.offer.start_date_request(lot_number))

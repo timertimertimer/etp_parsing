@@ -2,10 +2,9 @@ from bs4 import BeautifulSoup as BS
 import logging
 import re
 import unicodedata
-from crawler_akosta.utils.work_with_text_and_number import dedent_func
 import pandas as pd
 
-from crawler_akosta.utils.working_with_time import format_time_auction
+from general_utils import format_time_auction, dedent_func
 
 logger = logging.getLogger(__name__)
 

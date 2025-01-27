@@ -1,4 +1,4 @@
-from location import get_region
+from general_utils import get_region
 from .libraries import *
 import logging
 
@@ -226,7 +226,7 @@ class SerpParse:
                             (get_region(sud) if sud else None) or
                             (get_region(region) if region else None)
                     )
-                return self.addresses[address]
+                return address, self.addresses[address]
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR function {self.get_address.__name__}')
 

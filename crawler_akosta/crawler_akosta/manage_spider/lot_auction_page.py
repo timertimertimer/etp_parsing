@@ -2,8 +2,7 @@ from bs4 import BeautifulSoup as BS
 import logging
 import re
 
-from crawler_akosta.utils.work_with_text_and_number import dedent_func
-from crawler_akosta.utils.working_with_time import format_time_auction
+from general_utils import dedent_func
 
 logger = logging.getLogger(__name__)
 
@@ -88,10 +87,11 @@ class LotAuctionPage:
         """ :return start price auction """
         try:
             step_price = self.soup.find('label', string=re.compile('Шаг аукциона:?', re.IGNORECASE))
-            step_price = step_price.next_sibling
-            p = ''.join([p for p in step_price if p.isdigit() or p == '.'])
-            p = re.sub(r'\.$', '', p).strip()
-            if len(p) > 0:
-                return round(float(p), 2)
+            if step_price:
+                step_price = step_price.next_sibling
+                p = ''.join([p for p in step_price if p.isdigit() or p == '.'])
+                p = re.sub(r'\.$', '', p).strip()
+                if len(p) > 0:
+                    return round(float(p), 2)
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR "CRITICAL" STEP PRICE AUCTION {e}')

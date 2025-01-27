@@ -28,7 +28,7 @@ post_data_auction = {
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptINN_ИННдолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника_desc': '',
-    'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
+    # 'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
     '__ASYNCPOST': 'true',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton': 'Искать аукционы',
 }
@@ -83,7 +83,7 @@ post_data_offer = {
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptINN_ИННдолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника_desc': '',
-    'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
+    # 'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
     '__ASYNCPOST': 'true',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton': 'Искать публичные предложени',
 }
@@ -118,7 +118,7 @@ post_data_competition = {
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptINN_ИННдолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_BankruptRegionID_Региондолжника_desc': '',
-    'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
+    # 'hiddenInputToUpdateATBuffer_CommonToolkitScripts': '1',
     '__ASYNCPOST': 'true',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton': 'Искать конкурсы',
 }

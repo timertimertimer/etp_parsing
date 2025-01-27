@@ -4,12 +4,12 @@ from typing import Iterable
 import scrapy
 from scrapy import Request, FormRequest
 
-from ..items import CrawlerVertradesItemLoader, CrawlerVertradesItem
-from ..utils.config import start_time_from, data_origin_url
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, UrlConfig
+from general_utils.config import start_date
+from ..utils.config import data_origin_url, main_url
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.params_data import params_data
 from ..trades.app import Combo
-from ..utils.working_with_time import return_parse_date
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +25,13 @@ class VertradesSpider(scrapy.Spider):
         self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self) -> Iterable[Request]:
-        params_data["from"] = start_time_from
+        params_data["from"] = start_date
         yield FormRequest(self.start_urls[0], callback=self.parse, formdata=params_data, method="GET")
 
     def parse(self, response):
         combo = Combo(response)
         for link in combo.serp.get_trading_links():
-            if link not in self.previous_lots:
+            if UrlConfig.url_join(main_url, link.removesuffix('#lot')) not in self.previous_lots:
                 yield response.follow(link, callback=self.parse_trading)
 
     def parse_trading(self, response):
@@ -46,7 +46,7 @@ class VertradesSpider(scrapy.Spider):
         msg_number = combo.msg_number
         case_number = combo.case_number
         debtor_inn = combo.debitor_inn
-        address = combo.address
+        address, region = combo.get_address() or (None, None)
         arbit_manager = combo.arbitr_manager
         arbit_manager_inn = combo.arbitr_inn
         arbit_manager_org = combo.arbitr_manager_org
@@ -54,7 +54,7 @@ class VertradesSpider(scrapy.Spider):
         end_date_requests = combo.end_date_requests
         general_files = combo.download_general()
         for lot in combo.get_lots():
-            loader = CrawlerVertradesItemLoader(CrawlerVertradesItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value("data_origin", data_origin_url)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", response.url)
@@ -69,6 +69,7 @@ class VertradesSpider(scrapy.Spider):
             loader.add_value("case_number", case_number)
             loader.add_value("debtor_inn", debtor_inn)
             loader.add_value("address", address)
+            loader.add_value("region", region)
             loader.add_value("arbit_manager", arbit_manager)
             loader.add_value("arbit_manager_inn", arbit_manager_inn)
             loader.add_value("arbit_manager_org", arbit_manager_org)

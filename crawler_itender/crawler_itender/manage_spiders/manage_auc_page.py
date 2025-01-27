@@ -2,14 +2,10 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from location import get_region
+from general_utils import get_region, dedent_func, CheckIfCorrectContactInfo, UrlConfig, format_time_auction
 from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
-from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
-from ..utils.code_for_edit_and_format.work_with_text_and_number import dedent_func
-from ..utils.code_for_edit_and_format.check_inn_email_phone import CheckIfCorrectContactInfo
 import logging
-from ..utils.code_for_edit_and_format.working_with_time import format_time_auction
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +17,6 @@ class AuctionPage:
         self.response = _response
         self.loc = LocatorSerp
         self.loc_auc = AuctionLocator
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
@@ -94,7 +88,7 @@ class AuctionPage:
             _inn = self.response.xpath(self.loc_auc.organizer_inn_loc).get()
             if _inn:
                 _inn = BS(str(_inn), features='lxml').get_text()
-                return self.check.check_inn(dedent_func(_inn))
+                return CheckIfCorrectContactInfo.check_inn(dedent_func(_inn))
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR INN ORG')
 
@@ -104,7 +98,7 @@ class AuctionPage:
             phone = self.response.xpath(self.loc_auc.organizer_phone_loc).get()
             if phone:
                 phone = BS(str(phone), features='lxml').get_text()
-                return self.check.check_phone(dedent_func(phone))
+                return CheckIfCorrectContactInfo.check_phone(dedent_func(phone))
             else:
                 return ''
         except Exception as e:
@@ -117,7 +111,7 @@ class AuctionPage:
             email = self.response.xpath(self.loc_auc.organizer_email_loc).get()
             if email:
                 email = BS(str(email), features='lxml').get_text()
-                return self.check.check_email(dedent_func(email))
+                return CheckIfCorrectContactInfo.check_email(dedent_func(email))
             else:
                 return ''
         except Exception as e:
@@ -143,7 +137,7 @@ class AuctionPage:
         if number:
             number = BS(str(number), features='lxml').get_text()
             if len(number) > 4:
-                return self.check.check_case_number(number)
+                return CheckIfCorrectContactInfo.check_case_number(number)
 
     def get_debtor_inn(self):
         """ :return debtor inn """
@@ -151,7 +145,7 @@ class AuctionPage:
             _inn = self.response.xpath(self.loc_auc.debtor_inn_loc).get()
             if _inn:
                 _inn = BS(str(_inn), features='lxml').get_text()
-                return self.check.check_inn(dedent_func(_inn))
+                return CheckIfCorrectContactInfo.check_inn(dedent_func(_inn))
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR INN DEBTOR\n{e}')
 
@@ -164,7 +158,7 @@ class AuctionPage:
                     address = BS(str(self.response.xpath(self.loc_auc.sud_loc).get()), 'lxml').get_text()
                 if address not in self.addresses:
                     self.addresses[address] = get_region(address)
-                return self.addresses[address]
+                return address, self.addresses[address]
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}')
 
@@ -245,7 +239,7 @@ class AuctionPage:
                     link = table.find('a', string=lot_number.strip())
                     if link:
                         link = link.get('href')
-                        return self.url.url_join(data_origin, link)
+                        return UrlConfig.url_join(data_origin, link)
         except Exception as e:
             logger.critical(f'{self.response.url} :{e}: INVALID DATA LOT TABLE', exc_info=True)
             return None
@@ -369,9 +363,10 @@ class AuctionPage:
             rub = self.response.xpath(self.loc_auc.step_price_auc_rub).get()
             if rub:
                 price = dedent_func(BS(str(rub), features='lxml').get_text().strip().replace(',', '.'))
-                price = ''.join([x for x in price if x.isdigit() or x == '.'])
-                if len(price) > 0:
-                    return round(float(price), 2)
+                if price:
+                    price = ''.join([x for x in price if x.isdigit() or x == '.'])
+                    if len(price) > 0:
+                        return round(float(price), 2)
             elif percent := self.response.xpath(self.loc_auc.step_price_auc_percent).get():
                 if percent:
                     price = dedent_func(BS(str(rub), features='lxml').get_text().strip().replace(',', '.'))

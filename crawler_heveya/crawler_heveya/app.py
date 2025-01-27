@@ -4,6 +4,7 @@ from itertools import takewhile
 
 from bs4 import BeautifulSoup
 
+from general_utils import get_region
 from .utils.download import DownloadFiles
 from .utils.work_with_path_and_dir import LotFilesDir
 from .utils.working_with_time import format_time
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
     def __init__(self, response):
         self.response = response
         self.check = CheckIfCorrectContactInfo()
@@ -144,14 +146,7 @@ class Combo:
 
     @property
     def trading_form(self):
-        form = self.soup.find('h2', class_='blockHeader', text='Форма проведения торгов')
-        if not form:
-            return
-        form = dedent_func(form.find_next('p').get_text()).lower()
-        if 'открыт' in form:
-            return 'open'
-        elif 'закрыт' in form:
-            return 'closed'
+        return 'open'
 
     @property
     def case_number(self):
@@ -164,6 +159,18 @@ class Combo:
         inn = self.soup.find('span', text=contains('ИНН должника'))
         if inn:
             return self.check.check_inn(dedent_func(inn.find_next('span').get_text()))
+
+    def get_address(self):
+        address = self.soup.find('span', class_='dataCaption', text=contains('Адрес'))
+        if not address:
+            return
+        address = dedent_func(address.find_next('span', class_='item__value value').get_text(strip=True))
+        if address == 'Торги по банкротству':
+            pass
+        if address and 'Информация скрыта' not in address:
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return address, self.addresses[address]
 
     @property
     def arbit_manager(self):
@@ -203,7 +210,9 @@ class Combo:
 
     @property
     def property_information(self):
-        return dedent_func(self.soup.find('h2', text='Порядок осмотра').find_next('p').get_text())
+        info = self.soup.find('h2', text='Порядок осмотра')
+        if info:
+            return dedent_func(info.find_next('p').get_text())
 
     @property
     def start_date_requests(self):

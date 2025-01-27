@@ -5,7 +5,7 @@ from itertools import takewhile
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from ..utils.working_with_time import format_time
+from general_utils import format_time
 
 logger = logging.getLogger(__name__)
 

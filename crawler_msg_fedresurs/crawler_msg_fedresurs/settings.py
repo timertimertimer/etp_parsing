@@ -62,7 +62,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 LOG_LEVEL = 'INFO'
-LOG_FILE = './fedres_msg.log'
+# LOG_FILE = 'fedres_msg.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 RETRY_ENABLED = True

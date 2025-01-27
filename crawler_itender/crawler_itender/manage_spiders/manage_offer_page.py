@@ -1,16 +1,14 @@
 import re
 import pathlib
+import pandas as pd
 from bs4 import BeautifulSoup as BS
+
+from general_utils import dedent_func, UrlConfig, FilesDir, format_time_auction
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
-from ..utils.code_for_edit_and_format.work_with_path_and_dir import GeneralFilesDir
 from ..utils.config import path_absolute, path_relative, lst_exet, data_origin, lst_exet_archive
-from ..utils.code_for_edit_and_format.working_with_url import UrlConfig
-from ..utils.code_for_edit_and_format.work_with_text_and_number import dedent_func
-from ..utils.code_for_edit_and_format.check_inn_email_phone import CheckIfCorrectContactInfo
 import logging
 from ..utils.download_img_files.download2 import DownloadFiles
-from ..utils.code_for_edit_and_format.working_with_time import format_time_auction, format_time
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +20,6 @@ class OfferPage:
         self.response = _response
         self.loc = LocatorSerp
         self.loc_offer = OfferLocator
-        self._dir = GeneralFilesDir()
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
@@ -51,7 +46,7 @@ class OfferPage:
                     link = table.find('a', string=lot_number)
                     if link:
                         link = link.get('href')
-                        return self.url.url_join(_data_origin, link)
+                        return UrlConfig.url_join(_data_origin, link)
         except Exception as e:
             logger.critical(f'{self.response.url} :{e}: INVALID DATA LOT TABLE', exc_info=True)
             return None
@@ -89,7 +84,6 @@ class OfferPage:
     def get_period_table(self):
         """return pandas table """
         try:
-            import pandas as pd
             table = self.response.xpath(self.loc_offer.period_table_loc).get()
             table = BS(str(table), features='lxml')
             table = pd.read_html(str(table).replace(',', '.'))
@@ -112,9 +106,9 @@ class OfferPage:
                     price = round(float(price.replace('&nbsp;', '')), 2)
 
                     period = {
-                        'start_date_requests': format_time(start),
-                        'end_date_requests': format_time(end),
-                        'end_date_trading': format_time(end),
+                        'start_date_requests': format_time_auction(start),
+                        'end_date_requests': format_time_auction(end),
+                        'end_date_trading': format_time_auction(end),
                         'current_price': price
                     }
                     period_lst.append(period)
@@ -129,7 +123,7 @@ class OfferPage:
     def start_date_request_offer(self):
         """ return start date request """
         try:
-            start = format_time(self.get_period_table().iloc[1][1])
+            start = format_time_auction(self.get_period_table().iloc[1][1])
             return start
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA start date request offer\n{e}')
@@ -139,7 +133,7 @@ class OfferPage:
     def end_date_request_offer(self):
         """ :return end date request offer"""
         try:
-            end = format_time(self.get_period_table().iloc[-1][2])
+            end = format_time_auction(self.get_period_table().iloc[-1][2])
             return end
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA start date request offer\n{e}')
@@ -173,8 +167,9 @@ class OfferPage:
         links = self.response.xpath(self.loc_offer.documents).getall()
         return links
 
-    def general_files(self, _id, _data_origin, host):
+    def general_files(self, _id, _data_origin, host, crawler_name):
         """return dictionary with general files"""
+        files_dir = FilesDir(path_relative[crawler_name], path_absolute[crawler_name])
         load = DownloadFiles()
         try:
             general_dict = dict()
@@ -184,55 +179,40 @@ class OfferPage:
                 for d in doc:
                     d = BS(str(d), features='lxml')
                     link_etp = d.find('a').get('href')
-                    link_etp = self.url.url_join(_data_origin, link_etp[1:])
+                    link_etp = UrlConfig.url_join(_data_origin, link_etp[1:])
                     file_name = d.find('a').get_text()
-                    _path_absolute = ''
-                    _path_relative = ''
                     # on utender parser will frozen when download png pictures
                     if 'utender.ru' not in self.response.url:
                         lst_exet_ = lst_exet
                     else:
                         lst_exet_ = ['.jpeg', '.jpg', '.bmp', '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
+                    files_dir.create_dir()
+                    name_on_server = files_dir.name_file_on_server(_id, original_name=file_name)
+                    _path_absolute = files_dir.return_absolute_path(name_on_server)
+                    _path_relative = files_dir.return_relative_path(name_on_server)
                     if pathlib.Path(file_name.replace(' ', '')).suffix in lst_exet_:
                         # itterate thought dictc and find path according dict key
-                        name_on_server = self._dir.name_file_on_server(_id, original_name=file_name)
-                        for k, v in data_origin.items():
-                            if v == _data_origin:
-                                _path_absolute = path_absolute[k]
-                                _path_relative = path_relative[k]
-                        self._dir.create_dir(_path_absolute)
-                        _path_absolute = self._dir.return_absolute_path(name=name_on_server,
-                                                                        _path_absolute=_path_absolute)
-                        _path_relative = self._dir.name_in_column_files(name=name_on_server, _path_rel=_path_relative)
                         load.request_to_download_general(url=link_etp, referer=self.response.url,
                                                          _abs_path=_path_absolute,
                                                          host=host, _id=_id, _relative_path=_path_relative)
-                        general_lst.append({'original_name': file_name, 'link': _path_relative, 'link_etp': link_etp})
+                        general_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
                     elif pathlib.Path(file_name).suffix in lst_exet_archive:
-                        name_on_server = self._dir.name_file_on_server(_id, original_name=file_name)
-                        for k, v in data_origin.items():
-                            if v == _data_origin:
-                                _path_absolute = path_absolute[k]
-                                _path_relative = path_relative[k]
-                        self._dir.create_dir(_path_absolute)
-                        _path_absolute = self._dir.return_absolute_path(name=name_on_server,
-                                                                        _path_absolute=_path_absolute)
-                        _path_relative = self._dir.name_in_column_files(name=name_on_server, _path_rel=_path_relative)
                         archive_files = load.request_to_download_general(url=link_etp, referer=self.response.url,
                                                                          _abs_path=_path_absolute,
                                                                          host=host, _id=_id,
                                                                          _relative_path=_path_relative)
                         general_lst.extend(archive_files)
                     else:
-                        general_lst.append({'original_name': file_name, 'link': _path_relative, 'link_etp': link_etp})
+                        general_lst.append({'original_name': file_name, 'link': '', 'link_etp': link_etp})
                 general_dict['general'] = general_lst
             return general_dict
         except:
             pass
 
-    def lot_files(self, _id, lot_num, _data_origin, host):
+    def lot_files(self, _id, lot_num, _data_origin, host, crawler_name):
         """ return dictionary with lots files"""
         load = DownloadFiles()
+        files_dir = FilesDir(path_relative[crawler_name], path_absolute[crawler_name])
         try:
             lot_dict = dict()
             lot_lst = list()
@@ -241,10 +221,12 @@ class OfferPage:
                 for d in doc:
                     d = BS(str(d), features='lxml')
                     link_etp = d.find('a').get('href')
-                    link_etp = self.url.url_join(_data_origin, link_etp[1:])
+                    link_etp = UrlConfig.url_join(_data_origin, link_etp[1:])
                     file_name = d.find('a').get_text()
-                    _path_absolute = ''
-                    _path_relative = ''
+                    files_dir.create_dir()
+                    name_on_server = files_dir.name_file_lot_on_server(_id, lot_num, file_name)
+                    _path_absolute = files_dir.return_absolute_path(name_on_server)
+                    _path_relative = files_dir.return_relative_path(name_on_server)
                     # if file is picture
                     # on utender parser will frozen when download png pictures
                     if 'utender.ru' not in self.response.url:
@@ -253,39 +235,19 @@ class OfferPage:
                         lst_exet_ = ['.jpeg', '.jpg', '.bmp', '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
                     if pathlib.Path(file_name.replace(' ', '')).suffix in lst_exet_:
                         # itterate thought dictc and find path according dict key
-                        name_on_server = self._dir.name_file_on_server_lot(_id, lot_num=lot_num,
-                                                                           original_name=file_name)
-                        for k, v in data_origin.items():
-                            if v == _data_origin:
-                                _path_absolute = path_absolute[k]
-                                _path_relative = path_relative[k]
-                        self._dir.create_dir(_path_absolute)
-                        _path_absolute = self._dir.return_absolute_path(name=name_on_server,
-                                                                        _path_absolute=_path_absolute)
-                        _path_relative = self._dir.name_in_column_files(name=name_on_server, _path_rel=_path_relative)
                         load.request_to_download_general(url=link_etp, referer=self.response.url,
                                                          _abs_path=_path_absolute,
                                                          host=host, _id=_id,
                                                          _relative_path=_path_relative)
-                        lot_lst.append({'original_name': file_name, 'link': _path_relative, 'link_etp': link_etp})
+                        lot_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
                     elif pathlib.Path(file_name).suffix in lst_exet_archive:
-                        name_on_server = self._dir.name_file_on_server_lot(_id, lot_num=lot_num,
-                                                                           original_name=file_name)
-                        for k, v in data_origin.items():
-                            if v == _data_origin:
-                                _path_absolute = path_absolute[k]
-                                _path_relative = path_relative[k]
-                        self._dir.create_dir(_path_absolute)
-                        _path_absolute = self._dir.return_absolute_path(name=name_on_server,
-                                                                        _path_absolute=_path_absolute)
-                        _path_relative = self._dir.name_in_column_files(name=name_on_server, _path_rel=_path_relative)
                         archive_files = load.request_to_download_general(url=link_etp, referer=self.response.url,
                                                                          _abs_path=_path_absolute,
                                                                          host=host, _id=_id,
                                                                          _relative_path=_path_relative)
                         lot_lst.extend(archive_files)
                     else:
-                        lot_lst.append({'original_name': file_name, 'link': _path_relative, 'link_etp': link_etp})
+                        lot_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
                 lot_dict['lot'] = lot_lst
             return lot_dict
         except Exception as e:

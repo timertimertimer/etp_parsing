@@ -29,7 +29,7 @@ class TorgiBankrotSpider(Spider, ABC):
     name = 'torg_bankrot_archived'
     start_url = 'https://gosbar.gosuslugi.ru/sites/torgi.gov.ru'
     custom_settings = {
-        'LOG_FILE': './torgi_bankrot.log',
+        # 'LOG_FILE': f'{name}.log',
         'LOG_LEVEL': 'INFO',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_torgigov.middlewares.CrawlerTorgigovDownloaderMiddleware': 543,

@@ -1,7 +1,7 @@
 from mysql.connector import MySQLConnection
 
-from crawler_altimeta.python_mysql_dbconfig import read_db_config
-from crawler_altimeta.utils.config import format_parse_date
+from general_utils import read_db_config
+from general_utils.config import format_parse_date
 
 
 class DbConnectCheckLots(object):

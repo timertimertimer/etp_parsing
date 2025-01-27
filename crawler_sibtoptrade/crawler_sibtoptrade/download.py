@@ -1,21 +1,15 @@
+from random import choice
+
 import requests
 import urllib.request
 import urllib.parse
 import logging
 import urllib3
 
-from .manage import return_absolute_path
-from .config import *
+from general_utils.config import socks_list, headers
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
-
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 
 class DownloadFiles:
@@ -32,11 +26,7 @@ class DownloadFiles:
         }
 
     session = requests.Session()
-    session.headers = {
-        "User-Agent": headers_brow["User-Agent"]
-    }
-
-    headers_brow = {'User-Agent': headers_brow['User-Agent']}
+    session.headers = headers
 
     def requests_to_url(self, url):
         if ' ' in url:
@@ -57,7 +47,7 @@ class DownloadFiles:
             logger.error(f'CONNECTION ERROR {url}')
         return response.text
 
-    def request_for_download(self, url, original_name):
+    def request_for_download(self, url, original_name, absolute_path):
         if ' ' in url:
             url = urllib.parse.urlparse(url)
             url = url.scheme + '://' + url.netloc + urllib.parse.quote(url.path)
@@ -72,8 +62,7 @@ class DownloadFiles:
                         self.session.proxies.update(self.proxies)
                         stop_counter += 1
                         r = self.session.get(url, stream=True)
-                abs_path = return_absolute_path()
-                with open(abs_path + '/' + original_name, 'wb') as f:
+                with open(absolute_path + '/' + original_name, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=1024):
                         f.write(chunk)
         except Exception as e:

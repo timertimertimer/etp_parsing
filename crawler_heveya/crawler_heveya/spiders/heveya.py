@@ -1,11 +1,10 @@
 import scrapy
 from scrapy import Request, FormRequest
 
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..app import Combo
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.config import params, data_origin_url
-from ..items import CrawlerHeveyaItem, CrawlerHeveyaItemLoader
-from ..utils.working_with_time import return_parse_date
 
 
 class HeveyaSpider(scrapy.Spider):
@@ -16,7 +15,7 @@ class HeveyaSpider(scrapy.Spider):
         super(HeveyaSpider, self).__init__()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
-        
+
     def start_requests(self):
         yield FormRequest(self.start_urls[0], self.parse_serp, formdata=params, method='GET')
 
@@ -25,19 +24,20 @@ class HeveyaSpider(scrapy.Spider):
         for lot in combo.soup.find_all('div', class_='lot'):
             link = lot.find('a').get('href')
             if link not in self.previous_lots:
+                parsed_region = lot.find('div', class_='baseLocation').find('span', class_='text').get_text(strip=True)
                 status = combo.soup.find('div', class_='noBids')
                 if status:
                     status = 'pending' if 'noBids_theme_blue' in status.get('class') else 'ended'
                 else:
                     status = 'active'
-                yield Request(link, self.parse_lot, cb_kwargs={'status': status})
+                yield Request(link, self.parse_lot, cb_kwargs={'status': status, 'parsed_region': parsed_region})
         next_page = combo.soup.find('a', {'aria-label': 'pagination.next'})
         if next_page:
             yield FormRequest(next_page['href'], self.parse_serp, method='GET')
-                
-    def parse_lot(self, response, status):
+
+    def parse_lot(self, response, status, parsed_region):
         combo = Combo(response)
-        loader = CrawlerHeveyaItemLoader(CrawlerHeveyaItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         trading_type, trading_org, trading_org_contacts, start_price, step_price = combo.get_main_info()
         loader.add_value("data_origin", data_origin_url)
         loader.add_value("trading_id", combo.trading_id)
@@ -49,6 +49,9 @@ class HeveyaSpider(scrapy.Spider):
         loader.add_value("trading_org_contacts", trading_org_contacts)
         loader.add_value("case_number", combo.case_number)
         loader.add_value("debtor_inn", combo.debtor_inn)
+        address, region = combo.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region or parsed_region)
         loader.add_value("arbit_manager", combo.arbit_manager)
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)
@@ -69,4 +72,3 @@ class HeveyaSpider(scrapy.Spider):
         loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
         loader.add_value("created_at", return_parse_date())
         yield loader.load_item()
-        

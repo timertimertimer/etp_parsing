@@ -34,4 +34,4 @@ def aukcioncenter():
 
 
 if __name__ == '__main__':
-    regtorg_com()
+    etp_profit_ru()

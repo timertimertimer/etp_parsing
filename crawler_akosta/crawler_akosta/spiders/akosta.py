@@ -1,19 +1,16 @@
 import copy
 import logging
 from itertools import chain
-
 from scrapy import Spider, Request, FormRequest
-
-from ..items import TransferAkostaItem, CrawlerAkostaItemLoader, CrawlerAkostaItem
+from general_utils.db import DBHelper
+from general_utils.config import start_date
+from general_utils.items import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.working_with_time import return_servertime, return_parse_date
 from ..manage_spider.app import Combo
-from ..utils.config import start_time, end_time, search_link, data_origin_url, common_link, debtor_link, lot_link, \
-    _link_post_period
-from ..utils.download import DownloadFiles
-from ..utils.get_data_from_table import DbConnectCheckLots
+from ..utils.config import search_link, data_origin, common_link, debtor_link, lot_link, _link_post_period
 from ..utils.post_data import post_data_date_query, post_data_pagination, post_data_to_trade, \
     post_data_panel_list_query, post_data_debitor, post_data_lot_tab, post_data_unique_lot_page, \
     post_data_period_offer_page
-from ..utils.working_with_time import return_servertime, return_parse_date
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +18,15 @@ logger = logging.getLogger(__name__)
 class AkostaSpider(Spider):
     name = 'akosta'
     start_urls = ['https://www.akosta.info/akosta/lots.xhtml']
+    custom_settings = {
+        'UNIQUE_CO': ['trading_id', 'lot_number'],
+        # 'LOG_FILE': f'{name}.log'
+    }
 
     def __init__(self, *args, **kwargs):
         super(AkostaSpider, self).__init__(*args, **kwargs)
-        self.down = DownloadFiles()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        self.db_check = DBHelper(self.custom_settings.get('TABLE_NAME', f'lots_{self.name}'))
+        self.previous_lots = self.db_check.get_latest_lot(['trading_id'])
 
     def start_requests(self):
         yield Request(self.start_urls[0] + '?sgUnid=3', self.parse)
@@ -36,8 +36,8 @@ class AkostaSpider(Spider):
         viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         post_data_date_query["formMain:inputServerTime"] = return_servertime()
         post_data_date_query["javax.faces.ViewState"] = viewstate
-        post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_time
-        post_data_date_query["formMain:toIdAcceptancePeriod_input"] = end_time
+        post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
+        # post_data_date_query["formMain:toIdAcceptancePeriod_input"] = ''
         yield FormRequest(
             self.start_urls[0], callback=self.refresh_from_date, formdata=post_data_date_query, dont_filter=True
         )
@@ -50,8 +50,8 @@ class AkostaSpider(Spider):
         viewstate = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         post_data_panel_list_query["formMain:inputServerTime"] = return_servertime()
         post_data_panel_list_query["javax.faces.ViewState"] = viewstate
-        post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_time
-        post_data_panel_list_query["formMain:toIdAcceptancePeriod_input"] = end_time
+        post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
+        # post_data_panel_list_query["formMain:toIdAcceptancePeriod_input"] = ''
         yield FormRequest.from_response(
             response, callback=self.refresh_panel_list, formdata=post_data_panel_list_query, dont_filter=True
         )
@@ -69,7 +69,7 @@ class AkostaSpider(Spider):
             sources = dict()
             for tag_tr in combo.pre.get_trade_links():
                 data, id_ = combo.pre.get_post_id_and_trading_id(tag_tr)
-                if id_ in self.previous_lots:
+                if (id_, ) in self.previous_lots:
                     continue
                 if id_ not in sources:
                     sources[id_] = data
@@ -86,7 +86,7 @@ class AkostaSpider(Spider):
             post_data = copy.deepcopy(post_data_to_trade)
             post_data['javax.faces.source'] = data
             post_data["formMain:inputServerTime"] = return_servertime()
-            post_data["formMain:fromIdAcceptancePeriod_input"] = start_time
+            post_data["formMain:fromIdAcceptancePeriod_input"] = start_date
             post_data["javax.faces.ViewState"] = viewstate
             post_data[data] = data
             yield FormRequest(
@@ -125,8 +125,8 @@ class AkostaSpider(Spider):
 
     def parse_trade_page(self, response, sources, page_number, total_pages, trading_id):
         combo = Combo(_response=response)
-        transfer = TransferAkostaItem()
-        transfer['data_origin'] = data_origin_url
+        transfer = CrawlerBankruptItem()
+        transfer['data_origin'] = data_origin
         transfer['trading_id'] = trading_id
         transfer['trading_link'] = response.url
         trading_type = combo.trade.get_trading_type()
@@ -143,7 +143,7 @@ class AkostaSpider(Spider):
         # !!! DOCS !!!
         new_view = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         general_files = combo.main_.download_trade(
-            url=common_link, trade_id=''.join(transfer['trading_id']), view=new_view,
+            url=common_link, trading_id=''.join(transfer['trading_id']), view=new_view,
             cookies=response.request.headers['Cookie'].decode()
         )
 
@@ -175,7 +175,7 @@ class AkostaSpider(Spider):
         transfer['debtor_inn'] = combo.deb.get_debtor_inn()
         if combo.deb.soup.find('input', type='checkbox')['checked']:
             transfer['trading_org_inn'] = transfer['arbit_manager_inn']
-        transfer['debtor_address'] = combo.deb.get_debtor_address()
+        transfer['address'], transfer['region'] = combo.deb.get_debtor_address() or (None, None)
         post_data_lot_tab['formMain:inputServerTime'] = return_servertime()
         post_data_lot_tab['javax.faces.ViewState'] = debtor_view_state
         yield FormRequest(
@@ -276,7 +276,7 @@ class AkostaSpider(Spider):
                         total_pages):
         """ parse lot with type - offer """
         combo = Combo(_response=response)
-        loader = CrawlerAkostaItemLoader(CrawlerAkostaItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -289,7 +289,8 @@ class AkostaSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
-        loader.add_value('debtor_address', transfer['debtor_address'])
+        loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -331,7 +332,7 @@ class AkostaSpider(Spider):
                 _link_post_period, callback=self.parse_period_offer_pages, formdata=_form, dont_filter=True,
                 cb_kwargs={
                     'loader': loader, '_form': _form, 'periods_': period_first_page, 'current': 1, 'total': total,
-                    'sources': sources, 'page_number': page_number, 'total_pages': total_pages
+                    'sources': sources, 'page_number': page_number
                 }
             )
         else:
@@ -343,8 +344,7 @@ class AkostaSpider(Spider):
             loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
 
-    def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number,
-                                 total_pages):
+    def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number):
         combo = Combo(_response=response)
         next_periods: list = combo.offer.return_next_periods()
         periods_.extend(next_periods)
@@ -356,7 +356,7 @@ class AkostaSpider(Spider):
                 _link_post_period, callback=self.parse_period_offer_pages, formdata=_form, dont_filter=True,
                 cb_kwargs={
                     'loader': loader, '_form': _form, 'periods_': periods_, 'current': current, 'total': total,
-                    'sources': sources, 'page_number': page_number, 'total_pages': total
+                    'sources': sources, 'page_number': page_number
                 }
             )
         else:
@@ -373,7 +373,7 @@ class AkostaSpider(Spider):
         # with open('res_lot.txt', 'w') as f:
         #     f.write(response.text)
         combo = Combo(_response=response)
-        loader = CrawlerAkostaItemLoader(CrawlerAkostaItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -386,7 +386,8 @@ class AkostaSpider(Spider):
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
-        loader.add_value('debtor_address', transfer['debtor_address'])
+        loader.add_value('address', transfer['address'])
+        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

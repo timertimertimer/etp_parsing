@@ -1,21 +1,16 @@
 from itertools import chain
 
 import scrapy
-import scrapy_splash
 from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
-from scrapy_splash import SplashRequest
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from ..settings import DEFAULT_REQUESTS_HEADERS
-from ..items import CrawlerNistpruItemLoader, CrawlerNistpTransferItem, CrawlerNistpruItem
+from general_utils import return_parse_date, CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.config import start_date
 from ..trades.app import Combo
-from ..utils.config import start_time, _data_origin, script_lua
-from ..utils.download import agent_list, choice
+from ..utils.config import _data_origin
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.param_data import param_search as ps
-from ..utils.working_with_time import return_parse_date
-from ..utils.working_with_url import UrlConfig
 
 
 class NistpSpider(scrapy.Spider):
@@ -25,35 +20,25 @@ class NistpSpider(scrapy.Spider):
    
     def __init__(self):
         super(NistpSpider, self).__init__()
-        self.url = UrlConfig()
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
 
 
     def start_requests(self):
-        header = DEFAULT_REQUESTS_HEADERS
-        # yield SplashRequest(url=''.join(self.start_url),
-        #                     endpoint='execute',
-        #                     cache_args=['lua_source'],
-        #                     args={'lua_source': script_lua},
-        #                     slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
-        #                     callback=self.parse_, splash_headers=DEFAULT_REQUESTS_HEADERS, cb_kwargs={'header': header},
-        #               errback=self.errback_httpbin)
-        yield Request(url=''.join(self.start_url), callback=self.parse_, headers=header, cb_kwargs={'header': header},
-                      errback=self.errback_httpbin)
+        yield Request(url=''.join(self.start_url), callback=self.parse_, errback=self.errback_httpbin)
         
    
-    def parse_(self, response, header):
+    def parse_(self, response):
         """ parse main page and make GET request with params """
         try:
             cookie = response.headers.getlist('Set-Cookie')
         except:
             cookie = ''
-        ps['app_start_from'] = start_time
-        yield FormRequest(url=''.join(self.start_url), callback=self.search_serp, formdata=ps, method='GET', headers=header,
-                          cb_kwargs={'header': header, 'cookie': cookie}, errback=self.errback_httpbin)
+        ps['app_start_from'] = start_date
+        yield FormRequest(url=''.join(self.start_url), callback=self.search_serp, formdata=ps, method='GET',
+                          cb_kwargs={'cookie': cookie}, errback=self.errback_httpbin)
 
-    def search_serp(self, response, header, cookie):
+    def search_serp(self, response, cookie):
         """ parse serp page after GET request with date param """
         combo = Combo(response_=response)
         current_page = combo.serp.get_current_page()
@@ -61,28 +46,27 @@ class NistpSpider(scrapy.Spider):
         for link in combo.serp.links_to_trade():
             # header['Referer'] = response.url
             # header['User-Agent'] = choice(agent_list)
-            yield Request(url=link[0], callback=self.parse_trade, headers=header,
-                          cb_kwargs={'header': header, 'cookie': cookie, 'trading_number': link[1]})
+            yield Request(url=link[0], callback=self.parse_trade,
+                          cb_kwargs={'cookie': cookie, 'trading_number': link[1]})
 
         if current_page < next_page:
             ps['pagenum'] = str(next_page)
             yield FormRequest(url=''.join(self.start_url), callback=self.search_serp, formdata=ps, method='GET',
-                              headers=header,
-                              cb_kwargs={'header': header, 'cookie': cookie}, errback=self.errback_httpbin)
+                              cb_kwargs={'cookie': cookie}, errback=self.errback_httpbin)
 
     #def start_requests(self):
      #   header = DEFAULT_REQUESTS_HEADERS
-      #      yield Request(url=i, callback=self.parse_trade, headers=header, cb_kwargs={'header': header, 'trading_number':trading_number},
+      #      yield Request(url=i, callback=self.parse_trade, cb_kwargs={'trading_number':trading_number},
        #                 errback=self.errback_httpbin)
 
-    def parse_trade(self, response, header, trading_number, cookie):
+    def parse_trade(self, response, trading_number, cookie):
         """ choose type of trade """
         #try:
         #    cookie = response.headers.getlist('Set-Cookie')
         #except:
          #   cookie = ''
         combo = Combo(response_=response)
-        transfer = CrawlerNistpTransferItem()
+        transfer = CrawlerBankruptItem()
         trade_type = combo.auc.get_trading_type()
         transfer['data_origin'] = _data_origin['nistp_ru']
         transfer['trading_id'] = combo.auc.get_trading_id()
@@ -96,6 +80,7 @@ class NistpSpider(scrapy.Spider):
         transfer['msg_number'] = combo.auc.msg_number()
         transfer['case_number'] = combo.auc.case_number()
         transfer['debtor_inn'] = combo.auc.get_inn_debtor()
+        transfer['address'], transfer['region'] = combo.auc.get_address() or (None, None)
         transfer['address'] = combo.auc.get_address()
         transfer['arbit_manager'] = combo.auc.get_arbitr_full_name()
         transfer['arbit_manager_inn'] = combo.auc.get_arbitr_inn()
@@ -108,24 +93,24 @@ class NistpSpider(scrapy.Spider):
         general_files = combo.doc_gen.download_trade(_id=''.join(transfer['trading_id']))
         lots_table = combo.auc.count_lots()
         if 'auction' in trade_type:
-            return self.parse_auction(response=response, transfer_=transfer, header=header,
+            return self.parse_auction(response=response, transfer_=transfer,
                                       cookie=cookie, lots_table=lots_table,
                                       files=general_files)
         if 'offer' in trade_type:
-            return self.parse_offer(response=response, transfer_=transfer, header=header,
+            return self.parse_offer(response=response, transfer_=transfer,
                                     cookie=cookie, lots_table=lots_table,
                                     files=general_files)
         if 'competition' in trade_type:
-            return self.parse_auction(response=response, transfer_=transfer, header=header,
+            return self.parse_auction(response=response, transfer_=transfer,
                                       cookie=cookie, lots_table=lots_table,
                                       files=general_files)
 
-    def parse_auction(self, response, transfer_, header, cookie, lots_table, files):
+    def parse_auction(self, response, transfer_, cookie, lots_table, files):
         """ parse all auction lots """
         combo = Combo(response_=response)
         transfer = transfer_
         for i in range(len(lots_table)):
-            loader = CrawlerNistpruItemLoader(CrawlerNistpruItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -139,6 +124,7 @@ class NistpSpider(scrapy.Spider):
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
             loader.add_value('address', transfer['address'])
+            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -168,12 +154,12 @@ class NistpSpider(scrapy.Spider):
 
                 yield loader.load_item()
 
-    def parse_offer(self, response, transfer_, header, cookie, lots_table, files):
+    def parse_offer(self, response, transfer_, cookie, lots_table, files):
         """ parse all offer lots """
         combo = Combo(response_=response)
         transfer = transfer_
         for i in range(len(lots_table)):
-            loader = CrawlerNistpruItemLoader(CrawlerNistpruItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -187,6 +173,7 @@ class NistpSpider(scrapy.Spider):
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
             loader.add_value('address', transfer['address'])
+            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

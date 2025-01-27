@@ -48,7 +48,7 @@ DEFAULT_REQUESTS_HEADERS = {
 }
 
 # LOG_LEVEL = 'INFO'
-# LOG_FILE = './lot_online.log'
+# LOG_FILE = 'lot_online.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Enable or disable spider middlewares

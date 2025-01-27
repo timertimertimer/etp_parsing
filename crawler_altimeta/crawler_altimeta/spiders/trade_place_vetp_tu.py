@@ -6,11 +6,9 @@ from itertools import chain
 from scrapy import Request, FormRequest
 from scrapy.spiders import Spider
 
-from ..items import CrawlerAltimetaItem, CrawlerAltimetaItemLoader, CrawlerAltimetaTransferItem
 from ..manage_spiders.app import Combo
 from ..utils.config import _data_origin, _serp_link, _lot_link, _doc_link, path_absolute, path_relative, url_file, tables
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers.spiders_header import headers_trade_place_vetp as hd
 from ..utils.query_parameters import query_param
 from ..utils.working_with_time import return_parse_date
 from ..utils.working_with_url import UrlConfig
@@ -31,7 +29,7 @@ class TradePlaceVetpTuSpider(Spider):
     start_url = [serp_link]
 
     custom_settings = {
-        'LOG_FILE': './trade_place.log',
+        # 'LOG_FILE': f'{name}.log',
         'DOWNLOADER_MIDDLEWARES': {
             'crawler_altimeta.middlewares.CrawlerAltimetaDownloaderMiddleware': 543,
         },

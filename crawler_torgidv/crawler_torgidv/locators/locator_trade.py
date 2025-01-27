@@ -8,6 +8,8 @@ class LocatorTrade:
     trading_org_inn_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "ИНН") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
     phone_org_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "Телефон") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
     email_org_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "E-mail") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
+    region_loc = '//td[contains(normalize-space(text()), "Регион")]/following-sibling::td/text()'
+    sud_loc = '//td[contains(normalize-space(text()), "Наименование суда")]/following-sibling::td/text()'
     msg_number_loc = '//td[contains(text(), "ЕФРСБ")]/following-sibling::td/text()'
     case_number_loc = '//td[contains(text(), "Номер дела")]/following-sibling::td/text()'
     start_date_requests_loc = '//td[contains(normalize-space(text()), "Дата и время начала подачи заявок")]/following-sibling::td/text()'

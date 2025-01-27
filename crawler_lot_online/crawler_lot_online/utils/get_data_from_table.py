@@ -1,7 +1,8 @@
 from mysql.connector import MySQLConnection
 
-from ..python_mysql_dbconfig import read_db_config
-from .config import format_parse_date, tables
+from ..utils.config import tables
+from general_utils import read_db_config
+from general_utils.config import format_parse_date
 
 
 class DbConnectCheckLots(object):

@@ -1,4 +1,4 @@
-from location import get_region
+from general_utils import get_region
 from .libraries import *
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,7 @@ class AuctionParse:
                 address = div_bankrot_info.get_text().strip()
                 if address not in self.addresses:
                     self.addresses[address] = get_region(address)
-                return self.addresses[address]
+                return address, self.addresses[address]
 
     def get_property_information(self):
         """ :return property_information """

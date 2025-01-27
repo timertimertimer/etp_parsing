@@ -23,6 +23,8 @@ class TradeLocator:
     status_loc = '//div[normalize-space(text())= "Информация о торгах"]/following::div[normalize-space(text())="Статус"]/following-sibling::div/text()'
     short_name_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[normalize-space(text())="Наименование лота"]/following-sibling::div'
     lot_info_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[contains(text(), "Cведения об имуществе")]/following-sibling::div'
+    region_loc = '//div[@class="generalview-container"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[contains(text(), "Регион местонахождения имущества")]/following-sibling::div'
+    sud_loc = '//div[normalize-space(text())="Сведения о должнике"]/following::div[normalize-space(text())="Наименование арбитражного суда"]/following-sibling::div[1]'
     property_info_loc = '//div[normalize-space(text())="Контакты"]/following::div[normalize-space(text())="Порядок ознакомления с имуществом должника"]/following-sibling::div'
 
 

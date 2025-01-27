@@ -3,31 +3,23 @@ from typing import Iterable
 import scrapy
 from scrapy import Request, FormRequest
 
-from ..items import CrawlerElectroTorgiItemLoader, CrawlerElectroTorgiItem
+from general_utils import DBHelper, UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
 from ..trades.app import Combo
-from ..utils.config import format_parse_date, data_origin, tables, start_date, end_date
-from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.working_with_time import return_parse_date
-from ..utils.working_with_url import UrlConfig
+from ..config import data_origin, start_date, end_date
 
-TABLE = tables['table_electro_torgi']
+
 class ElectroTorgiSpider(scrapy.Spider):
     name = "electro_torgi"
     data_origin = data_origin['electro_torgi']
     start_urls = ["https://bankrotstvo.electro-torgi.ru/lots"]
     custom_settings = {
-        'ITEM_PIPELINES': {
-            'crawler_electro_torgi.pipelines.CrawlerElectroTorgiPipeline': 300,
-            'crawler_electro_torgi.pipelines.ElectroTorgiDbConnect': 350,
-        },
-        'LOG_FILE': 'electro_torgi.log'
+        # 'LOG_FILE': f'{name}.log',
     }
 
     def __init__(self):
         super(ElectroTorgiSpider).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot(TABLE)
-        self.url = UrlConfig()
+        self.db_check = DBHelper(self.custom_settings.get('TABLE_NAME', f'lots_{self.name}'))
+        self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self) -> Iterable[Request]:
         params_data = {
@@ -40,7 +32,8 @@ class ElectroTorgiSpider(scrapy.Spider):
     def parse(self, response):
         links = response.xpath('//a[@class="blue-text bold"]/@href').getall()
         for link in links:
-            yield Request(self.url.url_join(self.data_origin, link), self.parse_trade)
+            if (link,) not in self.previous_lots:
+                yield Request(UrlConfig.url_join(self.data_origin, link), self.parse_trade)
 
         pagination = response.xpath('//ul[@class="pagination"]').get()
         if pagination:
@@ -59,7 +52,7 @@ class ElectroTorgiSpider(scrapy.Spider):
         msg_number = combo.msg_number
         case_number = combo.case_number
         debtor_inn = combo.debtor_inn
-        address = combo.address
+        address, region = combo.address or (None, None)
         arbit_manager = combo.arbit_manager
         arbit_manager_inn = combo.arbit_manager_inn
         arbit_manager_org = combo.arbit_manager_org
@@ -67,8 +60,8 @@ class ElectroTorgiSpider(scrapy.Spider):
         end_date_requests = combo.end_date_requests
         files = combo.download_general(self.data_origin)
         for lot_link, lot_number, status in combo.get_lots():
-            lot_link = self.url.url_join(self.data_origin, lot_link)
-            loader = CrawlerElectroTorgiItemLoader(CrawlerElectroTorgiItem(), response=response)
+            lot_link = UrlConfig.url_join(self.data_origin, lot_link)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', self.data_origin)
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', trading_link)
@@ -82,6 +75,7 @@ class ElectroTorgiSpider(scrapy.Spider):
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
             loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)
@@ -108,7 +102,7 @@ class ElectroTorgiSpider(scrapy.Spider):
             loader.add_value('periods', combo.offer.periods)
             loader.add_value('start_date_trading', combo.offer.start_date_trading)
             loader.add_value('end_date_trading', combo.offer.end_date_trading)
-        lot_files = combo.download_lot(loader.get_collected_values('lot_number'), self.data_origin)
+        lot_files = combo.download_lot(loader.get_collected_values('lot_number')[0], self.data_origin)
         loader.add_value('files', {'general': general_files, 'lot': lot_files})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

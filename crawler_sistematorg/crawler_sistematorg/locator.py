@@ -22,8 +22,9 @@ msg_num_loc = td_msg_number + foll_sibling + ')'
 td_case_number = 'normalize-space(//td[contains(text(),"омер дела о банкротстве")]'
 case_number_loc = td_case_number + foll_sibling + ')'
 ##_debitor_info_###
-td_deb_inn = 'normalize-space(//th[contains(text(),"Информация о должнике")]/following::td[contains(text(),"ИНН")][1]'
-debitor_inn_loc = td_deb_inn + foll_sibling + ')'
+td_deb_inn = 'normalize-space(//th[contains(text(),"Информация о должнике")]/following::td[contains(text(),"{}")][1]'
+debitor_inn_loc = td_deb_inn.format('ИНН') + foll_sibling + ')'
+address_loc = td_deb_inn.format('Адрес') + foll_sibling + ')'
 ###_arbitr_info_###
 th_arbitr = 'normalize-space(//th[contains(text(),"Информация об арбитражном управляющем")]'
 td_arbitr_last_name = '/following::td[contains(text(),"Фамилия")]'

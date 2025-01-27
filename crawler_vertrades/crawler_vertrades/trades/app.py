@@ -4,18 +4,16 @@ import re
 
 from bs4 import BeautifulSoup
 
-from location import get_region
+from general_utils import dedent_func, get_region, format_time_auction, UrlConfig, contains
+from general_utils.config import lst_exet, lst_exeption, lst_exet_archive
 from .auction import AuctionParse
 from .offer import OfferParse
 from .serp import SerpParse
 from ..locators.locator_trade import LocatorTrade
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import lst_exeption, lst_exet, lst_exet_archive, main_url
+from ..utils.config import main_url
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
-from ..utils.work_with_text_and_number import dedent_func, contains
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +23,6 @@ class Combo:
 
     def __init__(self, response_):
         self.response = response_
-        self.url = UrlConfig()
         self.serp = SerpParse(self.response)
         self.auc = AuctionParse(self.response)
         self.offer = OfferParse(self.response)
@@ -194,8 +191,7 @@ class Combo:
         except:
             return None
 
-    @property
-    def address(self):
+    def get_address(self):
         try:
             address = self.response.xpath(self.loc.address_loc).get()
             if not address:
@@ -203,7 +199,7 @@ class Combo:
             address = dedent_func(BeautifulSoup(address, features='lxml').get_text())
             if address not in self.addresses:
                 self.addresses[address] = get_region(address)
-            return self.addresses[address]
+            return address, self.addresses[address]
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA ADDRESS\n{e}')
 
@@ -250,12 +246,12 @@ class Combo:
     @property
     def start_date_requests(self):
         date = self.response.xpath(self.loc.start_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features='lxml').get_text())
+        return format_time_auction(BeautifulSoup(str(date), features='lxml').get_text())
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(self.loc.end_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features='lxml').get_text())
+        return format_time_auction(BeautifulSoup(str(date), features='lxml').get_text())
 
     def get_lots(self):
         return self.response.xpath(self.loc.lots_loc).getall()
@@ -267,7 +263,7 @@ class Combo:
         lst_files = self.response.xpath(self.loc.general_files_loc).getall()
         for file in lst_files:
             link_ = BeautifulSoup(str(file), features='lxml').find('a')
-            link = self.url.url_join(main_url, link_.get('href'))
+            link = UrlConfig.url_join(main_url, link_.get('href'))
             name = link_.get_text()
             if not any(ele in name for ele in lst_exeption):
                 if pathlib.Path(name).suffix in lst_exet:
@@ -284,7 +280,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server, )
                     general_lst.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                     # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     if len(name) > 75:
@@ -302,7 +298,7 @@ class Combo:
                     general_lst.extend(lst_files)
                 else:
                     general_lst.append(
-                        {'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return general_lst
 
     def download_lot(self, lot):
@@ -315,7 +311,7 @@ class Combo:
             return []
         for link in lot_files:
             name = link.get_text()
-            link = self.url.url_join(main_url, link.get('href'))
+            link = UrlConfig.url_join(main_url, link.get('href'))
             if not any(ele in name for ele in lst_exeption):
                 if pathlib.Path(name).suffix in lst_exet:
                     dir.create_dir()
@@ -333,7 +329,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server)
                     lot_list.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                 # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     lot_file = pathlib.Path(name).stem
@@ -353,7 +349,7 @@ class Combo:
                                                                      _relative_path=dir.return_download_dir_etp())
                     lot_list.extend(lst_files)
                 else:
-                    lot_list.append({'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                    lot_list.append({'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return lot_list
 
     def lot_number(self, lot):

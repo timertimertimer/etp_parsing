@@ -19,6 +19,6 @@ def viomitra():
 
 if __name__ == '__main__':
     # au_pro()
-    # tenderstandartru()
-    torggroup()
+    tenderstandartru()
+    # torggroup()
     # viomitra()

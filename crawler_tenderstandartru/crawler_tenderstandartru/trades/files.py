@@ -1,10 +1,7 @@
-import pathlib
-
-from icecream import ic
-
+from general_utils.config import lst_exet, lst_exet_archive
 from .libraries import *
 
-from ..utils.config import lst_exet, lst_exet_archive, path_absolute, path_relative
+from ..utils.config import path_absolute, path_relative
 
 logger = logging.getLogger(__name__)
 

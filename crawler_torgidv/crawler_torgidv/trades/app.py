@@ -4,29 +4,28 @@ import re
 
 from bs4 import BeautifulSoup
 
+from general_utils import get_region, UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time_auction
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from ..locators.locator_trade import LocatorTrade
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import main_url, lst_exeption, lst_exet, lst_exet_archive
+from ..utils.config import main_url
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
-from ..utils.work_with_text_and_number import dedent_func, get_org_info
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
+from ..utils.work_with_text_and_number import get_org_info
 
 logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
+
     def __init__(self, response):
         self.response = response
-        self.check = CheckIfCorrectContactInfo()
         self.loc = LocatorTrade()
-        self.url = UrlConfig()
         self.general_dir = GeneralFilesDir()
         self.lot_dir = LotFilesDir()
 
     def get_trading_link(self):
-        return self.url.url_join(main_url, self.response.xpath(self.loc.trading_link_loc).extract_first())
+        return UrlConfig.url_join(main_url, self.response.xpath(self.loc.trading_link_loc).extract_first())
 
     def get_lots(self):
         return self.response.xpath(self.loc.lots_loc).getall()
@@ -55,7 +54,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server, )
                     general_lst.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                     # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     if len(name) > 75:
@@ -73,7 +72,7 @@ class Combo:
                     general_lst.extend(lst_files)
                 else:
                     general_lst.append(
-                        {'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return general_lst
 
     def download_lot(self):
@@ -102,7 +101,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server)
                     lot_list.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                 # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     if len(name) > 75:
@@ -121,12 +120,12 @@ class Combo:
                                                                      _relative_path=dir.return_download_dir_etp())
                     lot_list.extend(lst_files)
                 else:
-                    lot_list.append({'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                    lot_list.append({'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return lot_list
 
     @property
     def id_(self):
-        _id = re.findall(r'\d+$', str(self.response.url))
+        _id = re.findall(r'\d+', str(self.response.url))
         return ''.join(_id)
 
     @property
@@ -165,7 +164,7 @@ class Combo:
         try:
             td_org_inn = self.response.xpath(self.loc.trading_org_inn_loc).get().split('/')[0].strip()
             if td_org_inn:
-                return self.check.check_inn(dedent_func(td_org_inn))
+                return CheckIfCorrectContactInfo.check_inn(dedent_func(td_org_inn))
         except:
             logger.warning(f'{self.response.url} :: INVALID DATA ORGANIZER INN', exc_info=True)
 
@@ -185,7 +184,7 @@ class Combo:
         """get phone number of organizer"""
         try:
             phone = dedent_func(self.response.xpath(self.loc.phone_org_loc).get()).replace(';', '').strip()
-            return self.check.check_phone(phone)
+            return CheckIfCorrectContactInfo.check_phone(phone)
         except:
             return None
 
@@ -193,7 +192,7 @@ class Combo:
         """get email of organizer"""
         try:
             email = dedent_func(self.response.xpath(self.loc.email_org_loc).get()).replace(';', '').strip()
-            return self.check.check_email(email)
+            return CheckIfCorrectContactInfo.check_email(email)
         except:
             return None
 
@@ -205,31 +204,32 @@ class Combo:
 
     @property
     def case_number(self):
-        return self.check.check_case_number(dedent_func(self.response.xpath(self.loc.case_number_loc).get()))
+        return CheckIfCorrectContactInfo.check_case_number(
+            dedent_func(self.response.xpath(self.loc.case_number_loc).get()))
 
     @property
     def start_date_requests(self):
         date = self.response.xpath(self.loc.start_date_requests_loc).get()
         if date:
-            return format_time(date)
+            return format_time_auction(date)
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(self.loc.end_date_requests_loc).get()
         if date:
-            return format_time(date)
+            return format_time_auction(date)
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(self.loc.start_date_trading_loc).get()
         if date:
-            return format_time(date)
+            return format_time_auction(date)
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(self.loc.end_date_trading_loc).get()
         if date:
-            return format_time(date)
+            return format_time_auction(date)
 
     @property
     def debtor_inn(self):
@@ -242,6 +242,17 @@ class Combo:
             if pattern:
                 return ''.join(pattern.findall(trade_inn))
         except:
+            return None
+
+    def get_address(self):
+        try:
+            address = dedent_func(self.response.xpath(self.loc.region_loc).get())
+            if not address:
+                address = dedent_func(self.response.xpath(self.loc.sud_loc).get())
+            if address not in self.addresses:
+                self.addresses[address] = get_region(address)
+            return address, self.addresses[address]
+        except Exception as e:
             return None
 
     @property

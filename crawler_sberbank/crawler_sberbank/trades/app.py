@@ -1,9 +1,8 @@
 from .auction import AuctionParse
 from .offer import OfferParse
-from .competition import CompetitionParse
 
 
-class ComposeTrades(AuctionParse, OfferParse, CompetitionParse):
+class ComposeTrades:
 
     def __init__(self, data, url):
         self.auc = AuctionParse(data, url)

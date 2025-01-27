@@ -1,7 +1,8 @@
 from mysql.connector import MySQLConnection
 
-from crawler_tenderstandartru.python_mysql_dbconfig import read_db_config
-from crawler_tenderstandartru.utils.config import tables, format_parse_date
+from general_utils import read_db_config
+from general_utils.config import format_parse_date
+
 
 class DbConnectCheckLots(object):
 

@@ -1,21 +1,15 @@
 import requests
 import urllib.request
 import urllib.parse
+
+from general_utils.config import socks_list, headers
 from .manage import return_absolute_path
-from .config import *
 from random import choice
 import logging
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
-
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 
 class DownloadFiles:
@@ -32,11 +26,7 @@ class DownloadFiles:
         }
 
     session = requests.Session()
-    session.headers = {
-        "User-Agent": headers_brow["User-Agent"]
-    }
-
-    headers_brow = {'User-Agent': headers_brow['User-Agent']}
+    session.headers = headers
 
     def requests_to_url(self, url):
         if ' ' in url:

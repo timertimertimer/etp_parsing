@@ -4,8 +4,8 @@ import json
 
 from scrapy import FormRequest, Request
 
+from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..app import Combo
-from ..items import CrawlerLotOnlineItem, CrawlerLotOnlineItemLoader
 from ..utils.config import data_origin
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data import form_data
@@ -16,6 +16,11 @@ from ..utils.working_with_time import return_parse_date
 class LotOnlineSpider(scrapy.Spider):
     name = "lot_online"
     start_urls = ["https://{}.lot-online.ru/lot/categories-grid-json.html"]
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'general_utils.pipelines.ETPNonBankruptPipeline': 300,
+        }
+    }
 
     def __init__(self, domain):
         super(LotOnlineSpider, self).__init__()
@@ -67,10 +72,11 @@ class LotOnlineSpider(scrapy.Spider):
     def parse_trade(self, response, trading_id, trading_number, current_page=1):
         data = json.loads(response.text)
         for lot in data['rows']:
-            loader = CrawlerLotOnlineItemLoader(CrawlerLotOnlineItem(), response=response)
+            loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
             loader.add_value('data_origin', data_origin[self.domain])
             loader.add_value('trading_id', trading_id)
-            loader.add_value('trading_link', f'https://{self.domain}.lot-online.ru/tender/details.html?tenderId={trading_id}')
+            loader.add_value('trading_link',
+                             f'https://{self.domain}.lot-online.ru/tender/details.html?tenderId={trading_id}')
             loader.add_value('trading_number', trading_number)
             loader.add_value('lot_number', lot['lotInfo']['lotCode'].split('-')[-1])
             loader.add_value('short_name', dedent_func(lot['lotInfo']['name']))
@@ -93,27 +99,22 @@ class LotOnlineSpider(scrapy.Spider):
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('status', combo.status)
         loader.add_value('category', combo.category)
-        loader.add_value('index', combo.index)
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
         loader.add_value('min_price', combo.min_price)
         loader.add_value('deposit', combo.deposit)
         loader.add_value('periods', combo.periods)
-        loader.add_value('quantity', combo.quantity)
-        loader.add_value('unit', combo.unit)
         loader.add_value('lot_info', combo.lot_info)
-        loader.add_value('encumbrance', combo.encumbrance)
-        loader.add_value('description_encumbrance', combo.description_encumbrance)
-        loader.add_value('property_information', combo.property_information)
-        loader.add_value('detailed_address', combo.detailed_address)
-        loader.add_value('address', combo.address)
+        address, region = combo.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('start_date_requests', combo.start_date_requests)
         loader.add_value('end_date_requests', combo.end_date_requests)
         loader.add_value('start_date_trading', combo.start_date_trading)
         loader.add_value('end_date_trading', combo.end_date_trading)
         loader.add_value('files', {"general": combo.download_general(), "lot": combo.download_lot(
             str(loader.get_collected_values('trading_id')[0]), str(loader.get_collected_values('lot_number')[0]),
-            data_origin[self.domain]
+            data_origin[self.domain], self.domain
         )})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

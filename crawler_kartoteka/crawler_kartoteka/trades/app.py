@@ -1,27 +1,23 @@
 import logging
 import pathlib
 import re
-
 from bs4 import BeautifulSoup
 
+from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time_auction, get_region
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
 from ..locators.trade_locator import TradeLocator
-from ..utils.config import lst_exeption, lst_exet, lst_exet_archive
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 
 logger = logging.getLogger(__name__)
 
 
 class Combo:
+    addresses = dict()
+
     def __init__(self, response):
         self.response = response
         self.loc = TradeLocator
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
         self.general_dir = GeneralFilesDir()
 
     def parse_status(self, status: str):
@@ -107,7 +103,7 @@ class Combo:
     def case_number(self):
         case = dedent_func(BeautifulSoup(self.response.xpath(self.loc.case_number_loc).get(), "lxml").get_text())
         if case:
-            return self.check.check_case_number(case)
+            return CheckIfCorrectContactInfo.check_case_number(case)
         else:
             return
 
@@ -120,9 +116,11 @@ class Combo:
         pattern = re.compile(r"\d{10,12}")
         return "".join(pattern.findall(trade_inn))
 
-    @property
-    def address(self):
-        return dedent_func(BeautifulSoup(self.response.xpath(self.loc.address_loc).get(), "lxml").get_text())
+    def get_address(self):
+        address = BeautifulSoup(self.response.xpath(self.loc.address_loc).get(), "lxml").get_text(strip=True)
+        if address not in self.addresses:
+            self.addresses[address] = get_region(address)
+        return address, self.addresses[address]
 
     @property
     def arbit_manager(self):
@@ -186,11 +184,11 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time(self.response.xpath(self.loc.start_date_requests_loc).get())
+        return format_time_auction(self.response.xpath(self.loc.start_date_requests_loc).get())
 
     @property
     def end_date_requests(self):
-        return format_time(self.response.xpath(self.loc.end_date_requests_loc).get())
+        return format_time_auction(self.response.xpath(self.loc.end_date_requests_loc).get())
 
     def start_and_end_dates_trading(self):
         date_interval = (
@@ -203,7 +201,7 @@ class Combo:
             start_date, end_date = parts
         else:
             start_date, end_date = parts[0], None
-        return format_time(start_date), format_time(end_date) if end_date else None
+        return format_time_auction(start_date), format_time_auction(end_date) if end_date else None
 
     @property
     def start_date_trading(self):

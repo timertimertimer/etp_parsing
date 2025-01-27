@@ -1,19 +1,14 @@
 import logging
 import pathlib
 import re
-import math
-
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from location import get_region
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import lst_exeption, lst_exet, lst_exet_archive, main_url, data_origin_url
+from general_utils import UrlConfig, dedent_func, get_region, CheckIfCorrectContactInfo, format_time_auction
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from ..utils.config import main_url, data_origin_url
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
-from ..utils.work_with_text_and_number import dedent_func, contains
-from ..utils.working_with_time import format_time
-from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +18,6 @@ class Combo:
 
     def __init__(self, response_):
         self.response = response_
-        self.url = UrlConfig()
-        self.check = CheckIfCorrectContactInfo()
         self.general_dir = GeneralFilesDir()
         self.lot_dir = LotFilesDir()
         self.soup = BeautifulSoup(self.response.text, 'lxml')
@@ -32,7 +25,7 @@ class Combo:
     def get_trading_links(self):
         links = self.response.xpath('//div[@id="tenders-box-on-index"]//table//td[1]/a/@href').getall()
         if links:
-            return [self.url.url_join(data_origin_url, link) for link in links]
+            return [UrlConfig.url_join(data_origin_url, link) for link in links]
         logger.warning(f'{self.response.url} :: NO TRADING LINKS')
         return []
 
@@ -41,7 +34,7 @@ class Combo:
         try:
             next_link = BeautifulSoup(pager_select, 'lxml').find('a')
             if next_link:
-                return self.url.url_join(data_origin_url, next_link.get('href'))
+                return UrlConfig.url_join(data_origin_url, next_link.get('href'))
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH NEXT PAGE\n{e}', exc_info=True)
 
@@ -71,7 +64,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server, )
                     general_lst.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                     # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     if len(name) > 75:
@@ -89,10 +82,10 @@ class Combo:
                     general_lst.extend(lst_files)
                 else:
                     general_lst.append(
-                        {'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return general_lst
 
-    def download_lot(self):
+    def download_lot(self, lot_number: str):
         dir = self.lot_dir
         download = DownloadFiles()
         lot_list = list()
@@ -112,7 +105,7 @@ class Combo:
                     else:
                         file_name_server = name
                     name_on_server = dir.name_file_lot_on_server(_id=self.trading_id,
-                                                                 lot_num=self.lot_number,
+                                                                 lot_num=lot_number,
                                                                  original_name=file_name_server)
                     _path_absolute = dir.return_absolute_path(name_on_server)
                     download.request_to_download_general(url=link,
@@ -121,7 +114,7 @@ class Combo:
                     _path_relative = dir.name_in_column_files(name_on_server)
                     lot_list.append(
                         {'original_name': name, 'link': _path_relative,
-                         'link_etp': self.url.parse_url(link)})
+                         'link_etp': UrlConfig.parse_url(link)})
                 # FILES INSIDE ARCHIVE
                 elif pathlib.Path(name).suffix in lst_exet_archive:
                     lot_file = pathlib.Path(name).stem
@@ -130,7 +123,7 @@ class Combo:
                     else:
                         file_name_server = name
                     name_on_server = dir.name_file_lot_on_server(_id=self.trading_id,
-                                                                 lot_num=self.lot_number,
+                                                                 lot_num=lot_number,
                                                                  original_name=file_name_server)
                     _path_absolute = dir.return_absolute_path(name_on_server)
                     dir.create_dir()
@@ -141,7 +134,7 @@ class Combo:
                                                                      _relative_path=dir.return_download_dir_etp())
                     lot_list.extend(lst_files)
                 else:
-                    lot_list.append({'original_name': name, 'link': '', 'link_etp': self.url.url_join(main_url, link)})
+                    lot_list.append({'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
         return lot_list
 
     def get_trade_table(self):
@@ -165,11 +158,11 @@ class Combo:
                 address = (data[3].strip() if isinstance(data[3], str) else None) or self.get_sud_address()
                 if address not in self.addresses:
                     self.addresses[address] = get_region(address) or get_region(self.get_sud_address())
-                address = self.addresses[address]
+                region = self.addresses[address]
                 start_price = self.get_start_price(data[4])
                 lots.append(
-                    [self.url.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, address,
-                     start_price]
+                    [UrlConfig.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, address,
+                     region, start_price]
                 )
             return lots
         except Exception as e:
@@ -247,7 +240,7 @@ class Combo:
     def trading_org_inn(self):
         try:
             inn = self.get_org().find('b', text=re.compile('ИНН')).next_sibling.get_text()
-            return self.check.check_inn(inn)
+            return CheckIfCorrectContactInfo.check_inn(inn)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH ORGANIZER INN\n{e}', exc_info=True)
 
@@ -267,7 +260,7 @@ class Combo:
         try:
             phone = self.get_org().find('b', text=re.compile('Телефон')).next_sibling.get_text()
             phone = dedent_func(phone)
-            return self.check.check_phone(phone)
+            return CheckIfCorrectContactInfo.check_phone(phone)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH PHONE NUMBER\n{e}', exc_info=True)
 
@@ -275,7 +268,7 @@ class Combo:
         try:
             email = self.get_org().find('b', text=re.compile('Адрес электронной почты')).next_sibling.get_text()
             email = dedent_func(email)
-            return self.check.check_email(email)
+            return CheckIfCorrectContactInfo.check_email(email)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH EMAIL\n{e}', exc_info=True)
 
@@ -299,7 +292,7 @@ class Combo:
     def debitor_inn(self):
         try:
             inn = self.get_debtor().find('b', text=re.compile('ИНН')).next_sibling.get_text()
-            return self.check.check_inn(inn)
+            return CheckIfCorrectContactInfo.check_inn(inn)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH DEBITOR INN\n{e}', exc_info=True)
 
@@ -333,7 +326,7 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время начала представления заявок на участие')).next_sibling.get_text()
-            return format_time(date)
+            return format_time_auction(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH START DATE REQUESTS\n{e}', exc_info=True)
 
@@ -342,7 +335,7 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время окончания представления заявок на участие')).next_sibling.get_text()
-            return format_time(date)
+            return format_time_auction(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE REQUESTS\n{e}', exc_info=True)
 
@@ -392,6 +385,6 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время подведения итогов торгов')).next_sibling.get_text()
-            return format_time(date)
+            return format_time_auction(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE TRADING\n{e}', exc_info=True)

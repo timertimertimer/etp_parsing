@@ -7,17 +7,15 @@ from random import randint
 
 from scrapy import FormRequest, Request
 from scrapy.spiders import Spider
-from scrapy_splash import SplashRequest, SlotPolicy, SplashFormRequest
+from scrapy_splash import SplashRequest, SlotPolicy
 
-from ..items import CrawlerItenderItem, CrawlerItenderItemLoader
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, headers
 from ..manage_spiders.app import Combo
-from ..utils.code_for_edit_and_format.working_with_time import return_parse_date
-from ..utils.config import return_auction_link, data_origin, start_date_post, return_compet_link, return_offer_link, \
+from ..utils.config import return_auction_link, data_origin, start_date, return_compet_link, return_offer_link, \
     tables
 from ..utils.data_for_requests import script_lua, script_lua_nojs
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.headers_for_spiders.generate_user_agent import USER_AGENT
-from ..utils.headers_for_spiders.spiders_header import headers_bepspb as hd
 from ..utils.post_data_for_spiders.bepspb_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.bepspb_post_data import post_data_auction_pagination as pdapag
 from ..utils.post_data_for_spiders.bepspb_post_data import post_data_offer as pdao
@@ -35,16 +33,8 @@ class BepspbSpider(Spider):
     data_origin = data_origin['bepspb']
     start_url = ['https://bepspb.ru/']
     custom_settings = {
-        # 'LOG_FILE': './bepspb.log',
-        'DOWNLOADER_MIDDLEWARES': {
-            'crawler_itender.middlewares.CrawlerItenderDownloaderMiddleware': 543,
-            'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
-            'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
-        },
-        'ITEM_PIPELINES': {
-            'crawler_itender.pipelines.CrawlerItenderPipeline': 300,
-            'crawler_itender.pipelines.BepspbSDbConnect': 350,
-        }
+        # 'LOG_FILE': f'{name}.log',
+        'DEFAULT_REQUEST_HEADERS': headers | {'Accept-Encoding': 'gzip, deflate'}
     }
 
     def __init__(self):
@@ -81,15 +71,15 @@ class BepspbSpider(Spider):
         if _type == 'auction':
             first_post = copy.deepcopy(pdac)
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
         elif _type == 'offer':
             first_post = copy.deepcopy(pdao)
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date
         elif _type == 'competition':
             first_post = copy.deepcopy(pdcom)
             first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date_post
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
         else:
             first_post = None
         first_post['__EVENTTARGET'] = combo.mpost.get_post_data_values(tag_html='input', post_argument='__EVENTTARGET')
@@ -147,7 +137,7 @@ class BepspbSpider(Spider):
     async def parse_auction_trade(self, response, lot_number, lot_link, link_trade, attemp):
         """parse trade page"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -160,6 +150,9 @@ class BepspbSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -169,10 +162,7 @@ class BepspbSpider(Spider):
         loader.add_value('start_date_trading', start_date_trading)
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0])
-        hd_lot = copy.deepcopy(hd)
-        hd_lot['referer'] = response.url
-        hd_lot['user-agent'] = USER_AGENT
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
         pdapag['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
         pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
@@ -201,7 +191,7 @@ class BepspbSpider(Spider):
             loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -213,7 +203,7 @@ class BepspbSpider(Spider):
 
     async def parse_competition_trade(self, response, lot_number, lot_link, link_trade, attemp):
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -226,6 +216,9 @@ class BepspbSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+        address, region = combo.auc.get_address() or (None, None)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -238,12 +231,9 @@ class BepspbSpider(Spider):
             loader.add_value('end_date_requests', combo.compet.end_date_request())
             loader.add_value('start_date_trading', start_date_trading)
             loader.add_value('end_date_trading', None)
-            hd_lot = copy.deepcopy(hd)
-            hd_lot['referer'] = response.url
-            hd_lot['user-agent'] = USER_AGENT
             _id = ''.join(loader.get_collected_values('trading_id'))
             general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
-                                                      host=self.allowed_domains[0])
+                                                      host=self.allowed_domains[0], crawler_name=self.name)
             pdapag['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
@@ -286,7 +276,7 @@ class BepspbSpider(Spider):
                 loader.add_value('step_price', combo.auc.step_price)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0])
+                                                 host=self.allowed_domains[0], crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:
@@ -310,7 +300,7 @@ class BepspbSpider(Spider):
     async def parse_offer_trade(self, response, lot_number, lot_link, link_trade, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerItenderItemLoader(CrawlerItenderItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -328,12 +318,15 @@ class BepspbSpider(Spider):
             loader.add_value('msg_number', combo.offer.msg_number)
             loader.add_value('case_number', combo.auc.case_number)
             loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
+            address, region = combo.auc.get_address() or (None, None)
+            loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
             _id = ''.join(loader.get_collected_values('trading_id'))
             general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
-                                                      host=self.allowed_domains[0])
+                                                      host=self.allowed_domains[0], crawler_name=self.name)
             pdapag['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
@@ -375,7 +368,7 @@ class BepspbSpider(Spider):
                 loader.add_value('start_price', combo.offer.price_offer)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0])
+                                                 host=self.allowed_domains[0], crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:
@@ -399,7 +392,7 @@ class BepspbSpider(Spider):
             logger.critical(f'{response.url} :: ))))))))))) TEST FOR PERIODS')
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0])
+                                             host=self.allowed_domains[0], crawler_name=self.name)
             pages = combo.serp.fetch_pagination_links_lot_page()
             cviewstate = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             eventvalidation = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
@@ -495,7 +488,7 @@ class BepspbSpider(Spider):
                 loader.add_value('start_price', price_offer)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0])
+                                                 host=self.allowed_domains[0], crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:

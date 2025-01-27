@@ -1,14 +1,9 @@
 import re
-from icecream import ic
 from bs4 import BeautifulSoup as BS
 
-from location import get_region
+from general_utils import get_region, CheckIfCorrectContactInfo, dedent_func, format_time_auction
 from ..locators.locator_auction import LocatorAuction
-from ..utils.work_with_text_and_number import dedent_func
 import logging
-from ..utils.check_inn_email_etc import CheckIfCorrectContactInfo
-
-from ..utils.working_with_time import format_time
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +13,6 @@ class AuctionParse:
     def __init__(self, resposne_):
         self.response = resposne_
         self.loc_auc = LocatorAuction
-        self.check = CheckIfCorrectContactInfo()
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
@@ -98,7 +92,7 @@ class AuctionParse:
             _inn = block.find('td', string=re.compile('ИНН', re.IGNORECASE)).findNext('td')
             if _inn:
                 _inn = dedent_func(_inn.get_text().strip())
-                return self.check.check_inn(_inn)
+                return CheckIfCorrectContactInfo.check_inn(_inn)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA ORG INN {ex}')
 
@@ -109,7 +103,7 @@ class AuctionParse:
             email = block.find('td', string=re.compile('E-mail', re.IGNORECASE)).findNext('td')
             if email:
                 email = dedent_func(email.get_text().strip())
-                return self.check.check_email(email)
+                return CheckIfCorrectContactInfo.check_email(email)
             else:
                 return ''
         except Exception as ex:
@@ -123,7 +117,7 @@ class AuctionParse:
             phone = block.find('td', string=re.compile('Телефон', re.IGNORECASE)).findNext('td')
             if phone:
                 phone = dedent_func(phone.get_text().strip())
-                return self.check.check_phone(phone)
+                return CheckIfCorrectContactInfo.check_phone(phone)
             else:
                 return ''
         except Exception as ex:
@@ -170,7 +164,7 @@ class AuctionParse:
             case = block.find('td', string=re.compile('Номер дела о банкротстве', re.IGNORECASE)).findNext('td')
             if case:
                 case = dedent_func(case.get_text().strip())
-                return self.check.check_case_number(case)
+                return CheckIfCorrectContactInfo.check_case_number(case)
 
     def get_inn_debtor(self):
         """ return debtor INN """
@@ -184,7 +178,7 @@ class AuctionParse:
                     inn = _inn
                 else:
                     inn = self.response.xpath(self.loc_auc.extra_loc_debtor).get()
-                return self.check.check_inn(inn)
+                return CheckIfCorrectContactInfo.check_inn(inn)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INN {ex}')
 
@@ -214,7 +208,7 @@ class AuctionParse:
                             (get_region(sud) if sud else None) or
                             (get_region(region) if region else None)
                     )
-                return self.addresses[address]
+                return address, self.addresses[address]
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR function {self.get_address.__name__}')
 
@@ -260,7 +254,7 @@ class AuctionParse:
             _inn = block.find('td', string=re.compile('ИНН', re.IGNORECASE)).findNext('td')
             if _inn:
                 _inn = dedent_func(_inn.get_text().strip())
-                return self.check.check_inn(_inn)
+                return CheckIfCorrectContactInfo.check_inn(_inn)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA ARBITR INN {ex}')
 
@@ -298,7 +292,7 @@ class AuctionParse:
                 start = block.find('td', string=re.compile('ата начала представления заявок на участи',
                                                            re.IGNORECASE)).findNext('td')
                 if start:
-                    start = format_time(dedent_func(start.get_text().strip()))
+                    start = format_time_auction(dedent_func(start.get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -312,7 +306,7 @@ class AuctionParse:
             if block:
                 end = block.find('td', string=re.compile('ата окончания представления заявок на', re.IGNORECASE))
                 if end:
-                    end = format_time(dedent_func(end.findNext('td').get_text().strip()))
+                    end = format_time_auction(dedent_func(end.findNext('td').get_text().strip()))
                     return end
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -326,7 +320,7 @@ class AuctionParse:
             if block:
                 start = block.find('td', string=re.compile('ата проведени', re.IGNORECASE))
                 if start:
-                    start = format_time(dedent_func(start.findNext('td').get_text().strip()))
+                    start = format_time_auction(dedent_func(start.findNext('td').get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')

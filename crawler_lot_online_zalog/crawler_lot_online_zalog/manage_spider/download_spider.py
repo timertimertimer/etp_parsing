@@ -175,7 +175,7 @@ class DownloadSpider:
         for t in self.sort_data_files_general(body):
             dir_.create_dir()
             a_id, origin_name, server_name = t
-            name_on_server = dir_.name_file_on_server(id_=trade_id, original_name=server_name)
+            name_on_server = dir_.name_file_on_server(trading_id=trade_id, original_name=server_name)
             if "Протокол" not in name_on_server or "протокол" not in name_on_server:
                 # from icecream import ic
                 # ic(origin_name)

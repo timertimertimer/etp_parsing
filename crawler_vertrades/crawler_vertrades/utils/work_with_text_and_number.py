@@ -78,7 +78,3 @@ def count_cyrillic(text):
                     return unicodedata.normalize('NFKC', new_text)
                 except:
                     return text
-
-
-def contains(text: str):
-    return lambda x: x and text in x

@@ -80,9 +80,10 @@ def arbbitlot():
 def ets24():
     execute(['scrapy', 'crawl', 'ets24'])
 
+
 def selt_online():
     execute(['scrapy', 'crawl', 'selt_online'])
 
 
 if __name__ == '__main__':
-    alfalot()
+    etpugra()

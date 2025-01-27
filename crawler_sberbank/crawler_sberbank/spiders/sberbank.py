@@ -3,29 +3,22 @@ import logging
 
 import pandas as pd
 from bs4 import BeautifulSoup as BS
-from icecream import ic
-from scrapy import FormRequest, Request
+from scrapy import FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider
-from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 import json
 import xmltodict
 import pprint
 
-from ..items import SberbankItemLoader, CrawlerSberbankItem
-from ..locators.locator_spider import LocatorSpider
-from ..settings import DEFAULT_REQUESTS_HEADERS
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
 from ..trades.app import ComposeTrades
 from ..utils.config import *
-from ..utils.data_for_requests import script_lua_first_req, xml_data, script_trading, script_lot, script_lot_nojs, \
-    simle_script_lua, simle2_script_lua, headers, xml_request_data
+from ..utils.data_for_requests import xml_request_data
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.manage_spider import *
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import increase_time_days, format_time, return_parse_date
-from ..utils.working_with_url import UrlConfig
+from ..utils.working_with_time import increase_time_days, return_parse_date
 
 logger = logging.getLogger(__name__)
 
@@ -33,25 +26,23 @@ lst_links = list()
 pp = pprint.PrettyPrinter(indent=4)
 
 
-class SberbankNewSpider(CrawlSpider, ComposeTrades):
-    name = 'sberbank_new'
+class SberbankSpider(CrawlSpider, ComposeTrades):
+    name = 'sberbank'
     start_urls = ['https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList']
 
     def __init__(self, *args, **kwargs):
-        super(SberbankNewSpider).__init__(*args, **kwargs)
-        self.loc = LocatorSpider
-        self.u_ = UrlConfig
+        super(SberbankSpider).__init__(*args, **kwargs)
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self):
-        date_range = pd.date_range(start_time_from, periods=periods_, freq=format_period)
-        for start_date in date_range:
-            start_date = start_date.strftime('%d.%m.%Y %H:%M')
-            end_date = increase_time_days(start_date, time_delta)
+        date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
+        for start_date_ in date_range:
+            start_date_ = start_date_.strftime('%d.%m.%Y %H:%M')
+            end_date = increase_time_days(start_date_, time_delta)
             yield FormRequest(
                 self.start_urls[0], self.make_second_request, formdata={
-                    'xmlData': xml_request_data.format(start_date=start_date, end_date=end_date, total=100),
+                    'xmlData': xml_request_data.format(start_date=start_date_, end_date=end_date, total=100),
                     'orgId': '0', 'buId': '0', 'personId': '0', 'buMainId': '0', 'personMainId': '0'
                 }, meta={'start_date': start_date, 'end_date': end_date}
             )
@@ -64,7 +55,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
             self.start_urls[0], self.parse_table, formdata={
                 'xmlData': xml_request_data.format(
                     start_date=response.meta['start_date'], end_date=response.meta['end_date'], total=total
-                ), 'orgId': '0', 'buId': '0', 'personId': '0', 'buMainId': '0', 'personMainId': '0'
+                ), 'orgId': '0', 'buId': '0', 'personId': '0', 'buMainId': '0', 'personMainId': '0',
             },
         )
 
@@ -97,7 +88,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
         for link in lst_link_to_lots:
             _link = re.sub(part_path_to_trade, part_path_to_lot, response.meta['trade'])
             _link = re.sub(r'\d+$', link, _link)
-            loader = SberbankItemLoader(CrawlerSberbankItem(), response=response)
+            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', combo.auc.trading_id)
             loader.add_value('trading_link', trading_link)
@@ -110,9 +101,13 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
             loader.add_value('trading_org_contacts', combo.auc.trading_org_contacts)
             loader.add_value('case_number', combo.auc.get_case_number)
             loader.add_value('debtor_inn', combo.auc.get_debitor_inn)
+            address, region = combo.auc.get_address() or (None, None)
+            loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('arbit_manager', combo.auc.get_arbitr_manager)
             loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_manager_inn)
             loader.add_value('arbit_manager_org', combo.auc.get_arbitr_manager_org)
+            loader.add_value('status', 'active')
             if combo.auc.trading_type_auc == 'auction':
                 loader.add_value('start_date_requests', combo.auc.get_start_date_requests)
                 loader.add_value('end_date_requests', combo.auc.get_end_date_requests)
@@ -120,7 +115,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
                 loader.add_value('end_date_trading', combo.auc.get_end_date_trading)
             url = _link
             if url not in self.previous_lots:
-                files_general = combo.offer.download_trade(
+                files_general = combo.offer.download(
                     combo.auc.trading_id, data['Purchase']['PurchaseinfoPanel']['ContractInfo']['contractdoc']['file']
                 )
                 path = url.removeprefix('https://utp.sberbank-ast.ru')
@@ -133,7 +128,10 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
 
     def parse_lot(self, response, loader, files):
         lot_link = response.meta['lot']
-        data = json.loads(response.text)
+        try:
+            data = json.loads(response.text)
+        except Exception as e:
+            pass
         combo = ComposeTrades(data, lot_link)
         loader.add_value('lot_id', combo.auc.get_lot_id)
         loader.add_value('lot_link', lot_link)
@@ -157,7 +155,7 @@ class SberbankNewSpider(CrawlSpider, ComposeTrades):
         photos = data['BidView']['Bids']['BidDebtorInfo'].get('BidPicture', [])
         if photos:
             photos = [photos['file']] if isinstance(photos['file'], dict) else photos['file']
-        files_lot = combo.offer.download_trade(combo.auc.get_lot_id, docs + photos)
+        files_lot = combo.offer.download(combo.auc.get_lot_id, docs + photos)
         loader.add_value('files', {'general': files, 'lot': files_lot})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

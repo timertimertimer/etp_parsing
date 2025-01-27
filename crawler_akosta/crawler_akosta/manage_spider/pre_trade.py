@@ -1,14 +1,10 @@
-from icecream import ic
-
-from ..locators.pre_trade_page_locator import SearchLocator
-from bs4 import BeautifulSoup as BS
-import logging
-from ..utils.config import data_origin_url
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import format_time_period
-from ..utils.working_with_url import UrlConfig
 import re
 import math
+import logging
+from bs4 import BeautifulSoup as BS
+from ..locators.pre_trade_page_locator import SearchLocator
+from ..utils.config import data_origin
+from general_utils import dedent_func, format_time_period, UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +29,7 @@ class PreTradePage:
                     # from link delete dot that is on the begining
                     link = re.sub(r'^.', '', link.get('href'))
                     # from data origin delete '/' from the end
-                    return self.url.url_join(data_origin_url[:-1], link)
+                    return self.url.url_join(data_origin[:-1], link)
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR GETTING LINK TO TRADING LOTS OF AKOSTA\n{e}')
             with open('main_link_to_trades_ERROR.txt', 'w') as f:

@@ -2,8 +2,7 @@ from bs4 import BeautifulSoup as BS
 import logging
 import re
 
-from crawler_akosta.utils.work_with_text_and_number import dedent_func
-from crawler_akosta.utils.working_with_time import format_time_auction
+from general_utils import dedent_func, format_time_auction
 
 logger = logging.getLogger(__name__)
 

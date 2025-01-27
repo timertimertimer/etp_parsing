@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from .config import agent_list
 from random import choice
+
 # variable set in xml_data:
 # start_date - date and time (00:00) from start publication
 # end_date = period to the end of publication; date and time (00:00)
@@ -383,22 +383,3 @@ simle2_script_lua = """
                  }
          end
                  """
-headers = {
-    ':authority': 'utp.sberbank-ast.ru',
-    ':method': 'POST',
-    ':path': '/Bankruptcy/SearchQuery/BidList',
-    ':scheme': 'https',
-    'accept': '*/*',
-    #'accept-encoding': 'gzip, deflate, br',
-    'accept-language': 'n-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,de-DE;q=0.6,de;q=0.5,uk-UA;q=0.4,uk;q=0.3,ro-RO;q=0.2,ro;q=0.1',
-    'cache-control': 'no-cache',
-    'content-type': 'application/x-www-form-urlencoded',
-    'origin': 'https://utp.sberbank-ast.ru',
-    'referer': 'https://utp.sberbank-ast.ru/Bankruptcy/List/BidList',
-    'pragma': 'no-cache',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-origin',
-    'User-Agent': choice(agent_list),
-    'x-requested-with': 'XMLHttpRequest',
-}

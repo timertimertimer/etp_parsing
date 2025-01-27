@@ -1,4 +1,4 @@
-from ..utils.config import start_time
+from general_utils.config import start_date
 
 query_param = {
     'subject': '',
@@ -7,7 +7,7 @@ query_param = {
     'debtorTitle': '',
     'organizerTitle': '',
     'arbitrationManagerTitle': '',
-    'bidSubmissionStartDateFrom': start_time,
+    'bidSubmissionStartDateFrom': start_date,
     'bidSubmissionStartDateTo': '',
     'bidSubmissionEndDateFrom': '',
     'bidSubmissionEndDateTo': '',

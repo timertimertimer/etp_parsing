@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
-import re
 from bs4 import BeautifulSoup as BS
 
 from ..utils.work_with_text_and_number import dedent_func

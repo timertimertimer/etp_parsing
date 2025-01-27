@@ -2,14 +2,12 @@ import pathlib
 import re
 import shutil
 import py7zr
-from ..utils.config import lst_exet_files
 import os
 import logging
 
-logger = logging.getLogger(__name__)
+from general_utils.config import lst_exet_files
 
-# _path = f'/home/admin/web/78.24.219.218/public_html/downloads/etp_trade_place_vetp/2021/01/102043719_~~_lot_1_0_Электростанция.zip'
-# p = '/home/admin/web/78.24.219.218/public_html/downloads/etp_trade_place_vetp/2021/01/'
+logger = logging.getLogger(__name__)
 
 
 class SevenZFiles:

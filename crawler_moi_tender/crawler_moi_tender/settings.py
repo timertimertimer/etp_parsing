@@ -13,7 +13,7 @@ BOT_NAME = "crawler_moi_tender"
 SPIDER_MODULES = ["crawler_moi_tender.spiders"]
 NEWSPIDER_MODULE = "crawler_moi_tender.spiders"
 
-LOG_FILE = 'moi_tender.log'
+# LOG_FILE = 'moi_tender.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
