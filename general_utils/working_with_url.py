@@ -58,3 +58,8 @@ class UrlConfig:
             return url.scheme + '://' + urllib.parse.unquote(url.netloc) + url.path
         else:
             return url.scheme + '://' + urllib.parse.unquote(url.netloc)
+
+    @staticmethod
+    def clean_url(url):
+        parsed_url = urllib.parse.urlparse(url)
+        return f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"

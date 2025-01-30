@@ -166,7 +166,7 @@ class TorgiGovernmentSpider(Spider):
             status = 'active'
             loader.add_value('status', status)
             loader.add_value('category', category)
-            loader.add_value('address', combo.lot.get_address())
+            loader.add_value('address', combo.lot.address())
             loader.add_value('detailed_address', combo.lot.get_detailed_address())
             loader.add_value('encumbrance', combo.lot.get_encumbrance())
             loader.add_value('description_encumbrance', combo.lot.get_description_encumbrance())

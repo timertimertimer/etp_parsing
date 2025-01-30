@@ -3,9 +3,10 @@ from typing import Iterable
 import scrapy
 from scrapy import Request, FormRequest
 
-from ..items import CrawlerMoiTenderItemLoader, CrawlerMoiTenderItem
+from general_utils import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils.config import start_date
 from ..trades.app import Combo
-from ..utils.config import start_time_from, data_origin_url
+from ..utils.config import data_origin_url
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.working_with_time import return_parse_date
 
@@ -32,7 +33,7 @@ class MoiTenderSpider(scrapy.Spider):
             'f_section': '0',
             'f_price_min': '',
             'f_price_max': '',
-            'f_date_start_min': start_time_from,
+            'f_date_start_min': start_date,
             'f_date_start_max': '',
             'f_date_finish_min': '',
             'f_date_finish_max': '',
@@ -63,7 +64,7 @@ class MoiTenderSpider(scrapy.Spider):
 
     def parse_trade(self, response, lot):
         combo = Combo(response)
-        loader = CrawlerMoiTenderItemLoader(CrawlerMoiTenderItem(), response=response)
+        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
         loader.add_value('data_origin', data_origin_url)
         loader.add_value('trading_id', lot['trading_id'])
         loader.add_value('trading_link', response.url)
@@ -76,7 +77,7 @@ class MoiTenderSpider(scrapy.Spider):
         loader.add_value('status', lot['status'])
         loader.add_value('category', lot['category'])
         loader.add_value('address', lot['address'])
-        loader.add_value('detailed_address', lot['detailed_address'])
+        loader.add_value('region', lot['region'])
         loader.add_value('short_name', lot['short_name'])
         loader.add_value('start_price', lot['start_price'])
         if lot['trading_form'] == 'open':

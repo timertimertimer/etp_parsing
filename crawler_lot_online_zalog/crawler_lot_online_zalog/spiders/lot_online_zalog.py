@@ -3,25 +3,35 @@ import copy
 import re
 from abc import ABC
 import logging
-from icecream import ic
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider
 from scrapy.utils.python import to_unicode
-from scrapy_splash import SplashRequest, SlotPolicy, SplashFormRequest
+from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
-from crawler_lot_online_zalog.utils.headers import headers as hd
+
+from general_utils.location import Region
+from ..utils.headers import headers as hd
 from scrapy import FormRequest, Request
-from ..utils.get_data_from_table import DbConnectCheckLots
+
+from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..settings import DEFAULT_REQUESTS_HEADERS
+from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils import data_for_requests as dfr
 from ..utils.config import start_url, data_origin_url, url_for_post_download
 from ..manage_spider.app import Combo
 from ..utils.post_data.common_data import data_switcher, param_with_type, data_next_page
-from ..items import CrawlerZalogItem, CrawlerZalogItemLoader
 from ..utils.working_with_text_cookies_num import cookie_parser
 from ..utils.working_with_time import return_servertime, return_parse_date
 
 logger = logging.getLogger(__name__)
+
+
+def check_session_expired(response):
+    """Check if the session has expired based on the response content."""
+    if "<redirect url=\"/e-auction/sessionExpired.xhtml\"" in response.text:
+        logging.warning("Session has expired. Restarting session...")
+        return True
+    return False
 
 
 class LotOnlineZalogSpider(CrawlSpider, ABC):
@@ -34,6 +44,21 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
         self.db_check = DbConnectCheckLots()
         self.previous_lots = self.db_check.get_latest_lot()
 
+    def restart_session(self, ):
+        """Restart the session and retry the request."""
+        # Реинициализация сессии
+        yield SplashRequest(
+            to_unicode(start_url),
+            self.start_requests,
+            endpoint='execute',
+            args={'lua_source': dfr.script_lua},
+            slot_policy=SlotPolicy.PER_DOMAIN,
+            splash_headers=DEFAULT_REQUESTS_HEADERS,
+            session_id=1,
+            encoding='utf-8',
+            errback=self.errback_httpbin,
+        )
+
     def start_requests(self):
         yield SplashRequest(to_unicode(start_url), self.request_for_open_category,
                             endpoint='execute',
@@ -41,22 +66,6 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
                             slot_policy=SlotPolicy.PER_DOMAIN, splash_headers=DEFAULT_REQUESTS_HEADERS,
                             session_id=1, encoding='utf-8',
                             errback=self.errback_httpbin)
-
-    # def request_to_link(self, response):
-    #     """"""
-    #     combo = Combo(response_=response)
-    #     link = 'https://sales.lot-online.ru/e-auction/auctionLotProperty.xhtml?parm=lotUnid%3D960000308100%3Bmode%3Djust'
-    #     cookie = response.data['cookies'][0]
-    #     cookie = cookie['name'] + '=' + cookie['value']
-    #     attempt = 1
-    #     hd.headers_lot['Cookie'] = cookie
-    #     hd.headers_lot['Referer'] = response.url
-    #     view_value = combo.search.get_view_state()
-    #     yield Request(url=link, callback=self.sort_type_of_trade,
-    #                   cookies=cookie_parser(cookie),
-    #                   headers=hd.headers_lot,
-    #                   cb_kwargs={'cookie': cookie, 'url_lot': link, 'attempt': attempt, 'view': view_value},
-    #                   errback=self.errback_httpbin)
 
     def request_for_open_category(self, response):
         """ get cookie, get ViewState and do request to category """
@@ -139,8 +148,8 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
                     yield Request(url=link, callback=self.sort_type_of_trade,
                                   cookies=cookie_parser(cookie),
                                   headers=hd.headers_lot,
-                              cb_kwargs={'cookie': cookie, 'url_lot': link, 'attempt': attempt, 'view': view_value},
-                              errback=self.errback_httpbin)
+                                  cb_kwargs={'cookie': cookie, 'url_lot': link, 'attempt': attempt, 'view': view_value},
+                                  errback=self.errback_httpbin)
 
     async def sort_type_of_trade(self, response, url_lot, attempt, cookie, view):
         """get response and run function according trading type"""
@@ -160,7 +169,7 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             view_value = view_value
         else:
             view_value = view
-        loader = CrawlerZalogItemLoader(CrawlerZalogItem(), response=response)
+        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
         short_name = combo.lot.short_name()
         match = re.match(r'.+?аренд.+', short_name, re.IGNORECASE)
         match1 = re.match(r'^arend.+', short_name, re.IGNORECASE)
@@ -192,11 +201,11 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             loader.add_value('start_price', combo.lot.start_price())
             loader.add_value('step_price', combo.lot.step_price())
             body = response.body.decode('utf-8')
-            general_files = combo.downspider.download_trade(url_for_post_download,
-                                                            combo.lot.trading_number(),
-                                                            cookies=cookie_ + '; primefaces.download=true'.strip(),
-                                                            view=view_value,
-                                                            body=body)
+            general_files = combo.downspider.download_general(url_for_post_download,
+                                                              combo.lot.trading_number(),
+                                                              cookies=cookie_ + '; primefaces.download=true'.strip(),
+                                                              view=view_value,
+                                                              body=body)
             lot_file = combo.downspider.download_lot_img(url_id=combo.lot.trading_number(), lot_num='1',
                                                          cookie=cookie_ + '; primefaces.download=true'.strip(),
                                                          )
@@ -224,7 +233,7 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             view_value = view_value
         else:
             view_value = view
-        loader = CrawlerZalogItemLoader(CrawlerZalogItem(), response=response)
+        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
         short_name = combo.lot.short_name()
         match = re.match(r'.+?аренд.+', short_name, re.IGNORECASE)
         match1 = re.match(r'^arend.+', short_name, re.IGNORECASE)
@@ -256,14 +265,18 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
             loader.add_value('unit', None)
             loader.add_value('deposit', combo.lot.get_deposit())
             body = response.body.decode('utf-8')
-            general_files = combo.downspider.download_trade(url_for_post_download,
-                                                            combo.lot.trading_number(),
-                                                            cookies=cookie_ + '; primefaces.download=true'.strip(),
-                                                            view=view_value,
-                                                            body=body)
-            lot_file = combo.downspider.download_lot_img(url_id=combo.lot.trading_number(), lot_num='1',
-                                                         cookie=cookie_ + '; primefaces.download=true'.strip(),
-                                                         )
+            general_files = combo.downspider.download_general(
+                url_for_post_download,
+                combo.lot.trading_number(),
+                cookies=cookie_ + '; primefaces.download=true'.strip(),
+                view=view_value,
+                body=body
+            )
+            lot_file = combo.downspider.download_lot_img(
+                url_id=combo.lot.trading_number(),
+                lot_num=combo.lot.lot_number(),
+                cookie=cookie_ + '; primefaces.download=true'.strip(),
+            )
             loader.add_value('files', {'general': general_files, 'lot': lot_file})
             header = copy.deepcopy(hd.headers_category)
             header['Referer'] = response.url
@@ -276,8 +289,6 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
                                              'url_lot': url_lot, 'view': view_value,
                                              'cookie': cookie_})
             else:
-                if loader.get_collected_values('short_name') is None:
-                    loader.add_value('short_name', 'Лот - ' + ''.join(loader.get_collected_values('lot_number')))
                 loader.add_value('created_at', return_parse_date())
                 yield loader.load_item()
 
@@ -285,10 +296,14 @@ class LotOnlineZalogSpider(CrawlSpider, ABC):
         """ parse address and complete lot """
         combo = Combo(response_=response)
         body_ = response.body.decode('utf-8')
-        loader.add_value('address', combo.downspider.get_address(body_))
-        loader.add_value('detailed_address', combo.downspider.get_detaled_address(body_))
+        address = combo.downspider.get_address(body_)
+        region = None
+        if address:
+            region = Region.get_region(address) or combo.downspider.get_region(body_)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         check_address = loader.get_collected_values('address')
-        check_det_address = loader.get_collected_values('detailed_address')
+        check_det_address = loader.get_collected_values('region')
         if len(check_address) == 0 and len(check_det_address) == 0 and attempt < 4:
             logger.info(f'This is attempt number {attempt} and response url - {response.url}')
             attempt += 1

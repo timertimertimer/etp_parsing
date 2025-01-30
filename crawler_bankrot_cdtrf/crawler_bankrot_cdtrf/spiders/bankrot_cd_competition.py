@@ -3,25 +3,23 @@ import copy
 import re
 
 from scrapy import Request, FormRequest
-from scrapy.spiders import CrawlSpider, Spider
+from scrapy.spiders import Spider
 
-from ..items import CrawlerBankrotCdtrfItem, CrawlerBankrotCdtrfItemLoader
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.location import Region
 from ..locators_and_attributes.locators_attributes import Offer
 from ..manage_spiders.app import Compose
-from ..settings import DEFAULT_REQUESTS_HEADERS
-from ..utils.config import start_date_parse, data_origin_url, trade_competition_
+from ..utils.config import data_origin_url, trade_competition_, start_date
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers_for_requests import post_headers
 from ..utils.working_with_time import return_parse_date
 from ..utils.working_with_url import UrlConfig
 
 
 class BankrotCdOfferSpider(Spider):
     name = 'bankrot_cd_competition'
-
-    # allowed_domains = ['bankrot.cdtrf.ru']
-
-    # start_urls = ['https://bankrot.cdtrf.ru/public/undef/card/tradel.aspx']
+    custom_settings = {
+        'TABLE_NAME': 'lots_bankrot_cdtrf',
+    }
     def __init__(self, *args, **kwargs):
         super(BankrotCdOfferSpider, self).__init__(*args, **kwargs)
         self.loc = Offer
@@ -30,8 +28,7 @@ class BankrotCdOfferSpider(Spider):
         self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self):
-        yield Request('https://bankrot.cdtrf.ru/public/undef/card/tradel.aspx', self.making_post_request,
-                      headers=DEFAULT_REQUESTS_HEADERS)
+        yield Request('https://bankrot.cdtrf.ru/public/undef/card/tradel.aspx', self.making_post_request)
 
     def making_post_request(self, response):
         combo = Compose(response_=response)
@@ -39,10 +36,10 @@ class BankrotCdOfferSpider(Spider):
         # format_post_data = copy.deepcopy(post_data.post_data)
         format_post_data['ctl00_ToolkitScriptManager1_HiddenField'] = combo.offer.get_ajax_and_token()
         format_post_data['ctl00$ToolkitScriptManager1'] = self.loc.ToolkitScriptManager1_first_query
-        format_post_data['ctl00$cph1$tbRequestTimeBegin1'] = start_date_parse
+        format_post_data['ctl00$cph1$tbRequestTimeBegin1'] = start_date
         format_post_data['ctl00$cph1$pgvTrades$ctl22$ddlPager'] = 'Номер страницы'
         format_post_data['ctl00$cph1$hiddenTradeTypeID'] = trade_competition_
-        format_post_data['ctl00$cph1$hiddenRequestTimeBegin1'] = start_date_parse
+        format_post_data['ctl00$cph1$hiddenRequestTimeBegin1'] = start_date
         format_post_data['ctl00$cph1$hiddenPriceTypeID'] = '0'
         format_post_data['ctl00$cph1$hiddenFilterShowed'] = '1'
         format_post_data['ctl00$cph1$ddlTradeTypeID'] = trade_competition_
@@ -56,27 +53,23 @@ class BankrotCdOfferSpider(Spider):
         format_post_data['__EVENTARGUMENT'] = combo.offer.get_post_data_values('input', '__EVENTARGUMENT')
         format_post_data['__ASYNCPOST'] = 'true'
 
-        headers = copy.deepcopy(post_headers)
-        headers['Referer'] = response.url
-
         yield FormRequest(response.url, callback=self.parse_serp,
-                          formdata=format_post_data, headers=headers,
+                          formdata=format_post_data, 
                           cb_kwargs={'format_post_data': format_post_data,
                                      'current_page': 1})
 
     def parse_serp(self, response, format_post_data, current_page):
         combo = Compose(response_=response)
         list_tag_links = combo.offer.trade_link_serp
-        headers = copy.deepcopy(post_headers)
-        headers['Referer'] = response.url
+        
         for link in list_tag_links:
             if self.previous_lots is not None:
                 if link not in self.previous_lots:
                     yield Request(link, callback=self.parse_auction_page,
-                                  headers=headers)
+                                  )
             else:
                 yield Request(link, callback=self.parse_auction_page,
-                              headers=headers)
+                              )
         next_page = response.css('#ctl00_cph1_pgvTrades_ctl22_lnkNext').get()
         last_page_visible = combo.offer.get_total_pages(current_page,
                                                         format_post_data['ctl00$cph1$tbRequestTimeBegin1'])
@@ -118,16 +111,16 @@ class BankrotCdOfferSpider(Spider):
         if len(eventvalidation) > 0:
             pagination_form['__EVENTVALIDATION'] = eventvalidation
         if next_page and current_page <= last_page_visible and current_page < 2400:
-            post_headers['Referer'] = response.url
+            
             yield FormRequest(response.url, callback=self.parse_serp,
-                              formdata=pagination_form, headers=post_headers,
+                              formdata=pagination_form,
                               dont_filter=True, method='POST',
                               cb_kwargs={'format_post_data': pagination_form,
                                          'current_page': current_page})
 
     async def parse_auction_page(self, response):
         combo = Compose(response_=response)
-        loader = CrawlerBankrotCdtrfItemLoader(CrawlerBankrotCdtrfItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         """parsing info from offer page"""
         trading_id = ''.join(re.findall(r'\d+$', response.url))
         loader.add_value('data_origin', data_origin_url)
@@ -143,6 +136,12 @@ class BankrotCdOfferSpider(Spider):
         loader.add_value('msg_number', combo.offer.get_msg)
         loader.add_value('case_number', combo.offer.get_case_number)
         loader.add_value('debtor_inn', combo.offer.get_debtor_inn)
+        address = combo.offer.address
+        region = None
+        if address:
+            region = Region.get_region(address)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.offer.get_arbitr_name)
         loader.add_value('arbit_manager_inn', combo.offer.get_arbitr_inn)
         loader.add_value('arbit_manager_org', combo.offer.get_arbitr_org)
@@ -159,29 +158,28 @@ class BankrotCdOfferSpider(Spider):
         loader.add_value('step_price', combo.auction.step_price)
         loader.add_value('created_at', return_parse_date())
         link_to_lot_file = combo.auction.clean_files_lot_links
-        headers = copy.deepcopy(post_headers)
-        headers['Referer'] = response.url
+        
         link_to_doc_1 = combo.auction.general_file_link_doc_1()
         link_to_doc_2 = combo.auction.general_file_link_doc_2()
         yield Request(link_to_doc_1, callback=self.get_document_1,
-                      headers=headers,
-                      cb_kwargs={'headers': headers,
+                      
+                      cb_kwargs={
                                  'loader': loader, 'lot_files': list(),
                                  'link_to_doc_2': link_to_doc_2, 'lot_link': response.url,
                                  'link_to_lot_file': link_to_lot_file, })
 
-    async def get_document_1(self, response, headers, loader, lot_files, link_to_doc_2, lot_link, link_to_lot_file):
+    async def get_document_1(self, response, loader, lot_files, link_to_doc_2, lot_link, link_to_lot_file):
         """get document for general"""
         combo = Compose(response_=response)
         get_files_lst = combo.auction.find_all_files(lot_link)
         yield Request(link_to_doc_2, callback=self.get_document_2,
-                      headers=headers,
+                      
                       cb_kwargs={
                           'loader': loader, 'lot_files': lot_files,
                           'files_gen_2': get_files_lst, 'lot_link': lot_link,
-                          'link_to_lot_file': link_to_lot_file, 'headers': headers})
+                          'link_to_lot_file': link_to_lot_file})
 
-    async def get_document_2(self, response, loader, lot_files, files_gen_2, lot_link, link_to_lot_file, headers):
+    async def get_document_2(self, response, loader, lot_files, files_gen_2, lot_link, link_to_lot_file):
         combo = Compose(response_=response)
         get_files_lst_2 = combo.auction.find_all_files(lot_link)
         get_files_lst_2.extend(files_gen_2)
@@ -192,17 +190,17 @@ class BankrotCdOfferSpider(Spider):
                 link_to_lot_file = list(link_to_lot_file)
                 link = link_to_lot_file.pop(0)
                 yield Request(link, callback=self.lot_doc_page,
-                              headers=headers,
+                              
                               cb_kwargs={
                                   'loader': loader, 'lot_files': lot_files,
                                   'general_files_dict': general_files_dict, 'lot_link': lot_link,
-                                  'link_to_lot_file': link_to_lot_file, 'headers': headers})
+                                  'link_to_lot_file': link_to_lot_file})
         else:
             lot_files = list()
             loader.add_value('files', {'general': general_files_dict, 'lot': lot_files})
             yield loader.load_item()
 
-    def lot_doc_page(self, response, loader, general_files_dict, lot_link, link_to_lot_file, headers, lot_files: list):
+    def lot_doc_page(self, response, loader, general_files_dict, lot_link, link_to_lot_file, lot_files: list):
         """ parse lot_doc page  """
         combo = Compose(response_=response)
         files_on_page = combo.auction.find_all_files(lot_link)
@@ -218,8 +216,8 @@ class BankrotCdOfferSpider(Spider):
         else:
             link = link_to_lot_file.pop(0)
             yield Request(link, callback=self.lot_doc_page,
-                          headers=headers,
+                          
                           cb_kwargs={
-                              'loader': loader, 'lot_files': lot_files, 'headers': headers,
+                              'loader': loader, 'lot_files': lot_files, 
                               'general_files_dict': general_files_dict, 'lot_link': lot_link,
                               'link_to_lot_file': link_to_lot_file})

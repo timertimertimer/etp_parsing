@@ -145,6 +145,15 @@ class AuctionParse:
             logger.warning(f'{url}:: INVALID DEBITOR INN VALUE  AUCTION')
             return None
 
+    def address(self, url):
+        try:
+            address = self.response.xpath(self.loc.debtor_inn_loc).get()
+            address = ''.join(re.findall(r"Адрес", address))
+            if address:
+                return ' '.join(address.split())
+        except:
+            logger.warning(f'{url}:: INVALID DEBITOR ADDRESS AUCTION')
+
     # __ARBITR__INFO__
     def arbitr_manager(self, url):
         """get arbitr name"""

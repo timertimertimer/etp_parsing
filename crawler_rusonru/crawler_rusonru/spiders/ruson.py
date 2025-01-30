@@ -33,7 +33,7 @@ class RusonSpider(Spider):
 
     def parse_serp(self, response):
         """ parse pagination pages with short lot data (serp) """
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         for lot_data in combo.serp.get_lots_data():
             # [0] - trading page; [1] - lot_link; [2] - organizer; [3] - trading type and form; [4] - status
             type_and_form = combo.serp.get_trading_type_and_form(lot_data[3])
@@ -75,7 +75,7 @@ class RusonSpider(Spider):
 
     def parse_auction(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
         """ page auction and competition page """
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         transfer = CrawlerBankruptItem()
         transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
@@ -90,7 +90,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
+        transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -104,7 +104,7 @@ class RusonSpider(Spider):
 
     def parse_auction_lot(self, response, general_files, transfer):
         """ page lot of auction and competition """
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
@@ -135,7 +135,7 @@ class RusonSpider(Spider):
         loader.add_value('start_date_trading', transfer['start_date_trading'])
         loader.add_value('end_date_trading', None)
         loader.add_value('start_price', combo.offer.start_price())
-        loader.add_value('step_price', combo.offer.step_price())
+        loader.add_value('step_price', combo.offer.get_step_price())
         lot_files = combo.lot.download_files_lot(_id=''.join(transfer['trading_id']),
                                                  lot_number=''.join(loader.get_collected_values('lot_number')))
         total_files = dict(chain(general_files.items(),
@@ -147,7 +147,7 @@ class RusonSpider(Spider):
     def parse_offer(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
         """ parse offer page """
 
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         transfer = CrawlerBankruptItem()
         transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
@@ -162,7 +162,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
+        transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -173,7 +173,7 @@ class RusonSpider(Spider):
 
     def parse_offer_lot(self, response, general_files, transfer):
         """ parse lot of offer """
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
@@ -213,7 +213,7 @@ class RusonSpider(Spider):
         # END
 
         loader.add_value('start_price', combo.offer.start_price())
-        loader.add_value('periods', combo.offer.return_periods())
+        loader.add_value('periods', combo.offer.get_periods())
         lot_files = combo.lot.download_files_lot(_id=''.join(transfer['trading_id']),
                                                  lot_number=''.join(loader.get_collected_values('lot_number')))
         total_files = dict(chain(general_files.items(),

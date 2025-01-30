@@ -60,6 +60,8 @@ class DownloadFiles:
         for attempt in range(1, attempts + 1):
             try:
                 if pathlib.Path(absolute_path).suffix not in lst_exet_archive:
+                    if pathlib.Path(absolute_path).exists():
+                        return
                     return self.download_files(
                         attempt=attempt, session=session, absolute_path=absolute_path, request_data=request_data
                     )
@@ -85,8 +87,10 @@ class DownloadFiles:
                     return []
             time.sleep(2)
 
-    def download_files(self, session: Session, request_data: RequestData, attempt: int,
-                       absolute_path: pathlib.PurePath):
+    def download_files(
+            self, session: Session, request_data: RequestData, attempt: int,
+            absolute_path: pathlib.PurePath
+    ):
         if attempt == 5:
             rd = request_data.model_dump()
             rd.pop('verify')
@@ -117,7 +121,8 @@ class DownloadFiles:
         root_directory, archive_name = os.path.split(absolute_path)
         try:
             objectZip = ZipFiles(
-                absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name, trading_id=trading_id,
+                absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name,
+                trading_id=trading_id,
                 lot_number=lot_number,
                 url=request_data.url, relative_path=relative_path
             )

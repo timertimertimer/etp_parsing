@@ -175,9 +175,6 @@ class ETPSpiderMiddleware:
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
 
-    def close_spider(self, spider):
-        Region.save_new_regions_to_db()
-
 
 class ETPDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -189,6 +186,7 @@ class ETPDownloaderMiddleware:
         # This method is used by Scrapy to create your spiders.
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
+        crawler.signals.connect(s.spider_closed, signal=signals.spider_closed)
         return s
 
     def process_request(self, request, spider):
@@ -224,3 +222,6 @@ class ETPDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
+    def spider_closed(self, spider):
+        Region.save_new_regions_to_db()

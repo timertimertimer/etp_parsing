@@ -2,7 +2,6 @@ import copy
 import json
 import re
 from itertools import chain
-from random import choice
 
 from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
@@ -10,13 +9,13 @@ from scrapy.spiders import Spider
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from ..items import CrawlerZalogItem, CrawlerZalogItemLoader
+from general_utils import CrawlerNonBankruptItemLoader, CrawlerNonBankruptItem
+from general_utils.location import Region
 from ..manage_spider.app import Combo
-from ..utils.config import start_url, ross_url, user_agent, pagination_url
+from ..utils.config import start_url, ross_url, pagination_url
 from ..utils.data_for_requests import script_lua
 from ..utils.form_data.param_data_pagination import data_pagination_ross
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.headers.headers_sber import headers_to_sber, pagination_headers
 from ..utils.work_with_text_and_number import return_main_cookies, cookie_parser
 from ..utils.working_with_time import return_parse_date
 
@@ -24,14 +23,7 @@ from ..utils.working_with_time import return_parse_date
 class ZalogRossSpider(Spider):
     name = 'zalog_ross'
     custom_settings = {
-        # 'SPLASH_URL': 'http://localhost:8050/',
-        # 'LOG_FILE': './zalog_ross.log',
-
-        'ITEM_PIPELINES': {
-            'crawler_zalog.pipelines.CrawlerZalogPipeline': 300,
-            'crawler_zalog.pipelines.ZalogSberConnect': 350,
-        }
-
+        # 'LOG_FILE': f'{name}.log'
     }
 
     def __init__(self):
@@ -45,19 +37,11 @@ class ZalogRossSpider(Spider):
                             slot_policy=SlotPolicy.PER_DOMAIN,
                             errback=self.errback_httpbin)
 
-    # def request_direct_to_lot(self, response):
-    #     """"""
-    #     url = 'https://zalog.lot-online.ru/user/collateral/catalog_page.html?id=344381005&rootProfileId=17711002&priceFrom=0&priceTo=10%20000%20000%20000'
-    #     cookie = response.data['cookies']
-    #     yield Request(url, callback=self.parse_lot_page, headers=headers_to_sber,
-    #                   cookies=cookie_parser(return_main_cookies(cookie)))
-
     def go_to_ross_page(self, response):
         """ follow to sberbank page with lots """
-        headers_to_sber['User-Agent'] = choice(user_agent)
         yield SplashRequest(ross_url, callback=self.parse_main_page_ross, endpoint='execute',
                             cache_args=['lua_source'], args={'lua_source': script_lua},
-                            slot_policy=SlotPolicy.PER_DOMAIN, splash_headers=headers_to_sber,
+                            slot_policy=SlotPolicy.PER_DOMAIN,
                             errback=self.errback_httpbin)
 
     def parse_main_page_ross(self, response):
@@ -69,21 +53,19 @@ class ZalogRossSpider(Spider):
         pagination_last_page = combo.serp.get_last_page()
         current_page = 1
         cookie = response.data['cookies']
-        headers_to_sber['User-Agent'] = choice(user_agent)
-        headers_to_sber['Referer'] = response.url
+        
         first_lot_url = combo.serp.get_first_lot_link()
         if first_lot_url:
             for link in combo.serp.get_links_lot():
                 if (link,) not in self.previous_lots:
-                    yield Request(link, callback=self.parse_lot_page, headers=headers_to_sber,
+                    yield Request(link, callback=self.parse_lot_page, 
                                   cookies=cookie_parser(return_main_cookies(cookie)))
             if current_page <= pagination_last_page:
                 current_page += 1
                 param['page'] = str(current_page)
-                pagination_headers['User-Agent'] = choice(user_agent)
-                pagination_headers['Referer'] = response.url
+                
                 yield FormRequest(pagination_url, callback=self.pagination_circle, formdata=param,
-                                  headers=pagination_headers,
+                                  
                                   cb_kwargs={'current_page': current_page, 'last_page': pagination_last_page,
                                              'first_url': first_lot_url, 'param': param, 'cookie': cookie})
 
@@ -96,18 +78,16 @@ class ZalogRossSpider(Spider):
         links_to_lots = list(map(combo.serp.update_url_lot_param, url_lst, id_lots))
         for link in links_to_lots:
             if (link,) not in self.previous_lots:
-                headers_to_sber['User-Agent'] = choice(user_agent)
-                headers_to_sber['Referer'] = response.url
-                yield Request(link, callback=self.parse_lot_page, headers=headers_to_sber,
+                
+                yield Request(link, callback=self.parse_lot_page, 
                               cookies=cookie_parser(return_main_cookies(cookie)))
 
         if current_page < last_page:
             current_page += 1
             param['page'] = str(current_page)
-            pagination_headers['User-Agent'] = choice(user_agent)
-            pagination_headers['Referer'] = response.url
+            
             yield FormRequest(pagination_url, callback=self.pagination_circle, formdata=param,
-                              headers=pagination_headers, cookies=cookie_parser(return_main_cookies(cookie)),
+                               cookies=cookie_parser(return_main_cookies(cookie)),
                               cb_kwargs={'current_page': current_page, 'last_page': last_page,
                                          'first_url': first_url, 'param': param, 'cookie': cookie})
 
@@ -118,7 +98,7 @@ class ZalogRossSpider(Spider):
         match = re.match(r'.+?аренд.+', short_name, re.IGNORECASE)
         match1 = re.match(r'^arend.+', short_name, re.IGNORECASE)
         if not match and not match1:
-            loader = CrawlerZalogItemLoader(CrawlerZalogItem(), response=response)
+            loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
             loader.add_value('data_origin', start_url)
             loader.add_value('trading_id', combo.lot.get_trading_id())
             loader.add_value('trading_link', response.url)
@@ -129,7 +109,12 @@ class ZalogRossSpider(Spider):
             loader.add_value('trading_org_contacts', combo.lot.get_trading_org_contact())
             loader.add_value('status', 'active')
             loader.add_value('category', combo.lot.get_categories())
-            loader.add_value('address', combo.lot.get_address())
+            address = combo.lot.address
+            region = None
+            if address:
+                region = Region.get_region(address)
+            loader.add_value('address', address)
+            loader.add_value('region', region)
             loader.add_value('encumbrance', combo.lot.get_encumbrance())
             loader.add_value('description_encumbrance', combo.lot.get_description_encumbrance())
             loader.add_value('lot_number', '1')

@@ -31,6 +31,7 @@ class LocatorMain:
     case_number_id_loc = 'ctl00_cph1_trDealNum'
 
     list_debtor_id = '//tr[contains(@id, "ctl00_cph1_trDebt")]'
+    sud_loc = '//tr[contains(@id, "ctl00_cph1_trDealArbJud")]'
 
     list_arbitr_id = '//tr[contains(@id, "ctl00_cph1_trArbMan")]'
     short_name_id_loc = 'ctl00_cph1_lName'

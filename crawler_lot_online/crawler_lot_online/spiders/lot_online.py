@@ -5,6 +5,7 @@ import json
 from scrapy import FormRequest, Request
 
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils.location import Region
 from ..app import Combo
 from ..utils.config import data_origin
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -16,11 +17,6 @@ from ..utils.working_with_time import return_parse_date
 class LotOnlineSpider(scrapy.Spider):
     name = "lot_online"
     start_urls = ["https://{}.lot-online.ru/lot/categories-grid-json.html"]
-    custom_settings = {
-        'ITEM_PIPELINES': {
-            'general_utils.pipelines.ETPNonBankruptPipeline': 300,
-        }
-    }
 
     def __init__(self, domain):
         super(LotOnlineSpider, self).__init__()
@@ -105,7 +101,10 @@ class LotOnlineSpider(scrapy.Spider):
         loader.add_value('deposit', combo.deposit)
         loader.add_value('periods', combo.periods)
         loader.add_value('lot_info', combo.lot_info)
-        address, region = combo.get_address() or (None, None)
+        address = combo.address
+        region = None
+        if address:
+            region = Region.get_region(address)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('start_date_requests', combo.start_date_requests)

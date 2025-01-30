@@ -1,6 +1,7 @@
-from general_utils import get_region
 from .libraries import *
 import logging
+
+from ..utils.config import trade_link
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,58 @@ class SerpParse:
         self.response = response_
         self.soup = soup(self.response)
         self.check = CheckIfCorrectContactInfo()
+
+    def get_current_page(self):
+        """ return current page of pagination """
+        try:
+            pag_ul = self.soup.find("ul", class_="pagination")
+            if pag_ul:
+                active_page = pag_ul.find("li", class_="active").get_text()
+                if re.match(r'\d+', active_page):
+                    return int(active_page)
+                else:
+                    logger.error(f'{self.response.url} :: ACTIVE PAGE NOT AN INTEGER')
+                    return 0
+            else:
+                logger.error(f'{self.response.url} :: PAGINATION TAG NOT FOUND')
+                return 0
+        except Exception as e:
+            logger.error(f'{self.response.url} :: INVALID DATA CURRENT PAGE {e}')
+            return 1
+
+    def get_next_page(self):
+        """ return next page """
+        try:
+            pag_ul = self.soup.find("ul", class_="pagination")
+            if pag_ul:
+                active_page = pag_ul.find("li", class_="active")
+                next_page = active_page.findNext('li')
+                if next_page:
+                    next_page = next_page.get_text()
+                    if re.match(r'\d+', next_page):
+                        return int(next_page)
+                    else:
+                        return 0
+            else:
+                return 0
+        except Exception as e:
+            logger.error(f'{self.response.url} :: INVALID DATA NEXT PAGE {e}')
+
+    def links_to_trade(self) -> list:
+        """ return list with trading list """
+        set_links = set()
+        try:
+            tbody = self.soup.find('table', class_='data').find('tbody')
+            tr_list = tbody.find_all('tr')
+            if tr_list:
+                for tr in tr_list:
+                    td = tr.find_all('td')[0].get_text()
+                    link = re.findall(r'/trade_view.php\?trade_nid=\d+', str(tr))[0]
+                    set_links.add((link.lstrip('/'), td))
+                return list(set_links)
+        except Exception as e:
+            logger.error(f'{self.response.url} :: INVALID DATA DURING GETTING LINKS TO TRADE {e}')
+            return list()
 
     def get_table_with_lots(self):
         """ return table with lots links """
@@ -200,35 +253,26 @@ class SerpParse:
             org_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
             return self.check.check_inn(dedent_func(org_inn))
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
             if table := self.table_debtor_info():
                 address = table.find('td', string='Адрес')
                 if address:
                     address = address.findNextSibling('td').get_text(strip=True)
-
                 sud = table.find('td', string='Наименование суда')
                 if sud:
                     sud = sud.findNextSibling('td').get_text(strip=True)
-
                 region = table.find('td', string='Регион')
                 if region:
                     region = region.findNextSibling('td').get_text(strip=True)
-
                 if not any([address, sud]):
                     return region
-
                 if not address:
                     address = sud
-                if address not in self.addresses:
-                    self.addresses[address] = (
-                            get_region(address) or
-                            (get_region(sud) if sud else None) or
-                            (get_region(region) if region else None)
-                    )
-                return address, self.addresses[address]
+                return address
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR function {self.get_address.__name__}')
+            logger.error(f'{self.response.url} :: ERROR function {self.address.__name__}')
 
     def table_arbitrator_info(self):
         """ return table with title "Information about arbitrator" """

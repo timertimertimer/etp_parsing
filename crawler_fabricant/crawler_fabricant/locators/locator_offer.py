@@ -22,6 +22,7 @@ class LocatorOffer:
     # _debitor_#
     deb_div_loc = '//div[contains(text(),"Должник")]/ancestor::div[1]'
     deb_inn_loc = deb_div_loc + '//strong[contains(text(),"ИНН")]/following::text()[1]'
+    address_loc = deb_div_loc + '//strong[contains(text(),"Адрес")]/following::text()[1]'
 
     # _arbitr_#
     arbitr_last_name = '//div[contains(text(),"Фамилия арбитражного")]/following-sibling::div[1]'

@@ -1,7 +1,7 @@
 from .python_mysql_dbconfig import read_db_config
 from .db import DBHelper
 from .download import DownloadFiles
-from .items import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from .items import CrawlerBankruptItem, CrawlerBankruptItemLoader, CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from .middlewares import *
 from .pipelines import ETPBankruptPipeline, ETPNonBankruptPipeline
 from .rar_file_manager import RarFiles

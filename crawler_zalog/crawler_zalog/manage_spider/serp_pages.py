@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup as BS
 import re
 import logging
 
-from crawler_zalog.utils.working_with_url import UrlConfig
+from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -69,5 +69,5 @@ class SerpPages:
             return int(num)
         except Exception as e:
             print(e)
-            logger.error(f'{self.response.url} :: ERORR GETTING LAST PAGE')
+            logger.error(f'{self.response.url} :: ERROR GETTING LAST PAGE')
             return 0

@@ -86,7 +86,7 @@ class VertradesSpider(scrapy.Spider):
             if trading_type in ["auction", "competition"]:
                 loader.add_value("start_date_trading", combo.auc.start_date_trading)
                 loader.add_value("end_date_trading", combo.auc.end_date_trading)
-                loader.add_value("step_price", combo.auc.step_price(lot))
+                loader.add_value("step_price", combo.auc.get_step_price(lot))
             elif trading_type == "offer":
                 loader.add_value("start_date_trading", combo.offer.start_date_trading(lot))
                 loader.add_value("end_date_trading", combo.offer.end_date_trading(lot))

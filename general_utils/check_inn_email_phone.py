@@ -1,4 +1,7 @@
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CheckIfCorrectContactInfo:
@@ -8,12 +11,6 @@ class CheckIfCorrectContactInfo:
         pattern = re.compile(r'\d{10,12}$')
         if pattern:
             return ''.join(pattern.findall(inn))
-
-    @staticmethod
-    def check_number(num):
-        match = ''.join(re.findall(r'\d+', num))
-        if 4 <= len(match) < 12:
-            return match
 
     @staticmethod
     def check_case_number(case_number: str or None):
@@ -34,10 +31,13 @@ class CheckIfCorrectContactInfo:
     def check_phone(phone):
         try:
             if phone:
-                match = re.sub(r'\D{3,}', ' ', phone)
-                return match.strip()
+                only_numbers = ''.join(filter(lambda x: x.isdigit(), phone))
+                if re.match(r'\d{5}', only_numbers) and len(phone) < 55:
+                    return re.sub(r'\s+', ' ', phone)
+                else:
+                    return ''
         except Exception as e:
-            pass
+            logger.error(e)
 
     @staticmethod
     def check_email(email):

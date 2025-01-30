@@ -5,13 +5,14 @@ from bs4 import BeautifulSoup as BS
 import re
 import logging
 
-from crawler_lot_online_zalog.utils.config import lst_exet, lst_exet_img
-from crawler_lot_online_zalog.utils.download import DownloadFiles
-from crawler_lot_online_zalog.utils.post_data.common_data import data_address
-from crawler_lot_online_zalog.utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
-from crawler_lot_online_zalog.utils.working_with_text_cookies_num import dedent_func
-from crawler_lot_online_zalog.utils.working_with_time import return_servertime
-from crawler_lot_online_zalog.utils.working_with_url import UrlConfig
+from general_utils import dedent_func, FilesDir, DownloadFiles
+from general_utils.config import lst_exet, lst_exet_archive
+from general_utils.models import RequestData
+from ..utils.config import absolute_path, relative_path
+from ..utils.post_data.common_data import data_address
+from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
+from ..utils.working_with_time import return_servertime
+from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ class DownloadSpider:
         clean_lst = list()
         if isinstance(lst_files, list) and len(lst_files) > 0:
             for f in lst_files:
-                if 'Протокол' in f or 'Решение' in f:
+                if any([True for x in lst_exet if x in f]):
                     continue
                 else:
                     clean_lst.append(f)
@@ -168,34 +169,33 @@ class DownloadSpider:
         :arg cookies -> current cookies
         :arg view -> param of post data
         :arg body -> response body"""
-        dir_ = self.dir_general
-        url = url
+        files_dir = FilesDir(relative_path, absolute_path)
         load = DownloadFiles()
         lst_general = list()
         for t in self.sort_data_files_general(body):
-            dir_.create_dir()
+            files_dir.create_dir()
             a_id, origin_name, server_name = t
-            name_on_server = dir_.name_file_on_server(trading_id=trade_id, original_name=server_name)
-            if "Протокол" not in name_on_server or "протокол" not in name_on_server:
-                # from icecream import ic
-                # ic(origin_name)
-                relative_path = dir_.name_in_column_files(id_=trade_id, original_name=server_name)
-                if pathlib.Path(name_on_server).suffix not in ['.zip', '.rar', '.7z']:
-                    load.request_to_download_general(url=url, referer=self.response.url,
-                                                     original_name=name_on_server, cookies=cookies,
-                                                     post_data=self.post_data_download(view_state=view, a_id=a_id,
-                                                                                       body_=body),
-                                                     trade_id=trade_id)
-                    lst_general.append({'original_name': origin_name,
-                                        'link': relative_path, 'link_etp': relative_path})
-                elif pathlib.Path(name_on_server).suffix in ['.zip', '.rar', '.7z']:
-                    archive_lst = load.request_to_download_general(url=url, referer=self.response.url,
-                                                                   original_name=name_on_server, cookies=cookies,
-                                                                   post_data=self.post_data_download(
-                                                                       view_state=view,
-                                                                       a_id=a_id, body_=body),
-                                                                   trade_id=trade_id)
-                    lst_general.extend(archive_lst)
+            name_on_server = files_dir.name_file_on_server(trading_id=trade_id, original_name=server_name)
+            path_relative = files_dir.return_relative_path(name_on_server)
+            path_absolute = files_dir.return_absolute_path(name_on_server)
+            request_data = RequestData(
+                url=url, referer=self.response.url, cookies=cookies, method='POST',
+                data=self.post_data_download(view_state=view, a_id=a_id, body_=body)
+            )
+            if pathlib.Path(name_on_server).suffix not in lst_exet_archive:
+                load.request_to_download_general(
+                    request_data=request_data, absolute_path=path_absolute, relative_path=path_relative,
+                    trading_id=trade_id
+                )
+                lst_general.append({'original_name': origin_name, 'link': path_relative.as_posix(), 'link_etp': url})
+            elif pathlib.Path(name_on_server).suffix in lst_exet_archive:
+                archive_lst = load.request_to_download_general(
+                    request_data=request_data, absolute_path=path_absolute, relative_path=path_relative,
+                    trading_id=trade_id
+                )
+                lst_general.extend(archive_lst)
+            else:
+                lst_general.append({'original_name': origin_name, 'link': '', 'link_etp': url})
         return lst_general
 
     # download lot img (using link without post form data)
@@ -220,7 +220,7 @@ class DownloadSpider:
         :arg cookie -> current cookies"""
         first_part_url_lot = 'https://sales.lot-online.ru/e-auction/'
         file_param = "?pfdrid_c=true"
-        dir_ = self.dir_lot
+        files_dir = FilesDir(relative_path, absolute_path)
         load = DownloadFiles()
         lot = list()
         link_list = self.get_img_files
@@ -232,22 +232,33 @@ class DownloadSpider:
                     img = re.split(';', (f + img.replace('short_', '')), maxsplit=1)[0]
                     link_set.add(img + file_param)
                 for link in link_set:
+                    files_dir.create_dir()
                     origin_name = self.url.return_path_name(link)
                     link_etp = dedent_func(''.join(link))
                     if len(origin_name) > 72:
                         origin_name = origin_name[0:15] + '_' + origin_name[-35:-1]
-                    if self.url.return_file_suffix(origin_name) in lst_exet_img:
-                        name_on_server = dir_.name_file_on_server_lot(url_id=url_id, lot=lot_num,
-                                                                      original_name=origin_name)
-                        relative_path = dir_.name_in_column_files_lot(url_id=url_id, lot=lot_num,
-                                                                      original_name=origin_name)
-                        load.request_to_download_lot(url=link, referer=self.response.url,
-                                                     original_name=name_on_server, cookies=cookie)
-                        lot.append({'original_name': origin_name,
-                                    'link': relative_path, 'link_etp': relative_path})
-
+                    name_on_server = files_dir.name_file_lot_on_server(
+                        trading_id=url_id, lot_number=lot_num, original_name=origin_name
+                    )
+                    path_relative = files_dir.return_relative_path(name_on_server)
+                    path_absolute = files_dir.return_absolute_path(name_on_server)
+                    request_data = RequestData(url=link_etp, referer=self.response.url, cookies=cookie)
+                    if self.url.return_file_suffix(origin_name) in lst_exet:
+                        load.request_to_download_general(
+                            request_data=request_data,
+                            absolute_path=path_absolute, relative_path=path_relative,
+                            trading_id=url_id, lot_number=lot_num
+                        )
+                        lot.append({'original_name': origin_name, 'link': path_relative.as_posix(), 'link_etp': link_etp})
+                    elif self.url.return_file_suffix(origin_name) in lst_exet_archive:
+                        archive_lst = load.request_to_download_general(
+                            request_data=request_data, absolute_path=path_absolute, relative_path=path_relative,
+                            trading_id=url_id, lot_number=lot_num
+                        )
+                        lot.extend(archive_lst)
+                    else:
+                        lot.append({'original_name': origin_name, 'link': '', 'link_etp': link_etp})
                 return lot
-
             except:
                 logger.error(f'{self.response.url} :: INVALID DATA IMG DOWNLOAD', exc_info=True)
                 return None
@@ -262,7 +273,6 @@ class DownloadSpider:
             addr = addr.get_text()
             return dedent_func(addr)
 
-
     def get_address_block(self, body_, view_value):
         """ return param data for getting address info """
         param = data_address
@@ -275,7 +285,7 @@ class DownloadSpider:
             param['formMain:addrAddressIdView'] = addr
             return param
 
-    def get_address(self, body_):
+    def get_region(self, body_):
         """ return d3 -> address """
         try:
             soup = BS(str(body_), features='lxml')
@@ -285,7 +295,7 @@ class DownloadSpider:
             print(e)
             return None
 
-    def get_detaled_address(self, body_):
+    def get_address(self, body_):
         """ return d3 -> address """
         try:
             soup = BS(str(body_), features='lxml')
@@ -294,4 +304,3 @@ class DownloadSpider:
         except Exception as e:
             print(e)
             return None
-

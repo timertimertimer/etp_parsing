@@ -42,7 +42,7 @@ def dedent_func(string: str):
         string = textwrap.indent(wrapped, '')
         return string.replace('\n', ' ').strip()
     else:
-        return None
+        return
 
 
 ##############__________Multiraplace__________#############

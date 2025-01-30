@@ -73,7 +73,7 @@ class ViomitraSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.auc.get_address() or (None, None)
+        transfer['address'], transfer['region'] = combo.auc.address() or (None, None)
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
@@ -91,7 +91,7 @@ class ViomitraSpider(Spider):
         combo = Combo(response, self.data_origin)
         page_offer += 1
         next_page = combo.serp.get_next_page_link(page_offer, self.data_origin)
-        period = combo.offer.return_periods()
+        period = combo.offer.get_periods()
         periods.extend(period)
         if next_page:
             yield Request(url=next_page, callback=self.parse_periods_offer,

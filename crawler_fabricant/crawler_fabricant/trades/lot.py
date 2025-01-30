@@ -1,8 +1,10 @@
 import logging
+
+import pandas as pd
+
 from ..utils.work_with_text_and_number import *
 from ..utils.working_with_time import get_time_data, format_time
 from ..locators.locator_lot import LocatorLot
-from ..spiders.fabricant import pd
 from bs4 import BeautifulSoup as BS
 from lxml import etree
 

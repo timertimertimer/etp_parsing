@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 import pytz
 
@@ -56,12 +56,6 @@ def format_time_period(strtime):
 def return_parse_date():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def return_parse_date():
-    return moscow_time_str
-
-
-def return_servertime():
-    return moscow_time.strftime('%H:%M:%S')
 
 def return_servertime():
     return datetime.now().strftime('%H:%M:%S')
@@ -77,4 +71,3 @@ def what_time_bigger(time_string_1, time_string_2, url):
     else:
         logger.error(f'{url} :: ERROR WITH CHECK TIME WHAT IS BIGGER', exc_info=True)
     return date_var
-

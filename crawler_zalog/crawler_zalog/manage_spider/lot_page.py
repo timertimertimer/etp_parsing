@@ -4,12 +4,11 @@ import re
 from pathlib import Path
 
 from bs4 import BeautifulSoup as BS
-from icecream import ic
 
-from crawler_zalog.utils.check_inn_email_etc import CheckIfCorrectContactInfo
-from crawler_zalog.utils.work_with_text_and_number import dedent_func, make_float
-from crawler_zalog.utils.working_with_time import format_time
-from ..utils.config import lst_exet
+from general_utils.config import lst_exet
+from ..utils.check_inn_email_etc import CheckIfCorrectContactInfo
+from ..utils.work_with_text_and_number import dedent_func, make_float
+from ..utils.working_with_time import format_time
 from ..utils.config import path_absolute, path_relative
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from ..utils.working_with_url import UrlConfig
@@ -19,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class LotPage:
-    path_rel = path_relative['zalog_lot_online']
-    path_abs = path_absolute['zalog_lot_online']
+    path_rel = path_relative
+    path_abs = path_absolute
 
     def __init__(self, resposne_):
         self.response = resposne_
@@ -77,12 +76,13 @@ class LotPage:
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR TRADING ID\n{e}')
 
-    def get_address(self):
+    @property
+    def address(self):
         """ return address of lot """
         try:
             addr = self.soup.find('td', string=re.compile(r'\s?Адрес:\s?', re.IGNORECASE))
             if addr:
-                return dedent_func(addr.findNext('td').get_text().strip())
+                return dedent_func(' '.join(addr.findNext('td').get_text(strip=True).split()))
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR ADDRESS\n{e}')
             return None

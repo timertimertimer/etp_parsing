@@ -1,6 +1,5 @@
-from crawler_sales_lot_online.utils.config import headers_brow, Referer_lot
-
-USER_AGENT = headers_brow['User-Agent']
+from ..utils.config import Referer_lot
+from general_utils import USER_AGENT
 
 script_lua = """
          function main(splash)

@@ -104,7 +104,7 @@ class MetsSpider(scrapy.Spider):
         comp = ComposeTrades(response_=response)
         files_general = comp.offer.download_general_files(comp.offer.trading_id)
         property_info = comp.offer.property_info
-        status = comp.offer.status
+        status = comp.offer.get_status
         for lot in comp.offer.count_lots:
             loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
@@ -124,19 +124,19 @@ class MetsSpider(scrapy.Spider):
             loader.add_value('arbit_manager_inn', comp.offer.arbitr_inn)
             loader.add_value('arbit_manager_org', comp.offer.arbitr_org)
             # PARSE LOT
-            lot_number = comp.offer.lot_number(lot)
+            lot_number = comp.offer.get_lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
             if (response.url, lot_number) not in self.previous_lots:
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                address, region = comp.offer.get_address() or (None, None)
+                address, region = comp.offer.address() or (None, None)
                 loader.add_value('address', address)
                 loader.add_value('region', region)
                 loader.add_value('property_information', property_info)
                 loader.add_value('start_price', comp.offer.start_price(lot_number))
-                loader.add_value('step_price', comp.auc.step_price(trading_number, lot_number))
+                loader.add_value('step_price', comp.auc.get_step_price(trading_number, lot_number))
                 loader.add_value('start_date_requests', comp.auc.start_date_request)
                 loader.add_value('end_date_requests', comp.auc.end_date_request)
                 loader.add_value('start_date_trading', comp.auc.start_date_trading)
@@ -152,7 +152,7 @@ class MetsSpider(scrapy.Spider):
         comp = ComposeTrades(response_=response)
         files_general = comp.offer.download_general_files(comp.offer.trading_id)
         property_info = comp.offer.property_info
-        status = comp.offer.status
+        status = comp.offer.get_status
         for lot in comp.offer.count_lots:
             loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
@@ -171,14 +171,14 @@ class MetsSpider(scrapy.Spider):
             loader.add_value('arbit_manager_inn', comp.offer.arbitr_inn)
             loader.add_value('arbit_manager_org', comp.offer.arbitr_org)
             # PARSE LOT
-            lot_number = comp.offer.lot_number(lot)
+            lot_number = comp.offer.get_lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
             if (comp.offer.trading_link, lot_number) not in self.previous_lots:
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                address, region = comp.offer.get_address() or (None, None)
+                address, region = comp.offer.address() or (None, None)
                 loader.add_value('address', address)
                 loader.add_value('region', region)
                 loader.add_value('property_information', property_info)

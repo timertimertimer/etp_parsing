@@ -3,8 +3,10 @@ import re
 
 from bs4 import BeautifulSoup
 
+from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from general_utils.location import Region
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import lst_exet_archive, lst_exeption, lst_exet, data_origin_url
+from ..utils.config import data_origin_url
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from ..utils.work_with_text_and_number import dedent_func, contains, make_float
@@ -40,8 +42,8 @@ class Combo:
 
             region_city = lot.find('div', class_='region-city')
             span = region_city.find('span')
-            detailed_address = dedent_func(span.find('b').get_text())
-            address = dedent_func(region_city.find_all('b')[1].text)
+            address = dedent_func(span.find('b').get_text())
+            region = Region.get_region(address)
 
             trading_id = trading_number = dedent_func(lot.find('div', class_='num').get_text(strip=True).replace('№', ''))
             start_price = lot.find('div', class_='price')
@@ -60,7 +62,7 @@ class Combo:
                     'trading_id': trading_id, 'trading_link': trading_link, 'trading_number': trading_number,
                     'trading_form': trading_form, 'start_price': start_price,
                     'category': category, 'org': org, 'org_link': org_link, 'status': status, 'short_name': short_name,
-                    'address': address, 'detailed_address': detailed_address
+                    'address': address, 'region': region
                 }
             )
         return lots_data
@@ -152,7 +154,9 @@ class Combo:
 
     @property
     def lot_info(self):
-        return dedent_func(self.soup.find('div', class_='description').get_text())
+        info = self.soup.find('div', class_='description')
+        if info:
+            return dedent_func(info.get_text())
 
     @property
     def property_information(self):

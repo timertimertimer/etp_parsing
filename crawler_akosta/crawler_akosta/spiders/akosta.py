@@ -307,7 +307,7 @@ class AkostaSpider(Spider):
         gen = {'general': _files}
         total_files = dict(chain(gen.items(), lot_files.items()))
         loader.add_value('files', total_files)
-        period_first_page = combo.offer.return_periods()
+        period_first_page = combo.offer.get_periods()
         total_pages_period = combo.offer.return_period_pagination()
         # total_pages_period & total are info about how many pages has pariod table
         if total_pages_period:

@@ -7,7 +7,8 @@ from random import choice
 
 import requests
 import urllib3
-from ..utils.config import path_user_agent, path_to_socks5, lst_exet_archive
+
+from general_utils.config import socks_list
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
 from ..utils.working_with_url import UrlConfig
@@ -15,13 +16,6 @@ from ..utils.zip_file_manager import ZipFiles
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
-
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
 
 
 class DownloadFiles:

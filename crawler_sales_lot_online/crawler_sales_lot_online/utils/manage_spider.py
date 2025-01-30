@@ -3,6 +3,26 @@ import re
 from http.cookies import SimpleCookie
 
 
+def check_status(status: str = None):
+    """
+    Check status
+    :param status: str
+    :return: status of trade
+    """
+    active = ('Идет прием заявок',)
+    pending = ('Объявлены торги',)
+    # ended = ()
+    try:
+        if status in active:
+            return 'active'
+        elif status in pending:
+            return 'pending'
+        else:
+            return 'ended'
+    except:
+        return None
+
+
 # Multi replace
 def replaceMultiple(mainString, toBeReplaces, newString):
     # Iterate over the sings to be replaced
@@ -55,7 +75,7 @@ def get_trading_form(text):
     """get text and using regular expression get form
         :return open form. current web site does not have closed form
     """
-    #text = ''.join(filter(lambda x: x.isalpha(), text))
+    # text = ''.join(filter(lambda x: x.isalpha(), text))
     opened = ['Продажа посредством публичного предложения',
               'Аукцион с открытой формой подачи предложений',
               'Аукцион с закрытой формой подачи предложений',

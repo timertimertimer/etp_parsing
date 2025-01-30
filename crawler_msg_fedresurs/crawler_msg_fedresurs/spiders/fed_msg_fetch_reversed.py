@@ -121,7 +121,7 @@ class FedMsgFetchSpider(Spider):
                               cb_kwargs={'attemp': attemp, 'link': link, 'msg_type': msg_type})
 
         # check if pagination correct. AND if correct, send request to next page
-        if next_page := combo.minfo.get_next_page:
+        if next_page := combo.minfo.next_page:
             try:
                 if (current_page_arg == next_page - 1) and (re.match(r'^\d+$', str(next_page))) and (
                         isinstance(next_page, int)):

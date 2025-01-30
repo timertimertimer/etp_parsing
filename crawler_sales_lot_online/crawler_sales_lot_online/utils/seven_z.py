@@ -2,12 +2,12 @@ import pathlib
 import re
 import shutil
 import py7zr
-from crawler_sales_lot_online.utils.config import lst_exet_files
 import os
 import logging
 
-from crawler_sales_lot_online.utils.work_with_path_and_dir import GeneralFilesDir
-from crawler_sales_lot_online.utils.work_with_text_and_number import count_cyrillic
+from general_utils import count_cyrillic
+from general_utils.config import lst_exet_files
+from ..utils.work_with_path_and_dir import GeneralFilesDir
 
 logger = logging.getLogger(__name__)
 

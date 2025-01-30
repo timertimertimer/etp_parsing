@@ -6,8 +6,8 @@ import shutil
 
 import rarfile
 
-from crawler_bankrot_cdtrf.utils.config import lst_exet_files
-from crawler_bankrot_cdtrf.utils.work_with_text_and_number import count_cyrillic
+from general_utils import count_cyrillic
+from general_utils.config import lst_exet_files
 
 logger = logging.getLogger(__name__)
 

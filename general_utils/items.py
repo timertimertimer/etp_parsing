@@ -47,7 +47,6 @@ class CrawlerBankruptItem(scrapy.Item):
     step_price = scrapy.Field()
     periods = scrapy.Field()
     files = scrapy.Field()
-    file_lots = scrapy.Field()
     created_at = scrapy.Field()
 
 

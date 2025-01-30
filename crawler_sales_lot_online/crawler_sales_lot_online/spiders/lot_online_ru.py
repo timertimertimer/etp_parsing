@@ -11,9 +11,9 @@ from scrapy_splash import SplashRequest, SplashFormRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 
-from ..items import CrawlerSalesLotOnlineItem, SalesLotOnlineItemLoader
+from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.location import Region
 from ..locators.spider_locators import LocatorSpider
-from ..settings import DEFAULT_REQUESTS_HEADERS
 from ..trades.app import ComposeTrade
 from ..utils import data_for_requests as dfr
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -24,7 +24,6 @@ from ..utils.working_with_time import increase_time_days, return_servertime, ret
 from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
-USER_AGENT = headers_brow['User-Agent']
 
 
 class LotOnlineRuSpider(CrawlSpider, ABC):
@@ -48,7 +47,7 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
             yield SplashRequest(to_unicode(main_page_url), self.activate_form_for_request,
                                 endpoint='execute',
                                 cache_args=['lua_source'], args={'lua_source': dfr.script_lua},
-                                slot_policy=SlotPolicy.PER_DOMAIN, splash_headers=DEFAULT_REQUESTS_HEADERS,
+                                slot_policy=SlotPolicy.PER_DOMAIN,
                                 session_id=1, encoding='utf-8',
                                 meta={'start_time': start_time, 'time_to': time_to},
                                 errback=self.errback_httpbin)
@@ -235,7 +234,7 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         cookie = prime_cookies + cookie_
         view_value = soup.find('input', id='j_id1:javax.faces.ViewState:0')['value']
         combo = ComposeTrade(response_=response)
-        loader = SalesLotOnlineItemLoader(CrawlerSalesLotOnlineItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', data_origin_url)
         loader.add_value('trading_id', combo.auc.trade_id)
         loader.add_value('trading_link', response.url)
@@ -248,6 +247,12 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.debitor_inn)
+        address = combo.auc.address
+        region = None
+        if address:
+            region = Region.get_region(address)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('status', combo.auc.status_lot)
         loader.add_value('lot_id', None)
         loader.add_value('lot_link', None)
@@ -262,7 +267,7 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('start_price', combo.offer.start_price_offer)
         loader.add_value('periods', combo.offer.return_periods)
         # fetch and download files
-        general_files = combo.auc.download_trade(url_for_post_download,
+        general_files = combo.auc.download_general(url_for_post_download,
                                                  combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
                                                  view=view_value,
                                                  body=body)
@@ -274,24 +279,6 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         yield FormRequest(response.url, callback=self.get_arbitr_information,
                           cookies=cookie_parser(cookie),
                           formdata=combo.auc.arbitr_data_post(view_value, body), dont_filter=True,
-                          headers={
-                              'Accept': '*/*',
-                              'Accept-Encoding': 'gzip, deflate, br',
-                              'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-                              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                              'Cache-Control': 'no-cache',
-                              'Connection': 'keep-alive',
-                              'Referer': response.url,
-                              'Cookie': cookie,
-                              'Host': 'sales.lot-online.ru',
-                              'Origin': 'https://sales.lot-online.ru',
-                              'Pragma': 'no-cache',
-                              'Sec-Fetch-Dest': 'empty',
-                              'Sec-Fetch-Mode': 'cors',
-                              'Sec-Fetch-Site': 'same-origin',
-                              'Faces-Request': 'partial/ajax',
-                              'User-Agent': USER_AGENT},
-
                           cb_kwargs={'loader': loader,
                                      'title': arbitr_title,
                                      'cookie': cookie,
@@ -309,7 +296,7 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         cookie = prime_cookies + cookie_
         view_value = soup.find('input', id='j_id1:javax.faces.ViewState:0')['value']
         combo = ComposeTrade(response_=response)
-        loader = SalesLotOnlineItemLoader(CrawlerSalesLotOnlineItem(), response=response)
+        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
         loader.add_value('data_origin', data_origin_url)
         loader.add_value('trading_id', combo.auc.trade_id)
         loader.add_value('trading_link', response.url)
@@ -322,6 +309,12 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.debitor_inn)
+        address = combo.auc.address
+        region = None
+        if address:
+            region = Region.get_region(address)
+        loader.add_value('address', address)
+        loader.add_value('region', region)
         loader.add_value('status', combo.auc.status_lot)
         loader.add_value('lot_id', None)
         loader.add_value('lot_link', None)
@@ -336,7 +329,7 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         loader.add_value('start_price', combo.offer.start_price_offer)
         loader.add_value('step_price', combo.auc.step_price(text=text))
         # fetch and download files
-        general_files = combo.auc.download_trade(url_for_post_download,
+        general_files = combo.auc.download_general(url_for_post_download,
                                                  combo.auc.trading_number(text), cookies=arbitr_cookies.strip(),
                                                  view=view_value,
                                                  body=body)
@@ -348,23 +341,6 @@ class LotOnlineRuSpider(CrawlSpider, ABC):
         yield FormRequest(response.url, callback=self.get_arbitr_information,
                           cookies=cookie_parser(cookie),
                           formdata=combo.auc.arbitr_data_post(view_value, body), dont_filter=True,
-                          headers={
-                              'Accept': '*/*',
-                              'Accept-Encoding': 'gzip, deflate, br',
-                              'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-                              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                              'Cache-Control': 'no-cache',
-                              'Connection': 'keep-alive',
-                              'Referer': response.url,
-                              'Cookie': cookie,
-                              'Host': 'sales.lot-online.ru',
-                              'Origin': 'https://sales.lot-online.ru',
-                              'Pragma': 'no-cache',
-                              'Sec-Fetch-Dest': 'empty',
-                              'Sec-Fetch-Mode': 'cors',
-                              'Sec-Fetch-Site': 'same-origin',
-                              'Faces-Request': 'partial/ajax',
-                              'User-Agent': USER_AGENT},
 
                           cb_kwargs={'loader': loader,
                                      'title': arbitr_title,

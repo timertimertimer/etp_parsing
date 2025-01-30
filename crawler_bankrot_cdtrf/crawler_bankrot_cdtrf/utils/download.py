@@ -11,36 +11,16 @@ from aiohttp_retry import RetryClient, RetryOptions
 from aiohttp_socks import ProxyConnector
 from bs4 import BeautifulSoup as BS
 
-from crawler_bankrot_cdtrf.utils.config import data_origin_url, lst_exet, path_user_agent, path_to_socks5
-from crawler_bankrot_cdtrf.utils.work_with_path_and_dir import GeneralFilesDir
-from crawler_bankrot_cdtrf.utils.work_with_text_and_number import dedent_func
-from crawler_bankrot_cdtrf.utils.working_with_url import UrlConfig
+from general_utils.config import socks_list, headers, agent_list, lst_exet
+from ..utils.config import data_origin_url
+from ..utils.work_with_path_and_dir import GeneralFilesDir
+from ..utils.work_with_text_and_number import dedent_func
+from ..utils.working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-with open(f'{path_user_agent}', 'r') as f:
-    lines = f.readlines()
-agent_list = [i.replace('\\n', '').strip() for i in lines]
 
-with open(f'{path_to_socks5}', 'r') as f:
-    lines = f.readlines()
-socks_list = [i.replace('\\n', '').strip() for i in lines]
-
-headers = {
-    'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.",
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Cache-Control': 'no-cach',
-    'Connection': 'keep-alive',
-    'Host': 'bankrot.cdtrf.ru',
-    'Pragma': 'no-cache',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-User': '?1',
-    'User-Agent': random.choice(agent_list)
-}
 _dir = GeneralFilesDir()
 _url = UrlConfig()
 statuses = {x for x in range(100, 600)}
@@ -48,7 +28,6 @@ statuses.remove(200)
 
 
 async def fetch(url) -> list or None:
-    headers['User-Agent'] = random.choice(agent_list)
     connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
     async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
         async with session.get(url) as response:
@@ -62,7 +41,6 @@ async def fetch(url) -> list or None:
 
 
 async def fetch_retry(url, referer=None):
-    headers['User-Agent'] = random.choice(agent_list)
     connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
     retry_options = RetryOptions(attempts=10, statuses=statuses, max_timeout=5.0,
                                  exceptions={ValueError, Exception, ConnectionError})

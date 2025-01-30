@@ -14,4 +14,4 @@ def zalog_rad():
 
 
 if __name__ == '__main__':
-    zalog_rad()
+    zalog_ross()

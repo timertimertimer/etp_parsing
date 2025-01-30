@@ -1,12 +1,8 @@
-from icecream import ic
-
-from ..utils.config import data_origin_url
+from general_utils.config import lst_exet
 from ..utils.work_with_text_and_number import *
-from ..utils.working_with_time import get_time_data, format_time
 from ..utils.check_inn_email_phone import *
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from ..locators.locator_offer import LocatorOffer
-from ..spiders.fabricant import pd
 from ..utils.working_with_url import UrlConfig
 from ..utils.config import *
 import pathlib
@@ -180,6 +176,14 @@ class OfferParse:
             pattern = re.compile(r'\d{10,12}')
             if pattern:
                 return ''.join(pattern.findall(debitor_inn))
+        except:
+            return None
+
+    @property
+    def address(self):
+        try:
+            address = BS(self.response.xpath(self.loc.address_loc).get(), features='lxml').get_text(strip=True)
+            return ' '.join(address.split())
         except:
             return None
 

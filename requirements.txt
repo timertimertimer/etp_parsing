@@ -12,3 +12,7 @@ requests[socks]
 scrapy-splash
 scrapy-playwright
 xmltodict
+aiofiles
+aiohttp
+aiohttp_retry
+aiohttp_socks

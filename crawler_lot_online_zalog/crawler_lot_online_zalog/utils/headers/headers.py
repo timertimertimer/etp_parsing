@@ -1,6 +1,6 @@
 from random import choice
 
-from crawler_lot_online_zalog.utils.config import agent_list
+from general_utils.config import agent_list
 
 headers_category = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,'

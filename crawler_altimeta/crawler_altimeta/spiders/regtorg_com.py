@@ -88,7 +88,7 @@ class RegtorgComSpider(Spider):
             transfer['msg_number'] = combo.serp.get_msg_number()
             transfer['case_number'] = combo.serp.get_case_number()
             transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-            transfer['address'], transfer['region'] = combo.serp.get_address() or (None, None)
+            transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
             transfer['arbit_manager'] = combo.serp.get_arbitr_name()
             transfer['arbit_manager_inn'] = None
             transfer['arbit_manager_org'] = combo.serp.get_arb_org()
@@ -215,7 +215,7 @@ class RegtorgComSpider(Spider):
             loader.add_value('start_date_trading', combo.offer.start_date_trading(table_=table))
             loader.add_value('end_date_trading', combo.offer.end_date_trading(table_=table))
             loader.add_value('periods', combo.offer.get_period(table_=table))
-            loader.add_value('start_price', combo.offer.start_price_offer(table_=table))
+            loader.add_value('start_price', combo.offer.get_start_price_offer(table_=table))
             loader.add_value('created_at', return_parse_date())
             gen_dict = general_docs
             lot_dict = combo.doc.get_lot_docs(table_=table, full_path=self.full_path,

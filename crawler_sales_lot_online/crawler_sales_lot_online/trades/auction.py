@@ -5,10 +5,12 @@ from collections import namedtuple
 
 from bs4 import BeautifulSoup as BS
 
+from general_utils.config import lst_exet
 from ..locators.locator_trades import LocatorAuction
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from ..utils.config import lst_exet, first_part_url_lot, file_param, lst_exet_img
+from ..utils.config import first_part_url_lot, file_param
 from ..utils.download import DownloadFiles
+from ..utils.manage_spider import check_status
 from ..utils.work_with_path_and_dir import GeneralFilesDir, LotFilesDir
 from ..utils.work_with_text_and_number import dedent_func, get_lot_number, cut_lot_number, delete_extra_symbols
 from ..utils.working_with_time import format_time, return_servertime
@@ -148,6 +150,20 @@ class AuctionParse:
                 logger.error(f'{self.response.url} :: INVALID DATA DEBITOR INN')
         else:
             logger.error(f'{self.response.url} :: HAVE PROBLEMS WITH DOWNLOAD DEBITOR BLOCK')
+
+    @property
+    def address(self):
+        fiedset = self.return_debit_field
+        if fiedset:
+            soup = BS(str(fiedset), features='lxml')
+            try:
+                address = soup.find("label", text="Юридический адрес") or soup.find('label', text='Наименование суда')
+                return ' '.join(address.next_sibling.strip().split())
+            except:
+                logger.error(f'{self.response.url} :: INVALID DATA DEBITOR ADDRESS')
+        else:
+            logger.error(f'{self.response.url} :: HAVE PROBLEMS WITH DOWNLOAD DEBITOR BLOCK')
+
 
     @property
     def case_number(self):
@@ -331,7 +347,7 @@ class AuctionParse:
         """return text of status. convert in item (loader)"""
         status = self.response.css(self.loc.status_lot_loc_css).get()
         try:
-            return dedent_func(BS(str(status), features='lxml').get_text())
+            return check_status(dedent_func(BS(str(status), features='lxml').get_text()))
         except:
             logger.error(f'{self.response.url} :: INVALID DATA STATUS')
             return None
@@ -682,7 +698,7 @@ class AuctionParse:
                     link_etp = dedent_func(''.join(link))
                     if len(origin_name) > 72:
                         origin_name = origin_name[0:15] + '_' + origin_name[-35:-1]
-                    if self.url.return_file_suffix(origin_name) in lst_exet_img:
+                    if self.url.return_file_suffix(origin_name) in lst_exet:
                         name_on_server = dir_.name_file_on_server_lot(url_id=url_id, lot=lot_num,
                                                                       original_name=origin_name)
                         relative_path = dir_.name_in_column_files_lot(url_id=url_id, lot=lot_num,

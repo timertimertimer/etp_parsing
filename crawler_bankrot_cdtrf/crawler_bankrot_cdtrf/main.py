@@ -14,4 +14,4 @@ def bankrot_cd_offer():
 
 
 if __name__ == '__main__':
-    bankrot_cd_competition()
+    bankrot_cd_offer()

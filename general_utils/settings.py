@@ -37,6 +37,7 @@ LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 DOWNLOADER_MIDDLEWARES = {
     'general_utils.middlewares.CookiesMiddleware': 120,
     'general_utils.middlewares.UserAgentMiddleware': 150,
+    'general_utils.middlewares.ETPDownloaderMiddleware': 160,
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,

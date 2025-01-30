@@ -1,5 +1,7 @@
 import logging
-from mysql.connector import MySQLConnection, Error, ProgrammingError
+from mysql.connector import MySQLConnection, Error, ProgrammingError, OperationalError
+
+from .location import Region
 from .python_mysql_dbconfig import read_db_config
 
 logger = logging.getLogger(__name__)
@@ -18,9 +20,14 @@ class BasePipeline:
     @classmethod
     def from_crawler(cls, crawler):
         with_domain = getattr(crawler.spider, 'domain', '')
-        table_name = crawler.settings.get("TABLE_NAME", f'lots_{crawler.spider.name}' + (f'_{with_domain}' if with_domain else ''))
+        table_name = crawler.settings.get(
+            "TABLE_NAME",
+            f'lots_{crawler.spider.name}' + (
+                f'_{with_domain}' if with_domain and with_domain not in crawler.spider.name else ''
+            )
+        )
         return cls(
-            table_name=crawler.settings.get("TABLE_NAME", table_name),
+            table_name=table_name,
             unique_co=crawler.settings.get("UNIQUE_CO", ['trading_id']),
         )
 
@@ -54,16 +61,19 @@ class BasePipeline:
             try:
                 self.store_db(item)
                 break
-            except ProgrammingError as e:
-                if 'MySQL Connection not available' in e.args[1]:
+            except (ProgrammingError, OperationalError) as e:
+                if 'MySQL Connection not available' in e.args[1] or 'Lost connection to MySQL server' in e.args[1]:
                     self.create_connection()
                     self.store_db(item)
             except Exception as e:
-                 logger.error(e)
+                logger.error(e)
         try:
             return item
         except Error as error:
             return error
+
+    def spider_closed(self, spider):
+        Region.save_new_regions_to_db()
 
 
 class ETPBankruptPipeline(BasePipeline):

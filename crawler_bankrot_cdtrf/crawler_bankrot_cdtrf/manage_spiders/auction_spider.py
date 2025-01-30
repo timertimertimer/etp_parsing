@@ -1,12 +1,7 @@
-from bs4 import BeautifulSoup as BS
-import logging
-import re
-
-from ..utils.config import trade_page_file, lst_exet_archive, lst_exeption, relative_path
+from general_utils.config import lst_exet_archive, lst_exeption
+from ..utils.config import trade_page_file, relative_path
 from ..locators_and_attributes.locators_attributes import Auction
-from ..utils.work_with_text_and_number import dedent_func
 from ..utils.working_with_time import format_time_auction
-from ..utils.working_with_url import UrlConfig
 
 from ..utils.download import *
 

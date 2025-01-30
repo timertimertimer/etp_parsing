@@ -88,7 +88,7 @@ class Ets24Spider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.get_next_page()
+        next_page = combo.serp.next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -127,7 +127,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.get_address() or (None, None)
+        address, region = combo.auc.address() or (None, None)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
@@ -164,7 +164,7 @@ class Ets24Spider(Spider):
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.auc.get_property_info())
             loader.add_value('start_price', combo.auc.start_price)
-            loader.add_value('step_price', combo.auc.step_price)
+            loader.add_value('step_price', combo.auc.get_step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
                                              host=self.allowed_domains[0], crawler_name=self.name)
@@ -186,7 +186,7 @@ class Ets24Spider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.get_next_page()
+        next_page = combo.serp.next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -225,7 +225,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.get_address() or (None, None)
+        address, region = combo.auc.address() or (None, None)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
@@ -260,11 +260,11 @@ class Ets24Spider(Spider):
             loader.add_value('short_name', combo.auc.get_short_name())
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.offer.get_property_info())
-            loader.add_value('periods', combo.offer.return_periods())
+            loader.add_value('periods', combo.offer.get_periods())
             loader.add_value('start_date_requests', combo.offer.start_date_request_offer)
             loader.add_value('end_date_requests', combo.offer.end_date_request_offer)
-            loader.add_value('start_date_trading', combo.offer.start_date_trading_offer)
-            loader.add_value('end_date_trading', combo.offer.end_date_trading_offer)
+            loader.add_value('start_date_trading', combo.offer.get_start_date_trading_offer)
+            loader.add_value('end_date_trading', combo.offer.get_end_date_trading_offer)
             loader.add_value('start_price', combo.offer.price_offer)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
@@ -304,7 +304,7 @@ class Ets24Spider(Spider):
             pdop['__VIEWSTATE'] = pdata_lot_page_period['__VIEWSTATE']
             pdop['__SCROLLPOSITIONY'] = pdata_lot_page_period['__SCROLLPOSITIONY']
             pdop['__EVENTVALIDATION'] = eventvalidation
-            period_from_current_page = combo.offer.return_periods()
+            period_from_current_page = combo.offer.get_periods()
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
                               method='POST',
                               cb_kwargs={'loader': loader,
@@ -339,7 +339,7 @@ class Ets24Spider(Spider):
             pdop['__VIEWSTATE'] = post_data_period['__VIEWSTATE']
             pdop['__SCROLLPOSITIONY'] = post_data_period['__SCROLLPOSITIONY']
             pdop['__EVENTVALIDATION'] = eventvalidation
-            period_from_current_page = combo.offer.return_periods()
+            period_from_current_page = combo.offer.get_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
                               method='POST',
@@ -353,7 +353,7 @@ class Ets24Spider(Spider):
             error_ = combo.serp.find_error_page()
             if error_ is None:
                 lot_num = combo.auc.lot_number_on_lot_page(response.url, lot_number)
-                period_second_page = combo.offer.return_periods()
+                period_second_page = combo.offer.get_periods()
                 full_periods = period_current_page
                 for dict_ in period_second_page:
                     full_periods.append(dict_)
@@ -397,7 +397,7 @@ class Ets24Spider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.get_next_page()
+        next_page = combo.serp.next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -437,7 +437,7 @@ class Ets24Spider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.get_address() or (None, None)
+        address, region = combo.auc.address() or (None, None)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
@@ -475,7 +475,7 @@ class Ets24Spider(Spider):
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.compet.get_property_info())
             loader.add_value('start_price', combo.auc.start_price)
-            loader.add_value('step_price', combo.auc.step_price)
+            loader.add_value('step_price', combo.auc.get_step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
                                              host=self.allowed_domains[0], crawler_name=self.name)

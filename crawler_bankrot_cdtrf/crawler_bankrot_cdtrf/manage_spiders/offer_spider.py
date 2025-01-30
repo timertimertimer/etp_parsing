@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import re
 import pandas as pd
 import numpy as np
 
@@ -253,6 +252,17 @@ class OfferSpider:
                             return self.check.check_inn(dedent_func(td[1].get_text()))
         except:
             logger.error(f'{self.response.url} :: INVALID DATA dbtor inn')
+
+    @property
+    def address(self):
+        try:
+            address = self.response.xpath(self.loc.sud_loc).get()
+            if address:
+                address = BS(str(address), features='lxml').find('span', id='ctl00_cph1_lDealArbJud')
+                if address:
+                    return dedent_func(' '.join(address.get_text(strip=True).split()))
+        except:
+            logger.error(f'{self.response.url} :: INVALID DATA sud address')
 
     @property
     def get_arbitr_name(self):

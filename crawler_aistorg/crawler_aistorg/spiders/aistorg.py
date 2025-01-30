@@ -66,7 +66,7 @@ class AistorgSpider(CrawlSpider, DownloadFiles):
                           errback=self.errback_httpbin)
 
     def parse_trading(self, response):
-        if response.status != 200:
+        if response.get_status != 200:
             logger.error(f'CONNECTION ERROR--{response.url}--CONNECTION ERROR')
         else:
             # _check_if_start_date_request_exists_and_meet the criteria_#

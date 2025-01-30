@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import get_region, FilesDir, DownloadFiles
+from general_utils import FilesDir, DownloadFiles
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from general_utils.models import RequestData
 from .utils.config import path_absolute, path_relative
@@ -116,7 +116,8 @@ class Combo:
             category = category.find_next('span').text.strip()
             return dedent_func(category)
 
-    def get_address(self):
+    @property
+    def address(self):
         country = self.soup.find('strong', text=contains('Страна'))
         if country:
             country = country.find_next('span').text.strip()
@@ -124,9 +125,7 @@ class Combo:
         if address:
             address = address.find_next('span').text.strip()
             address = dedent_func(f'{country}, {address}')
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return address
 
     @property
     def lot_info(self):

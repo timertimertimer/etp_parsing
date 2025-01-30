@@ -6,9 +6,9 @@ import shutil
 
 import rarfile
 
+from general_utils.config import lst_exet_files
 from .working_with_text_cookies_num import count_cyrillic
 from ..utils.work_with_path_and_dir import GeneralFilesDir
-from crawler_lot_online_zalog.utils.config import lst_exet_files
 
 logger = logging.getLogger(__name__)
 

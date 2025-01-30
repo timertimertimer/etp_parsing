@@ -18,11 +18,13 @@ config_path = data_path / config_file
 proxy_file = 'proxy.txt'
 socks_file = 'socks_5.txt'
 user_agent = 'user-agent.txt'
-yandex_api_keys = 'yandex_api_keys.json'
+api_keys = 'api_keys.json'
+indexes = 'index.json'
 path_to_proxy = data_path / proxy_file
 path_to_socks5 = data_path / socks_file
 path_user_agent = data_path / user_agent
-yandex_api_keys_path = data_path / yandex_api_keys
+api_key_path = data_path / api_keys
+indexes_path = data_path / indexes
 with open(f'{path_user_agent}', 'r') as f:
     lines = f.readlines()
 agent_list = [i.replace('\\n', '').strip() for i in lines]
