@@ -1,6 +1,6 @@
 from scrapy import Request
 
-from general_utils import CrawlerBankruptItemLoader, CrawlerBankruptItem, return_parse_date
+from general_utils import EtpItemLoader, EtpItem, return_parse_date
 from general_utils.location import Region
 from .base_catalog import LotOnlineBaseSpider
 from ..catalog_app import Combo
@@ -16,7 +16,7 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
 
     def parse_lot(self, response, lot):
         combo = Combo(response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)

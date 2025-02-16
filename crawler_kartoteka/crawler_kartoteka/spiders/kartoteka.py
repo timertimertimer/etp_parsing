@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import dedent_func, UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader, return_parse_date
 from general_utils.config import trash_resources, format_parse_date, start_date
 from ..locators.serp_locator import SerpLocator
 from ..trades.app import Combo
@@ -80,7 +80,7 @@ class KartotekaSpider(scrapy.Spider):
         trading_type, trading_form = combo.trading_type_and_form
         trading_id = trading_number = combo.trading_id
         status = combo.parse_status(status)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin_url)
         loader.add_value("trading_id", trading_id)
         loader.add_value("trading_link", response.url)

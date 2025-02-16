@@ -4,7 +4,8 @@ from itertools import chain
 from scrapy import Spider, Request, FormRequest
 from general_utils.db import DBHelper
 from general_utils.config import start_date
-from general_utils.items import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils.items import EtpItem, EtpItemLoader
+from general_utils.location import Region
 from general_utils.working_with_time import return_servertime, return_parse_date
 from ..manage_spider.app import Combo
 from ..utils.config import search_link, data_origin, common_link, debtor_link, lot_link, _link_post_period
@@ -125,7 +126,7 @@ class AkostaSpider(Spider):
 
     def parse_trade_page(self, response, sources, page_number, total_pages, trading_id):
         combo = Combo(_response=response)
-        transfer = CrawlerBankruptItem()
+        transfer = EtpItem()
         transfer['data_origin'] = data_origin
         transfer['trading_id'] = trading_id
         transfer['trading_link'] = response.url
@@ -173,9 +174,14 @@ class AkostaSpider(Spider):
         transfer['arbit_manager'] = combo.deb.get_arbitr_full_name()
         transfer['arbit_manager_org'] = combo.deb.get_arbitr_company()
         transfer['debtor_inn'] = combo.deb.get_debtor_inn()
-        if combo.deb.soup.find('input', type='checkbox')['checked']:
+        if combo.deb.soup.find('input', type='checkbox').get('checked'):
             transfer['trading_org_inn'] = transfer['arbit_manager_inn']
-        transfer['address'], transfer['region'] = combo.deb.get_debtor_address() or (None, None)
+        address = combo.deb.get_debtor_address()
+        region = None
+        if address:
+            region = Region.get_region(address)
+        transfer['address'] = address
+        transfer['region'] = region
         post_data_lot_tab['formMain:inputServerTime'] = return_servertime()
         post_data_lot_tab['javax.faces.ViewState'] = debtor_view_state
         yield FormRequest(
@@ -276,7 +282,7 @@ class AkostaSpider(Spider):
                         total_pages):
         """ parse lot with type - offer """
         combo = Combo(_response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -307,7 +313,7 @@ class AkostaSpider(Spider):
         gen = {'general': _files}
         total_files = dict(chain(gen.items(), lot_files.items()))
         loader.add_value('files', total_files)
-        period_first_page = combo.offer.get_periods()
+        period_first_page = combo.offer.return_periods()
         total_pages_period = combo.offer.return_period_pagination()
         # total_pages_period & total are info about how many pages has pariod table
         if total_pages_period:
@@ -342,7 +348,7 @@ class AkostaSpider(Spider):
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(period_first_page))
             loader.add_value('periods', period_first_page)
             loader.add_value('created_at', return_parse_date())
-            yield loader.load_item()
+            # yield loader.load_item()
 
     def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number):
         combo = Combo(_response=response)
@@ -366,14 +372,14 @@ class AkostaSpider(Spider):
             loader.add_value('start_date_trading', combo.offer.get_start_date_request(periods_))
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods_))
             loader.add_value('created_at', return_parse_date())
-            yield loader.load_item()
+            # yield loader.load_item()
 
     def parse_lot_auction(self, response, url_to_trade, transfer, lot_number, files, sources, page_number, total_pages):
         """ parse lot page of auction and competition """
         # with open('res_lot.txt', 'w') as f:
         #     f.write(response.text)
         combo = Combo(_response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -410,4 +416,4 @@ class AkostaSpider(Spider):
         total_files = dict(chain(gen.items(), lot_files.items()))
         loader.add_value('files', total_files)
         loader.add_value('created_at', return_parse_date())
-        yield loader.load_item()
+        # yield loader.load_item()

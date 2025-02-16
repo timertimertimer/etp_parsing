@@ -15,7 +15,7 @@ class DbConnectCheckLots(object):
         """ fetch all lots that have been added for 2 days  """
         try:
             self.curr.execute(
-                f""" SELECT trading_link, CONVERT(lot_number,char) FROM lots_fabrikant where created_at >= "{format_parse_date(day, '%Y-%m-%d %H:%M:%S')}" """)
+                f""" SELECT trading_link FROM lots_fabrikant where created_at >= "{format_parse_date(day, '%Y-%m-%d %H:%M:%S')}" """)
             data = self.curr.fetchall()
             return data
         except Exception as e:

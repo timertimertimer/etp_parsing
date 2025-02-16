@@ -5,7 +5,7 @@ import re
 from scrapy import Request, FormRequest
 from scrapy.spiders import CrawlSpider
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils import EtpItem, EtpItemLoader
 from general_utils.location import Region
 from ..locators_and_attributes.locators_attributes import Offer
 from ..manage_spiders.app import Compose
@@ -122,7 +122,7 @@ class BankrotCdOfferSpider(CrawlSpider):
     async def parse_offer_page(self, response):
         combo = Compose(response_=response)
         trading_id = ''.join(re.findall(r'\d+$', response.url))
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         """parsing info from offer page"""
         loader.add_value('data_origin', data_origin_url)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+$', response.url)))

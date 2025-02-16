@@ -5,7 +5,7 @@ from scrapy import Spider, Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from ..trades.app import Combo
 from ..utils.config import data_origin, trade_link, stop_page
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -76,7 +76,7 @@ class RusonSpider(Spider):
     def parse_auction(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
         """ page auction and competition page """
         combo = Combo(response=response)
-        transfer = CrawlerBankruptItem()
+        transfer = EtpItem()
         transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
         transfer['trading_link'] = response.url,
@@ -90,7 +90,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
+        transfer['address'], transfer['region'] = combo.serp.a() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -105,7 +105,7 @@ class RusonSpider(Spider):
     def parse_auction_lot(self, response, general_files, transfer):
         """ page lot of auction and competition """
         combo = Combo(response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -148,7 +148,7 @@ class RusonSpider(Spider):
         """ parse offer page """
 
         combo = Combo(response=response)
-        transfer = CrawlerBankruptItem()
+        transfer = EtpItem()
         transfer['data_origin'] = data_origin
         transfer['trading_id'] = combo.serp.get_trading_id()
         transfer['trading_link'] = response.url
@@ -162,7 +162,7 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
+        transfer['address'], transfer['region'] = combo.serp.a() or (None, None)
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
@@ -174,7 +174,7 @@ class RusonSpider(Spider):
     def parse_offer_lot(self, response, general_files, transfer):
         """ parse lot of offer """
         combo = Combo(response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])

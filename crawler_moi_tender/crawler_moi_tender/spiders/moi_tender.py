@@ -3,7 +3,7 @@ from typing import Iterable
 import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils import EtpItem, EtpItemLoader
 from general_utils.config import start_date
 from ..trades.app import Combo
 from ..utils.config import data_origin_url
@@ -64,7 +64,7 @@ class MoiTenderSpider(scrapy.Spider):
 
     def parse_trade(self, response, lot):
         combo = Combo(response)
-        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', data_origin_url)
         loader.add_value('trading_id', lot['trading_id'])
         loader.add_value('trading_link', response.url)
@@ -72,31 +72,16 @@ class MoiTenderSpider(scrapy.Spider):
         loader.add_value('trading_type', lot['trading_type'])
         loader.add_value('trading_form', lot['trading_form'])
         loader.add_value('trading_org', lot['org'])
+        loader.add_value('trading_org_inn', self.orgs_contacts[lot['org']]['inn'])
         loader.add_value('trading_org_contacts', self.orgs_contacts[lot['org']]['contacts'])
-        # loader.add_value('trading_org_inn', self.orgs_contacts[lot['org']]['inn'])
         loader.add_value('status', lot['status'])
-        loader.add_value('category', lot['category'])
         loader.add_value('address', lot['address'])
         loader.add_value('region', lot['region'])
         loader.add_value('short_name', lot['short_name'])
         loader.add_value('start_price', lot['start_price'])
-        if lot['trading_form'] == 'open':
-            loader.add_value('index', combo.index)
-            loader.add_value('encumbrance', combo.encumbrance)
-            loader.add_value('description_encumbrance', combo.description_encumbrance)
-            loader.add_value('lot_number', combo.lot_number)
-            loader.add_value('lot_info', combo.lot_info)
-            loader.add_value('property_information', combo.property_information)
-            loader.add_value('start_date_requests', combo.start_date_requests)
-            loader.add_value('end_date_requests', combo.end_date_requests)
-            loader.add_value('start_date_trading', combo.start_date_trading)
-            loader.add_value('end_date_trading', combo.end_date_trading)
-            loader.add_value('quantity', combo.quantity)
-            loader.add_value('unit', combo.unit)
-            loader.add_value('deposit', combo.deposit)
-            loader.add_value('min_price', combo.min_price)
-            loader.add_value('step_price', combo.step_price)
-            loader.add_value('periods', combo.periods)
-            loader.add_value('files', {'general': combo.download_trade(lot['trading_id']), 'lot': combo.download_lot()})
+        loader.add_value('lot_info', combo.lot_info)
+        loader.add_value('start_date_requests', combo.start_date_requests)
+        loader.add_value('end_date_requests', combo.end_date_requests)
+        loader.add_value('files', {'general': combo.download_trade(lot['trading_id']), 'lot': combo.download_lot()})
         loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

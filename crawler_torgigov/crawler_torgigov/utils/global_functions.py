@@ -1,4 +1,4 @@
-from ..utils.config import start_time, end_request
+from ..utils.config import start_date, end_date
 from ..utils.param_data_search.param_finished import param_finished as pf
 from ..utils.param_data_search.param_finished import param_finished_form as pff
 from ..utils.param_data_search.param_government import param_search_government as psg
@@ -56,10 +56,10 @@ class GlobalFeatures:
     def date_from_func(self):
         """ :return date from - filter data. If arg date from is None take date from config file """
         if self.date_from == '':
-            return str(start_time)
+            return str(start_date)
         else:
             return self.date_from
 
     def date_to_func(self):
         """ :return date to - filter data. If arg date to don't use it """
-        return self.date_to if self.date_to != '' else end_request
+        return self.date_to if self.date_to != '' else end_date

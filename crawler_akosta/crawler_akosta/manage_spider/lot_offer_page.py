@@ -4,7 +4,7 @@ import re
 import unicodedata
 import pandas as pd
 
-from general_utils import format_time_auction, dedent_func
+from general_utils import dedent_func, format_time
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +95,9 @@ class LotOfferPage:
                 return None
             try:
                 period = {
-                    'start_date_requests': format_time_auction(start),
-                    'end_date_requests': format_time_auction(end),
-                    'end_date_trading': format_time_auction(end),
+                    'start_date_requests': format_time(start),
+                    'end_date_requests': format_time(end),
+                    'end_date_trading': format_time(end),
                     'current_price': price
                 }
                 periods.append(period)
@@ -120,9 +120,9 @@ class LotOfferPage:
             price = round(float(price), 2)
             try:
                 period = {
-                    'start_date_requests': format_time_auction(start),
-                    'end_date_requests': format_time_auction(end),
-                    'end_date_trading': format_time_auction(end),
+                    'start_date_requests': format_time(start),
+                    'end_date_requests': format_time(end),
+                    'end_date_trading': format_time(end),
                     'current_price': price
                 }
                 periods.append(period)

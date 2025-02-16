@@ -1,4 +1,4 @@
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils import EtpItem, EtpItemLoader
 from ..libraries.libraries import *
 from ..utils.config import trades, tables
 from ..utils.working_with_url import UrlConfig
@@ -47,7 +47,7 @@ class TenderstandartruSpider(Spider):
             # [0] - trading page; [1] - lot_link; [2] - lot_number; [3] - organizer; [4] - status; [5] - start price [6] - start date trading
             status = combo.serp.get_status(lot_data[4]) if any(lot_data) else None
             if status == 'active' or status == 'pending':
-                transfer = CrawlerBankruptItem()
+                transfer = EtpItem()
                 transfer['trading_type'] = trading_type
                 transfer['data_origin'] = self.data_origin
                 transfer['trading_id'] = combo.serp.get_trading_id(lot_data[0])
@@ -77,7 +77,7 @@ class TenderstandartruSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.auc.address() or (None, None)
+        transfer['address'], transfer['region'] = combo.auc.a() or (None, None)
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
@@ -110,7 +110,7 @@ class TenderstandartruSpider(Spider):
     def parse_auction_lot(self, response, transfer, general_files):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -152,7 +152,7 @@ class TenderstandartruSpider(Spider):
     def parse_offer_lot(self, response, transfer, general_files, periods):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])

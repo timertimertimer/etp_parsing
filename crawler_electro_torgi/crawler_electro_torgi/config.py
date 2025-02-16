@@ -1,6 +1,6 @@
 from general_utils.config import absolute_download_path, relative_download_path, format_parse_date
 
-start_date = format_parse_date(30, "%Y-%m-%d 00:01")
+start_date = format_parse_date(30, "%d.%m.%Y 00:01")
 end_date = format_parse_date(0, "%d.%m.%Y 23:59")
 
 data_origin = {

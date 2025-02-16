@@ -1,8 +1,9 @@
 import pathlib
 import re
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
+from general_utils import format_time
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from general_utils.location import Region
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
@@ -10,7 +11,6 @@ from ..utils.config import data_origin_url
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from ..utils.work_with_text_and_number import dedent_func, contains, make_float
-from ..utils.working_with_time import format_time
 from ..utils.working_with_url import UrlConfig
 
 
@@ -45,7 +45,9 @@ class Combo:
             address = dedent_func(span.find('b').get_text())
             region = Region.get_region(address)
 
-            trading_id = trading_number = dedent_func(lot.find('div', class_='num').get_text(strip=True).replace('№', ''))
+            trading_id = trading_number = dedent_func(
+                lot.find('div', class_='num').get_text(strip=True).replace('№', '')
+            )
             start_price = lot.find('div', class_='price')
             if start_price:
                 start_price = start_price.findNext('div').get_text().strip()
@@ -170,9 +172,10 @@ class Combo:
 
     @property
     def end_date_requests(self):
-        end = self.soup.find('div', class_='label', text=contains('Дата окончания приема заявок ')).find_next(
-            'span', class_='my_timer').get_text(strip=True)
-        return end
+        div = self.soup.find('div', class_='label', text=contains('Дата окончания приема заявок')).find_next('div')
+        return format_time(''.join(
+            child for child in div.contents if isinstance(child, NavigableString)
+        ).strip().replace('/ ', ''))
 
     @property
     def start_date_trading(self):

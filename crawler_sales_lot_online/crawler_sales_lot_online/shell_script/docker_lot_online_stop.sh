@@ -1,2 +1,0 @@
-docker stop splash_lot_online
-docker rm splash_lot_online

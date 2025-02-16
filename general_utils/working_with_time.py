@@ -5,12 +5,7 @@ import time
 import pytz
 
 logger = logging.getLogger(__name__)
-moscow_time = datetime.now(pytz.timezone('Europe/Moscow'))
-moscow_time_str = moscow_time.strftime('%Y-%m-%d %H:%M:%S')
-
-
-def return_timestamp_moscow():
-    return int(moscow_time.timestamp() * 1000)
+moscow_tz = pytz.timezone("Europe/Moscow")
 
 
 def format_time_strftime(func):
@@ -24,20 +19,14 @@ def format_time_strftime(func):
 
 @format_time_strftime
 def format_time(strtime):
-    pattern = re.compile('\d{1,2}\.\d{1,2}\.\d{2,4}.*?\d{1,2}\:\d{1,2}\:\d{1,2}')
+    pattern = re.compile('\d{1,2}\.\d{1,2}\.\d{2,4}(?:.*?\d{1,2}:\d{1,2})?')
     strtime = ''.join(pattern.findall(strtime))
     if strtime:
         date = strtime
-        return datetime.strptime(date, '%d.%m.%Y %H:%M:%S')
-
-
-@format_time_strftime
-def format_time_auction(strtime):
-    pattern = re.compile('\d{1,2}\.\d{1,2}\.\d{2,4}.*?\d{1,2}\:\d{1,2}')
-    strtime = ''.join(pattern.findall(strtime))
-    if strtime:
-        date = strtime
-        return datetime.strptime(date, '%d.%m.%Y %H:%M')
+        try:
+            return datetime.strptime(date, '%d.%m.%Y %H:%M')
+        except ValueError:
+            return datetime.strptime(date, '%d.%m.%Y')
 
 
 @format_time_strftime
@@ -53,12 +42,17 @@ def format_time_period(strtime):
         return None
 
 
-def return_parse_date():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+@format_time_strftime
+def return_parse_date(string: str = None, date_format: str = '%Y-%m-%dT%H:%M:%SZ'):
+    if string:
+        utc_time = datetime.strptime(string, date_format).replace(tzinfo=pytz.utc)
+        utc_time_at_moscow = utc_time.astimezone(moscow_tz)
+        return utc_time_at_moscow
+    return datetime.now(moscow_tz)
 
 
 def return_servertime():
-    return datetime.now().strftime('%H:%M:%S')
+    return datetime.now(moscow_tz).strftime('%H:%M:%S')
 
 
 def what_time_bigger(time_string_1, time_string_2, url):
@@ -71,3 +65,7 @@ def what_time_bigger(time_string_1, time_string_2, url):
     else:
         logger.error(f'{url} :: ERROR WITH CHECK TIME WHAT IS BIGGER', exc_info=True)
     return date_var
+
+
+if __name__ == '__main__':
+    print(return_parse_date('2025-03-04T21:00:00Z', '%Y-%m-%dT%H:%M:%SZ'))

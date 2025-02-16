@@ -4,7 +4,7 @@ import scrapy
 from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
-from general_utils import UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_parse_date
 from ..trades.app import Combo
 from ..utils.config import main_url, data_origin_url
 from ..utils.data_for_requests import form_data
@@ -78,7 +78,7 @@ class TorgidvSpider(scrapy.Spider):
         end_date_trading = combo.end_date_trading
         files = combo.download_general()
         for lot in combo.get_lots():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', trading_link)

@@ -1,5 +1,5 @@
 import scrapy
-from general_utils import DBHelper, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, UrlConfig
+from general_utils import DBHelper, EtpItem, EtpItemLoader, return_parse_date, UrlConfig
 from general_utils.location import Region
 from ..app import Combo
 from ..config import start_date, categories, end_date
@@ -70,7 +70,7 @@ class EurtpSpider(scrapy.Spider):
         arbit_manager_org = combo.arbit_manager_org
         general_files = combo.download()
         for lot_link in lots_on_page:
-            loader = CrawlerBankruptItemLoader(item=CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(item=EtpItem(), response=response)
             loader.add_value('data_origin', 'http://eurtp.ru/')
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', trading_link)

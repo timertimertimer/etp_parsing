@@ -6,16 +6,15 @@ from bs4 import BeautifulSoup
 
 from general_utils.models import RequestData
 from .config import absolute_path, relative_path, host, data_origin
-from general_utils import DownloadFiles, FilesDir, format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, \
-    get_region, format_time_auction
+from general_utils import (
+    DownloadFiles, FilesDir, format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time_auction
+)
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
 
 
 class Combo:
-    addresses = dict()
-
     def __init__(self, response):
         self.response = response
         self.soup = BeautifulSoup(response.text, "lxml")
@@ -91,6 +90,8 @@ class Combo:
             if len(name) > 75:
                 name = name[:30] + '_' + name[-35::1]
             name_on_server = files_dir.name_file_lot_on_server(self.trading_id, lot_number, name)
+            path_absolute = files_dir.return_absolute_path(name_on_server)
+            path_relative = files_dir.return_relative_path(name_on_server)
             file_type = file.get('class')[-1].split('--')[-1]
             if not name_on_server.endswith(file_type):
                 name_on_server = f'{name_on_server}.{file_type}'
@@ -100,15 +101,17 @@ class Combo:
                 if pathlib.Path(name_on_server).suffix in lst_exet_archive:
                     archive_lst = load.request_to_download_general(
                         request_data=request_data,
-                        absolute_path=files_dir.return_absolute_path(name_on_server),
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
                         trading_id=self.trading_id
                     )
                     lst_lot.extend(archive_lst)
                 elif pathlib.Path(name_on_server).suffix in lst_exet:
                     load.request_to_download_general(
                         request_data=request_data,
-                        absolute_path=files_dir.return_absolute_path(name_on_server),
-                        trading_id=self.trading_id,
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
+                        trading_id=self.trading_id
                     )
                     lst_lot.append(
                         {
@@ -235,14 +238,11 @@ class Combo:
             'ИНН',
         ))
 
-    def get_debtor_address(self) -> tuple[str, str]:
-        address = self.get_table_value_by(
+    def get_debtor_address(self) -> str:
+        return self.get_table_value_by(
             'Основные сведения',
             'Наименование арбитражного суда, рассматривающего дело о банкротстве',
         )
-        if address not in self.addresses:
-            self.addresses[address] = get_region(address)
-        return address, self.addresses[address]
 
     @property
     def arbit_manager(self):
@@ -405,6 +405,7 @@ class Combo:
                 "end_date_trading": format_time(
                     table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[0]
                 ),
-                "current_price": format_time(table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[1])
+                "current_price": format_time(
+                    table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[1])
             })
         return periods

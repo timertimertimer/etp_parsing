@@ -8,7 +8,7 @@ from twisted.internet.error import DNSLookupError, TCPTimedOutError
 from general_utils.location import Region
 from ..trades.app import Combo
 from ..utils.config import trade_link, data_origin, serp_link, formdata
-from general_utils import DBHelper, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, UrlConfig
+from general_utils import DBHelper, EtpItem, EtpItemLoader, return_parse_date, UrlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class BaseSpider(Spider):
 
     def parse_trade(self, response):
         combo = Combo(response, self.name)
-        transfer = CrawlerBankruptItem()
+        transfer = EtpItem()
         transfer['data_origin'] = data_origin[self.name]
         transfer['trading_id'] = combo.trading_id
         transfer['trading_link'] = combo.trading_link
@@ -92,7 +92,7 @@ class BaseSpider(Spider):
         combo = Combo(response, self.name)
         transfer = transfer_
         for i in range(len(lots_table)):
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -137,7 +137,7 @@ class BaseSpider(Spider):
         combo = Combo(response, self.name)
         transfer = transfer_
         for i in range(len(lots_table)):
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import CrawlSpider
 
-from general_utils import get_region, CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils import get_region, EtpItem, EtpItemLoader
 import pathlib
 
 from general_utils.config import lst_exet
@@ -117,7 +117,7 @@ class SistematorgSpider(CrawlSpider, DownloadFiles):
                           )
 
     def parse_lots(self, response):
-        trade = CrawlerBankruptItem()
+        trade = EtpItem()
         trade['data_origin'] = ''.join(main_url)
         trade['trading_link'] = response.url
         trade['trading_id'] = trade_id(response.url)
@@ -187,7 +187,7 @@ class SistematorgSpider(CrawlSpider, DownloadFiles):
             lot_number = th_lot_title[num]
             lot_number = clean_lot_number(str(lot_number))
             if (str(response.url), lot_number) not in self.previous_lots:
-                loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+                loader = EtpItemLoader(EtpItem(), response=response)
                 loader.add_value('data_origin', trade['data_origin'])
                 loader.add_value('trading_id', trade['trading_id'])
                 loader.add_value('trading_link', trade['trading_link'])

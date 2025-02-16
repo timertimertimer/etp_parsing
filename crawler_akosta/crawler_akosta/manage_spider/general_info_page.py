@@ -3,14 +3,16 @@ import logging
 import re
 
 from general_utils.config import lst_exet_archive, lst_exeption, lst_exet
+from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
+from general_utils.work_with_path_and_dir import FilesDir
 from ..locators.trading_page_locator import GeneralInfoLocator
 from ..utils.config import data_origin, debtor_link, lot_link, absolute_path, relative_path, host
 from ..utils.post_data import post_data_download
 from general_utils import (
     dedent_func, replaceMultiple, pattern_replace1,
-    what_time_bigger, format_time_auction, return_parse_date,
-    UrlConfig, FilesDir, DownloadFiles
+    what_time_bigger, return_parse_date,
+    UrlConfig, format_time
 )
 from bs4 import BeautifulSoup as BS
 
@@ -179,7 +181,7 @@ class MainTradingPage:
     def start_date_req_auc(self):
         """ :return date of start date request """
         if self.get_period_requests_auction():
-            return format_time_auction(self.get_period_requests_auction()[0])
+            return format_time(self.get_period_requests_auction()[0])
         else:
             logger.error(f'{self.response.url} :: INVALID START DATE REQUEST AUCTION')
             return None
@@ -187,7 +189,7 @@ class MainTradingPage:
     def end_date_request_auc(self):
         """ :return end of start date request """
         if self.get_period_requests_auction():
-            return format_time_auction(self.get_period_requests_auction()[1])
+            return format_time(self.get_period_requests_auction()[1])
         else:
             logger.error(f'{self.response.url} :: INVALID END DATE REQUEST AUCTION')
             return None
@@ -201,7 +203,7 @@ class MainTradingPage:
             pattern = re.compile(r'\d{1,2}.\d{1,2}.\d{2,4}\s\d{1,2}:\d{1,2}')
             _date = pattern.findall(_date)
             if len(_date) == 1:
-                return format_time_auction(_date[0])
+                return format_time(_date[0])
 
     def end_date_trading_auc(self):
         """ :return start date trading auction """
@@ -212,7 +214,7 @@ class MainTradingPage:
             pattern = re.compile(r'\d{1,2}.\d{1,2}.\d{2,4}\s\d{1,2}:\d{1,2}')
             _date = pattern.findall(_date)
             if len(_date) == 1:
-                return format_time_auction(_date[0])
+                return format_time(_date[0])
 
     def get_documents_table(self):
         """ get documents(post data) """
@@ -266,6 +268,8 @@ class MainTradingPage:
             name_on_server = files_dir.name_file_on_server(trading_id=trading_id, original_name=name)
             if not any(ele in name_on_server for ele in lst_exeption):
                 files_dir.create_dir()
+                path_absolute = files_dir.return_absolute_path(name_on_server)
+                path_relative = files_dir.return_relative_path(name_on_server)
                 request_data = RequestData(
                     url=url, referer=self.response.url,
                     host=host, cookies=cookies, method='POST',
@@ -275,14 +279,16 @@ class MainTradingPage:
                 if pathlib.Path(name_on_server).suffix in lst_exet_archive:
                     archive_lst = load.request_to_download_general(
                         request_data=request_data,
-                        absolute_path=files_dir.return_absolute_path(name_on_server),
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
                         trading_id=trading_id
                     )
                     lst_general.extend(archive_lst)
                 elif pathlib.Path(name_on_server).suffix in lst_exet:
                     load.request_to_download_general(
                         request_data=request_data,
-                        absolute_path=files_dir.return_absolute_path(name_on_server),
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
                         trading_id=trading_id,
                     )
                     lst_general.append(

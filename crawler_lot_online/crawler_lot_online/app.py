@@ -1,12 +1,11 @@
 import logging
 import pathlib
 import re
-
 from bs4 import BeautifulSoup
-
-from general_utils import FilesDir, DownloadFiles
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
+from general_utils.work_with_path_and_dir import FilesDir
 from .utils.config import path_absolute, path_relative
 from .utils.working_with_time import format_time
 from .utils.working_with_url import UrlConfig
@@ -113,8 +112,14 @@ class Combo:
     def category(self):
         category = self.soup.find('strong', text=contains('Категория'))
         if category:
-            category = category.find_next('span').text.strip()
-            return dedent_func(category)
+            categories = category.find_next('span').text.strip().split('/')
+            categories_ = []
+            for category in categories:
+                category = category.strip()
+                if category == 'Рубрикатор':
+                    continue
+                categories_.append(category)
+            return {'classification': categories_}
 
     @property
     def address(self):

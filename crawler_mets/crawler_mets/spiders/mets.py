@@ -11,7 +11,7 @@ from scrapy_playwright.page import PageMethod
 from bs4 import BeautifulSoup as BS
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils import EtpItem, EtpItemLoader
 from general_utils.config import trash_resources, start_date
 from ..trades.combo import ComposeTrades
 from ..utils.manage_spider import sort_trading_type, get_trading_form
@@ -106,7 +106,7 @@ class MetsSpider(scrapy.Spider):
         property_info = comp.offer.property_info
         status = comp.offer.get_status
         for lot in comp.offer.count_lots:
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
             loader.add_value('trading_id', comp.offer.trading_id)
             loader.add_value('trading_link', comp.offer.trading_link)
@@ -131,7 +131,7 @@ class MetsSpider(scrapy.Spider):
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                address, region = comp.offer.address() or (None, None)
+                address, region = comp.offer.a() or (None, None)
                 loader.add_value('address', address)
                 loader.add_value('region', region)
                 loader.add_value('property_information', property_info)
@@ -154,7 +154,7 @@ class MetsSpider(scrapy.Spider):
         property_info = comp.offer.property_info
         status = comp.offer.get_status
         for lot in comp.offer.count_lots:
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
             loader.add_value('trading_id', comp.offer.trading_id)
             loader.add_value('trading_link', comp.offer.trading_link)
@@ -178,7 +178,7 @@ class MetsSpider(scrapy.Spider):
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                address, region = comp.offer.address() or (None, None)
+                address, region = comp.offer.a() or (None, None)
                 loader.add_value('address', address)
                 loader.add_value('region', region)
                 loader.add_value('property_information', property_info)

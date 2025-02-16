@@ -1,4 +1,4 @@
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, UrlConfig
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from ..libraries.libraries import *
 from ..utils.config import trades, tables
 
@@ -45,7 +45,7 @@ class ViomitraSpider(Spider):
         for lot_data in combo.serp.get_lots_data_from_table(self.data_origin):
             trading_link, lot_link, lot_number, status = lot_data
             status = combo.serp.get_status(status)
-            transfer = CrawlerBankruptItem()
+            transfer = EtpItem()
             transfer['trading_type'] = trading_type
             transfer['data_origin'] = self.data_origin
             transfer['trading_id'] = combo.serp.get_trading_id(trading_link)
@@ -73,7 +73,7 @@ class ViomitraSpider(Spider):
         transfer['trading_org_contacts'] = combo.auc.get_full_org_contacts()
         transfer['case_number'] = combo.auc.get_case_number()
         transfer['debtor_inn'] = combo.auc.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.auc.address() or (None, None)
+        transfer['address'], transfer['region'] = combo.auc.a() or (None, None)
         transfer['arbit_manager'] = combo.auc.get_arbitr_name()
         transfer['arbit_manager_org'] = combo.auc.get_arbitr_company()
         transfer['property_information'] = combo.auc.get_property_information()
@@ -106,7 +106,7 @@ class ViomitraSpider(Spider):
     def parse_auction_lot(self, response, transfer, general_files):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])
@@ -147,7 +147,7 @@ class ViomitraSpider(Spider):
     def parse_offer_lot(self, response, transfer, general_files, periods):
         """ parse lot page """
         combo = Combo(response, self.data_origin)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', transfer['data_origin'])
         loader.add_value('trading_id', transfer['trading_id'])
         loader.add_value('trading_link', transfer['trading_link'])

@@ -1,14 +1,12 @@
 from bs4 import BeautifulSoup as BS
 import logging
 import re
-from general_utils import check_case_number, dedent_func, get_region
+from general_utils import check_case_number, dedent_func
 
 logger = logging.getLogger(__name__)
 
 
 class DebrorTab:
-    addresses = dict()
-
     def __init__(self, _response):
         self.response = _response
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
@@ -83,7 +81,9 @@ class DebrorTab:
 
     def get_debtor_address(self):
         try:
+            address = None
             div_debtor = self.soup.find('div', string='Должник')
+            div_sud = self.soup.find('div', string='Реквизиты судебного акта')
             if div_debtor:
                 div_debtor = div_debtor.parent
                 address = (
@@ -91,11 +91,14 @@ class DebrorTab:
                         div_debtor.find('label', string=re.compile('Почтовый адрес', re.IGNORECASE))
                 )
                 if address:
-                    address = dedent_func(address.parent.get_text(strip=True).split(':')[-1])
+                    address = address.parent.get_text(strip=True).split(':')[-1]
+            if not address:
+                if div_sud:
+                    div_sud = div_debtor.parent
+                    address = div_sud.find('label', string=re.compile('Наименование суда', re.IGNORECASE))
                     if address:
-                        if address not in self.addresses:
-                            self.addresses[address] = get_region(address)
-                        return address, self.addresses[address]
+                        address = address.parent.get_text(strip=True).split(':')[-1]
+            return dedent_func(address)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR ADDRESS {ex}')
 

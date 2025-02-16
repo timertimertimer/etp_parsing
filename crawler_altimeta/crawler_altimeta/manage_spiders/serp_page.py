@@ -246,6 +246,4 @@ class SerpPage:
     def get_address(self):
         address = self.response.xpath(self.loc_trade.address_loc).get()
         address = BS(str(address), features='lxml').get_text().strip()
-        if address not in self.addresses:
-            self.addresses[address] = get_region(address)
-        return address, self.addresses[address]
+        return address

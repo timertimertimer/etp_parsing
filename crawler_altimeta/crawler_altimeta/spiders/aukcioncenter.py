@@ -5,7 +5,8 @@ from itertools import chain
 from scrapy import Request
 from scrapy.spiders import Spider
 
-from general_utils import UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_parse_date
+from general_utils.location import Region
 from ..manage_spiders.app import Combo
 from ..utils.config import _data_origin, _serp_link, _lot_link, _doc_link, path_absolute, path_relative, url_file, \
     stop_page, tables
@@ -67,7 +68,7 @@ class AukcioncenterSpider(Spider):
         start_date_request = combo.serp.return_current_start_date()
         if trading_form and start_date_request:
             trading_type = combo.serp.get_trading_type()
-            transfer = CrawlerBankruptItem()
+            transfer = EtpItem()
             transfer['data_origin'] = self.data_origin
             id_trade = combo.serp.get_trading_id(url=response.url)
             transfer['trading_id'] = id_trade
@@ -81,7 +82,11 @@ class AukcioncenterSpider(Spider):
             transfer['msg_number'] = combo.serp.get_msg_number()
             transfer['case_number'] = combo.serp.get_case_number()
             transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-            transfer['address'], transfer['region'] = combo.serp.address() or (None, None)
+            address = combo.serp.get_address()
+            region = None
+            if address:
+                region = Region.get_region(address)
+            transfer['address'], transfer['region'] = address, region
             transfer['arbit_manager'] = combo.serp.get_arbitr_name()
             transfer['arbit_manager_inn'] = None
             transfer['arbit_manager_org'] = combo.serp.get_arb_org()
@@ -123,7 +128,7 @@ class AukcioncenterSpider(Spider):
         """ parse page with lots """
         combo = Combo(response_=response)
         for table in combo.auc.get_all_lot_tables():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -180,7 +185,7 @@ class AukcioncenterSpider(Spider):
         """ parse trades where trading type is OFFER """
         combo = Combo(response_=response)
         for table in combo.offer.get_lot_tables():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])
@@ -236,7 +241,7 @@ class AukcioncenterSpider(Spider):
         """ parse trades where trading type is AUCTION """
         combo = Combo(response_=response)
         for table in combo.auc.get_all_lot_tables():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', transfer['data_origin'])
             loader.add_value('trading_id', transfer['trading_id'])
             loader.add_value('trading_link', transfer['trading_link'])

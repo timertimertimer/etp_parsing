@@ -2,7 +2,7 @@ import logging
 import scrapy
 from scrapy import Request
 
-from general_utils import UrlConfig, CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_parse_date
 from ..trades.app import Combo
 from ..utils.config import data_origin_url
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -51,7 +51,7 @@ class OpentpSpider(scrapy.Spider):
         end_date_requests = combo.end_date_requests
         general_files = combo.download_general()
         for lot_link, lot_number, short_name, status, address, region, start_price in combo.get_lots():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', trading_id)
             loader.add_value('trading_link', response.url)

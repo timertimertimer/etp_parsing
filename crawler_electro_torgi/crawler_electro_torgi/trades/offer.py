@@ -67,8 +67,8 @@ class Offer:
     @property
     def end_date_trading(self):
         try:
-            start = self.get_period_table().iloc[-1][1]
-            return format_time(start)
+            end = self.get_period_table().iloc[-1][2]
+            return format_time(end)
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}')
             return None

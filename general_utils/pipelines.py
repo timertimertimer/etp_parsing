@@ -76,7 +76,7 @@ class BasePipeline:
         Region.save_new_regions_to_db()
 
 
-class ETPBankruptPipeline(BasePipeline):
+class EtpPipeline(BasePipeline):
     def create_table(self):
         self.curr.execute(
             f"""CREATE TABLE IF NOT EXISTS {self.table_name}(

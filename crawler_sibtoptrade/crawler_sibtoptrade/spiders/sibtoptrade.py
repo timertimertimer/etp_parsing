@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from ..app import Combo
 from ..config import *
 from scrapy.spiders import CrawlSpider
@@ -68,7 +68,7 @@ class SibtoptradeSpider(CrawlSpider):
                               meta={'trading_number': trading_number, 'status': status})
 
     def parse_lots(self, response):
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         combo = Combo(response)
         loader.add_value('data_origin', main_url_sib)
         loader.add_value('trading_id', combo.trading_id)

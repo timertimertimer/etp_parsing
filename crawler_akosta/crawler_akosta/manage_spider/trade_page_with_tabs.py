@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as BS
 import logging
 import re
 
-from general_utils import dedent_func, format_time_auction
+from general_utils import dedent_func, format_time
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ class TradePage:
                 start = re.sub(r'\s+', ' ', start)
                 start = ''.join(re.findall(r'\d{1,2}.\d{1,2}.\d{2,4}\s\s?\d{1,2}:\d{1,2}', start)[0])
                 if start:
-                    return format_time_auction(start)
+                    return format_time(start)
                 else:
                     logger.error(f'{self.response.url} :: START DATE WAS NOT FOUND (2)')
             else:
@@ -166,7 +166,7 @@ class TradePage:
                 end = re.sub(r'\s+', ' ', end)
                 end = ''.join(re.findall(r'\d{1,2}.\d{1,2}.\d{2,4}\s\s?\d{1,2}:\d{1,2}', end)[0])
                 if end:
-                    return format_time_auction(end)
+                    return format_time(end)
                 else:
                     logger.error(f'{self.response.url} :: END DATE WAS NOT FOUND (2)')
             else:
@@ -194,7 +194,7 @@ class TradePage:
         try:
             lst = self.return_period_trading_auc()
             if 1 <= len(lst) < 3:
-                _date = format_time_auction(lst[0])
+                _date = format_time(lst[0])
                 return _date
             else:
                 logger.error(f'{self.response.url} :: check data for start date trading auction ')
@@ -206,7 +206,7 @@ class TradePage:
         try:
             lst = self.return_period_trading_auc()
             if len(lst) == 2:
-                _date = format_time_auction(lst[1])
+                _date = format_time(lst[1])
                 return _date
             else:
                 logger.error(f'{self.response.url} :: check data for END date trading auction ')

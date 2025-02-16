@@ -18,6 +18,7 @@ class Locator:
     deb_div_loc = '//div[contains(text(),"Должник")]/ancestor::div[1]'
     deb_inn_loc = deb_div_loc + '//strong[contains(text(),"ИНН")]/following::text()[1]'
     address_loc = deb_div_loc + '//strong[contains(text(),"Адрес")]/following::text()[1]'
+    sud_loc = '//div[contains(text(),"Наименование арбитражного суда, рассматривающего дело о банкротстве")]/following-sibling::div[1]'
     # _arbitr_#
     arbitr_last_name = '//div[contains(text(),"Фамилия арбитражного")]/following-sibling::div[1]'
     arbitr_name = '//div[contains(text(),"Имя арбитражного")]/following-sibling::div[1]'
@@ -26,7 +27,7 @@ class Locator:
     arbitr_inn = '//div[contains(text(),"ИНН арбитражного")]/following-sibling::div[1]'
     div_info_lot_offer = '//div[contains(@class,"panel panel-default panel-striped")]'
     # _PERIOD TABLES
-    period_tables_loc = '//div[@id="{}"]/ancestor::div[1]//table'
+    period_tables_loc = '//div[contains(text(), "Этап понижения")]/following-sibling::div//div[@class="dinamic-fields-items"]'
     # get locator of link to document page
     doc_link_loc = 'a[href *= "/procedure/documentation"]'
     old_table_doc_general = '//div[contains(.,"Документация")]/following::div[@class != "documentation_{}"]/table[1]//tbody/tr'

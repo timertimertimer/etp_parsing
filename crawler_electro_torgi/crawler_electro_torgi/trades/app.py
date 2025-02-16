@@ -4,14 +4,15 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import DownloadFiles, FilesDir, UrlConfig, dedent_func, format_time
+from general_utils import UrlConfig, dedent_func, format_time
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
+from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
+from general_utils.work_with_path_and_dir import FilesDir
 from ..config import data_origin, path_absolute, path_relative
 from ..trades.auc import Auc
 from ..trades.offer import Offer
 from ..locators.locator_trade import LocatorTrade
-from general_utils.location import get_region
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
@@ -129,13 +130,7 @@ class Combo:
                             absolute_path=absolute_path, relative_path=relative_path,
                             trading_id=self.id_, lot_number=lot_number
                         )
-                        lot_list.append(
-                            {
-                                'original_name': name,
-                                'link': relative_path.as_posix(),
-                                'link_etp': UrlConfig.parse_url(link)
-                            }
-                        )
+                        lot_list.append({'original_name': name, 'link': relative_path.as_posix(), 'link_etp': link})
                     elif pathlib.Path(name).suffix in lst_exet_archive:
                         archive_lst = load.request_to_download_general(
                             request_data=request_data,
@@ -256,12 +251,9 @@ class Combo:
     @property
     def address(self):
         try:
-            address = dedent_func(self.response.xpath(self.loc.region_loc).get())
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return dedent_func(self.response.xpath(self.loc.region_loc).get())
         except:
-            pass
+            logger.warning(f'{self.response.url} :: INVALID DATA DEBTOR ADDRESS')
 
     @property
     def arbit_manager(self):

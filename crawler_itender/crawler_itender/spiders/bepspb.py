@@ -9,7 +9,7 @@ from scrapy import FormRequest, Request
 from scrapy.spiders import Spider
 from scrapy_splash import SplashRequest, SlotPolicy
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, headers
+from general_utils import EtpItem, EtpItemLoader, return_parse_date, headers
 from ..manage_spiders.app import Combo
 from ..utils.config import return_auction_link, data_origin, start_date, return_compet_link, return_offer_link, \
     tables
@@ -137,7 +137,7 @@ class BepspbSpider(Spider):
     async def parse_auction_trade(self, response, lot_number, lot_link, link_trade, attemp):
         """parse trade page"""
         combo = Combo(_response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -150,7 +150,7 @@ class BepspbSpider(Spider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.address() or (None, None)
+        address, region = combo.auc.a() or (None, None)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
@@ -203,7 +203,7 @@ class BepspbSpider(Spider):
 
     async def parse_competition_trade(self, response, lot_number, lot_link, link_trade, attemp):
         combo = Combo(_response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -216,7 +216,7 @@ class BepspbSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.address() or (None, None)
+        address, region = combo.auc.a() or (None, None)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
@@ -300,7 +300,7 @@ class BepspbSpider(Spider):
     async def parse_offer_trade(self, response, lot_number, lot_link, link_trade, attemp):
         """parse trade page offer"""
         combo = Combo(_response=response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', self.data_origin)
         loader.add_value('trading_id', ''.join(re.findall(r'\d+', response.url)))
         loader.add_value('trading_link', response.url)
@@ -318,7 +318,7 @@ class BepspbSpider(Spider):
             loader.add_value('msg_number', combo.offer.msg_number)
             loader.add_value('case_number', combo.auc.case_number)
             loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-            address, region = combo.auc.address() or (None, None)
+            address, region = combo.auc.a() or (None, None)
             loader.add_value('address', address)
             loader.add_value('region', region)
             loader.add_value('arbit_manager', combo.auc.get_arbitr_name())

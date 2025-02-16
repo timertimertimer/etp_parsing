@@ -14,7 +14,7 @@ def to_json(value: list):
         return data
 
 
-class CrawlerBankruptItem(scrapy.Item):
+class EtpItem(scrapy.Item):
     data_origin = scrapy.Field()
     trading_id = scrapy.Field()
     trading_link = scrapy.Field()
@@ -50,7 +50,7 @@ class CrawlerBankruptItem(scrapy.Item):
     created_at = scrapy.Field()
 
 
-class CrawlerBankruptItemLoader(ItemLoader):
+class EtpItemLoader(ItemLoader):
     data_origin_out = TakeFirst()
     trading_id_out = TakeFirst()
     trading_link_out = TakeFirst()

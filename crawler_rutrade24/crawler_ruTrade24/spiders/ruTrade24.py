@@ -3,7 +3,8 @@ import scrapy
 import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
-from general_utils import CrawlerBankruptItemLoader, CrawlerBankruptItem, DBHelper, return_parse_date
+from general_utils import EtpItemLoader, EtpItem, DBHelper, return_parse_date
+from general_utils.location import Region
 from ..app import Combo
 from ..config import page_limits, formdata, data_origin
 
@@ -67,7 +68,10 @@ class Rutrade24Spider(scrapy.Spider):
     def parse_trade(self, response, status):
         combo = Combo(response)
         general_files = combo.download_general()
-        address, region = combo.get_debtor_address() or (None, None)
+        address = combo.get_debtor_address()
+        region = None
+        if address:
+            region = Region.get_region(address)
         common_data = {
             'data_origin': data_origin,
             'trading_id': combo.trading_id,
@@ -110,7 +114,7 @@ class Rutrade24Spider(scrapy.Spider):
                 'created_at': return_parse_date(),
             }
             item_data = {**common_data, **lot_data}
-            loader = CrawlerBankruptItemLoader(item=CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(item=EtpItem(), response=response)
             for key, value in item_data.items():
                 loader.add_value(key, value)
             yield loader.load_item()

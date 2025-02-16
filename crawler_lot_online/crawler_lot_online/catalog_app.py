@@ -1,14 +1,13 @@
 import logging
 import pathlib
 import re
-from itertools import takewhile
-
 import pandas as pd
+from itertools import takewhile
 from bs4 import BeautifulSoup
-
+from general_utils.download import DownloadFiles
+from general_utils.work_with_path_and_dir import FilesDir
 from .utils.config import path_relative, path_absolute
-from general_utils import dedent_func, CheckIfCorrectContactInfo, contains, format_time_auction, DownloadFiles, \
-    FilesDir, UrlConfig
+from general_utils import dedent_func, CheckIfCorrectContactInfo, contains, UrlConfig, format_time
 from general_utils.config import lst_exeption, lst_exet_archive, lst_exet
 from general_utils.models import RequestData
 
@@ -343,11 +342,11 @@ class Combo:
 
     @property
     def start_date_requests_auc(self):
-        return format_time_auction(self.get_date_requests()[0].text.strip())
+        return format_time(self.get_date_requests()[0].text.strip())
 
     @property
     def end_date_requests_auc(self):
-        return format_time_auction(self.get_date_requests()[1].text.strip())
+        return format_time(self.get_date_requests()[1].text.strip())
 
     @property
     def start_price(self):
@@ -361,10 +360,10 @@ class Combo:
 
     @property
     def periods(self):
-        table = self.soup.find('div', class_='tab_rad_reduction').find('table')
+        table = self.soup.find('div', class_='tab_rad_reduction')
         if not table:
             return
-        td_periods = pd.read_html(str(table))[0]
+        td_periods = pd.read_html(str(table.find('table')))[0]
         periods = []
         for p in range(len(td_periods)):
             start_requests = td_periods.iloc[p][0]
@@ -374,9 +373,9 @@ class Combo:
             price = self.parse_price("".join(takewhile(lambda x: x != "р" and x != "Р", price_)))
             try:
                 period = {
-                    'start_date_requests': format_time_auction(start_requests),
-                    'end_date_requests': format_time_auction(end_requests),
-                    'end_date_trading': format_time_auction(end_trading),
+                    'start_date_requests': format_time(start_requests),
+                    'end_date_requests': format_time(end_requests),
+                    'end_date_trading': format_time(end_trading),
                     'current_price': price
                 }
                 periods.append(period)

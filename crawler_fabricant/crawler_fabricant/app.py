@@ -2,12 +2,15 @@ import logging
 import pathlib
 import re
 
+import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from crawler_fabricant.crawler_fabricant.locator import Locator
+from general_utils.models import RequestData
+from .locator import Locator
 from general_utils import DownloadFiles, FilesDir, format_time_auction, UrlConfig, dedent_func, \
-    CheckIfCorrectContactInfo
+    CheckIfCorrectContactInfo, contains
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from .utils.config import data_origin_url, absolute_path, relative_path
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +20,91 @@ class Combo:
         self.response = response
         self.soup = BS(response.text, features='lxml')
 
-    def download_general(self):
-        ...
+    def download_general(self, trading_id):
+        load = DownloadFiles()
+        files_dir = FilesDir(relative_path, absolute_path)
+        lst_general = []
+        table = self.soup.find('div', id="proc").find('table')
+        files_dir.create_dir()
+        if not table:
+            return []
+        for file in table.find_all('tr')[1:]:
+            link = file.find('td', class_='action')
+            if not link:
+                continue
+            link = UrlConfig.url_join(
+                data_origin_url, link.find('a', text=contains('Скачать')).get('href')
+            )
+            name = file.find('td', class_='procedure-document-file').find('b').get_text(strip=True)
+            if len(name) > 75:
+                name = name[:30] + '_' + name[-35::1]
+            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
+            path_absolute = files_dir.return_absolute_path(name_on_server)
+            path_relative = files_dir.return_relative_path(name_on_server)
+            if not any(ele in name_on_server for ele in lst_exeption):
+                request_data = RequestData(url=link, referer=self.trading_link)
+                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
+                    archive_lst = load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
+                        trading_id=trading_id
+                    )
+                    lst_general.extend(archive_lst)
+                elif pathlib.Path(name_on_server).suffix in lst_exet:
+                    load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
+                        trading_id=trading_id
+                    )
+                    lst_general.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
+                else:
+                    lst_general.append({'original_name': name, 'link': '', 'link_etp': link})
+        return lst_general
 
-    def download_lot(self):
-        ...
+    def download_lot(self, trading_id: str, lot_number: str):
+        load = DownloadFiles()
+        files_dir = FilesDir(relative_path, absolute_path)
+        lst_lot = []
+        table = self.soup.find('div', id=f"lot{lot_number}")
+        if not table:
+            return []
+        for file in table.find('table').find_all('tr')[1:]:
+            link = file.find('td', class_='action')
+            if not link:
+                continue
+            link = UrlConfig.url_join(
+                data_origin_url, link.find('a', text=contains('Скачать')).get('href')
+            )
+            name = file.find('td', class_='lot-document-file').find('b').get_text(strip=True)
+            if len(name) > 75:
+                name = name[:30] + '_' + name[-35::1]
+            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
+            path_absolute = files_dir.return_absolute_path(name_on_server)
+            path_relative = files_dir.return_relative_path(name_on_server)
+            if not any(ele in name_on_server for ele in lst_exeption):
+                files_dir.create_dir()
+                request_data = RequestData(url=link, referer=self.trading_link)
+                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
+                    archive_lst = load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
+                        trading_id=trading_id
+                    )
+                    lst_lot.extend(archive_lst)
+                elif pathlib.Path(name_on_server).suffix in lst_exet:
+                    load.request_to_download_general(
+                        request_data=request_data,
+                        absolute_path=path_absolute,
+                        relative_path=path_relative,
+                        trading_id=trading_id
+                    )
+                    lst_lot.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
+                else:
+                    lst_lot.append({'original_name': name, 'link': '', 'link_etp': link})
+        return lst_lot
 
     @property
     def trading_id(self):
@@ -43,24 +126,25 @@ class Combo:
         return number
 
     def get_trading_type_text(self):
-        soup = BS(str(self.soup.text), features='lxml')
-        check_type = soup.find('div', string=re.compile('Способ проведения процедуры'))
+        check_type = self.soup.find('div', text=re.compile('Способ проведения процедуры'))
         if check_type:
             check_type = check_type.find_next('div')
             if check_type:
-                string = check_type.get_text().strip()
+                return check_type.get_text().strip()
 
     @property
     def trading_type(self):
         string = self.get_trading_type_text()
 
-        offer = ['Публичное предложение продавца', 'offer']
-        auction = ['Открытый аукцион с открытой формой подачи ценовых предложений',
-                   'Открытый аукцион с закрытой формой подачи ценовых предложений',
-                   'Закрытый аукцион с открытой формой подачи ценовых предложений',
-                   'Закрытый аукцион с закрытой формой подачи ценовых предложений',
-                   'Аукцион продавца',
-                   'Аукцион с закрытой формой подачи предложений о цене', 'auction']
+        offer = ['Публичное предложение продавца']
+        auction = [
+            'Открытый аукцион с открытой формой подачи ценовых предложений',
+            'Открытый аукцион с закрытой формой подачи ценовых предложений',
+            'Закрытый аукцион с открытой формой подачи ценовых предложений',
+            'Закрытый аукцион с закрытой формой подачи ценовых предложений',
+            'Аукцион продавца',
+            'Аукцион с закрытой формой подачи предложений о цене'
+        ]
         competition = ['Открытый конкурс', 'Закрытый конкурс', 'Конкурс продавца']
         match1 = ''.join(filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), auction))
         match2 = ''.join(filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), offer))
@@ -180,8 +264,11 @@ class Combo:
 
     @property
     def address(self):
+        address = self.response.xpath(Locator.address_loc).get()
+        if not address:
+            address = self.response.xpath(Locator.sud_loc).get()
         try:
-            address = BS(self.response.xpath(Locator.address_loc).get(), features='lxml').get_text(strip=True)
+            address = BS(address, features='lxml').get_text(strip=True)
             return ' '.join(address.split())
         except:
             return
@@ -221,62 +308,93 @@ class Combo:
         except:
             logger.warning(f'{self.response.url} :: INVALID DATA TRADING ORG - OFFER ')
 
+    def create_soup(self, lot):
+        return BS(lot, features='lxml')
+
     def get_status(self, lot):
-        status = lot.xpath(Locator.status_loc).get().strip()
-        active = ('Этап приема заявок', 'Проводятся торги')
-        pending = ('Ожидание этапа приема заявок',)
-        try:
-            if status in active:
-                return 'active'
-            elif status in pending:
-                return 'pending'
-            else:
-                return 'ended'
-        except:
-            return None
+        status = self.create_soup(lot).find('span', class_='kim-state-label').get_text(strip=True)
+        active = ('Этап приема заявок', 'Проводятся торги', 'Прием заявок')
+        pending = ('Ожидание этапа приема заявок', 'Ожидается начало нового этапа', 'Ожидается начало приема заявок')
+        if status in active:
+            return 'active'
+        elif status in pending:
+            return 'pending'
+        else:
+            return 'ended'
 
     def get_lot_id(self, lot):
         return self.get_lot_link(lot).split('/')[-1]
 
     def get_lot_link(self, lot):
-        return lot.xpath(Locator.lot_link_loc).get().strip()
+        return UrlConfig.url_join(data_origin_url, self.create_soup(lot).find('a', text='Просмотр').get('href').strip())
 
     def get_lot_number(self, lot):
         short_name = self.get_short_name(lot)
-        pattern = re.compile(r'Лот.?№?\s?\d+', re.IGNORECASE)
-        lots_num = list(filter(lambda x: len(x) > 0, list(map(lambda y: y, pattern.findall(short_name)))))
-        return lots_num
+        pattern = re.compile(r'Лот.?\W\s?\d{1,}\:?|Лот.?\W\d{1,}\.?', flags=re.IGNORECASE)
+        match = pattern.findall(str(short_name))
+        lot_number = ''.join(re.findall(r'\d+', min(match)))
+        return lot_number
 
     def get_short_name(self, lot):
-        return lot.xpath(Locator.lot_number_loc).get().strip()
+        return dedent_func(
+            self.create_soup(lot).find('div', class_='panel-heading clearfix')
+            .find(text=True, recursive=False).get_text(strip=True).removesuffix('-').strip()
+        )
+
+    def get_lot_info(self, lot):
+        return dedent_func(
+            self.create_soup(lot)
+            .find('div', text=re.compile('Предмет договора', re.IGNORECASE))
+            .find_next('div').get_text(strip=True)
+        )
 
     def get_property_information(self, lot):
-        return dedent_func(lot.xpath(Locator.property_info_loc).get())
+        return dedent_func(
+            self.create_soup(lot)
+            .find('div', text=re.compile('Порядок ознакомления с имуществом', re.IGNORECASE))
+            .find_next('div').get_text(strip=True)
+        )
 
     def get_start_date_requests(self, lot):
         try:
-            return format_time_auction(lot.xpath(Locator.start_request_auction).get())
+            return format_time_auction(
+                self.create_soup(lot)
+                .find('div', text=re.compile('Дата и время начала приема заявок', re.IGNORECASE))
+                .find_next('div').get_text(strip=True)
+            )
         except Exception as e:
             print(e)
             return None
 
     def get_end_date_requests(self, lot):
         try:
-            return format_time_auction(lot.xpath(Locator.end_request_auction).get())
+            return format_time_auction(
+                self.create_soup(lot)
+                .find('div', text=re.compile('Дата и время окончания приема заявок', re.IGNORECASE))
+                .find_next('div').get_text(strip=True)
+            )
         except Exception as e:
             print(e)
             return None
 
     def get_start_date_trading(self, lot):
         try:
-            return format_time_auction(lot.xpath(Locator.start_trading_auction).get())
+            return format_time_auction(
+                self.create_soup(lot)
+                .find('div', text=re.compile('Дата и время начала аукциона', re.IGNORECASE))
+                .find_next('div').get_text(strip=True)
+            )
         except Exception as e:
             print(e)
             return None
 
     def get_end_date_trading(self, lot):
         try:
-            return format_time_auction(lot.xpath(Locator.end_date_trading_auc).get())
+            return format_time_auction(
+                self.create_soup(lot)
+                .find('div', text=re.compile('Дата и время подведения итогов', re.IGNORECASE))
+                .find_next('div').get_text(strip=True)
+            )
         except Exception as e:
             print(e)
             return None
@@ -284,7 +402,10 @@ class Combo:
     def get_start_price(self, lot):
         match = re.search(
             r'\d+\.\d{1,2}',
-            lot.xpath(Locator.start_price_auc).get().replace('\xa0', '').replace(',', '.')
+            self.create_soup(lot)
+            .find('div', text=re.compile('Начальная цена предмета договора', re.IGNORECASE))
+            .find_next('div').get_text(strip=True)
+            .replace('\xa0', '').replace(',', '.')
         )
         try:
             if match:
@@ -294,7 +415,11 @@ class Combo:
             return None
 
     def get_step_price(self, lot):
-        _div_step = lot.xpath(Locator.step_price_auc).get()
+        _div_step = (
+            self.create_soup(lot)
+            .find('div', text=re.compile('Шаг аукциона', re.IGNORECASE))
+            .find_next('div').get_text(strip=True)
+        )
         if _div_step:
             step = ''.join(re.findall(r'^\d*\,?\d+', _div_step.replace('\xa0', ''))).replace(',', '.')
             start_price = self.get_start_price(lot)
@@ -304,6 +429,44 @@ class Combo:
             except (ValueError, TypeError):
                 return None
 
-    @property
-    def periods(self):
-        ...
+    def get_periods(self, lot):
+        tables = (
+            self.create_soup(lot)
+            .find('div', text=re.compile('Этап понижения', re.IGNORECASE))
+            .find_next('div')
+        )
+        periods = []
+        check_value = 10000000000000000000000
+        for table in tables.find_all('table'):
+            _table = pd.read_html(str(table))
+            df = _table[0][1]
+            start = df.iloc[1]
+            end = df.iloc[2]
+            price_ = df.iloc[3]
+            price_ = ''.join(filter(lambda x: x.isdigit() or x == ',', price_)).replace(',', '.')
+            try:
+                if isinstance(price_, str):
+                    price = ''.join(re.sub(r"\s", "", price_)).replace(',', '.')
+                    price = round(float(price), 2)
+                else:
+                    price = round(float(price_), 2)
+                if check_value < price:
+                    logger.critical(
+                        f'{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS'
+                    )
+                else:
+                    check_value = price
+            except:
+                logger.error(f'{self.response.url} Period Price - {price_} typeof - {type(price_)}')
+                return None
+            try:
+                period = {
+                    'start_date_requests': format_time_auction(start),
+                    'end_date_requests': format_time_auction(end),
+                    'end_date_trading': format_time_auction(end),
+                    'current_price': price
+                }
+                periods.append(period)
+            except:
+                continue
+        return periods

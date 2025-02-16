@@ -137,3 +137,12 @@ def make_float(price):
 
 def contains(text: str):
     return lambda x: x and text in x
+
+
+def fix_encoding(name):
+    if re.search(r'[^\w\s\.\-/]', name):
+        try:
+            return name.encode("cp437").decode("cp866")
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            return name
+    return name

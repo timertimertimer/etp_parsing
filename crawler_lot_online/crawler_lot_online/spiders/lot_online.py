@@ -4,7 +4,7 @@ import json
 
 from scrapy import FormRequest, Request
 
-from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils.items import EtpItemLoader, EtpItem, CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from general_utils.location import Region
 from ..app import Combo
 from ..utils.config import data_origin
@@ -71,8 +71,10 @@ class LotOnlineSpider(scrapy.Spider):
             loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
             loader.add_value('data_origin', data_origin[self.domain])
             loader.add_value('trading_id', trading_id)
-            loader.add_value('trading_link',
-                             f'https://{self.domain}.lot-online.ru/tender/details.html?tenderId={trading_id}')
+            loader.add_value(
+                'trading_link',
+                f'https://{self.domain}.lot-online.ru/tender/details.html?tenderId={trading_id}'
+            )
             loader.add_value('trading_number', trading_number)
             loader.add_value('lot_number', lot['lotInfo']['lotCode'].split('-')[-1])
             loader.add_value('short_name', dedent_func(lot['lotInfo']['name']))
@@ -92,6 +94,7 @@ class LotOnlineSpider(scrapy.Spider):
     def parse_lot(self, response, loader):
         combo = Combo(response, self.domain)
         loader.add_value('trading_type', combo.trading_type)
+        loader.add_value('trading_form', 'open')
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('status', combo.status)
         loader.add_value('category', combo.category)

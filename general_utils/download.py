@@ -10,9 +10,7 @@ from requests import Session
 
 from .config import lst_exet_archive, socks_list, headers
 from .models import RequestData
-from .zip_file_manager import ZipFiles
-from .rar_file_manager import RarFiles
-from .seven_z import SevenZFiles
+from .archive import ZipFiles, RarFiles, SevenZipFiles
 from .working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)
@@ -57,26 +55,27 @@ class DownloadFiles:
         if self.proxies:
             session.proxies.update(self.proxies)
         session.headers.update(headers | request_data.headers)
+        path = pathlib.Path(absolute_path)
         for attempt in range(1, attempts + 1):
             try:
-                if pathlib.Path(absolute_path).suffix not in lst_exet_archive:
-                    if pathlib.Path(absolute_path).exists():
+                if path.suffix not in lst_exet_archive:
+                    if path.exists():
                         return
                     return self.download_files(
                         attempt=attempt, session=session, absolute_path=absolute_path, request_data=request_data
                     )
-                elif pathlib.Path(absolute_path).suffix == '.zip':
+                elif path.suffix == '.zip':
                     return self.download_zip(
                         attempt=attempt, session=session, absolute_path=absolute_path, trading_id=trading_id,
                         lot_number=lot_number,
                         relative_path=relative_path, request_data=request_data
                     )
-                elif pathlib.Path(absolute_path).suffix == '.rar':
+                elif path.suffix == '.rar':
                     return self.download_rar(
                         attempt=attempt, session=session, request_data=request_data, absolute_path=absolute_path,
                         trading_id=trading_id, lot_number=lot_number, relative_path=relative_path
                     )
-                elif pathlib.Path(absolute_path).suffix == '.7z':
+                elif path.suffix == '.7z':
                     return self.download_7z(
                         session=session, request_data=request_data, absolute_path=absolute_path, trading_id=trading_id,
                         lot_number=lot_number, relative_path=relative_path
@@ -126,13 +125,12 @@ class DownloadFiles:
                 lot_number=lot_number,
                 url=request_data.url, relative_path=relative_path
             )
-            lst_files = objectZip.extract_zip_files()
-            objectZip.delete_zip()
+            lst_files = objectZip.extract_files()
+            objectZip.delete_archive()
             logger.info(f'Download finished successfully ZIP')
             return lst_files
         except Exception as e:
             logger.error(f'Error downloading {request_data.url}: {e}')
-            os.remove(absolute_path)
             return []
 
     def download_rar(
@@ -159,8 +157,8 @@ class DownloadFiles:
                 lot_number=lot_number,
                 url=request_data.url, relative_path=relative_path
             )
-            lst_files = objectRar.extract_rar_files()
-            objectRar.delete_rar()
+            lst_files = objectRar.extract_files()
+            objectRar.delete_archive()
             logger.info(f'Download finished successfully RAR')
             return lst_files
         except Exception as e:
@@ -178,14 +176,14 @@ class DownloadFiles:
             zip_.write(res.content)
         root_directory, archive_name = os.path.split(absolute_path)
         try:
-            objectZip = SevenZFiles(
+            objectZip = SevenZipFiles(
                 absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name,
                 trading_id=trading_id,
                 lot_number=lot_number,
                 url=request_data.url, relative_path=relative_path
             )
-            lst_files = objectZip.extract_zip_files()
-            objectZip.delete_zip()
+            lst_files = objectZip.extract_files()
+            objectZip.delete_archive()
             logger.info(f'Download finished successfully 7Z')
             return lst_files
         except Exception as e:

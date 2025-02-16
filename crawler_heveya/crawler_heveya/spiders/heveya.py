@@ -1,7 +1,7 @@
 import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from ..app import Combo
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.config import params, data_origin_url
@@ -37,7 +37,7 @@ class HeveyaSpider(scrapy.Spider):
 
     def parse_lot(self, response, status, parsed_region):
         combo = Combo(response)
-        loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         trading_type, trading_org, trading_org_contacts, start_price, step_price = combo.get_main_info()
         loader.add_value("data_origin", data_origin_url)
         loader.add_value("trading_id", combo.trading_id)

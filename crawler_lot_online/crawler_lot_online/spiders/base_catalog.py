@@ -4,10 +4,11 @@ from datetime import datetime
 from scrapy import Spider, Request, FormRequest
 
 from general_utils.config import format_parse_date
+from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from general_utils.location import Region, get_index
 from ..catalog_app import Combo
 from ..utils.config import formdata, hashes, start_date
-from general_utils import DBHelper, CrawlerNonBankruptItemLoader, CrawlerNonBankruptItem, return_parse_date
+from general_utils import DBHelper, return_parse_date
 
 
 class LotOnlineBaseSpider(Spider):
@@ -54,11 +55,10 @@ class LotOnlineBaseSpider(Spider):
         loader.add_value('trading_org_contacts', combo.trading_org_contacts)
         loader.add_value('status', lot[3])
         address = combo.address
-        index = get_index(address)
         region = None
         if address:
             region = Region.get_region(address)
-        loader.add_value('index', index)
+        loader.add_value('index', get_index(address))
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('encumbrance', 'Нет')
@@ -66,15 +66,18 @@ class LotOnlineBaseSpider(Spider):
         loader.add_value('short_name', lot[2])
         loader.add_value('lot_info', combo.lot_info)
         loader.add_value('property_information', combo.property_information)
+        loader.add_value(
+            'files',
+            {'general': combo.download_general(self.domain), 'lot': combo.download_lot(self.domain)}
+        )
         loader.add_value('start_price', combo.start_price)
         loader.add_value('created_at', return_parse_date())
-        if combo.trading_type == 'offer':
+        if combo.trading_type == 'offer' and combo.periods:
             loader.add_value('periods', combo.periods)
             loader.add_value('start_date_requests', combo.periods[0]['start_date_requests'])
             loader.add_value('end_date_requests', combo.periods[-1]['end_date_requests'])
             loader.add_value('start_date_trading', combo.periods[0]['start_date_requests'])
             loader.add_value('end_date_trading', combo.periods[-1]['end_date_trading'])
-            loader.add_value('periods', combo.periods)
             yield loader.load_item()
         else:
             yield Request(combo.get_auc_dates_link(), self.get_auction_info, cb_kwargs={'loader': loader})

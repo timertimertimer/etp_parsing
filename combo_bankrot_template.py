@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import DownloadFiles, FilesDir, format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
+from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
@@ -53,9 +53,6 @@ class Combo:
 
     @property
     def address(self): ...
-
-    @property
-    def region(self): ...
 
     @property
     def arbit_manager(self): ...

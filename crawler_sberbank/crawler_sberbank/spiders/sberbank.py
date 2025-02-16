@@ -12,7 +12,7 @@ import json
 import xmltodict
 import pprint
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader
+from general_utils import EtpItem, EtpItemLoader
 from ..trades.app import ComposeTrades
 from ..utils.config import *
 from ..utils.data_for_requests import xml_request_data
@@ -88,7 +88,7 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
         for link in lst_link_to_lots:
             _link = re.sub(part_path_to_trade, part_path_to_lot, response.meta['trade'])
             _link = re.sub(r'\d+$', link, _link)
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', combo.auc.trading_id)
             loader.add_value('trading_link', trading_link)
@@ -101,7 +101,7 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
             loader.add_value('trading_org_contacts', combo.auc.trading_org_contacts)
             loader.add_value('case_number', combo.auc.get_case_number)
             loader.add_value('debtor_inn', combo.auc.get_debitor_inn)
-            address, region = combo.auc.address() or (None, None)
+            address, region = combo.auc.a() or (None, None)
             loader.add_value('address', address)
             loader.add_value('region', region)
             loader.add_value('arbit_manager', combo.auc.get_arbitr_manager)

@@ -4,7 +4,7 @@ from typing import Iterable
 import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import CrawlerBankruptItem, CrawlerBankruptItemLoader, return_parse_date, UrlConfig
+from general_utils import EtpItem, EtpItemLoader, return_parse_date, UrlConfig
 from general_utils.config import start_date
 from ..utils.config import data_origin_url, main_url
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -54,7 +54,7 @@ class VertradesSpider(scrapy.Spider):
         end_date_requests = combo.end_date_requests
         general_files = combo.download_general()
         for lot in combo.get_lots():
-            loader = CrawlerBankruptItemLoader(CrawlerBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", data_origin_url)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", response.url)
