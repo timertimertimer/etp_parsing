@@ -60,7 +60,7 @@ class Combo:
                     )
                     lst_general.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
                 else:
-                    lst_general.append({'original_name': name, 'link': '', 'link_etp': link})
+                    lst_general.append({'original_name': name, 'link': None, 'link_etp': link})
         return lst_general
 
     def download_lot(self, trading_id: str, lot_number: str):
@@ -103,7 +103,7 @@ class Combo:
                     )
                     lst_lot.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
                 else:
-                    lst_lot.append({'original_name': name, 'link': '', 'link_etp': link})
+                    lst_lot.append({'original_name': name, 'link': None, 'link_etp': link})
         return lst_lot
 
     @property

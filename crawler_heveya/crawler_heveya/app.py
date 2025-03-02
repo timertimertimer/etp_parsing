@@ -4,7 +4,6 @@ from itertools import takewhile
 
 from bs4 import BeautifulSoup
 
-from general_utils import get_region
 from .utils.download import DownloadFiles
 from .utils.work_with_path_and_dir import LotFilesDir
 from .utils.working_with_time import format_time
@@ -16,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
-    addresses = dict()
     def __init__(self, response):
         self.response = response
         self.check = CheckIfCorrectContactInfo()
@@ -168,9 +166,7 @@ class Combo:
         if address == 'Торги по банкротству':
             pass
         if address and 'Информация скрыта' not in address:
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return address
 
     @property
     def arbit_manager(self):

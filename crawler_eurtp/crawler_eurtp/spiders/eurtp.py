@@ -1,8 +1,10 @@
 import scrapy
-from general_utils import DBHelper, EtpItem, EtpItemLoader, return_parse_date, UrlConfig
-from general_utils.location import Region
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
+from general_utils.base_spider import BaseSpider
+from general_utils.config import start_date
+
 from ..app import Combo
-from ..config import start_date, categories, end_date
+from ..config import categories, end_date, page_limit
 import logging
 
 from ..config import data_origin
@@ -10,14 +12,12 @@ from ..config import data_origin
 logger = logging.getLogger(__name__)
 
 
-class EurtpSpider(scrapy.Spider):
+class EurtpSpider(BaseSpider):
     name = 'eurtp'
     start_urls = ['http://eurtp.ru/']
 
     def __init__(self):
-        super(EurtpSpider, self).__init__()
-        self.db_check = DBHelper(f'lots_{self.name}')
-        self.previous_lots = self.db_check.get_latest_lot()
+        super().__init__(data_origin)
 
     def parse(self, response):
         for category in categories:
@@ -37,18 +37,20 @@ class EurtpSpider(scrapy.Spider):
         if pages:
             next_page = pages[-2]
             next_page_number = int(next_page.xpath('./@data-page').get())
-            next_page_url = next_page.xpath('./@href').get()
-            if next_page_number > current_page:
-                current_page = next_page_number
-                yield scrapy.Request(
-                    url=UrlConfig.url_join(data_origin, next_page_url),
-                    cb_kwargs=dict(current_page=current_page, all_links=all_links),
-                    callback=self.collect_links
-                )
-                return
+            if next_page_number <= page_limit:
+                next_page_url = next_page.xpath('./@href').get()
+                if next_page_number > current_page:
+                    current_page = next_page_number
+                    yield scrapy.Request(
+                        url=UrlConfig.url_join(data_origin, next_page_url),
+                        cb_kwargs=dict(current_page=current_page, all_links=all_links),
+                        callback=self.collect_links
+                    )
+                    return
         for link in all_links:
             link = UrlConfig.url_join(data_origin, link)
-            yield scrapy.Request(url=link, callback=self.parse_trades)
+            if link not in self.previous_lots:
+                yield scrapy.Request(url=link, callback=self.parse_trades)
 
     def parse_trades(self, response):
         combo = Combo(response)
@@ -64,7 +66,6 @@ class EurtpSpider(scrapy.Spider):
         case_number = combo.case_number
         debtor_inn = combo.debtor_inn
         address = combo.address
-        region = Region.get_region(address)
         arbit_manager = combo.arbit_manager
         arbit_manager_inn = combo.arbit_manager_inn
         arbit_manager_org = combo.arbit_manager_org
@@ -82,10 +83,12 @@ class EurtpSpider(scrapy.Spider):
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
             loader.add_value('address', address)
-            loader.add_value('region', region)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)
+            loader.add_value('start_date_requests', combo.start_date_requests)
+            loader.add_value('end_date_requests', combo.end_date_requests)
+            loader.add_value('start_date_trading', combo.start_date_trading)
             yield scrapy.Request(
                 url=UrlConfig.url_join(data_origin, lot_link), callback=self.parse_lot,
                 cb_kwargs={'loader': loader, 'general_files': general_files}
@@ -99,15 +102,14 @@ class EurtpSpider(scrapy.Spider):
         loader.add_value('short_name', combo.short_name)
         loader.add_value('lot_info', combo.lot_info)
         loader.add_value('property_information', combo.property_information)
-        loader.add_value('start_date_requests', combo.start_date_requests)
-        loader.add_value('end_date_requests', combo.end_date_requests)
-        loader.add_value('start_date_trading', combo.start_date_trading)
-        if loader.get_collected_values('trading_type')[0] == 'offer':
-            loader.add_value('end_date_trading', combo.end_date_trading)
-            loader.add_value('periods', combo.periods)
         loader.add_value('start_price', combo.start_price)
         if loader.get_collected_values('trading_type')[0] in ['auction', 'competition']:
             loader.add_value('step_price', combo.step_price)
+        else:
+            loader.add_value('start_date_requests', combo.start_date_requests)
+            loader.add_value('end_date_requests', combo.end_date_requests)
+            loader.add_value('start_date_trading', combo.start_date_trading)
+            loader.add_value('end_date_trading', combo.end_date_trading)
+            loader.add_value('periods', combo.periods)
         loader.add_value('files', {'general': general_files, 'lot': combo.download(combo.lot_number)})
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

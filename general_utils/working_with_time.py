@@ -42,12 +42,29 @@ def format_time_period(strtime):
         return None
 
 
+def parse_datetime(string: str) -> datetime:
+    formats = [
+        '%Y-%m-%dT%H:%M:%S.%fZ',  # с миллисекундами и Z
+        '%Y-%m-%dT%H:%M:%S.%f',  # с миллисекундами без Z
+        '%Y-%m-%dT%H:%M:%SZ',  # без миллисекунд с Z
+        '%Y-%m-%dT%H:%M:%S',  # просто секундами без Z
+    ]
+
+    for date_format in formats:
+        try:
+            dt = datetime.strptime(string, date_format)
+            return dt.replace(tzinfo=pytz.utc)
+        except ValueError:
+            continue
+
+    raise ValueError(f"Не удалось распарсить дату: {string}")
+
+
 @format_time_strftime
-def return_parse_date(string: str = None, date_format: str = '%Y-%m-%dT%H:%M:%SZ'):
+def return_parse_date(string: str = None, format: str = None) -> datetime:
     if string:
-        utc_time = datetime.strptime(string, date_format).replace(tzinfo=pytz.utc)
-        utc_time_at_moscow = utc_time.astimezone(moscow_tz)
-        return utc_time_at_moscow
+        utc_time = parse_datetime(string)
+        return utc_time.astimezone(moscow_tz)
     return datetime.now(moscow_tz)
 
 

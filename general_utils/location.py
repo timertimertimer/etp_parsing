@@ -1,20 +1,13 @@
-import copy
 import json
 import logging
-import random
-import time
-from pprint import pprint
-
 import pymorphy3
 import requests
 import re
 
-from mysql.connector import MySQLConnection
 from natasha import MorphVocab, AddrExtractor
-
-from general_utils import read_db_config
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from general_utils.config import api_key_path, indexes_path
+from general_utils.db import DBHelper
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +103,9 @@ def get_index(address: str):
         return match.group()
 
 
-class Region:
+class RegionIdentifier:
     storage = None
     regions = None
-    lower_regions = None
     cities = None
 
     @classmethod
@@ -137,41 +129,29 @@ class Region:
     @staticmethod
     def _fetch_addresses():
         d = {}
-        db_config = read_db_config()
         try:
-            with MySQLConnection(**db_config) as conn:
-                with conn.cursor() as curr:
-                    curr.execute("SELECT address, region FROM addresses")
-                    for key, value in curr.fetchall():
-                        d[key] = value
+            addresses = DBHelper.get_addresses_with_regions()
+            for address in addresses:
+                if address.region:
+                    d[address.name] = address.region.name
         except Exception as e:
             logger.error(f'Error in fetching addresses: {e}', exc_info=True)
         return d
 
     @staticmethod
     def _fetch_regions():
-        r = []
-        db_config = read_db_config()
         try:
-            with MySQLConnection(**db_config) as conn:
-                with conn.cursor() as curr:
-                    curr.execute("SELECT distinct region FROM addresses")
-                    for value in curr.fetchall():
-                        r.append(value[0])
+            return DBHelper.get_region_names()
         except Exception as e:
             logger.error(f'Error in fetching addresses: {e}', exc_info=True)
-        return r
 
     @staticmethod
     def _fetch_cities():
         c = {}
-        db_config = read_db_config()
         try:
-            with MySQLConnection(**db_config) as conn:
-                with conn.cursor() as curr:
-                    curr.execute("SELECT city, region FROM cities")
-                    for key, value in curr.fetchall():
-                        c[key] = value
+            cities = DBHelper.get_cities_with_regions()
+            for city in cities:
+                c[city.name] = city.region.name
         except Exception as e:
             logger.error(f'Error in fetching addresses: {e}', exc_info=True)
         return c
@@ -218,10 +198,10 @@ class Region:
         if (
                 region :=
                 # Region._get_region_from_storage(address) or
-                Region._get_region_from_index(address) or
-                Region._get_region_from_natasha(address) or
-                Region._get_region_from_natasha(parsed_address) or
-                Region._get_region_from_text(parsed_address)
+                RegionIdentifier._get_region_from_index(address) or
+                RegionIdentifier._get_region_from_natasha(address) or
+                RegionIdentifier._get_region_from_natasha(parsed_address) or
+                RegionIdentifier._get_region_from_text(parsed_address)
                 # or Region._get_region_from_api(parsed_address)
         ):
             # Region.storage[address.lower()] = region
@@ -232,7 +212,7 @@ class Region:
 
     @staticmethod
     def _get_region_from_storage(address: str):
-        if region := Region.get_storage().get(address.lower()):
+        if region := RegionIdentifier.get_storage().get(address.lower()):
             logger.info(f'Got from storage. Address: "{address}", Region: "{region}"')
             return region
 
@@ -250,10 +230,10 @@ class Region:
         normalized_address = normalize_phrase(address)
         if not (
                 region :=
-                Region.get_storage().get(address) or
-                Region.get_cities().get(address) or
-                Region.get_storage().get(normalized_address) or
-                Region.get_cities().get(normalized_address)
+                RegionIdentifier.get_storage().get(address) or
+                RegionIdentifier.get_cities().get(address) or
+                RegionIdentifier.get_storage().get(normalized_address) or
+                RegionIdentifier.get_cities().get(normalized_address)
         ):
             # cities = Region.get_cities()
             # address_lower = address.lower()
@@ -277,17 +257,17 @@ class Region:
             if type_ in region_keywords:
                 if type_ == 'город':
                     normalized_address = normalize_phrase(value)
-                    return Region.get_cities().get(normalized_address) or Region.get_cities().get(value)
+                    return RegionIdentifier.get_cities().get(normalized_address) or RegionIdentifier.get_cities().get(value)
                 normalized_address = normalize_phrase(f'{value} {type_}')
                 normalized_address2 = normalize_phrase(f'{type_} {value}')
                 if not (
                         region :=
-                        Region.get_storage().get(normalized_address) or
-                        Region.get_storage().get(normalized_address2)
+                        RegionIdentifier.get_storage().get(normalized_address) or
+                        RegionIdentifier.get_storage().get(normalized_address2)
                 ):
-                    for region in Region.get_regions():
+                    for region in RegionIdentifier.get_regions():
                         if value in region.lower() or normalized_address in region.lower() or normalized_address2 in region.lower():
-                            Region.storage[address] = region
+                            RegionIdentifier.storage[address] = region
                             logger.info(f'Got with natasha. Address: "{address}", Region: "{region}"')
                             break
                     else:
@@ -303,64 +283,22 @@ class Region:
 
     @staticmethod
     def _get_region_from_api(address: str):
-        if region := Region.get_yandex_region(address):
+        if region := RegionIdentifier.get_yandex_region(address):
             logger.info(f'Got from API. Address: "{address}", Region: "{region}"')
             return region
-
-    @staticmethod
-    def save_new_regions_to_db():
-        db_config = read_db_config()
-        storage = Region.storage or {}
-        try:
-            with MySQLConnection(**db_config) as conn:
-                with conn.cursor() as curr:
-                    curr.execute("SELECT address FROM addresses")
-                    existing_addresses = {row[0].lower() for row in curr.fetchall()}
-                    new_entries = {address: region for address, region in storage.items() if
-                                   address.lower() not in existing_addresses and region}
-                    if not new_entries:
-                        logger.info("Нет новых записей для сохранения.")
-                        return
-                    insert_query = """
-                        INSERT INTO addresses (address, region) 
-                        VALUES (%s, %s)
-                        ON DUPLICATE KEY UPDATE address = address
-                    """
-                    curr.executemany(insert_query, list(new_entries.items()))
-                    conn.commit()
-                    logger.info(f"Успешно добавлено {len(new_entries)} новых записей.")
-        except Exception as e:
-            logger.error(f"Ошибка при сохранении новых записей: {e}", exc_info=True)
 
 
 def test_region_from_addresses_table():
     count = 0
-    addresses = list(Region.get_storage().items())
+    addresses = list(RegionIdentifier.get_storage().items())
     for a, r in list(addresses):
-        fr = Region.get_region(a)
+        fr = RegionIdentifier.get_region(a)
         if fr and fr != r:
-            Region.get_region(a)
-        if fr:
-            count += 1
-    return addresses, count
-
-
-def test_region_from_all_addresses():
-    from general_utils.db import DBHelper
-    count = 0
-    addresses = DBHelper().get_all_addresses()
-    for address in addresses:
-        fr = Region.get_region(address)
+            RegionIdentifier.get_region(a)
         if fr:
             count += 1
     return addresses, count
 
 
 if __name__ == '__main__':
-    start = time.time()
-    addresses, count = test_region_from_all_addresses()
-    end = time.time()
-    print(f'executed in {end - start} seconds')
-    print(f'found {count} regions of {len(addresses)} addresses')
-    print(f'{(count / len(addresses) * 100):.2f}%')
-    Region.save_new_regions_to_db()
+    print(RegionIdentifier.get_region('республика северная осетия - алания, ст. луковская моздокского р-на, ул. моздокская дом 124'))

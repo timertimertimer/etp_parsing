@@ -1,10 +1,9 @@
 from bs4 import BeautifulSoup as BS
 import re
 
-from general_utils import get_region
+from general_utils import CheckIfCorrectContactInfo
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 import logging
 
 from ..utils.work_with_text_and_number import dedent_func
@@ -21,7 +20,6 @@ class SerpPage:
         self.soup = BS(str(self.response.text).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
         self.loc_serp = LocatorSerp
         self.loc_trade = LocatorTradePage
-        self.check = CheckIfCorrectContactInfo()
 
     def retur_page_html(self):
         return self.soup
@@ -189,13 +187,13 @@ class SerpPage:
         """ return organizer email """
         org_email = self.response.xpath(self.loc_trade.trading_org_email_loc).get()
         org_email = BS(str(org_email), features='lxml').get_text().strip()
-        return self.check.check_email(org_email)
+        return CheckIfCorrectContactInfo.check_email(org_email)
 
     def get_org_phone(self):
         """ :return organizer phone """
         org_phone = self.response.xpath(self.loc_trade.trading_org_phone_loc).get()
         phone = BS(str(org_phone), features='lxml').get_text()
-        return self.check.check_phone(phone)
+        return CheckIfCorrectContactInfo.check_phone(phone)
 
     def get_org_contacts(self):
         return {'email': self.get_org_email(),
@@ -223,25 +221,19 @@ class SerpPage:
     def get_msg_number(self):
         """ :return message number """
         msg = self.response.xpath(self.loc_trade.msg_number_loc).get()
-        if msg and len(msg) > 0:
-            msg = BS(str(msg), features='lxml').get_text().strip()
-            msg = ' '.join(re.findall(r'\d{7,8}', dedent_func(msg)))
-            if len(msg) > 0:
-                return msg
-            else:
-                return None
+        return CheckIfCorrectContactInfo.check_msg_number(BS(str(msg), features='lxml').get_text().strip())
 
     def get_case_number(self):
         """ return case number  """
         case = self.response.xpath(self.loc_trade.case_number_loc).get()
         case = BS(str(case), features='lxml').get_text().strip()
-        return self.check.check_case_number(case)
+        return CheckIfCorrectContactInfo.check_case_number(case)
 
     def get_debtor_inn(self):
         """ :return debtor's inn """
         _inn = self.response.xpath(self.loc_trade.debtor_inn_loc).get()
         _inn = BS(str(_inn), features='lxml').get_text().strip()
-        return self.check.check_inn(_inn)
+        return CheckIfCorrectContactInfo.check_inn(_inn)
 
     def get_address(self):
         address = self.response.xpath(self.loc_trade.address_loc).get()

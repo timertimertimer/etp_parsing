@@ -1,8 +1,5 @@
 from .python_mysql_dbconfig import read_db_config
-from .db import DBHelper
 from .items import EtpItem, EtpItemLoader
-from .middlewares import *
-from .pipelines import EtpPipeline
 from .settings import *
 from .work_with_text_and_number import *
 from .working_with_time import *

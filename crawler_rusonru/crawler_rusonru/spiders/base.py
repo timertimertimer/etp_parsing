@@ -5,7 +5,7 @@ from scrapy import Spider, Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils.location import Region
+from general_utils.location import RegionIdentifier
 from ..trades.app import Combo
 from ..utils.config import trade_link, data_origin, serp_link, formdata
 from general_utils import DBHelper, EtpItem, EtpItemLoader, return_parse_date, UrlConfig
@@ -66,7 +66,7 @@ class BaseSpider(Spider):
         address = combo.address
         region = None
         if address:
-            region = Region.get_region(address)
+            region = RegionIdentifier.get_region(address)
         transfer['address'] = address
         transfer['region'] = region
         transfer['arbit_manager'] = combo.arbit_manager

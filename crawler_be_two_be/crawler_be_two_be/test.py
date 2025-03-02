@@ -1,2 +1,0 @@
-f = 'f_keyword=&searching=1&company_type=2&customer_id=&firm_id=&price_start=&price_end=&price_currency=0&date=1&date_start_dmy=01.01.2021&date_end_dmy=18.01.2021&trade=sell&lot_type=15&show=all&searching=1'
-s = '           searching=1&company_type=2&price_currency=0&date=1&date_start_dmy=01.01.2021&date_end_dmy=18.01.2021&trade=sell&lot_type=15&show=all'

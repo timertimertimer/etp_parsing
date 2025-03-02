@@ -4,8 +4,10 @@ import re
 
 from bs4 import BeautifulSoup
 
+from general_utils.download import DownloadFiles
+from general_utils.work_with_path_and_dir import FilesDir
 from .config import path_absolute, path_relative, data_origin
-from general_utils import DownloadFiles, FilesDir, format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
+from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, return_parse_date
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from general_utils.models import RequestData
 
@@ -77,7 +79,7 @@ class Combo:
                         }
                     )
                 else:
-                    files_lst.append({'original_name': name, 'link': '', 'link_etp': link})
+                    files_lst.append({'original_name': name, 'link': None, 'link_etp': link})
         return files_lst
 
     @property
@@ -285,7 +287,8 @@ class Combo:
             if arr_item is not None:
                 start_date_requests = arr_item
         if start_date_requests is None and len(self.periods) != 0:
-            return format_time(self.periods[0]['start_date_requests'])
+            return return_parse_date(self.periods[0]['start_date_requests'], '%Y-%m-%d %H:%M:%S')
+        return start_date_requests
 
     @property
     def end_date_requests(self):
@@ -304,7 +307,8 @@ class Combo:
             if arr_item is not None:
                 end_date_requests = arr_item
         if end_date_requests is None and len(self.periods) != 0:
-            return self.periods[-1]['end_date_requests']
+            return return_parse_date(self.periods[-1]['end_date_requests'], '%Y-%m-%d %H:%M:%S')
+        return end_date_requests
 
     @property
     def start_date_trading(self):
@@ -323,12 +327,13 @@ class Combo:
             if arr_item is not None:
                 start_date_trading = arr_item
         if start_date_trading is None and len(self.periods) != 0:
-            return self.periods[0]['start_date_requests']
+            return return_parse_date(self.periods[0]['start_date_requests'], '%Y-%m-%d %H:%M:%S')
+        return start_date_trading
 
     @property
     def end_date_trading(self):
         if len(self.periods) != 0:
-            return self.periods[-1]['end_date_requests']
+            return return_parse_date(self.periods[-1]['end_date_requests'], '%Y-%m-%d %H:%M:%S')
 
     def clean_price(self, price):
         if '%' in price:

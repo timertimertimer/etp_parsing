@@ -106,8 +106,7 @@ class OfferSpider:
             if type_ in ['Публичное предложение', 'Открытое публичное предложение', 'Закрытое публичное предложение']:
                 return 'offer'
             else:
-                logger.error(f'{self.response.url} :: INVALID DATA TRADING TYPE')
-                return 'offer'
+                logger.warning(f'{self.response.url} :: INVALID DATA TRADING TYPE')
 
     def get_status(self):
         """ return status """
@@ -282,7 +281,7 @@ class OfferSpider:
                             middlename = dedent_func(td[1].get_text())
                     else:
                         return None
-            return lastname + ' ' + fistname + ' ' + middlename
+            return ' '.join([lastname, fistname, middlename])
         except:
             logger.error(f'{self.response.url} :: INVALID DATA ARBITR NAME')
 

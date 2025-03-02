@@ -1,7 +1,7 @@
 from general_utils.config import absolute_download_path, relative_download_path, format_parse_date
 
-start_date = format_parse_date(7)
-data_origin_url = 'https://bankrot.cdtrf.ru'
+start_date = format_parse_date(30)
+data_origin_url = 'https://bankrot.cdtrf.ru/'
 trade_page = 'https://bankrot.cdtrf.ru/public/undef/card/tradel.aspx'
 trade_page_file = 'https://bankrot.cdtrf.ru/public/undef/card/'
 

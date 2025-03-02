@@ -10,7 +10,7 @@ from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from general_utils import cookie_parser, return_main_cookies, return_parse_date, DBHelper
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import Region, get_index
+from general_utils.location import RegionIdentifier, get_index
 from ..manage_spider.app import Combo
 from ..utils.config import go_to_urls, start_url, data_pagination, pagination_url, organization_ids
 from ..utils.data_for_requests import script_lua
@@ -77,7 +77,7 @@ class ZalogLotOnlineSpider(Spider):
             address = combo.lot.a
             region = None
             if address:
-                region = Region.get_region(address)
+                region = RegionIdentifier.get_region(address)
             loader.add_value('address', address)
             loader.add_value('region', region)
             loader.add_value('index', get_index(address))

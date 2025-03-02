@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
+import mysql
 from mysql.connector import MySQLConnection
-
-from crawler_msg_fedresurs.utils.config import connect_db
-from crawler_msg_fedresurs.python_mysql_dbconfig import read_db_config
 import logging
 
+from general_utils import read_db_config
+
 logger = logging.getLogger(__name__)
-table = connect_db['table']
 
 
 class CrawlerMsgFedresursPipeline:

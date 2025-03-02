@@ -5,7 +5,7 @@ from scrapy import Spider, Request, FormRequest
 
 from general_utils.config import format_parse_date
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import Region, get_index
+from general_utils.location import RegionIdentifier, get_index
 from ..catalog_app import Combo
 from ..utils.config import formdata, hashes, start_date
 from general_utils import DBHelper, return_parse_date
@@ -57,7 +57,7 @@ class LotOnlineBaseSpider(Spider):
         address = combo.address
         region = None
         if address:
-            region = Region.get_region(address)
+            region = RegionIdentifier.get_region(address)
         loader.add_value('index', get_index(address))
         loader.add_value('address', address)
         loader.add_value('region', region)

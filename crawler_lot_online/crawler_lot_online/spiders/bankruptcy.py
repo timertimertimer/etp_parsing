@@ -1,7 +1,7 @@
 from scrapy import Request
 
 from general_utils import EtpItemLoader, EtpItem, return_parse_date
-from general_utils.location import Region
+from general_utils.location import RegionIdentifier
 from .base_catalog import LotOnlineBaseSpider
 from ..catalog_app import Combo
 
@@ -31,7 +31,7 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
         address = combo.address or combo.sud
         region = None
         if address:
-            region = Region.get_region(address)
+            region = RegionIdentifier.get_region(address)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.arbit_manager)

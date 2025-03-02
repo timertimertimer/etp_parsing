@@ -4,7 +4,7 @@ from typing import Iterable
 from scrapy import Spider, Request, FormRequest
 
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import Region, get_index
+from general_utils.location import RegionIdentifier, get_index
 from ..app import Combo
 from ..utils.config import formdata, data_origin, search_link, trade_link
 from general_utils import DBHelper, return_parse_date
@@ -49,13 +49,7 @@ class TorgiGovSpider(Spider):
         loader.add_value('end_date_trading', combo.end_date_trading)
         general_files = combo.download_general()
         for lot in combo.get_lots():
-            address = combo.get_address(lot)
-            region = None
-            if address:
-                region = Region.get_region(address)
-            loader.add_value('address', address)
-            loader.add_value('region', region)
-            loader.add_value('index', get_index(address))
+            loader.add_value('address', combo.get_address(lot))
             loader.add_value('lot_number', combo.get_lot_number(lot))
             loader.add_value('category', combo.get_category(lot))
             loader.add_value('short_name', combo.get_short_name(lot))
@@ -65,5 +59,4 @@ class TorgiGovSpider(Spider):
             loader.add_value('step_price', combo.get_step_price(lot))
             loader.add_value('min_price', combo.get_start_price(lot))
             loader.add_value('files', {'general': general_files, 'lot': combo.download_lot(lot)})
-            loader.add_value('created_at', return_parse_date())
-            yield loader.load_item()
+            # yield loader.load_item()

@@ -1,6 +1,5 @@
 import urllib.parse
 
-from scrapy.spiders import CrawlSpider
 from scrapy_splash import SplashRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
@@ -8,34 +7,24 @@ from twisted.internet.error import TimeoutError, TCPTimedOutError
 from scrapy_splash import SplashFormRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader
-from general_utils.location import Region
+from general_utils.base_spider import BaseSpider
 from ..app import Combo
-from ..trades.lot import LotParse
 from ..utils.data_for_requests import *
-from ..utils.working_with_url import UrlConfig
-from ..utils.working_with_time import *
-from ..utils.work_with_path_and_dir import LotFilesDir
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.config import *
-from ..utils.download import DownloadFiles
 from scrapy import Request
 from bs4 import BeautifulSoup as BS
 import logging
 from ..trades.offer import OfferParse
-from ..trades.combo_auction import ComboAuctionCompetition
 
 logger = logging.getLogger(__name__)
 
 
-class FabrikantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompetition, LotFilesDir, UrlConfig):
+class FabrikantSpider(BaseSpider):
     name = 'fabrikant'
-    # allowed_domains = ['fabrikant.ru']
     start_urls = start_url.split()
 
     def __init__(self):
-        super(FabrikantSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(FabrikantSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
         yield SplashRequest(
@@ -82,7 +71,7 @@ class FabrikantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
         else:
             for link in all_links:
                 link = link.replace('https://fabrikant.ru', 'https://www.fabrikant.ru')
-                if (link, ) not in self.previous_lots:
+                if (link,) not in self.previous_lots:
                     yield Request(link, self.parse_trade)
 
     async def parse_trade(self, response):
@@ -103,11 +92,7 @@ class FabrikantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
             transfer['case_number'] = combo.case_number
             transfer['debtor_inn'] = combo.debtor_inn
             address = combo.address
-            region = None
-            if address:
-                region = Region.get_region(address)
             transfer['address'] = address
-            transfer['region'] = region
             transfer['arbit_manager'] = combo.arbit_manager
             transfer['arbit_manager_inn'] = combo.arbit_manager_inn
             transfer['arbit_manager_org'] = combo.arbit_manager_org
@@ -158,7 +143,6 @@ class FabrikantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
         loader.add_value('address', transfer['address'])
-        loader.add_value('region', transfer.get('region'))
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -176,7 +160,6 @@ class FabrikantSpider(CrawlSpider, DownloadFiles, OfferParse, ComboAuctionCompet
         loader.add_value('start_price', transfer['start_price'])
         loader.add_value('step_price', transfer.get('step_price'))
         loader.add_value('periods', transfer.get('periods'))
-        loader.add_value('created_at', return_parse_date())
         loader.add_value('files', {'general': general, 'lot': lot_file})
         yield loader.load_item()
 

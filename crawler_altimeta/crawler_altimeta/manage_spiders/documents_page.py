@@ -36,7 +36,7 @@ class DocPage:
                 # link_etp = re.sub(r'\s', '', link_etp)
                 link_etp = self.url.url_join(main_url, link_etp)
                 file_name = dedent_func(d.find('a').get_text().replace('. ', '.'))
-                _path_relative = ''
+                _path_relative = None
                 _dir = GeneralFilesDir(path_relative=relative_path, path_absolute=full_path)
                 if 'Протокол' not in file_name and 'Решение' not in file_name and 'Protocol' not in file_name and 'Reshenie' not in file_name:
                     if pathlib.Path(file_name).suffix in lst_exet:
@@ -89,8 +89,8 @@ class DocPage:
                 # link_etp = re.sub(r'\s', '', link_etp)
                 link_etp = self.url.url_join(main_url, link_etp)
                 file_name = dedent_func(d.find('a').get_text().replace('. ', '.'))
-                _path_relative = ''
                 _dir = GeneralFilesDir(path_relative=relative_path, path_absolute=full_path)
+                _path_relative = None
                 if 'Протокол' not in file_name and 'Решение' not in file_name and 'Protocol' not in file_name and 'Reshenie' not in file_name:
                     if pathlib.Path(file_name).suffix in lst_exet:
                         if len(file_name) > 75:

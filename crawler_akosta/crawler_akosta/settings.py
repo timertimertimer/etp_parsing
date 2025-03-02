@@ -7,3 +7,4 @@ NEWSPIDER_MODULE = 'crawler_akosta.spiders'
 CONCURRENT_REQUESTS = 1
 DEFAULT_REQUEST_HEADERS['Host'] = host
 DOWNLOADER_MIDDLEWARES['crawler_akosta.middlewares.CrawlerAkostaDownloaderMiddleware'] = 543
+# LOG_FILE = 'akosta.log'

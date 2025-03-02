@@ -5,7 +5,7 @@ import json
 from scrapy import FormRequest, Request
 
 from general_utils.items import EtpItemLoader, EtpItem, CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import Region
+from general_utils.location import RegionIdentifier
 from ..app import Combo
 from ..utils.config import data_origin
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -107,7 +107,7 @@ class LotOnlineSpider(scrapy.Spider):
         address = combo.address
         region = None
         if address:
-            region = Region.get_region(address)
+            region = RegionIdentifier.get_region(address)
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('start_date_requests', combo.start_date_requests)

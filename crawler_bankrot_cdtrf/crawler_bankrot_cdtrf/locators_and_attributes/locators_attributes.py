@@ -43,6 +43,7 @@ class LocatorMain:
     to_dohovor_loc = '//div[@class="table-content"]//tr//td[contains(., "Договор о задатк")]//following-sibling::td[1]/a'
     to_proekt_loc = '//div[@class="table-content"]//tr//td[contains(., "роект договора купли-продаж")]//following-sibling::td[1]/a'
 
+
 class Offer(LocatorMain):
     def __init__(self):
         super().__init__()

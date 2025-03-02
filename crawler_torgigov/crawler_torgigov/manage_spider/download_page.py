@@ -77,7 +77,7 @@ class DocumentGeneral:
                             general_lst.extend(lst_files)
                         else:
                             general_lst.append(
-                                {'original_name': d[1], 'link': '',
+                                {'original_name': d[1], 'link': None,
                                  'link_etp': self.url.parse_url(d[0])})
                 general_dict['general'] = general_lst
                 return general_lst

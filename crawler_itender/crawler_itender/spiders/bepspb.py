@@ -10,6 +10,7 @@ from scrapy.spiders import Spider
 from scrapy_splash import SplashRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date, headers
+from .base import ItenderBaseSpider
 from ..manage_spiders.app import Combo
 from ..utils.config import return_auction_link, data_origin, start_date, return_compet_link, return_offer_link, \
     tables
@@ -27,23 +28,15 @@ logger = logging.getLogger(__name__)
 TABLE = tables['table_bepspb']
 
 
-class BepspbSpider(Spider):
+class BepspbSpider(ItenderBaseSpider):
     name = 'bepspb'
-    allowed_domains = ['bepspb.ru', 'localhost']
-    data_origin = data_origin['bepspb']
-    start_url = ['https://bepspb.ru/']
     custom_settings = {
         # 'LOG_FILE': f'{name}.log',
         'DEFAULT_REQUEST_HEADERS': headers | {'Accept-Encoding': 'gzip, deflate'}
     }
 
-    def __init__(self):
-        super(BepspbSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot(TABLE)
-
     def start_requests(self):
-        yield SplashRequest(self.start_url[0], self.choose_datatype,
+        yield SplashRequest(self.data_origin[0], self.choose_datatype,
                             cache_args=['lua_source'], args={'lua_source': script_lua},
                             slot_policy=SlotPolicy.PER_DOMAIN, dont_send_headers=True
                             )

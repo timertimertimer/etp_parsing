@@ -1,6 +1,5 @@
-from general_utils import headers
-from .base import BaseSpider
+from .base import ElectroTorgiBaseSpider
 
 
-class UralbidinSpider(BaseSpider):
+class UralbidinSpiderElectroTorgi(ElectroTorgiBaseSpider):
     name = "uralbidin"

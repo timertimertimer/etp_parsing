@@ -6,6 +6,7 @@ from scrapy import Request, FormRequest
 from itertools import chain
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date, headers
+from .base import ItenderBaseSpider
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.headers_for_spiders.spiders_header import headers_arbitat as hd
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_auction as pdac
@@ -25,51 +26,8 @@ logger = logging.getLogger(__name__)
 TABLE = tables['table_arbitat']
 
 
-class ArbitatSpider(Spider):
+class ArbitatSpider(ItenderBaseSpider):
     name = 'arbitat'
-    allowed_domains = ['arbitat.ru']
-    start_url = ['http://arbitat.ru/']
-    # start_url = ['http://arbitat.ru/public/public-offers/view/2975/']
-    data_origin = data_origin[name]
-    custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
-    }
-
-    def __init__(self):
-        super(ArbitatSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot(TABLE)
-
-    def start_requests(self):
-        yield Request(self.start_url[0], self.choose_datatype, headers=hd)
-        # for i in range(5):
-        #     if i == 0:
-        #         link_lot = 'http://arbitat.ru/public/public-offers/lots/view/12751/'
-        #     elif i == 1:
-        #         link_lot = 'http://arbitat.ru/public/public-offers/lots/view/12752/'
-        #     elif i == 2:
-        #         link_lot = 'http://arbitat.ru/public/public-offers/lots/view/12753/'
-        #     elif i == 3:
-        #         link_lot = 'http://arbitat.ru/public/public-offers/lots/view/12754/'
-        #     elif i == 4:
-        #         link_lot = 'http://arbitat.ru/public/public-offers/lots/view/12755/'
-        #     else:
-        #         return None
-
-        # yield Request(self.start_url[0], self.parse_trade_page_offer, headers=hd,
-        #               cb_kwargs={'lot_number': str(i + 1), 'lot_link': link_lot, 'attemp': 1}, dont_filter=True)
-
-    def choose_datatype(self, response):
-        for _type in ['auction', 'offer', 'competition']:
-            if _type == 'auction':
-                yield Request(return_auction_link(self.data_origin), self.parse_, headers=hd,
-                              cb_kwargs={'_type': 'auction'})
-            if _type == 'offer':
-                yield Request(return_offer_link(self.data_origin), self.parse_, headers=hd,
-                              cb_kwargs={'_type': 'offer'})
-            if _type == 'competition':
-                yield Request(return_compet_link(self.data_origin), self.parse_, headers=hd,
-                              cb_kwargs={'_type': 'competition'})
 
     async def parse_(self, response, _type):
         first_post = None

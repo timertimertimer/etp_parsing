@@ -97,7 +97,7 @@ class ZipFiles:
                 files_list.append(
                     {'original_name': count_cyrillic(fileName), 'link': self.rel_path + new_file_name.strip(), 'link_etp': self.url})
             else:
-                files_list.append({'original_name': count_cyrillic(fileName), 'link': '', 'link_etp': self.url})
+                files_list.append({'original_name': count_cyrillic(fileName), 'link': None, 'link_etp': self.url})
         return files_list
 
     def delete_zip(self):

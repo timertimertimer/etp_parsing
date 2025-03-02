@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import get_region, dedent_func, CheckIfCorrectContactInfo, UrlConfig, format_time_auction
+from general_utils import dedent_func, CheckIfCorrectContactInfo, UrlConfig, format_time
 from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
 import logging
@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class AuctionPage:
-    """ fetch info from serp (infjrmation after request - current page, next page, links to trading page """
-    addresses = dict()
     def __init__(self, _response):
         self.response = _response
         self.loc = LocatorSerp
@@ -156,9 +154,7 @@ class AuctionPage:
                 address = BS(str(address), features='lxml').get_text()
                 if address.lower() == 'не определен':
                     address = BS(str(self.response.xpath(self.loc_auc.sud_loc).get()), 'lxml').get_text()
-                if address not in self.addresses:
-                    self.addresses[address] = get_region(address)
-                return address, self.addresses[address]
+                return address
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}')
 
@@ -286,7 +282,7 @@ class AuctionPage:
             start = self.response.xpath(self.loc_auc.start_date_request_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features='lxml').get_text())
-                return format_time_auction(start.strip())
+                return format_time(start.strip())
             else:
                 logger.error(f'{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)')
         except Exception as e:
@@ -298,7 +294,7 @@ class AuctionPage:
             end = self.response.xpath(self.loc_auc.end_date_request_loc).get()
             if end:
                 end = dedent_func(BS(str(end), features='lxml').get_text())
-                return format_time_auction(end.strip())
+                return format_time(end.strip())
             else:
                 logger.error(f'{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)')
         except Exception as e:
@@ -310,13 +306,13 @@ class AuctionPage:
             start = self.response.xpath(self.loc_auc.start_date_trading_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features='lxml').get_text())
-                return format_time_auction(start.strip())
+                return format_time(start.strip())
             elif extra_start := self.response.xpath(self.loc_auc.extra_start_date_trading).get():
                 extra_start = dedent_func(BS(str(extra_start), features='lxml').get_text())
-                return format_time_auction(extra_start.strip())
+                return format_time(extra_start.strip())
             elif start_utender := self.response.xpath(self.loc_auc.start_date_trading_utender_loc).get():
                 start_utender = dedent_func(BS(str(start_utender), features='lxml').get_text())
-                return format_time_auction(start_utender.strip())
+                return format_time(start_utender.strip())
             else:
                 logger.error(f'{self.response.url} :: START DATE TRADING ERROR AUCTION(COMPETITION)')
         except Exception as e:
@@ -328,7 +324,7 @@ class AuctionPage:
         try:
             price = self.response.xpath(self.loc_auc.start_price_auc_loc).get()
             extra_price = self.response.xpath(self.loc_auc.start_price_extra_auc_loc).get()
-            if price and "ачальная" not in price:
+            if price and "ачальная" in price:
                 price = dedent_func(BS(str(price), features='lxml').get_text().strip().replace(',', '.'))
                 price = ''.join([x for x in price if x.isdigit() or x == '.'])
                 if len(price) > 0:
@@ -354,7 +350,6 @@ class AuctionPage:
                 logger.error(f'{self.response.url} :: INVALID DATA START PRICE AUCTION/COMPETITION')
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA START PRICE AUCTION/COMPETITION\n{e}')
-            return None
 
     @property
     def step_price(self):

@@ -2,10 +2,13 @@ import copy
 import logging
 from itertools import chain
 from scrapy import Spider, Request, FormRequest
+from scrapy.exceptions import CloseSpider
+
+from general_utils.base_spider import BaseSpider
 from general_utils.db import DBHelper
 from general_utils.config import start_date
 from general_utils.items import EtpItem, EtpItemLoader
-from general_utils.location import Region
+from general_utils.models import Auction
 from general_utils.working_with_time import return_servertime, return_parse_date
 from ..manage_spider.app import Combo
 from ..utils.config import search_link, data_origin, common_link, debtor_link, lot_link, _link_post_period
@@ -16,18 +19,12 @@ from ..utils.post_data import post_data_date_query, post_data_pagination, post_d
 logger = logging.getLogger(__name__)
 
 
-class AkostaSpider(Spider):
+class AkostaSpider(BaseSpider):
     name = 'akosta'
     start_urls = ['https://www.akosta.info/akosta/lots.xhtml']
-    custom_settings = {
-        'UNIQUE_CO': ['trading_id', 'lot_number'],
-        # 'LOG_FILE': f'{name}.log'
-    }
 
     def __init__(self, *args, **kwargs):
-        super(AkostaSpider, self).__init__(*args, **kwargs)
-        self.db_check = DBHelper(self.custom_settings.get('TABLE_NAME', f'lots_{self.name}'))
-        self.previous_lots = self.db_check.get_latest_lot(['trading_id'])
+        super(AkostaSpider, self).__init__(data_origin, Auction.ext_id, *args, **kwargs)
 
     def start_requests(self):
         yield Request(self.start_urls[0] + '?sgUnid=3', self.parse)
@@ -70,8 +67,8 @@ class AkostaSpider(Spider):
             sources = dict()
             for tag_tr in combo.pre.get_trade_links():
                 data, id_ = combo.pre.get_post_id_and_trading_id(tag_tr)
-                if (id_, ) in self.previous_lots:
-                    continue
+                # if id_ in self.previous_lots:
+                #     continue
                 if id_ not in sources:
                     sources[id_] = data
         else:
@@ -174,14 +171,9 @@ class AkostaSpider(Spider):
         transfer['arbit_manager'] = combo.deb.get_arbitr_full_name()
         transfer['arbit_manager_org'] = combo.deb.get_arbitr_company()
         transfer['debtor_inn'] = combo.deb.get_debtor_inn()
-        if combo.deb.soup.find('input', type='checkbox').get('checked'):
+        if combo.deb.soup.find('input', type='checkbox').get('checked') or transfer['trading_org'] == transfer['arbit_manager']:
             transfer['trading_org_inn'] = transfer['arbit_manager_inn']
-        address = combo.deb.get_debtor_address()
-        region = None
-        if address:
-            region = Region.get_region(address)
-        transfer['address'] = address
-        transfer['region'] = region
+        transfer['address'] = combo.deb.get_debtor_address()
         post_data_lot_tab['formMain:inputServerTime'] = return_servertime()
         post_data_lot_tab['javax.faces.ViewState'] = debtor_view_state
         yield FormRequest(
@@ -296,7 +288,6 @@ class AkostaSpider(Spider):
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
         loader.add_value('address', transfer['address'])
-        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -347,8 +338,7 @@ class AkostaSpider(Spider):
             loader.add_value('start_date_trading', combo.offer.get_start_date_request(period_first_page))
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(period_first_page))
             loader.add_value('periods', period_first_page)
-            loader.add_value('created_at', return_parse_date())
-            # yield loader.load_item()
+            yield loader.load_item()
 
     def parse_period_offer_pages(self, response, loader, _form, current, total, periods_: list, sources, page_number):
         combo = Combo(_response=response)
@@ -371,8 +361,7 @@ class AkostaSpider(Spider):
             loader.add_value('end_date_requests', combo.offer.get_end_date_request(periods_))
             loader.add_value('start_date_trading', combo.offer.get_start_date_request(periods_))
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods_))
-            loader.add_value('created_at', return_parse_date())
-            # yield loader.load_item()
+            yield loader.load_item()
 
     def parse_lot_auction(self, response, url_to_trade, transfer, lot_number, files, sources, page_number, total_pages):
         """ parse lot page of auction and competition """
@@ -386,14 +375,13 @@ class AkostaSpider(Spider):
         loader.add_value('trading_type', transfer['trading_type'])
         loader.add_value('trading_form', transfer['trading_form'])
         loader.add_value('trading_org', transfer['trading_org'])
-        loader.add_value('trading_org_inn', transfer['trading_org_inn'])
+        loader.add_value('trading_org_inn', transfer.get('trading_org_inn'))
         loader.add_value('trading_org_contacts', transfer['trading_org_contacts'])
         loader.add_value('trading_number', transfer['trading_number'])
         loader.add_value('msg_number', transfer['msg_number'])
         loader.add_value('case_number', transfer['case_number'])
         loader.add_value('debtor_inn', transfer['debtor_inn'])
         loader.add_value('address', transfer['address'])
-        loader.add_value('region', transfer['region'])
         loader.add_value('arbit_manager', transfer['arbit_manager'])
         loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
         loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -415,5 +403,4 @@ class AkostaSpider(Spider):
         gen = {'general': _files}
         total_files = dict(chain(gen.items(), lot_files.items()))
         loader.add_value('files', total_files)
-        loader.add_value('created_at', return_parse_date())
-        # yield loader.load_item()
+        yield loader.load_item()

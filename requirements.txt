@@ -16,3 +16,5 @@ aiofiles
 aiohttp
 aiohttp_retry
 aiohttp_socks
+sqlalchemy
+alembic

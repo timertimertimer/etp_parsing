@@ -9,8 +9,8 @@ from random import choice
 from requests import Session
 
 from .config import lst_exet_archive, socks_list, headers
-from .models import RequestData
 from .archive import ZipFiles, RarFiles, SevenZipFiles
+from .models.request_data import RequestData
 from .working_with_url import UrlConfig
 
 logger = logging.getLogger(__name__)

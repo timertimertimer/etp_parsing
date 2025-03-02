@@ -1,20 +1,18 @@
 import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader
+from general_utils.base_spider import BaseSpider
 from ..app import Combo
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.config import params, data_origin_url
 
 
-class HeveyaSpider(scrapy.Spider):
+class HeveyaSpider(BaseSpider):
     name = "heveya"
     start_urls = ["https://heveya.ru/search"]
 
     def __init__(self):
-        super(HeveyaSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(HeveyaSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
         yield FormRequest(self.start_urls[0], self.parse_serp, formdata=params, method='GET')
@@ -49,9 +47,7 @@ class HeveyaSpider(scrapy.Spider):
         loader.add_value("trading_org_contacts", trading_org_contacts)
         loader.add_value("case_number", combo.case_number)
         loader.add_value("debtor_inn", combo.debtor_inn)
-        address, region = combo.get_address() or (None, None)
-        loader.add_value('address', address)
-        loader.add_value('region', region or parsed_region)
+        loader.add_value('address', combo.get_address() or parsed_region)
         loader.add_value("arbit_manager", combo.arbit_manager)
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)
@@ -70,5 +66,4 @@ class HeveyaSpider(scrapy.Spider):
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
         loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
-        loader.add_value("created_at", return_parse_date())
         yield loader.load_item()

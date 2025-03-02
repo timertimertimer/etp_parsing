@@ -55,7 +55,7 @@ ROTATING_PROXY_PAGE_RETRY_TIMES = 7
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'general_utils.pipelines.EtpPipeline': 300,
+    'general_utils.pipelines.BasePipeline': 300,
 }
 RETRY_ENABLED = True
 RETRY_TIMES = 7

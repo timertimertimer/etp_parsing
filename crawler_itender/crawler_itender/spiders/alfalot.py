@@ -7,15 +7,14 @@ from random import randint
 from typing import Iterable
 
 from scrapy import FormRequest, Request
-from scrapy.spiders import Spider
 from scrapy_splash import SplashRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from general_utils.config import trash_resources
+from .base import ItenderBaseSpider
 from ..manage_spiders.app import Combo
-from ..utils.config import return_auction_link, data_origin, start_date, tables, return_offer_link, return_compet_link
+from ..utils.config import return_auction_link, start_date, return_offer_link, return_compet_link
 from ..utils.data_for_requests import script_lua_nojs
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop
@@ -23,14 +22,10 @@ from ..utils.post_data_for_spiders.arbitat_post_data import post_data_competitio
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_auction_pagination as pdapag
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_alfalot']
 
 
-class AlfalotSpider(Spider):
+class AlfalotSpider(ItenderBaseSpider):
     name = 'alfalot'
-    allowed_domains = ['alfalot.ru']
-    data_origin = data_origin[name]
-    start_url = ['https://bankrupt.alfalot.ru/']
     custom_settings = {
         # 'LOG_FILE': f'{name}.log',
         'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
@@ -40,14 +35,8 @@ class AlfalotSpider(Spider):
         }
     }
 
-    def __init__(self):
-        super(AlfalotSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot(TABLE)
-
     def start_requests(self) -> Iterable[Request]:
-        for url in self.start_url:
-            yield Request(url, callback=self.choose_datatype, meta=dict(playwright=True))
+        yield Request(self.data_origin, callback=self.choose_datatype, meta=dict(playwright=True))
 
     def choose_datatype(self, response):
         for _type in ['auction', 'offer', 'competition']:
@@ -100,7 +89,7 @@ class AlfalotSpider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.next_page()
+        next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -146,9 +135,7 @@ class AlfalotSpider(Spider):
             loader.add_value('msg_number', combo.auc.msg_number)
             loader.add_value('case_number', combo.auc.case_number)
             loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-            address, region = combo.auc.a() or (None, None)
-            loader.add_value('address', address)
-            loader.add_value('region', region)
+            loader.add_value('address', combo.auc.get_address())
             loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -159,16 +146,17 @@ class AlfalotSpider(Spider):
             loader.add_value('start_date_trading', start_date_trading)
             loader.add_value('end_date_trading', None)
             _id = ''.join(loader.get_collected_values('trading_id'))
-            general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
+            general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.data_origin,
+                                                      crawler_name=self.name)
             pdapag['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
             pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
             pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
             pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
             yield Request(lot_link, callback=self.parse_lot_page,
-                           cb_kwargs={'loader': loader,
-                                                     'lot_number': lot_number,
-                                                     'general': general_files,
-                                                     }, dont_filter=True)
+                          cb_kwargs={'loader': loader,
+                                     'lot_number': lot_number,
+                                     'general': general_files,
+                                     }, dont_filter=True)
         else:
             attemp += 1
             yield SplashRequest(link_trade, callback=self.parse_trading_page_auction,
@@ -189,11 +177,16 @@ class AlfalotSpider(Spider):
             loader.add_value('short_name', combo.auc.get_short_name())
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.auc.get_property_info())
-            loader.add_value('start_price', combo.auc.start_price)
-            loader.add_value('step_price', combo.auc.get_step_price)
+            start_price = combo.auc.start_price
+            if not start_price:
+                start_price = combo.auc.start_price
+            loader.add_value('start_price', start_price)
+            loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
-            lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0], crawler_name=self.name)
+            lot_file = combo.offer.lot_files(
+                _data_origin=self.data_origin, _id=_id, lot_num=lot_number, host=self.data_origin,
+                crawler_name=self.name
+            )
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -201,7 +194,7 @@ class AlfalotSpider(Spider):
             total_files = dict(chain(general.items(),
                                      lot_file.items()))
             loader.add_value('files', total_files)
-            loader.add_value('created_at', return_parse_date())
+            
             yield loader.load_item()
 
     def parse_serp_offer(self, response, first_post):
@@ -211,7 +204,7 @@ class AlfalotSpider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.next_page()
+        next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -250,14 +243,13 @@ class AlfalotSpider(Spider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.a() or (None, None)
-        loader.add_value('address', address)
-        loader.add_value('region', region)
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.data_origin,
+                                                  crawler_name=self.name)
 
         # lot_info
         pagination_on_page: list = combo.auc.pagination
@@ -266,10 +258,10 @@ class AlfalotSpider(Spider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_offer,
-                       cb_kwargs={'loader': loader,
-                                                 'lot_number': lot_number,
-                                                 'general': general_files,
-                                                 'pdata_lot_page_period': pdapag}, dont_filter=True)
+                      cb_kwargs={'loader': loader,
+                                 'lot_number': lot_number,
+                                 'general': general_files,
+                                 'pdata_lot_page_period': pdapag}, dont_filter=True)
 
     async def parse_lot_page_offer(self, response, loader, lot_number, general, pdata_lot_page_period):
         """ parse lot page """
@@ -284,15 +276,18 @@ class AlfalotSpider(Spider):
             loader.add_value('short_name', combo.auc.get_short_name())
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.offer.get_property_info())
-            loader.add_value('periods', combo.offer.get_periods())
+            loader.add_value('periods', combo.offer.return_periods())
             loader.add_value('start_date_requests', combo.offer.start_date_request_offer)
             loader.add_value('end_date_requests', combo.offer.end_date_request_offer)
-            loader.add_value('start_date_trading', combo.offer.get_start_date_trading_offer)
-            loader.add_value('end_date_trading', combo.offer.get_end_date_trading_offer)
-            loader.add_value('start_price', combo.offer.price_offer)
+            loader.add_value('start_date_trading', combo.offer.start_date_trading_offer)
+            loader.add_value('end_date_trading', combo.offer.end_date_trading_offer)
+            start_price = combo.offer.price_offer
+            if not start_price:
+                start_price = combo.offer.price_offer
+            loader.add_value('start_price', start_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0], crawler_name=self.name)
+                                             host=self.data_origin, crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -301,7 +296,7 @@ class AlfalotSpider(Spider):
                                      lot_file.items()))
 
             loader.add_value('files', total_files)
-            loader.add_value('created_at', return_parse_date())
+            
             yield loader.load_item()
         # IF LOT PAGE HAS MORE THEN 50 INTERVALS AND MORE THEN 1 PAGE
         else:
@@ -330,7 +325,7 @@ class AlfalotSpider(Spider):
             pdop['__EVENTVALIDATION'] = eventvalidation
             period_from_current_page = combo.offer.get_periods()
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
-                              
+
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -367,7 +362,7 @@ class AlfalotSpider(Spider):
             period_from_current_page = combo.offer.get_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
-                              
+
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -398,10 +393,13 @@ class AlfalotSpider(Spider):
                 loader.add_value('end_date_requests', end_date_request_offer)
                 loader.add_value('start_date_trading', start_date_request_offer)
                 loader.add_value('end_date_trading', end_date_request_offer)
+                start_price = price_offer
+                if not start_price:
+                    pass
                 loader.add_value('start_price', price_offer)
                 _id = ''.join(loader.get_collected_values('trading_id'))
                 lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                                 host=self.allowed_domains[0], crawler_name=self.name)
+                                                 host=self.data_origin, crawler_name=self.name)
                 if len(lot_file) == 0:
                     lot_file['lot'] = list()
                 if len(general) == 0:
@@ -410,7 +408,7 @@ class AlfalotSpider(Spider):
                                          lot_file.items()))
 
                 loader.add_value('files', total_files)
-                loader.add_value('created_at', return_parse_date())
+                
                 yield loader.load_item()
             else:
                 logger.error(f'TWO PAGE PERIODS ERROR ERROR, {response.url}')
@@ -423,7 +421,7 @@ class AlfalotSpider(Spider):
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|',
                                         response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.next_page()
+        next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
             first_post[
@@ -463,9 +461,7 @@ class AlfalotSpider(Spider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.a() or (None, None)
-        loader.add_value('address', address)
-        loader.add_value('region', region)
+        loader.add_value('address', combo.auc.get_address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -474,7 +470,8 @@ class AlfalotSpider(Spider):
         loader.add_value('start_date_trading', combo.compet.start_date_trading())
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.data_origin,
+                                                  crawler_name=self.name)
         # lot_info auction
         # lot_link = combo.compet.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -483,9 +480,9 @@ class AlfalotSpider(Spider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_competition,
-                       cb_kwargs={'loader': loader,
-                                                 'lot_number': lot_number,
-                                                 'general': general_files}, dont_filter=True)
+                      cb_kwargs={'loader': loader,
+                                 'lot_number': lot_number,
+                                 'general': general_files}, dont_filter=True)
 
     # competition
     def parse_lot_page_competition(self, response, loader, lot_number, general: dict):
@@ -500,11 +497,14 @@ class AlfalotSpider(Spider):
             loader.add_value('short_name', combo.auc.get_short_name())
             loader.add_value('lot_info', combo.auc.get_lot_info())
             loader.add_value('property_information', combo.compet.get_property_info())
-            loader.add_value('start_price', combo.auc.start_price)
-            loader.add_value('step_price', combo.auc.get_step_price)
+            start_price = combo.auc.start_price
+            if not start_price:
+                start_price = combo.auc.start_price
+            loader.add_value('start_price', start_price)
+            loader.add_value('step_price', combo.auc.step_price)
             _id = ''.join(loader.get_collected_values('trading_id'))
             lot_file = combo.offer.lot_files(_data_origin=self.data_origin, _id=_id, lot_num=lot_number,
-                                             host=self.allowed_domains[0], crawler_name=self.name)
+                                             host=self.data_origin, crawler_name=self.name)
             if len(lot_file) == 0:
                 lot_file['lot'] = list()
             if len(general) == 0:
@@ -512,5 +512,5 @@ class AlfalotSpider(Spider):
             total_files = dict(chain(general.items(),
                                      lot_file.items()))
             loader.add_value('files', total_files)
-            loader.add_value('created_at', return_parse_date())
+            
             yield loader.load_item()

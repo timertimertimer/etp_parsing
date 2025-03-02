@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import UrlConfig, dedent_func, format_time_auction
+from general_utils import UrlConfig, dedent_func, format_time
 from ..locators.serp_locator import LocatorSerp
 from ..locators.competition_locator import CompetLocator
 import logging
@@ -108,7 +108,7 @@ class CompetitionPage:
             start = self.response.xpath(self.loc_comp.start_date_request_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features='lxml').get_text())
-                return format_time_auction(start.strip())
+                return format_time(start.strip())
             else:
                 logger.error(f'{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)')
         except Exception as e:
@@ -120,7 +120,7 @@ class CompetitionPage:
             end = self.response.xpath(self.loc_comp.end_date_request_loc).get()
             if end:
                 end = dedent_func(BS(str(end), features='lxml').get_text())
-                return format_time_auction(end.strip())
+                return format_time(end.strip())
             else:
                 logger.error(f'{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)')
         except Exception as e:
@@ -132,13 +132,13 @@ class CompetitionPage:
             start = self.response.xpath(self.loc_comp.start_date_trading_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features='lxml').get_text())
-                return format_time_auction(start.strip())
+                return format_time(start.strip())
             elif extra_start := self.response.xpath(self.loc_comp.extra_start_date_trading).get():
                 extra_start = dedent_func(BS(str(extra_start), features='lxml').get_text())
-                return format_time_auction(extra_start.strip())
+                return format_time(extra_start.strip())
             elif start_utender := self.response.xpath(self.loc_comp.start_date_trading_utender_loc).get():
                 start_utender = dedent_func(BS(str(start_utender), features='lxml').get_text())
-                return format_time_auction(start_utender.strip())
+                return format_time(start_utender.strip())
             else:
                 logger.error(f'{self.response.url} :: START DATE TRADING ERROR (COMPETITION)')
         except Exception as e:

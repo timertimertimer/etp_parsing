@@ -1,23 +1,26 @@
 from typing import Iterable
 
-from scrapy import Spider, Request, FormRequest
+from scrapy import Request, FormRequest
 
+from general_utils.base_spider import BaseSpider
 from ..config import start_date, end_date, data_origin
 from ..trades.app import Combo
-from general_utils import DBHelper, UrlConfig, EtpItemLoader, EtpItem, return_parse_date
-from general_utils.location import Region
+from general_utils import UrlConfig, EtpItemLoader, EtpItem
 
 
-class BaseSpider(Spider):
+class ElectroTorgiBaseSpider(BaseSpider):
     name = 'base'
     custom_settings = {
         # 'LOG_FILE': f'{name}.log',
     }
 
+    @classmethod
+    def set_links(cls):
+        cls.data_origin = data_origin.get(cls.name)
+
     def __init__(self):
-        super(BaseSpider).__init__()
-        self.db_check = DBHelper(self.custom_settings.get('TABLE_NAME', f'lots_{self.name}'))
-        self.previous_lots = self.db_check.get_latest_lot()
+        self.set_links()
+        super().__init__(self.data_origin)
 
     def start_requests(self) -> Iterable[Request]:
         params_data = {
@@ -53,9 +56,6 @@ class BaseSpider(Spider):
         case_number = combo.case_number
         debtor_inn = combo.debtor_inn
         address = combo.address
-        region = None
-        if address:
-            region = Region.get_region(address)
         arbit_manager = combo.arbit_manager
         arbit_manager_inn = combo.arbit_manager_inn
         arbit_manager_org = combo.arbit_manager_org
@@ -77,7 +77,6 @@ class BaseSpider(Spider):
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
             loader.add_value('address', address)
-            loader.add_value('region', region)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)
@@ -105,5 +104,4 @@ class BaseSpider(Spider):
             loader.add_value('end_date_trading', combo.offer.end_date_trading)
         lot_files = combo.download_lot(loader.get_collected_values('lot_number')[0], data_origin[self.name])
         loader.add_value('files', {'general': general_files, 'lot': lot_files})
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

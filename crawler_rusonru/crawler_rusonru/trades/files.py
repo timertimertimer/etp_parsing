@@ -93,7 +93,7 @@ class DocumentGeneral:
                             general_lst.extend(lst_files)
                         else:
                             general_lst.append(
-                                {'original_name': d[0], 'link': '',
+                                {'original_name': d[0], 'link': None,
                                  'link_etp': self.url.parse_url(d[1])})
                 general_dict['general'] = general_lst
                 return general_dict
@@ -180,7 +180,7 @@ class DocumentLot:
                             lot_list.extend(lst_files)
                         else:
                             lot_list.append(
-                                {'original_name': d[0], 'link': '',
+                                {'original_name': d[0], 'link': None,
                                  'link_etp': self.url.parse_url(d[1])})
                 lot_dict['lot'] = lot_list
                 return lot_dict

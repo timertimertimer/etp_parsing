@@ -299,6 +299,6 @@ class MainTradingPage:
                         }
                     )
                 else:
-                    lst_general.append({'original_name': name, 'link': '', 'link_etp': self.response.url})
+                    lst_general.append({'original_name': name, 'link': None, 'link_etp': self.response.url})
                 del post_data_download[form_data]
         return lst_general

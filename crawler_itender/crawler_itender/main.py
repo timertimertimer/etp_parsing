@@ -1,10 +1,6 @@
 from scrapy.cmdline import execute
 
 
-def uralbidin():
-    execute(['scrapy', 'crawl', 'uralbidin'])
-
-
 def arbitat():
     execute(['scrapy', 'crawl', 'arbitat'])
 
@@ -23,10 +19,6 @@ def tendergarant():
 
 def vertrades():
     execute(['scrapy', 'crawl', 'vertrades'])
-
-
-def bankrupt_electro_torgi():
-    execute(['scrapy', 'crawl', 'bankrupt_electro_torgi'])
 
 
 def tender_one():
@@ -86,4 +78,4 @@ def selt_online():
 
 
 if __name__ == '__main__':
-    etpugra()
+    alfalot()

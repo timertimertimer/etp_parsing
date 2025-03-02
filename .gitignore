@@ -162,5 +162,8 @@ cython_debug/
 .idea/
 
 data/config.ini
-proxy*
 data/socks_5.txt
+data/api_keys.json
+proxy*
+alembic/
+alembic.ini

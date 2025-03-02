@@ -1,32 +1,28 @@
 from scrapy.cmdline import execute
 
 
-def ausib_ru():
-    execute(['scrapy', 'crawl', 'ausib_ru'])
+def ausib():
+    execute(['scrapy', 'crawl', 'ausib'])
 
 
-def ptp_centr_ru():
-    execute(['scrapy', 'crawl', 'ptp_centr_ru'])
+def ptp_center():
+    execute(['scrapy', 'crawl', 'ptp_center'])
 
 
-def regtorg_com():
-    execute(['scrapy', 'crawl', 'regtorg_com'])
+def regtorg():
+    execute(['scrapy', 'crawl', 'regtorg'])
 
 
-def etp_profit_ru():
-    execute(['scrapy', 'crawl', 'etp_profit_ru'])
+def etp_profit():
+    execute(['scrapy', 'crawl', 'etp_profit'])
 
 
-def seltim_ru():
-    execute(['scrapy', 'crawl', 'seltim_ru'])
+def seltim():
+    execute(['scrapy', 'crawl', 'seltim'])
 
 
-def atctrade_ru():
-    execute(['scrapy', 'crawl', 'atctrade_ru'])
-
-
-def torgidv_ru():
-    execute(['scrapy', 'crawl', 'torgidv_ru'])
+def atctrade():
+    execute(['scrapy', 'crawl', 'atctrade'])
 
 
 def aukcioncenter():
@@ -34,4 +30,4 @@ def aukcioncenter():
 
 
 if __name__ == '__main__':
-    etp_profit_ru()
+    aukcioncenter()

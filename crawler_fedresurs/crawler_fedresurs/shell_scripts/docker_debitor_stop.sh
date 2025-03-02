@@ -1,2 +1,0 @@
-docker stop splash_debitor
-docker rm splash_debitor

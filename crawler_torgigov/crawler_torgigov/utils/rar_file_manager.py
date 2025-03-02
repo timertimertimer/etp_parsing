@@ -110,7 +110,7 @@ class RarFiles:
                 files_list.append(
                     {'original_name': count_cyrillic(fileName), 'link': self.rel_path + new_file_name.strip(), 'link_etp': self.url})
             else:
-                files_list.append({'original_name': count_cyrillic(fileName), 'link': '', 'link_etp': self.url})
+                files_list.append({'original_name': count_cyrillic(fileName), 'link': None, 'link_etp': self.url})
         return files_list
 
     def return_file_name_extra(self, file_name) -> str:

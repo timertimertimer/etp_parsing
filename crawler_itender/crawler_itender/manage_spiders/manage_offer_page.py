@@ -3,10 +3,11 @@ import pathlib
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, UrlConfig, FilesDir, format_time_auction
+from general_utils import dedent_func, UrlConfig, format_time
+from general_utils.work_with_path_and_dir import FilesDir
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
-from ..utils.config import path_absolute, path_relative, lst_exet, data_origin, lst_exet_archive
+from ..utils.config import path_absolute, path_relative, lst_exet, lst_exet_archive
 import logging
 from ..utils.download_img_files.download2 import DownloadFiles
 
@@ -106,9 +107,9 @@ class OfferPage:
                     price = round(float(price.replace('&nbsp;', '')), 2)
 
                     period = {
-                        'start_date_requests': format_time_auction(start),
-                        'end_date_requests': format_time_auction(end),
-                        'end_date_trading': format_time_auction(end),
+                        'start_date_requests': format_time(start),
+                        'end_date_requests': format_time(end),
+                        'end_date_trading': format_time(end),
                         'current_price': price
                     }
                     period_lst.append(period)
@@ -123,7 +124,7 @@ class OfferPage:
     def start_date_request_offer(self):
         """ return start date request """
         try:
-            start = format_time_auction(self.get_period_table().iloc[1][1])
+            start = format_time(self.get_period_table().iloc[1][1])
             return start
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA start date request offer\n{e}')
@@ -133,7 +134,7 @@ class OfferPage:
     def end_date_request_offer(self):
         """ :return end date request offer"""
         try:
-            end = format_time_auction(self.get_period_table().iloc[-1][2])
+            end = format_time(self.get_period_table().iloc[-1][2])
             return end
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA start date request offer\n{e}')
@@ -203,7 +204,7 @@ class OfferPage:
                                                                          _relative_path=_path_relative)
                         general_lst.extend(archive_files)
                     else:
-                        general_lst.append({'original_name': file_name, 'link': '', 'link_etp': link_etp})
+                        general_lst.append({'original_name': file_name, 'link': None, 'link_etp': link_etp})
                 general_dict['general'] = general_lst
             return general_dict
         except:

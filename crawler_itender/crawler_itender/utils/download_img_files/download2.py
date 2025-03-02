@@ -10,8 +10,10 @@ from random import choice
 import logging
 import shutil
 
-from general_utils import UrlConfig, ZipFiles, RarFiles, SevenZFiles
+from general_utils import UrlConfig
+from general_utils.archive import ZipFiles, RarFiles
 from general_utils.config import socks_list, headers, lst_exet_archive
+from general_utils.seven_z import SevenZFiles
 
 logger = logging.getLogger(__name__)
 try:
@@ -117,8 +119,8 @@ class DownloadFiles:
                     objectZip = ZipFiles(absolute_path=_abs_path, root_directory=p[0], file_name=p[1], trading_id=_id,
                                          lot_number=lot_num,
                                          url=url, relative_path=_relative_path)
-                    lst_files = objectZip.extract_zip_files()
-                    objectZip.delete_zip()
+                    lst_files = objectZip.extract_files()
+                    objectZip.delete_archive()
                     logger.info(f'Download finished successfully ZIP')
                     return lst_files
                 elif pathlib.Path(_abs_path).suffix == '.rar':
@@ -142,8 +144,8 @@ class DownloadFiles:
                                              trading_id=_id,
                                              lot_number=lot_num,
                                              url=url, relative_path=_relative_path)
-                        lst_files = objectRar.extract_rar_files()
-                        objectRar.delete_rar()
+                        lst_files = objectRar.extract_files()
+                        objectRar.delete_archive()
                         logger.info(f'Download finished successfully Rar')
                         return lst_files
                     else:
@@ -164,8 +166,8 @@ class DownloadFiles:
                                              trading_id=_id,
                                              lot_number=lot_num,
                                              url=url, relative_path=_relative_path)
-                        lst_files = objectRar.extract_rar_files()
-                        objectRar.delete_rar()
+                        lst_files = objectRar.extract_files()
+                        objectRar.delete_archive()
                         return lst_files
                 elif pathlib.Path(_abs_path).suffix == '.7z':
                     if 'uralbidin' in url_ or 'utender' in url_:

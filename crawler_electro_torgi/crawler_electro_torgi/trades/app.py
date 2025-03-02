@@ -102,7 +102,7 @@ class Combo:
                     lst_general.extend(archive_lst)
                 else:
                     lst_general.append(
-                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(data_origin_url, link)}
+                        {'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(data_origin_url, link)}
                     )
         return lst_general
 

@@ -72,7 +72,7 @@ class Combo:
                     general_lst.extend(lst_files)
                 else:
                     general_lst.append(
-                        {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
+                        {'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(main_url, link)})
         return general_lst
 
     def download_lot(self):
@@ -120,7 +120,7 @@ class Combo:
                                                                      _relative_path=dir.return_download_dir_etp())
                     lot_list.extend(lst_files)
                 else:
-                    lot_list.append({'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(main_url, link)})
+                    lot_list.append({'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(main_url, link)})
         return lot_list
 
     @property

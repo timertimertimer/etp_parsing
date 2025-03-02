@@ -1,6 +1,7 @@
 import json
 
 import scrapy
+from scrapy import Item, Field
 from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, Compose
 
@@ -12,6 +13,67 @@ def to_json(value: list):
     except:
         data = json.dumps(value, indent=1, ensure_ascii=True).encode('utf-8')
         return data
+
+
+class CounterpartyItem(Item):
+    id = Field()
+    inn = Field()
+    # kpp = Field()
+    # ogrn = Field()
+    # okpo = Field()
+    # snils = Field()
+    # ogrnip = Field()
+    name = Field()
+    short_name = Field()
+    email = Field()
+    phone = Field()
+    address = Field()
+    url = Field()
+    # fedresurs_url = Field()
+    type = Field()
+    # legal_entity_type = Field()
+    # registration_number = Field()
+    # registered_at = Field()
+    sro = Field()
+    # sro_entered_at = Field()
+
+
+class TradeItem(Item):
+    id = Field()
+    ext_id = Field()
+    url = Field()
+    number = Field()
+    type = Field()
+    form = Field()
+    message_number = Field()
+    case_number = Field()
+    address = Field()
+
+
+class LotItem(Item):
+    id = Field()
+    ext_id = Field()
+    url = Field()
+    number = Field()
+    name = Field()
+    info = Field()
+    property_info = Field()
+
+
+class LotPeriodItem(Item):
+    id = Field()
+    request_start_at = Field()
+    request_end_at = Field()
+    trading_start_at = Field()
+    trading_end_at = Field()
+    price = Field()
+
+
+class FileItem(Item):
+    id = Field()
+    name = Field()
+    path = Field()
+    url = Field()
 
 
 class EtpItem(scrapy.Item):
@@ -47,7 +109,6 @@ class EtpItem(scrapy.Item):
     step_price = scrapy.Field()
     periods = scrapy.Field()
     files = scrapy.Field()
-    created_at = scrapy.Field()
 
 
 class EtpItemLoader(ItemLoader):
@@ -83,7 +144,6 @@ class EtpItemLoader(ItemLoader):
     step_price_out = TakeFirst()
     periods_out = Compose(to_json)
     files_out = Compose(TakeFirst(), to_json)
-    created_at_out = TakeFirst()
 
 
 class CrawlerNonBankruptItem(scrapy.Item):

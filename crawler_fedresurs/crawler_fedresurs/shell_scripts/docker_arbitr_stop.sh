@@ -1,2 +1,0 @@
-docker stop splash_arbitr
-docker rm splash_arbitr

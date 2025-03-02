@@ -33,11 +33,10 @@ class AuctionSpider:
         trading_type = self.response.xpath(self.loc.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(BS(str(trading_type), features='lxml').get_text()).strip()
-            if type_ in ['Аукцион', 'Открытый аукцион', 'Закрытый аукцион']:
+            if type_ in ['Аукцион', 'Открытый аукцион', 'Закрытый аукцион', 'Конкурс', 'Открытый конкурс', 'Закрытый конкурс']:
                 return 'auction'
             else:
-                logger.error(f'{self.response.url} :: INVALID DATA TRADING TYPE')
-                return 'auction'
+                logger.warning(f'{self.response.url} :: INVALID DATA TRADING TYPE')
 
     @property
     def start_date_req(self):
@@ -194,7 +193,7 @@ class AuctionSpider:
                         file_link = re.sub(r'\s', '', dedent_func(file_.get('href')))
                         file_name = file_.get_text()
                         general.append({'original_name': dedent_func(file_name),
-                                        'link': '',
+                                        'link': None,
                                         'link_etp': self.url.url_join(data_origin_url, file_link)})
             return general
         except:
@@ -235,7 +234,6 @@ class AuctionSpider:
                                     file_name = file_name[-45::1]
                                 name_on_server = _dir.name_file_on_server(file_id, file_name)
                                 _dir.create_dir()
-                                path_on_server = _dir.name_in_column_files(name_on_server)
                                 arch_fiels = _down.request_to_download_general(url=link_etp, referer=referer,
                                                                                original_name=name_on_server, _id=_id,
                                                                                lot_num=lot_num, _relative_path=relative_path)

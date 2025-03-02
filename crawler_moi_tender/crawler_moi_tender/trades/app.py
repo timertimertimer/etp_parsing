@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup, NavigableString
 
 from general_utils import format_time
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
-from general_utils.location import Region
+from general_utils.location import RegionIdentifier
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from ..utils.config import data_origin_url
 from ..utils.download import DownloadFiles
@@ -43,7 +43,7 @@ class Combo:
             region_city = lot.find('div', class_='region-city')
             span = region_city.find('span')
             address = dedent_func(span.find('b').get_text())
-            region = Region.get_region(address)
+            region = RegionIdentifier.get_region(address)
 
             trading_id = trading_number = dedent_func(
                 lot.find('div', class_='num').get_text(strip=True).replace('№', '')

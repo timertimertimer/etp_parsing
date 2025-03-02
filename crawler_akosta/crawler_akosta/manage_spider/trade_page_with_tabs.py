@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as BS
 import logging
 import re
 
-from general_utils import dedent_func, format_time
+from general_utils import dedent_func, format_time, CheckIfCorrectContactInfo
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class TradePage:
             _div = self.return_org_text()
             pattern_mail = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
             email = pattern_mail.findall(_div.get_text().strip())
-            return dedent_func(' '.join(email))
+            return CheckIfCorrectContactInfo.check_email(email)
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR organizer email {ex}')
 
@@ -103,7 +103,7 @@ class TradePage:
                 [x for x in phone.split(':')[-1] if x.isdigit() or x == '+' or x == '(' or x == ')' or x == ' '])
             phone = phone.strip()
             if len(phone) > 5:
-                return phone
+                return CheckIfCorrectContactInfo.check_phone(phone)
             else:
                 return ''
 
@@ -115,7 +115,6 @@ class TradePage:
             return {'email': email, 'phone': phone}
         except Exception as e:
             logger.error(f'{self.response.url} :: func get_org_contacts {e}')
-            return dict()
 
     def get_lot_number(self, _id):
         """ return lot_number """

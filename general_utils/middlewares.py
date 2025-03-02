@@ -13,7 +13,7 @@ from scrapy.http import Response
 from scrapy.http.cookies import CookieJar
 from scrapy.utils.python import to_unicode
 
-from general_utils.location import Region
+from general_utils.db import DBHelper
 
 logger = logging.getLogger(__name__)
 __all__ = [
@@ -186,7 +186,6 @@ class ETPDownloaderMiddleware:
         # This method is used by Scrapy to create your spiders.
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-        crawler.signals.connect(s.spider_closed, signal=signals.spider_closed)
         return s
 
     def process_request(self, request, spider):
@@ -202,12 +201,13 @@ class ETPDownloaderMiddleware:
         return None
 
     def process_response(self, request, response, spider):
-        # Called with the response returned from the downloader.
+        if not hasattr(spider, "status_updated"):
+            spider.status_updated = False
+        if not spider.status_updated:
+            status = response.status in range(200, 400)
+            DBHelper.update_status(status, spider.name)
+            spider.status_updated = True
 
-        # Must either;
-        # - return a Response object
-        # - return a Request object
-        # - or raise IgnoreRequest
         return response
 
     def process_exception(self, request, exception, spider):
@@ -222,6 +222,3 @@ class ETPDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
-
-    def spider_closed(self, spider):
-        Region.save_new_regions_to_db()

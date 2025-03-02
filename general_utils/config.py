@@ -20,11 +20,13 @@ socks_file = 'socks_5.txt'
 user_agent = 'user-agent.txt'
 api_keys = 'api_keys.json'
 indexes = 'index.json'
+create_tables_queries = 'create_tables.sql'
 path_to_proxy = data_path / proxy_file
 path_to_socks5 = data_path / socks_file
 path_user_agent = data_path / user_agent
 api_key_path = data_path / api_keys
 indexes_path = data_path / indexes
+create_tables_queries_path = data_path / create_tables_queries
 with open(f'{path_user_agent}', 'r') as f:
     lines = f.readlines()
 agent_list = [i.replace('\\n', '').strip() for i in lines]

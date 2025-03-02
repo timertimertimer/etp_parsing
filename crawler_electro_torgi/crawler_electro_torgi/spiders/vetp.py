@@ -1,5 +1,5 @@
-from .base import BaseSpider
+from .base import ElectroTorgiBaseSpider
 
 
-class VetpSpider(BaseSpider):
+class VetpSpiderElectroTorgi(ElectroTorgiBaseSpider):
     name = "vetp"

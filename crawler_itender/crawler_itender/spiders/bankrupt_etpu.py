@@ -6,6 +6,7 @@ from scrapy import Request, FormRequest
 from itertools import chain
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from .base import ItenderBaseSpider
 from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
@@ -24,37 +25,8 @@ logger = logging.getLogger(__name__)
 TABLE = tables['table_bankrupt_etpu']
 
 
-class BankruptEtpuSpider(Spider):
+class BankruptEtpuSpider(ItenderBaseSpider):
     name = 'bankrupt_etpu'
-    allowed_domains = ['bankrupt.etpu.ru']
-    start_url = ['https://bankrupt.etpu.ru']
-    # start_url = ['http://bankrupt.etpu.ru/public/public-offers/view/16248/']
-    data_origin = data_origin['bankrupt_etpu']
-    custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
-    }
-
-    def __init__(self):
-        super(BankruptEtpuSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot(TABLE)
-
-    def start_requests(self):
-        yield Request(self.start_url[0], self.choose_datatype)
-        # yield Request(self.start_url[0], self.parse_trade_page_offer,
-        #               cb_kwargs={'lot_number': '2', 'lot_link': 'http://bankrupt.etpu.ru/public/public-offers/lots/view/52382/', 'attemp': 1}, dont_filter=True)
-
-    def choose_datatype(self, response):
-        for _type in ['auction', 'offer', 'competition']:
-            if _type == 'auction':
-                yield Request(return_auction_link(self.data_origin), self.parse_,
-                              cb_kwargs={'_type': 'auction'})
-            if _type == 'offer':
-                yield Request(return_offer_link(self.data_origin), self.parse_,
-                              cb_kwargs={'_type': 'offer'})
-            if _type == 'competition':
-                yield Request(return_compet_link(self.data_origin), self.parse_,
-                              cb_kwargs={'_type': 'competition'})
 
     async def parse_(self, response, _type):
         first_post = None
