@@ -36,7 +36,6 @@ pattern_replace1 = ['(', ')', '+', '- ', 'null', '\n', '&nbsp;']
 
 
 class Combo:
-    addresses = dict()
 
     def __init__(self, response):
         self.response = response
@@ -166,14 +165,12 @@ class Combo:
     def debtor_inn(self):
         return CheckIfCorrectContactInfo.check_inn(self.response.xpath(Locator.debitor_inn).get())
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
             address = self.response.xpath(Locator.debitor_address).get()
             if address:
-                address = BS(str(address), features='lxml').get_text(strip=True)
-                if address not in self.addresses:
-                    self.addresses[address] = get_region(address)
-                return address, self.addresses[address]
+                return BS(str(address), features='lxml').get_text(strip=True)
         except Exception as e:
             logger.error(f'{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}')
 

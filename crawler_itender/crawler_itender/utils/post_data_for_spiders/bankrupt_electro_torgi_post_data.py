@@ -55,29 +55,6 @@ post_data_auction_pagination = {
 
 }
 
-post_data_auction_pagination_zakarf = {
-    '__EVENTTARGET': '',
-    '__EVENTARGUMENT': '',
-    '__CVIEWSTATE': '',
-    '__VIEWSTATE': '',
-    '__SCROLLPOSITIONX': '0',
-    '__SCROLLPOSITIONY': '2290',
-    '__EVENTVALIDATION': '',
-    'ctl00$ctl00$LeftContentSideMenu$mSideMenu$extAccordionMenu_AccordionExtender_ClientState': '0',
-    'ctl00$ctl00$LeftContentLogin$ctl00$Login1$UserName': '',
-    'ctl00$ctl00$LeftContentLogin$ctl00$Login1$Password': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$DownloadTokenValue': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$RequiredFileTypes': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$CheckedIds': '|',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$hfAttachmentID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$hfFileTypeID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$UploadedFileIds': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$tbCustomFileType': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$tbComments': '',
-
-}
-
-
 post_data_offer = {
     'ctl00$ctl00$BodyScripts$BodyScripts$scripts': 'ctl00$ctl00$MainExpandableArea$phExpandCollapse$UpdatePanel1|ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton',
     '__EVENTTARGET': '',

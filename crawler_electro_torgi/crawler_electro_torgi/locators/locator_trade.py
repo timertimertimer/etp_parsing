@@ -22,3 +22,4 @@ class LocatorTrade:
     end_date_requests_loc = '//div[contains(normalize-space(text()), "Окончание приема заявок")]/following-sibling::div[1]/text()'
     start_price_auc_loc = '//div[contains(normalize-space(text()), "Начальная цена")]/following-sibling::div[1]/text()'
     step_price_auc_loc = '//div[contains(normalize-space(text()), "Шаг увеличения цены")]/following-sibling::div[1]/text()'
+    categories_loc = '//div[contains(normalize-space(text()), "Тип имущества")]/following-sibling::div[1]/text()'

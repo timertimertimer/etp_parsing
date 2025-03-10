@@ -12,7 +12,7 @@ import shutil
 
 from general_utils import UrlConfig
 from general_utils.archive import ZipFiles, RarFiles
-from general_utils.config import socks_list, headers, lst_exet_archive
+from general_utils.config import socks5_proxies, headers, lst_exet_archive
 from general_utils.seven_z import SevenZFiles
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:

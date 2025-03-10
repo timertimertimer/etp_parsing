@@ -69,29 +69,3 @@ class LotAuctionPage:
 
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA PROPERTY INFORMATION {e}')
-
-    def start_price_auction(self) -> float or None:
-        """ :return start price auction """
-        try:
-            start_price = self.soup.find('label', string=re.compile('Начальная стоимость:', re.IGNORECASE))
-            start_price = start_price.parent
-            start_price = start_price.get_text().strip().split(':', maxsplit=1)[-1].strip().replace(',', '.')
-            p = ''.join([p for p in start_price if p.isdigit() or p == '.'])
-            p = re.sub(r'\.$', '', p).strip()
-            if len(p) > 0:
-                return round(float(p), 2)
-        except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR "CRITICAL" START PRICE AUCTION {e}')
-
-    def step_price_auction(self) -> float or None:
-        """ :return start price auction """
-        try:
-            step_price = self.soup.find('label', string=re.compile('Шаг аукциона:?', re.IGNORECASE))
-            if step_price:
-                step_price = step_price.next_sibling
-                p = ''.join([p for p in step_price if p.isdigit() or p == '.'])
-                p = re.sub(r'\.$', '', p).strip()
-                if len(p) > 0:
-                    return round(float(p), 2)
-        except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR "CRITICAL" STEP PRICE AUCTION {e}')

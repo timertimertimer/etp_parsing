@@ -6,7 +6,6 @@ import pandas as pd
 from bs4 import BeautifulSoup as BS
 from random import randint
 
-from general_utils import get_region
 from general_utils.config import lst_exet
 from ..locators.trade_locator import TradeLocator
 from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
@@ -21,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class OfferParse:
-    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -283,15 +281,14 @@ class OfferParse:
                 f'{self.response.url} :: LOT {lot_num} INVALID DATA - LOT INFO - LOT {lot_num}')
             return None
 
-    def get_address(self):
+    @property
+    def address(self):
         address = self.response.xpath(self.loc.region_loc).get()
         if not address:
             address = self.response.xpath(self.loc.sud_loc).get()
         address = BS(str(address), features='lxml').get_text(strip=True)
         if address:
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return address
 
     @property
     def property_info(self):

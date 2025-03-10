@@ -8,7 +8,7 @@ from random import choice
 import requests
 import urllib3
 
-from general_utils.config import lst_exet_archive, socks_list, agent_list
+from general_utils.config import lst_exet_archive, socks5_proxies, user_agents
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
 from ..utils.working_with_url import UrlConfig
@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and  socks_list[0] != '':
+    if len(socks5_proxies) > 0 and  socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:
@@ -46,7 +46,7 @@ class DownloadFiles:
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'same-origin',
         'Sec-Fetch-User': '?1',
-        'User-Agent': choice(agent_list)
+        'User-Agent': choice(user_agents)
     }
 
     def make_request(self, url, referer):

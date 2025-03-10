@@ -1,4 +1,4 @@
-from general_utils.config import headers, path_to_proxy
+from general_utils.config import headers, proxy_path
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -43,7 +43,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
 
-ROTATING_PROXY_LIST_PATH = path_to_proxy
+ROTATING_PROXY_LIST_PATH = proxy_path
 ROTATING_PROXY_LOGSTATS_INTERVAL = 60
 ROTATING_PROXY_PAGE_RETRY_TIMES = 7
 # Enable or disable extensions

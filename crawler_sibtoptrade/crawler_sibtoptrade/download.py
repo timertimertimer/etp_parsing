@@ -6,17 +6,17 @@ import urllib.parse
 import logging
 import urllib3
 
-from general_utils.config import socks_list, headers
+from general_utils.config import socks5_proxies, headers
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:

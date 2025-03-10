@@ -8,7 +8,8 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils import cookie_parser, return_main_cookies, return_parse_date, DBHelper
+from general_utils import cookie_parser, return_main_cookies, return_parse_date
+from general_utils.base_spider import BaseSpider
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from general_utils.location import RegionIdentifier, get_index
 from ..manage_spider.app import Combo
@@ -16,17 +17,11 @@ from ..utils.config import go_to_urls, start_url, data_pagination, pagination_ur
 from ..utils.data_for_requests import script_lua
 
 
-class ZalogLotOnlineSpider(Spider):
+class ZalogLotOnlineSpider(BaseSpider):
     name = 'zalog_lot_online'
     custom_settings = {
         # 'LOG_FILE': f'{name}.log'
     }
-
-    def __init__(self, domain):
-        super(ZalogLotOnlineSpider, self).__init__()
-        self.domain = domain
-        self.db_check = DBHelper(f'lots_zalog_lot_online_{domain}')
-        self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self):
         yield SplashRequest(
@@ -74,12 +69,8 @@ class ZalogLotOnlineSpider(Spider):
             loader.add_value('trading_org_contacts', combo.lot.get_trading_org_contact())
             loader.add_value('status', 'active')
             loader.add_value('category', combo.lot.get_categories())
-            address = combo.lot.a
-            region = None
-            if address:
-                region = RegionIdentifier.get_region(address)
+            address = combo.lot.address
             loader.add_value('address', address)
-            loader.add_value('region', region)
             loader.add_value('index', get_index(address))
             loader.add_value('encumbrance', combo.lot.get_encumbrance())
             loader.add_value('description_encumbrance', combo.lot.get_description_encumbrance())
@@ -97,7 +88,6 @@ class ZalogLotOnlineSpider(Spider):
             general_lot = {'general': []}
             total_files = dict(chain(general_lot.items(), lot_pictures.items()))
             loader.add_value('files', total_files)
-            loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
 
     def errback_httpbin(self, failure):

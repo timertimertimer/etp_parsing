@@ -3,7 +3,7 @@ import pathlib
 import re
 from bs4 import BeautifulSoup
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time_auction, get_region
+from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from ..utils.download import DownloadFiles
 from ..utils.work_with_path_and_dir import GeneralFilesDir
@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
-    addresses = dict()
-
     def __init__(self, response):
         self.response = response
         self.loc = TradeLocator
@@ -116,11 +114,9 @@ class Combo:
         pattern = re.compile(r"\d{10,12}")
         return "".join(pattern.findall(trade_inn))
 
-    def get_address(self):
-        address = BeautifulSoup(self.response.xpath(self.loc.address_loc).get(), "lxml").get_text(strip=True)
-        if address not in self.addresses:
-            self.addresses[address] = get_region(address)
-        return address, self.addresses[address]
+    @property
+    def address(self):
+        return BeautifulSoup(self.response.xpath(self.loc.address_loc).get(), "lxml").get_text(strip=True)
 
     @property
     def arbit_manager(self):
@@ -184,11 +180,11 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time_auction(self.response.xpath(self.loc.start_date_requests_loc).get())
+        return format_time(self.response.xpath(self.loc.start_date_requests_loc).get())
 
     @property
     def end_date_requests(self):
-        return format_time_auction(self.response.xpath(self.loc.end_date_requests_loc).get())
+        return format_time(self.response.xpath(self.loc.end_date_requests_loc).get())
 
     def start_and_end_dates_trading(self):
         date_interval = (
@@ -201,7 +197,7 @@ class Combo:
             start_date, end_date = parts
         else:
             start_date, end_date = parts[0], None
-        return format_time_auction(start_date), format_time_auction(end_date) if end_date else None
+        return format_time(start_date), format_time(end_date) if end_date else None
 
     @property
     def start_date_trading(self):

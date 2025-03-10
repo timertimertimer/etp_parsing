@@ -6,7 +6,6 @@ from itertools import chain
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from .base import ItenderBaseSpider
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_auction as pdac
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop

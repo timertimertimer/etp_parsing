@@ -1,9 +1,16 @@
+import logging
+import re
+
+from general_utils.config import lot_classifiers_name_to_code
 from .pre_trade import PreTradePage
 from .general_info_page import MainTradingPage
 from .trade_page_with_tabs import TradePage
 from .debtor_tab_page import DebrorTab
 from .lot_auction_page import LotAuctionPage
 from .lot_offer_page import LotOfferPage
+from bs4 import BeautifulSoup as BS
+
+logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -16,3 +23,43 @@ class Combo:
         self.deb = DebrorTab(self.response)
         self.auc = LotAuctionPage(self.response)
         self.offer = LotOfferPage(self.response)
+        self.soup = BS(
+            str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
+            features='lxml'
+        )
+
+    @property
+    def start_price(self) -> float | None:
+        try:
+            start_price = self.soup.find('label', string=re.compile('Начальная стоимость:', re.IGNORECASE))
+            start_price = start_price.parent
+            start_price = start_price.get_text().strip().split(':', maxsplit=1)[-1].strip().replace(',', '.')
+            p = ''.join([p for p in start_price if p.isdigit() or p == '.'])
+            p = re.sub(r'\.$', '', p).strip()
+            if len(p) > 0:
+                return round(float(p), 2)
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR START PRICE {e}')
+
+    @property
+    def step_price(self) -> float | None:
+        try:
+            step_price = self.soup.find('label', string=re.compile('Шаг аукциона:?', re.IGNORECASE))
+            if step_price:
+                step_price = step_price.next_sibling
+                p = ''.join([p for p in step_price if p.isdigit() or p == '.'])
+                p = re.sub(r'\.$', '', p).strip()
+                if len(p) > 0:
+                    return round(float(p), 2)
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR STEP PRICE {e}')
+
+    @property
+    def categories(self):
+        try:
+            category = self.soup.find('label', string=re.compile('Классификатор товара, работ, услуг:', re.IGNORECASE))
+            if category:
+                category = category.next_sibling.text
+                return [category.split('/')[-1].strip()]
+        except Exception as e:
+            logger.error(f'{self.response.url} :: ERROR CATEGORY {e}')

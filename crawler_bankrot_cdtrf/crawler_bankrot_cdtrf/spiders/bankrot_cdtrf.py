@@ -50,8 +50,8 @@ class BankrotCDTRFSpider(BaseSpider):
         combo = Compose(response_=response)
         list_tag_links = combo.offer.trade_link_serp
         for link in list_tag_links:
-            # if link not in self.previous_lots:
-            yield Request(link, callback=self.parse_auction_page, cb_kwargs={'trading_type': trading_type})
+            if link not in self.previous_lots:
+                yield Request(link, callback=self.parse_auction_page, cb_kwargs={'trading_type': trading_type})
         next_page = response.css('#ctl00_cph1_pgvTrades_ctl22_lnkNext').get()
         last_page_visible = combo.offer.get_total_pages(
             current_page, format_post_data['ctl00$cph1$tbRequestTimeBegin1']

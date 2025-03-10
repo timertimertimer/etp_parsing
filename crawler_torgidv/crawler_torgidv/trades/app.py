@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import get_region, UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time_auction
+from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from ..locators.locator_trade import LocatorTrade
 from ..utils.config import main_url
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
-    addresses = dict()
 
     def __init__(self, response):
         self.response = response
@@ -211,25 +210,25 @@ class Combo:
     def start_date_requests(self):
         date = self.response.xpath(self.loc.start_date_requests_loc).get()
         if date:
-            return format_time_auction(date)
+            return format_time(date)
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(self.loc.end_date_requests_loc).get()
         if date:
-            return format_time_auction(date)
+            return format_time(date)
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(self.loc.start_date_trading_loc).get()
         if date:
-            return format_time_auction(date)
+            return format_time(date)
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(self.loc.end_date_trading_loc).get()
         if date:
-            return format_time_auction(date)
+            return format_time(date)
 
     @property
     def debtor_inn(self):
@@ -244,14 +243,13 @@ class Combo:
         except:
             return None
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
             address = dedent_func(self.response.xpath(self.loc.region_loc).get())
             if not address:
                 address = dedent_func(self.response.xpath(self.loc.sud_loc).get())
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return address
         except Exception as e:
             return None
 

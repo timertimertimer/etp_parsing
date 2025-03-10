@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import UrlConfig, dedent_func, format_time
+from general_utils import UrlConfig, dedent_func, format_time, parse_classifiers
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
 from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
@@ -351,3 +351,7 @@ class Combo:
                     return round(float(p), 2)
         except ValueError as e:
             logger.error(f'{self.response.url} :: INVALID DATA STEP PRICE\n{e}')
+
+    @property
+    def categories(self):
+        return parse_classifiers(self.response.xpath(self.loc.categories_loc).get().strip())[1]

@@ -143,12 +143,10 @@ class AuctionParse:
         except:
             return None
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
-            address = deep_get_dict(self.data, 'Purchase.DebtorInfo.BusinesInfo.businessname')
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return deep_get_dict(self.data, 'Purchase.DebtorInfo.BusinesInfo.businessname')
         except:
             logger.warning(f'{self.url} :: INVALID DATA ADDRESS DEBITOR')
 

@@ -2,12 +2,11 @@ import logging
 import requests
 
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
-from general_utils.db import DBHelper, get_db
-from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage, Auction
-from general_utils.models.counterparty import CounterpartyType, CounterpartySRO, CounterpartyDebtorCategory
+from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage, Auction, File
+from general_utils.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+retry_count = 5
 
 
 class Fedresurs:
@@ -25,25 +24,30 @@ class Fedresurs:
 
     def __init__(self):
         self._guid = None
+        self.data = dict()
         self.session = requests.Session()
         self.session.headers.update(self.HEADERS)
-        self.db_session = get_db()
 
     def make_request(self, *args, **kwargs):
         params = kwargs.get('params', {})
         url = args[0] or kwargs.get('url') or self.BACKEND_URL
         headers = kwargs.get('headers', self.HEADERS)
-        response = self.session.get(url, params=params, headers=headers)
-        try:
-            response.raise_for_status()
-        except Exception as e:
-            raise e
+        for i in range(retry_count):
+            try:
+                response = self.session.get(url, params=params, headers=headers, timeout=15)
+                response.raise_for_status()
+                break
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                if i + 1 == retry_count:
+                    logger.error(f'Connection error: {e}. All attempts failed')
+                    raise e
+                logger.warning(f'Connection error: {e}. Trying again. Attempt {i + 1}')
         return response.json()
 
     def search(self, search_string: str, url: str = None, path: str = '', params: dict = None, headers: dict = None):
         data = self.make_request(
             f'{url or self.BACKEND_URL}{f"/{path}" if len(path) else ""}',
-            params={"searchString": search_string, 'limit': 15, 'offset': 0, 'isActive': 'true'} | (params or {}),
+            params={"searchString": search_string, 'limit': 15, 'offset': 0} | (params or {}),
             headers=headers or self.HEADERS
         )
         if not (data := data.get('pageData')):
@@ -63,374 +67,391 @@ class BankrotFedresurs(Fedresurs):
 
 class CounterpartyFedresurs(Fedresurs):
     PATH = ''
+    BACKEND_URL = f'https://fedresurs.ru/backend/{PATH}'
 
-    def __init__(self, counterparty: Counterparty):
+    def __init__(self, inn: str = None, name: str = None, guid: str = None, data: dict = None):
         super().__init__()
-        self.counterparty = counterparty
+        self.data = self.data or data or dict()
+        self.data['inn'] = self.data.get('inn', inn)
+        self.data['name'] = self.data.get('name', name)
+        self.data['guid'] = guid or self.data.get('guid') or self.get_guid()
+        self.data['publications'] = list()
 
-    @property
-    def guid(self):
-        if not self._guid:
-            self.guid = self._get_guid(self.counterparty.inn)
-        return self._guid
-
-    @guid.setter
-    def guid(self, value):
-        self._guid = value
-
-    def _get_guid(self, search_string: str):
+    def get_guid(self):
+        search_string = self.data['inn'] or self.data['name']
         data = self.search(search_string, path='fast')
-        if data:
-            return data[0]['guid']
-        else:
-            logger.warning(f'Not found guid for {search_string}')
+        if not data:
+            return
+        self.data['guid'] = data[0]['guid']
+        return self.data['guid']
 
-    def parse(self):
-        if not self.counterparty.fedresurs_url:
-            if not self.main():
-                logger.error(f'Not found {self.counterparty}')
-                return
-            self.get_main_info()
-            if counterparty := DBHelper.get_counterparty(
-                    self.db_session, self.counterparty.inn, self.counterparty.name, self.counterparty.short_name
-            ):
-                self.counterparty.id = counterparty.id
-        self.bankruptcy()
-        DBHelper.store_model(self.counterparty, self.db_session)
-        if not self.counterparty.sro_memberships:
-            self.sro_membership()
+    def parse(self) -> None:
+        if not self.main():
+            logger.error(f'Not found {self.data.get("name") or self.data.get("inn")}')
+            return
+        self.parse_main_info()
 
-    def main(self) -> str:
-        if self.guid:
-            data = self.make_request(f'{self.BACKEND_URL}/{self.guid}/main')
-            self.counterparty.short_name = data.get('name')
+    def main(self) -> dict | None:
+        if self.data['guid']:
+            data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}/main')
+            self.data['short_name'] = data.get('name')
             return data
-        else:
-            logger.warning(f'No guid provided for {self.counterparty}')
 
-    def get_main_info(self, guid: str = None, new_sro: Counterparty = None):  # Общая информация
-        data = self.make_request(
-            f'{self.BACKEND_URL if not new_sro else CompanyFedresurs.BACKEND_URL}/{guid or self.guid}')
-        counterparty = new_sro or self.counterparty
-        counterparty.inn = data.get('inn') or self.counterparty.inn
-        counterparty.kpp = data.get('kpp')
-        counterparty.ogrn = data.get('ogrn')
-        counterparty.snils = data.get('snils')
-        counterparty.name = data.get('fullName')
-        counterparty.email = (
-                CheckIfCorrectContactInfo.check_email(data.get('contacts', {}).get('email')) or counterparty.email
-        )
-        counterparty.phone = (
-                CheckIfCorrectContactInfo.check_phone(data.get('contacts', {}).get('phone')) or counterparty.phone
-        )
-        counterparty.url = data.get('tradePlace', {}).get('site') or data.get('contacts', {}).get('site')
-        counterparty.fedresurs_url = (
-            f'https://fedresurs.ru/{"companies" if self.counterparty.type == "legal_entity" else "persons"}/{self.guid}'
-        )
-        address_str = data.get('address') or data.get('addressEgrul')
-        if address_str:
-            address = (
-                    DBHelper.get_or_create_address(address_str, self.db_session) or
-                    self.counterparty.address
-            )
-            counterparty.address_id = address.id
+    def parse_main_info(self) -> None:
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
+        self.data['inn'] = data.get('inn')
+        self.data['kpp'] = data.get('kpp')
+        self.data['ogrn'] = data.get('ogrn')
+        self.data['okopf'] = data.get('okopf', {}).get('code')
+        self.data['snils'] = data.get('snils')
+        self.data['name'] = data.get('fullName')
+        self.data['email'] = CheckIfCorrectContactInfo.check_email(data.get('contacts', {}).get('email'))
+        self.data['phone'] = CheckIfCorrectContactInfo.check_phone(data.get('contacts', {}).get('phone'))
+        self.data['url'] = data.get('tradePlace', {}).get('site') or data.get('contacts', {}).get('site')
+        self.data['fedresurs_url'] = f'https://fedresurs.ru/{self.PATH}/{self.data["guid"]}'
+        self.data['address'] = data.get('address') or data.get('addressEgrul')
 
-    def sro_membership(self):
+    def parse_sro_membership(self) -> None:
         data = self.make_request(
-            f'{self.BACKEND_URL}/{self.guid}/sro-membership', params={'limit': 15, 'offset': 0, 'isActive': True}
+            f'{self.BACKEND_URL}/{self.data["guid"]}/sro-membership',
+            params={'limit': 15, 'offset': 0, 'isActive': True}
         )
         if not (data := data.get('pageData')) and isinstance(self, PersonFedresurs):
             data = self.make_request(
-                f'{self.BACKEND_URL}/{self.guid}/sro-membership-au', params={'limit': 15, 'offset': 0, 'isActive': True}
+                f'{self.BACKEND_URL}/{self.data["guid"]}/sro-membership-au',
+                params={'limit': 15, 'offset': 0, 'isActive': True}
             )
             if not (data := data.get('pageData')):
-                logger.info(f'Not found sro data for {self.counterparty}')
                 return
+        memberships = list()
         for membership in data:
-            sro_name = membership['sro']['name']
-            if not DBHelper.get_counterparty_sro(
-                    counterparty_id=self.counterparty.id,
-                    sro_counterparty_short_name=sro_name,
-                    session=self.db_session
-            ):
-                sro = DBHelper.get_counterparty(short_name=sro_name, session=self.db_session)
-                if not sro:
-                    sro = Counterparty(short_name=sro_name, type=CounterpartyType.legal_entity)
-                    self.get_main_info(membership['sro']['guid'], sro)
-                    sro = DBHelper.store_model(sro, self.db_session)
-                counterparty_sro = CounterpartySRO(
-                    counterparty_id=self.counterparty.id,
-                    sro_id=sro.id,
-                    message_number=membership.get('messageInclude', {}).get('number'),
-                    activity_type=membership['sroActivities'][0],
-                    entered_at=return_parse_date(membership['dateInclude'], '%Y-%m-%dT%H:%M:%S')
-                )
-                DBHelper.store_model(counterparty_sro, self.db_session)
+            sro = CompanyFedresurs(data=dict(
+                guid=membership['sro']['guid'], type=CounterpartyType.legal_entity, short_name=membership['sro']['name']
+            ))
+            sro.parse_main_info()
+            sro.data['message_number'] = membership.get('messageInclude', {}).get('number')
+            sro.data['activity_type'] = membership['sroActivities'][0]
+            sro.data['entered_at'] = return_parse_date(membership['dateInclude'], '%Y-%m-%dT%H:%M:%S')
+            memberships.append(sro.data)
+        self.data['sro_memberships'] = memberships
 
-    def bankruptcy(self):
-        data = self.make_request(f'{self.BACKEND_URL}/{self.guid}/bankruptcy')
-        if not (data := data.get('pageData')):
-            logger.info(f'Not found bankruptcy data for {self.counterparty}')
+    def parse_bankruptcy(self) -> list[dict] | None:
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}/bankruptcy')
+        if not (data := data.get('legalCases')):
             return
-        for legal_case in data['legalCases']:
+        legal_cases = list()
+        for legal_case in data:
             guid = legal_case['guid']
             number = legal_case['number']
-            if not (legal_case := DBHelper.get_legal_case(number=number, session=self.db_session)):
-                legal_case = LegalCase(number=number)
-            lgf = LegalCaseFedresurs(legal_case, guid)
+            lgf = LegalCaseFedresurs(number, guid)
             lgf.parse()
+            # messages = list()
             for message in legal_case['lastPublications']:
-                d_m = DebtorMessage()
-                d_m.legal_case_id = legal_case.id
-                d_m.number = message['number']
-                d_m.type = message['typeName']
-                d_m.fedresurs_url = f'https://fedresurs.ru/bankruptmessages/{message["guid"]}'
-                data = self.make_request(f'{self.BACKEND_URL}/bankruptmessages/{message["guid"]}')
-                d_m.content = data['content']['messageInfo']['messageContent']['text']
-                DBHelper.store_model(d_m, self.db_session)
+                if 'reportTypeName' in message:
+                    continue
+                # bmf = BankrotMessageFedresurs(message["guid"])
+                # bmf.parse()
+                # messages.append({'message': bmf.data, 'files': bmf.files})
+            # legal_cases.append({'case': lgf.data, 'messages': messages})
+            legal_cases.append(lgf.data)
+        self.data['legal_cases'] = legal_cases
+        return legal_cases
+
+    def parse_publications(self):
+        data = self.make_request(
+            f'{self.BACKEND_URL}/{self.data["guid"]}/publications', params={'limit': 3, 'offset': 0}
+        )
+        if not (data := data.get('pageData')):
+            return
+        for publication in data:
+            if publication['publicationType'] != 'BankruptMessage' or publication['isLocked']:
+                continue
+            bmf = BankrotMessageFedresurs(publication['guid'])
+            bmf.parse()
+            self.data['publications'].append(bmf.data)
 
 
 class PersonFedresurs(CounterpartyFedresurs):
     PATH = 'persons'
     BACKEND_URL = f'https://fedresurs.ru/backend/{PATH}'
 
-    def __init__(self, counterparty: Counterparty):
-        super().__init__(counterparty)
-        self.counterparty.type = CounterpartyType.individual
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data["type"] = CounterpartyType.individual
 
-    def parse(self):
-        data = self.main()
-        if not data:
-            logger.error(f'Not found {self.counterparty}')
+    def parse(self) -> None:
+        if not (data := self.main()):
+            logger.error(f'Not found {self.data.get("name") or self.data.get("inn")}')
             return
+        self.parse_main_info()
         if 'IndividualEntrepreneur' in data['roles']:
-            self.get_individual_entrepreneurs()
-        self.get_main_info()
-        self.bankruptcy()
-        DBHelper.store_model(self.counterparty, self.db_session)
-        self.sro_membership()
+            self.parse_ogrnip()
 
-    def get_individual_entrepreneurs(self):
-        data = self.make_request(f'{self.BACKEND_URL}/{self.guid}/individual-entrepreneurs',
-                                 params={'limit': 1, 'offset': 0})
+    def parse_ogrnip(self) -> None:
+        data = self.make_request(
+            f'{self.BACKEND_URL}/{self.data["guid"]}/individual-entrepreneurs', params={'limit': 1, 'offset': 0}
+        )
         if not (data := data.get('pageData')):
-            logger.error(f'Not found ogrnip data for {self.counterparty}')
+            logger.error(f'Not found ogrnip data for {self.data["name"]}')
             return
         data = data[0]
-        self.counterparty.ogrnip = data['ogrnip']
-        return data
+        self.data["ogrnip"] = data['ogrnip']
 
 
 class CompanyFedresurs(CounterpartyFedresurs):
     PATH = 'companies'
     BACKEND_URL = f'https://fedresurs.ru/backend/{PATH}'
 
-    def __init__(self, counterparty: Counterparty):
-        super().__init__(counterparty)
-        self.counterparty.type = CounterpartyType.legal_entity
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data["type"] = CounterpartyType.legal_entity
+
+
+class ArbitrManagerFedresurs(PersonFedresurs):
+    def get_guid(self) -> str | None:
+        search_string = self.data.get("inn") or self.data.get("name")
+        data = self.search(
+            search_string, url=f'{BankrotFedresurs.BACKEND_URL}/arbitrmanagers',
+            headers={'referer': 'https://bankrot.fedresurs.ru/'}
+        )
+        if data:
+            if len(data) > 1:
+                return
+            self.data["guid"] = data[0]['guid']
+            return self.data["guid"]
+
+
+class PersonOrganizerFedresurs(PersonFedresurs):
+    def get_guid(self):
+        search_string = self.data.get("inn") or self.data.get("name")
+        data = self.search(
+            search_string, url=f'{BankrotFedresurs.BACKEND_URL}/prsnTradeOrgs',
+            headers={'referer': 'https://bankrot.fedresurs.ru/'}
+        )
+        if data:
+            if len(data) > 1:
+                return
+            self.data["guid"] = data[0]['guid']
+            return self.data["guid"]
+
+
+class CompanyOrganizerFedresurs(CompanyFedresurs):
+    def get_guid(self):
+        search_string = self.data.get("inn") or self.data.get("name")
+        data = self.search(
+            search_string, url=f'{BankrotFedresurs.BACKEND_URL}/cmpTradeOrgs',
+            headers={'referer': 'https://bankrot.fedresurs.ru/'}
+        )
+        if data:
+            if len(data) > 1:
+                return
+            self.data["guid"] = data[0]['guid']
+            return self.data["guid"]
 
 
 class TradingFloorFedresurs(CompanyFedresurs):
 
-    def __init__(self, trading_floor: TradingFloor):
-        self.trading_floor = trading_floor
-        self.counterparty = trading_floor.counterparty or Counterparty(name=trading_floor.name)
-        super().__init__(self.counterparty)
-
-    @property
-    def guid(self):
-        if not self._guid:
-            self.guid = self._get_guid(self.counterparty.name)
-        return self._guid
-
-    @guid.setter
-    def guid(self, value):
-        self._guid = value
-
-    def _get_guid(self, search_string: str):
+    def get_guid(self):
+        search_string = self.data['name']
         data = self.search(
             search_string, url=f'{BankrotFedresurs.BACKEND_URL}/tradeplaces', headers=BankrotFedresurs.HEADERS
         )
         if data:
-            return data[0]['operator']['guid']
+            self.data["guid"] = data[0]['operator']['guid']
+            return self.data["guid"]
 
-    def parse(self):
-        if not self.counterparty.fedresurs_url:
-            if not self.main():
-                logger.error(f'Not found {self.counterparty}')
-                return
-            self.get_main_info()
-            if counterparty := DBHelper.get_counterparty(
-                    self.db_session, self.counterparty.inn, self.counterparty.name, self.counterparty.short_name
-            ):
-                self.counterparty.id = counterparty.id
-            DBHelper.store_model(self.counterparty, self.db_session)
-        self.trading_floor.counterparty_id = self.counterparty.id
-        if not self.counterparty.sro_memberships:
-            self.sro_membership()
-        self.bankruptcy()
-        DBHelper.store_model(self.trading_floor, self.db_session)
+    def parse(self) -> dict | None:
+        if not self.main():
+            logger.error(f'Not found {self.data["name"]}')
+            return
+        self.parse_main_info()
+        self.parse_sro_membership()
+        return self.data
 
 
-class AuctionFedersurs(Fedresurs):
+class BankrotMessageFedresurs(Fedresurs):
+    BACKEND_URL = 'https://fedresurs.ru/backend/bankruptcy-messages'
+
+    def __init__(self, guid: str):
+        super().__init__()
+        self.data["guid"] = guid
+
+    def parse(self) -> None:
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
+        self.data['number'] = data['number']
+        self.data['type'] = data['messageType']
+        try:
+            self.data['content'] = data['content']['messageInfo']['messageContent'].get('text')
+        except Exception as e:
+            pass
+        self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
+        self.data['published_at'] = return_parse_date(data['datePublish'])
+        files = list()
+        for doc in data['docs']:
+            files.append(dict(name=doc['name'].strip(), guid=doc['guid'].strip()))
+        self.data['files'] = files
+
+
+class LegalCaseFedresurs(Fedresurs):
+    BACKEND_URL = 'https://fedresurs.ru/backend/legal-cases'
+
+    def __init__(self, case_number: str = None, guid: str = None):
+        super().__init__()
+        self.data['number'] = case_number
+        self.data["guid"] = guid or self.get_guid()
+
+    def get_guid(self):
+        data = self.search(
+            self.data['number'], url=AuctionFedresurs.BACKEND_URL, params={'onlyAvailableToParticipate': True}
+        )
+        if not data:
+            return
+        auction_guid = data[0]['guid']
+        data = self.make_request(f'{AuctionFedresurs.BACKEND_URL}/{auction_guid}')
+        return data.get('legalCase', {}).get('guid')
+
+    def parse(self) -> str | None:
+        if not self.data["guid"]:
+            return
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
+        self.data['status'] = data.get('status', {}).get('code')
+        self.data['number'] = CheckIfCorrectContactInfo.check_case_number(data.get('number'))
+        self.data['court_name'] = data.get('courtName').strip()
+        self.data['fedresurs_url'] = f'https://fedresurs.ru/legalcases/{self.data["guid"]}'
+        self.data['debtor_category'] = data.get('bankruptCategory', {}).get('code')
+
+
+class AuctionFedresurs(Fedresurs):
     BACKEND_URL = 'https://fedresurs.ru/backend/biddings'
 
-    def __init__(self, auction: Auction):
+    def __init__(self, trading_id: str, trading_number: str, trading_floor_name: str, case_number: str):
         super().__init__()
-        self.auction = auction
+        self.data['trading_id'] = trading_id
+        self.data['trading_number'] = trading_number
+        self.data['trading_floor_name'] = trading_floor_name
+        self.data['case_number'] = case_number
 
-    @property
-    def guid(self):
-        if not self._guid:
-            self.guid = self._get_guid(self.auction.number)
-        return self._guid
-
-    @guid.setter
-    def guid(self, value):
-        self._guid = value
-
-    def _get_guid(self, search_string: str):
-        data = self.search(search_string, params={'onlyAvailableToParticipate': True})
-        if not data:
-            logger.warning(f'Not found guid for {search_string}')
-            return
-        return data[0]['guid']
+    def get_guid(self):
+        if self.data.get('guid'):
+            return self.data['guid']
+        for search_string in (
+                self.data['trading_id'], self.data['trading_number'], self.data['case_number']
+        ):
+            if not search_string:
+                continue
+            data = self.search(search_string, params={'onlyAvailableToParticipate': True})
+            if not data:
+                continue
+            for data_ in data:
+                if data_['tradePlace']['name'].strip() == self.data['trading_floor_name']:
+                    self.data['guid'] = data_['guid']
+                    return data_['guid']
+        return
 
     def parse(self):
-        if not self.guid:
-            logger.warning(f'Not found guid for {self.auction}')
+        if not self.data["guid"]:
             return
-        debtor_category_value = self.get_main_info()
-        # DBHelper.store_model(self.legal_case, self.db_session)
-        # self.parse_debtor_category(debtor_category_value)
+        self.parse_main_info()
+        messages_guid = self.get_messages()
+        self.parse_messages(messages_guid)
 
-    def get_main_info(self, guid: str = None):  # Общая информация
-        data = self.make_request(f'{self.BACKEND_URL}/{guid or self.guid}')
-        legal_case_guid = data.get('legalCase', {}).get('guid')
+    def parse_main_info(self):
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
+        self.data['arbit_manager'] = data.get('arbitrManager', {}).get('name')
+        self.data['arbit_manager_inn'] = data.get('arbitrManager', {}).get('inn')
+        self.data['debtor_inn'] = data.get('debtor', {}).get('inn')
+
+    def get_messages(self, guid: str = None):
+        data = self.make_request(f'{self.BACKEND_URL}/{guid or self.data["guid"]}')
         main_message_guid = data.get('message', {}).get('guid')
-        messages = self.get_auction_messages()
-        self.parse_messages([main_message_guid] + messages)
+        self.legal_case_guid = data.get('legalCase', {}).get('guid')
+        # messages = self.get_auction_messages()
+        messages = []
+        return [main_message_guid] + messages
 
     def get_auction_messages(self):
-        data = self.make_request(f'{self.BACKEND_URL}/{self.guid}/messages', params={'limit': 3, 'offset': 0})
+        data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}/messages', params={'limit': 3, 'offset': 0})
         if not (data := data.get('pageData')):
             logger.info(f'Not found messages for {self.auction}')
             return
         return [message['guid'] for message in data]
 
-    def parse_messages(self, messages):
+    def parse_messages(self, messages):  # FIXME
         for message in messages:
-            data = self.make_request(f'{BankrotMessageFedresurs}/{message}')
-            legal_case_number = data.get('bankrupt', {}).get('legalCaseNumber')
-            legal_case: LegalCase = DBHelper.get_legal_case(number=legal_case_number, session=self.db_session)
-            if not (legal_case and legal_case.fedresurs_url):
+            data = self.make_request(f'{BankrotMessageFedresurs.BACKEND_URL}/{message}')
+            legal_case_number = CheckIfCorrectContactInfo.check_case_number(
+                data.get('bankrupt', {}).get('legalCaseNumber'))
+            if not (legal_case := DBHelper.get_legal_case_id(number=legal_case_number, session=self.db_session)):
                 legal_case = LegalCase(number=legal_case_number)
-            lgf = LegalCaseFedresurs(legal_case)
-            lgf.parse()
+            legal_case.auction_id = self.auction.id
+            if not legal_case.fedresurs_url:
+                lgf = LegalCaseFedresurs(legal_case, guid=self.legal_case_guid)
+                lgf.parse(self.auction.debtor)
             message_number = data.get('number')
-            if not DBHelper.get_debtor_message(message_number, self.db_session):
-                new_message = DebtorMessage(
-                    number=data.get('number'),
-                    type=data.get('typeName'),
-                )
-
-class BankrotMessageFedresurs(Fedresurs):
-    BACKEND_URL = 'https://fedresurs.ru/backend/bankruptcy-messages'
-
-    def __init__(self, message: DebtorMessage):
-        super().__init__()
-        self.message = message
-
-class LegalCaseFedresurs(Fedresurs):
-    BACKEND_URL = 'https://fedresurs.ru/backend/legal-cases'
-
-    def __init__(self, legal_case: LegalCase, guid: str = None):
-        super().__init__()
-        self.legal_case = legal_case
-        self.guid = guid
-
-    @property
-    def guid(self):
-        if not self._guid:
-            self.guid = self._get_guid(self.legal_case.number)
-        return self._guid
-
-    @guid.setter
-    def guid(self, value):
-        self._guid = value
-
-    def _get_guid(self, search_string: str):
-        data = self.search(search_string, url=AuctionFedersurs.BACKEND_URL, params={'onlyAvailableToParticipate': True})
-        if not data:
-            logger.warning(f'Not found guid for {search_string}')
-            return
-        auction_guid = data[0]['guid']
-        data = self.make_request(f'{AuctionFedersurs.BACKEND_URL}/{auction_guid}')
-        return data.get('legalCase', {}).get('guid')
-
-    def parse(self):
-        if not self.guid:
-            logger.warning(f'Not found guid for {self.legal_case}')
-            return
-        debtor_category_value = self.get_main_info()
-        DBHelper.store_model(self.legal_case, self.db_session)
-        self.parse_debtor_category(debtor_category_value)
-
-    def get_main_info(self, guid: str = None):  # Общая информация
-        data = self.make_request(f'{self.BACKEND_URL}/{guid or self.guid}')
-        self.legal_case.name = data.get('status', {}).get('name').strip()
-        self.legal_case.number = CheckIfCorrectContactInfo.check_case_number(data.get('number'))
-        self.legal_case.court_name = data.get('courtName').strip()
-        self.legal_case.fedresurs_url = f'https://fedresurs.ru/legal-cases/{self.guid}'
-        return data.get('bankruptCategory', {}).get('name')
-
-    def parse_debtor_category(self, debtor_category_value):
-        debtor_category = DBHelper.get_or_create_debtor_category(debtor_category_value, self.db_session)
-        if not DBHelper.get_counterparty_debtor_category(
-                self.legal_case.auction.debtor.id, debtor_category.id, self.db_session
-        ):
-            counterparty_debtor_category = CounterpartyDebtorCategory(
-                counterparty_id=self.legal_case.auction.debtor.id,
-                debtor_category_id=debtor_category.id
-            )
-            DBHelper.store_model(counterparty_debtor_category, self.db_session)
+            if not (debtor_message := DBHelper.get_debtor_message_id(message_number, self.db_session)):
+                debtor_message = DebtorMessage(number=message_number, type=data.get('typeName'))
+            debtor_message.legal_case_id = legal_case.id
+            if not debtor_message.fedresurs_url:
+                bmf = BankrotMessageFedresurs(data.get('guid'))
+                bmf.parse()
 
 
 def parse_counterparties():
+    from general_utils.db import DBHelper
     counterparties = DBHelper.get_all(Counterparty)
     for counterparty in counterparties:
         if counterparty.inn:
             if len(counterparty.inn) > 10:
-                fed_client = PersonFedresurs(counterparty)
+                fed_client = PersonFedresurs(counterparty.inn)
             else:
-                fed_client = CompanyFedresurs(counterparty)
+                fed_client = CompanyFedresurs(counterparty.inn)
             fed_client.parse()
 
 
 def parse_trading_floors():
+    from general_utils.db import DBHelper
     trading_floors = DBHelper.get_all(TradingFloor)
     for trading_floor in trading_floors:
-        fed_client = TradingFloorFedresurs(trading_floor)
-        fed_client.parse()
+        fed_client = TradingFloorFedresurs(name=trading_floor.name)
+        trading_floor_counterparty_data = fed_client.parse()
+        if trading_floor_counterparty_data:
+            trading_floor_counterparty_data, _ = trading_floor_counterparty_data
+            counterparty = DBHelper.store_counterparty_from_dict(trading_floor_counterparty_data, Counterparty)
+            trading_floor.counterparty_id = counterparty.id
+            DBHelper.store_model(trading_floor)
 
 
-def parse_auctions():
-    auctions = DBHelper.get_all(Auction)
-    for auction in auctions:
-        if auction.legal_case and auction.legal_case.fedresurs_url:
+def parse_legal_cases():
+    from general_utils.db import DBHelper
+    legal_cases = DBHelper.get_all(LegalCase)
+    for legal_case in legal_cases:
+        if legal_case.fedresurs_url:
             continue
-        fed_client = AuctionFedersurs(auction)
+        fed_client = LegalCaseFedresurs(case_number=legal_case.number)
         fed_client.parse()
 
 
 def parse_counterparty(inn: str):
-    counterparty = DBHelper.get_counterparty(session=get_db(), inn=inn)
+    from general_utils.db import DBHelper
+    counterparty = DBHelper.get_counterparty(inn=inn)
     fed_client = CompanyFedresurs(counterparty)
     fed_client.parse()
 
 
+def test():
+    auction_client = AuctionFedresurs(
+        case_number='А73-7136/2024',
+        trading_id='104258896',
+        trading_number='13592-ОТПП',
+        trading_floor_name='"Аукционы Сибири"'
+    )
+    auction_client.get_guid()
+
+
 if __name__ == '__main__':
+    test()
+    # parse_legal_cases()
     # parse_counterparties()
-    parse_auctions()
+    # parse_auctions()
     # parse_trading_floors()
     # parse_counterparty('1656057203')

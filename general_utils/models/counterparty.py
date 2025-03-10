@@ -23,6 +23,7 @@ class Counterparty(Base):
     snils: Mapped[str] = mapped_column(String(11), nullable=True)
     ogrn: Mapped[str] = mapped_column(String(13), nullable=True)
     ogrnip: Mapped[str] = mapped_column(String(15), nullable=True)
+    okopf: Mapped[int] = mapped_column(String(5), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=True)  # TODO: maybe should not be nullable
     short_name: Mapped[str] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -30,7 +31,6 @@ class Counterparty(Base):
     url: Mapped[str] = mapped_column(String(255), nullable=True)
     fedresurs_url: Mapped[str] = mapped_column(String(255), nullable=True)
     type: Mapped[CounterpartyType] = mapped_column(SAEnum(CounterpartyType, convert_unicode=True), nullable=True)
-    legal_entity_type: Mapped[str] = mapped_column(String(255), nullable=True)
     address_id: Mapped[int] = mapped_column(ForeignKey("addresses.id"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -45,10 +45,10 @@ class Counterparty(Base):
         "CounterpartySRO", back_populates="counterparty", foreign_keys="[CounterpartySRO.counterparty_id]"
     )
     sro_affiliations = relationship("CounterpartySRO", back_populates="sro", foreign_keys="[CounterpartySRO.sro_id]")
-    debtor_category = relationship("CounterpartyDebtorCategory", back_populates="counterparty")
+    debtor_messages = relationship("DebtorMessage", back_populates="debtor")
 
     def __repr__(self):
-        return f"<Counterparty(id={self.id}, inn={self.inn}, name={self.name})>"
+        return f"<Counterparty(id={self.id}, inn={self.inn}, name={self.name}, short_name={self.short_name})>"
 
 
 class CounterpartySRO(Base):
@@ -68,25 +68,3 @@ class CounterpartySRO(Base):
 
     def __repr__(self):
         return f"<CounterpartySRO(counterparty_id={self.counterparty_id}, sro_id={self.sro_id})>"
-
-
-class DebtorCategory(Base):
-    __tablename__ = 'debtor_categories'
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255))
-
-    counterparty_debtor_category = relationship("CounterpartyDebtorCategory", back_populates="category")
-
-
-class CounterpartyDebtorCategory(Base):
-    __tablename__ = 'counterparty_debtor_category'
-    __table_args__ = (
-        PrimaryKeyConstraint("counterparty_id", "debtor_category_id"),
-    )
-
-    counterparty_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"))
-    debtor_category_id: Mapped[int] = mapped_column(ForeignKey("debtor_categories.id"))
-
-    counterparty = relationship("Counterparty", back_populates="debtor_category")
-    category = relationship("DebtorCategory", back_populates="counterparty_debtor_category")

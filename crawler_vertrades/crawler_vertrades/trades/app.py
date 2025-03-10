@@ -191,15 +191,14 @@ class Combo:
         except:
             return None
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
             address = self.response.xpath(self.loc.address_loc).get()
             if not address:
                 address = self.response.xpath(self.loc.sud_loc).get()
             address = dedent_func(BeautifulSoup(address, features='lxml').get_text())
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            return address, self.addresses[address]
+            return address
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA ADDRESS\n{e}')
 

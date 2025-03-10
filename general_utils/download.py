@@ -8,7 +8,7 @@ from random import choice
 
 from requests import Session
 
-from .config import lst_exet_archive, socks_list, headers
+from .config import lst_exet_archive, socks5_proxies, headers
 from .archive import ZipFiles, RarFiles, SevenZipFiles
 from .models.request_data import RequestData
 from .working_with_url import UrlConfig
@@ -25,10 +25,10 @@ class DownloadFiles:
         self.session.headers.update(headers | {'Referer': referer} if referer else {})
 
     def change_proxy(self):
-        if socks_list:
+        if socks5_proxies:
             return {
-                'http': 'socks5://' + choice(socks_list),
-                'https': 'socks5://' + choice(socks_list)
+                'http': 'socks5://' + choice(socks5_proxies),
+                'https': 'socks5://' + choice(socks5_proxies)
             }
 
     def make_request(self, url, referer):

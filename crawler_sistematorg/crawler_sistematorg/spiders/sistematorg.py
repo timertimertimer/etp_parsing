@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import CrawlSpider
 
-from general_utils import get_region, EtpItem, EtpItemLoader
+from general_utils import EtpItem, EtpItemLoader
 import pathlib
 
 from general_utils.config import lst_exet
@@ -135,14 +135,7 @@ class SistematorgSpider(CrawlSpider, DownloadFiles):
         trade['case_number'] = check_case_number(url=response.url,
                                                  case_number=response.xpath(case_number_loc).get())
         trade['debtor_inn'] = check_inn(response.xpath(debitor_inn_loc).get())
-        address = response.xpath(address_loc).get()
-        region = None
-        if address:
-            if address not in self.addresses:
-                self.addresses[address] = get_region(address)
-            region = self.addresses[address]
-        trade['address'] = address
-        trade['region'] = region
+        trade['address'] = response.xpath(address_loc).get()
         arbit_name = response.xpath(arbitr_first_name_loc).get()
         arbit_surname = response.xpath(arbit_last_name_loc).get()
         arbit_middle = response.xpath(arbitr_middle_name_loc).get()
@@ -201,7 +194,6 @@ class SistematorgSpider(CrawlSpider, DownloadFiles):
                 loader.add_value('case_number', trade['case_number'])
                 loader.add_value('debtor_inn', trade['debtor_inn'])
                 loader.add_value('address', trade['address'])
-                loader.add_value('region', trade['region'])
                 loader.add_value('arbit_manager', trade['arbit_manager'])
                 loader.add_value('arbit_manager_inn', trade['arbit_manager_inn'])
                 loader.add_value('arbit_manager_org', trade['arbit_manager_org'])

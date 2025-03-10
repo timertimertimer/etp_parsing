@@ -69,9 +69,6 @@ class Rutrade24Spider(scrapy.Spider):
         combo = Combo(response)
         general_files = combo.download_general()
         address = combo.get_debtor_address()
-        region = None
-        if address:
-            region = RegionIdentifier.get_region(address)
         common_data = {
             'data_origin': data_origin,
             'trading_id': combo.trading_id,
@@ -86,7 +83,6 @@ class Rutrade24Spider(scrapy.Spider):
             'case_number': combo.case_number,
             'debtor_inn': combo.debtor_inn,
             'address': address,
-            'region': region,
             'arbit_manager': combo.arbit_manager,
             'arbit_manager_inn': combo.arbit_manager_inn,
             'arbit_manager_org': combo.arbit_manager_org,

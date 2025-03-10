@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Integer, String, DateTime, Enum as SAEnum, Index
+from sqlalchemy import Integer, String, DateTime, Enum as SAEnum, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from general_utils.models.base import Base
 
@@ -22,7 +22,7 @@ class File(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255))
     path: Mapped[str] = mapped_column(String(255), nullable=True)
-    url: Mapped[str] = mapped_column(String(255))
+    url: Mapped[str] = mapped_column(Text, nullable=True)
     model_type: Mapped[FileModelType] = mapped_column(SAEnum(FileModelType, convert_unicode=True))
     model_id: Mapped[int] = mapped_column(Integer)
 

@@ -90,13 +90,13 @@ class RusonSpider(Spider):
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.a() or (None, None)
+        transfer['address'] = combo.serp.address
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
-        transfer['start_date_requests'] = combo.auc.start_date_requests()
-        transfer['end_date_requests'] = combo.auc.end_date_requests()
-        transfer['start_date_trading'] = combo.auc.start_date_trading()
+        transfer['start_date_requests'] = combo.start_date_requests_auc
+        transfer['end_date_requests'] = combo.end_date_requests_auc
+        transfer['start_date_trading'] = combo.start_date_trading_auc
         general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
         yield Request(url=lot_link, callback=self.parse_auction_lot,
                       cb_kwargs={'general_files': general_files, 'transfer': transfer},
@@ -126,7 +126,7 @@ class RusonSpider(Spider):
         loader.add_value('status', transfer['status'])
         loader.add_value('lot_id', combo.serp.get_trading_id())
         loader.add_value('lot_link', response.url)
-        loader.add_value('lot_number', combo.offer.get_lot_number())
+        loader.add_value('lot_number', combo.get_lot_number())
         loader.add_value('short_name', combo.offer.get_short_name())
         loader.add_value('lot_info', combo.offer.get_lot_info())
         loader.add_value('property_information', combo.offer.property_info())

@@ -28,12 +28,7 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
         loader.add_value('msg_number', combo.msg_number)
         loader.add_value('case_number', combo.case_number)
         loader.add_value('debtor_inn', combo.debtor_inn)
-        address = combo.address or combo.sud
-        region = None
-        if address:
-            region = RegionIdentifier.get_region(address)
-        loader.add_value('address', address)
-        loader.add_value('region', region)
+        loader.add_value('address', combo.address or combo.sud)
         loader.add_value('arbit_manager', combo.arbit_manager)
         loader.add_value('arbit_manager_inn', combo.arbit_manager_inn)
         loader.add_value('arbit_manager_org', combo.arbit_manager_org)

@@ -1,20 +1,28 @@
 import csv
-import json
 import logging
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from pathlib import PurePath
+from pathlib import PurePath, Path
 
-from sqlalchemy import create_engine, text, select, and_, or_
+from sqlalchemy import create_engine, text, select, and_, or_, inspect
 from sqlalchemy.orm import sessionmaker, joinedload, aliased
-from typing import Type
+from typing import Type, Union, List
 
-from general_utils.config import data_path
+from general_utils import EtpItem
+from general_utils.config import data_path, absolute_download_path, relative_download_path, \
+    download_debtor_message_files, lot_classifiers_name_to_code, lot_classifiers_code_to_name
+from general_utils.download import DownloadFiles
 from general_utils.models import (
-    Auction, ParserStatus, TradingFloor, Address, Region, City, Counterparty, Lot, LotPeriod, File, LegalCase, Base
+    Auction, ParserStatus, TradingFloor, Address, Region, City, Counterparty, Lot, LotPeriod, File, LegalCase, Base,
+    DebtorMessage, RequestData
 )
-from general_utils.models.counterparty import CounterpartySRO, DebtorCategory, CounterpartyDebtorCategory
+from general_utils.fedresurs import (
+    PersonFedresurs, CompanyFedresurs, ArbitrManagerFedresurs, CounterpartyFedresurs, PersonOrganizerFedresurs,
+    CompanyOrganizerFedresurs, AuctionFedresurs, Fedresurs
+)
+from general_utils.models.counterparty import CounterpartySRO
 from general_utils.models.file import FileModelType
+from general_utils.models.lot import LotCategory
 from general_utils.models.parser_status import StatusType
 from general_utils.python_mysql_dbconfig import read_db_config
 
@@ -32,139 +40,103 @@ def get_db():
     return db
 
 
-@contextmanager
-def db_context():
-    db = SessionLocal()
-    DBHelper.set_wait_timeout(db)
-    try:
-        yield db
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error in db_context: {e}")
-        raise
-    finally:
-        db.close()
-
-
 class DBHelper:
-    @staticmethod
-    def set_wait_timeout(session, timeout=600):
-        """Устанавливает wait_timeout для текущей сессии."""
-        try:
-            session.execute(text(f"SET SESSION wait_timeout = {timeout};"))
-            session.commit()
-            logger.info(f"Session wait_timeout set to {timeout} seconds.")
-        except Exception as err:
-            logger.warning(f"Error setting wait_timeout: {err}")
-            session.rollback()
 
     @staticmethod
-    def get_latest_lot(crawler_name: str, data_origin_url: str, keys=None, day: int = 30) -> tuple[list, int] | None:
+    @contextmanager
+    def transaction_scope(existing_session: SessionLocal = None, commit: bool = True, flush: bool = False):
+        if existing_session:
+            yield existing_session
+            if commit:
+                existing_session.commit()
+            return
+        session = SessionLocal()
+        DBHelper.set_wait_timeout(session)
+        try:
+            yield session
+            if commit:
+                session.commit()
+            elif flush:
+                session.flush()
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Transaction failed: {e}")
+            raise
+        finally:
+            session.close()
+
+    @staticmethod
+    def set_wait_timeout(session: SessionLocal, timeout: int = 600):
+        session.execute(text(f"SET SESSION wait_timeout = {timeout};"))
+        logger.info(f"Session wait_timeout set to {timeout} seconds.")
+
+    @staticmethod
+    def get_latest_lot(
+            crawler_name: str, data_origin_url: str, keys=None, day: int = 30
+    ) -> Union[tuple[List, int], None]:
         date_threshold = datetime.utcnow() - timedelta(days=day)
         if keys is None:
             keys = [Auction.url]
         if not isinstance(keys, list):
             keys = [keys]
-        with db_context() as session:
-            try:
-                trading_floor_id = session.scalars(
-                    select(ParserStatus.trading_floor_id).where(ParserStatus.name == crawler_name)
-                ).first()
-                if trading_floor_id is None:
-                    logger.info(
-                        f"get_latest_lot :: trading_floor_id not found for crawler {crawler_name}. Creating new record."
-                    )
-                    trading_floor_id = session.scalars(
-                        select(TradingFloor.id).where(TradingFloor.url == data_origin_url)
-                    ).first()
-                    if trading_floor_id is None:
-                        logger.error(f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping.")
-                        return (None, None)
-                    new_parser_status = ParserStatus(name=crawler_name, trading_floor_id=trading_floor_id)
-                    session.add(new_parser_status)
-                    session.commit()
-                    return [], trading_floor_id
-                stmt = select(*keys).where(
-                    and_(Auction.created_at >= date_threshold, Auction.trading_floor_id == trading_floor_id)
-                )
-                lots = session.scalars(stmt).all()
-                return lots, trading_floor_id
 
-            except Exception as e:
-                logger.error(f"get_latest_lot :: {e}")
-                session.rollback()  # Откатываем транзакцию в случае ошибки
-                return []
+        with DBHelper.transaction_scope(commit=False) as session:
+            trading_floor_id = DBHelper.get_trading_floor_id(session, crawler_name, data_origin_url)
+            if trading_floor_id is None:
+                return (None, None)
+
+            stmt = select(*keys).where(
+                and_(Auction.created_at >= date_threshold, Auction.trading_floor_id == trading_floor_id)
+            )
+            lots = session.scalars(stmt).all()
+            return lots, trading_floor_id
+
+    @staticmethod
+    def get_trading_floor_id(session: SessionLocal, crawler_name: str, data_origin_url: str):
+        trading_floor_id = session.scalars(
+            select(ParserStatus.trading_floor_id).where(ParserStatus.name == crawler_name)
+        ).first()
+
+        if trading_floor_id is None:
+            logger.info(
+                f"get_latest_lot :: trading_floor_id not found for crawler {crawler_name}. Creating new record."
+            )
+            trading_floor_id = session.scalars(
+                select(TradingFloor.id).where(TradingFloor.url == data_origin_url)
+            ).first()
+            if trading_floor_id is None:
+                logger.error(f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping.")
+                return None
+
+            new_parser_status = ParserStatus(name=crawler_name, trading_floor_id=trading_floor_id)
+            session.add(new_parser_status)
+            session.commit()
+        return trading_floor_id
 
     @staticmethod
     def update_status(status: bool, spider_name: str):
-        with db_context() as session:
-            try:
-                new_status = StatusType.active if status else StatusType.disabled
-                parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
-                if parser:
-                    parser.status = new_status
-                    parser.updated_at = datetime.utcnow()
-                    session.commit()
-                else:
-                    logger.warning(f"update_status :: ParserStatus with name '{spider_name}' not found.")
-            except Exception as e:
-                logger.error(f"update_status :: {e}")
-                session.rollback()
+        with DBHelper.transaction_scope() as session:
+            new_status = StatusType.active if status else StatusType.disabled
+            parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
+            if parser:
+                parser.status = new_status
+                parser.updated_at = datetime.utcnow()
+                logger.info(f"update_status :: ParserStatus for '{spider_name}' updated to '{new_status}'.")
+            else:
+                logger.warning(f"update_status :: ParserStatus with name '{spider_name}' not found.")
 
     @staticmethod
     def save_counter_and_duration(counter: int, duration: float, spider_name: str):
-        with db_context() as session:
-            try:
-                parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
-                if parser:
-                    parser.counter = counter
-                    parser.duration = duration
-                    parser.updated_at = datetime.utcnow()
-                    session.commit()
-                else:
-                    logger.warning(f"save_counter_and_duration :: ParserStatus with name '{spider_name}' not found.")
-            except Exception as e:
-                logger.error(f"save_counter_and_duration :: {e}")
-                session.rollback()
-
-    @staticmethod
-    def get_addresses():
-        with db_context() as session:
-            return session.query(Address).all()
-
-    @staticmethod
-    def get_addresses_with_regions():
-        with db_context() as session:
-            return session.query(Address).options(joinedload(Address.region)).all()
-
-    @staticmethod
-    def get_region_names():
-        with db_context() as session:
-            return session.scalars(select(Region.name)).all()
-
-    @staticmethod
-    def get_cities_with_regions():
-        with db_context() as session:
-            return session.query(City).options(joinedload(City.region)).all()
-
-    @staticmethod
-    def get_all(model: Type[Base]):
-        with db_context() as session:
-            query = session.query(model)
-            if model is TradingFloor:
-                query = query.options(joinedload(TradingFloor.counterparty).joinedload(Counterparty.sro_memberships))
-            elif model is LegalCase:
-                query = query.options(joinedload(LegalCase.auction).joinedload(Auction.debtor))
-            elif model is Counterparty:
-                query = query.options(joinedload(Counterparty.sro_memberships))
-            elif model is Auction:
-                query = query.options(joinedload(Auction.legal_case))
-            return query.all()
-
-    @staticmethod
-    def get_regions_dict():
-        with db_context() as session:
-            return {region.name: region.id for region in session.query(Region).all()}
+        with DBHelper.transaction_scope() as session:
+            parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
+            if parser:
+                parser.counter = counter
+                parser.duration = duration
+                parser.updated_at = datetime.utcnow()
+                logger.info(
+                    f"save_counter_and_duration :: Updated counter and duration for '{spider_name}' to {counter}, {duration}.")
+            else:
+                logger.warning(f"save_counter_and_duration :: ParserStatus with name '{spider_name}' not found.")
 
     @staticmethod
     def add_regions():
@@ -174,9 +146,8 @@ class DBHelper:
             for row in reader:
                 regions.append(Region(oktmo=row['oktmo'], name=row['region']))
 
-        with db_context() as session:
+        with DBHelper.transaction_scope() as session:
             session.add_all(regions)
-            session.commit()
 
     @staticmethod
     def add_addresses(source_path: PurePath = data_path / 'addresses.csv', addresses: list[City] = None):
@@ -190,9 +161,8 @@ class DBHelper:
                         addresses.append(Address(region_id=id_, name=row['address']))
                     else:
                         pass
-        with db_context() as session:
+        with DBHelper.transaction_scope() as session:
             session.add_all(addresses)
-            session.commit()
 
     @staticmethod
     def add_cities(source_path: PurePath = data_path / 'cities.csv', cities: list[City] = None):
@@ -206,9 +176,8 @@ class DBHelper:
                         cities.append(City(region_id=id_, name=row['city']))
                     else:
                         pass
-        with db_context() as session:
+        with DBHelper.transaction_scope() as session:
             session.add_all(cities)
-            session.commit()
 
     @staticmethod
     def add_trading_floors(
@@ -220,72 +189,66 @@ class DBHelper:
                 reader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
                     trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
-        with db_context() as session:
+        with DBHelper.transaction_scope() as session:
             session.add_all(trading_floors)
-            session.commit()
 
     @staticmethod
-    def store_item(item, trading_floor_id, session=None):
-        session = session or SessionLocal()
-        try:
-            organizer_id, arbitrator_id, debtor_id = DBHelper.store_and_get_counterparty_ids(item, session)
-            auction_id = DBHelper.store_and_get_auction_id(
-                item, organizer_id, arbitrator_id, debtor_id, trading_floor_id, session
-            )
-            if item['case_number']:
-                DBHelper.store_legal_case_id(item, auction_id, session)
+    def get_addresses():
+        with DBHelper.transaction_scope(commit=False) as session:
+            return session.query(Address).all()
+
+    @staticmethod
+    def get_addresses_with_regions():
+        with DBHelper.transaction_scope(commit=False) as session:
+            return session.query(Address).options(joinedload(Address.region)).all()
+
+    @staticmethod
+    def get_region_names():
+        with DBHelper.transaction_scope(commit=False) as session:
+            return session.scalars(select(Region.name)).all()
+
+    @staticmethod
+    def get_cities_with_regions():
+        with DBHelper.transaction_scope(commit=False) as session:
+            return session.query(City).options(joinedload(City.region)).all()
+
+    @staticmethod
+    def get_all(model: Type[Base]):
+        with DBHelper.transaction_scope(commit=False) as session:
+            query = session.query(model)
+            if model is TradingFloor:
+                query = query.options(joinedload(TradingFloor.counterparty).joinedload(Counterparty.sro_memberships))
+            elif model is LegalCase:
+                query = query.options(joinedload(LegalCase.auctions).joinedload(Auction.debtor))
+            elif model is Counterparty:
+                query = query.options(joinedload(Counterparty.sro_memberships))
+            elif model is Auction:
+                query = query.options(
+                    joinedload(Auction.trading_floor),
+                    joinedload(Auction.legal_case)
+                )
+            return query.all()
+
+    @staticmethod
+    def get_regions_dict():
+        with DBHelper.transaction_scope(commit=False) as session:
+            return {region.name: region.id for region in session.query(Region).all()}
+
+    @staticmethod
+    def get_counterparty(session: SessionLocal = None, inn: str = None, name: str = None, short_name: str = None):
+        with DBHelper.transaction_scope(session, commit=False) as session:
+            query = session.query(Counterparty)
+            if inn and name:
+                query = query.filter(or_(Counterparty.inn == inn, Counterparty.name == name))
+            elif inn:
+                query = query.filter(Counterparty.inn == inn)
+            elif name:
+                query = query.filter(Counterparty.name == name)
+            elif short_name:
+                query = query.filter(Counterparty.short_name == short_name)
             else:
-                pass
-            lot_id = DBHelper.store_and_get_lot_id(item, auction_id, session)
-            DBHelper.store_lot_period(item, lot_id, session)
-            DBHelper.store_files(item, lot_id, auction_id, session)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            logger.error(f"store_item error: {e}")
-            raise e
-
-    @staticmethod
-    def get_or_create_address(address_str, session):
-        if not address_str:
-            return
-        from general_utils.location import RegionIdentifier
-        address = session.query(Address).filter_by(name=address_str).first()
-        if not address:
-            address = Address(name=address_str)
-            region_name = RegionIdentifier.get_region(address_str)
-            if region_name:
-                if region := session.query(Region).filter_by(name=region_name).first():
-                    address.region_id = region.id
-                else:
-                    logger.warning(f"Region oktmo with name {region_name} not found.")
-            session.add(address)
-            session.commit()
-        return address
-
-    @staticmethod
-    def get_or_create_debtor_category(category_name, session):
-        category = session.query(DebtorCategory).filter_by(name=category_name).first()
-        if not category:
-            category = DebtorCategory(name=category_name)
-            session.add(category)
-            session.commit()
-        return category
-
-    @staticmethod
-    def get_counterparty(session: SessionLocal, inn: str = None, name: str = None, short_name: str = None):
-        query = session.query(Counterparty)
-        if inn and name:
-            query = query.filter(or_(Counterparty.inn == inn, Counterparty.name == name))
-        elif inn:
-            query = query.filter(Counterparty.inn == inn)
-        elif name:
-            query = query.filter(Counterparty.name == name)
-        elif short_name:
-            query = query.filter(Counterparty.short_name == short_name)
-        else:
-            return None
-        return query.options(joinedload(Counterparty.sro_memberships)).first()
+                return None
+            return query.options(joinedload(Counterparty.sro_memberships)).first()
 
     @staticmethod
     def get_counterparty_sro(counterparty_id: int, sro_counterparty_short_name: str, session: SessionLocal):
@@ -301,99 +264,405 @@ class DBHelper:
         )
 
     @staticmethod
-    def get_legal_case(number: str, session: SessionLocal):
-        return session.query(LegalCase).filter(LegalCase.number == number).first()
-
-    @staticmethod
-    def get_counterparty_debtor_category(counterparty_id: int, debtor_category_id: int, session: SessionLocal):
-        return (
-            session.query(CounterpartyDebtorCategory)
-            .filter(counterparty_id == counterparty_id, debtor_category_id == debtor_category_id).first()
-        )
-
-    @staticmethod
-    def store_model(model: Base, session):
-        logger.info(f'Storing model {model}')
-        try:
-            if isinstance(model, Counterparty):
-                if session.query(Counterparty).filter_by(inn=model.inn).first():
-                    session.merge(model)
-                    session.commit()
-                    return model
-            session.add(model)
-            session.commit()
-            return model
-        except Exception as e:
-            session.rollback()
-            raise e
-
-    @staticmethod
-    def store_and_get_counterparty_ids(item, session):
-        organizer_counterparty = DBHelper.get_counterparty(
-            inn=item['trading_org_inn'], name=item['trading_org'], session=session
-        )
-        if not organizer_counterparty:
-            trading_org_contacts = json.loads(item['trading_org_contacts'])
-            organizer_counterparty = Counterparty(
-                inn=item['trading_org_inn'],
-                name=item['trading_org'],
-                email=trading_org_contacts.get('email'),
-                phone=trading_org_contacts.get('phone'),
+    def store_item(item, trading_floor_id, session=None):
+        with DBHelper.transaction_scope(session):
+            arbitrator = DBHelper.store_and_get_arbitrator(item, session)
+            organizer = DBHelper.store_and_get_organizer(item, arbitrator, session)
+            debtor = DBHelper.store_and_get_debtor(item, session)
+            auction = DBHelper.store_and_get_auction(
+                item=item, organizer=organizer, arbitrator=arbitrator, debtor=debtor,
+                trading_floor_id=trading_floor_id, session=session
             )
-            session.add(organizer_counterparty)
-            session.commit()
-
-        arbitrator_counterparty = DBHelper.get_counterparty(
-            inn=item['arbit_manager_inn'], name=item['arbit_manager'], session=session
-        )
-        if not arbitrator_counterparty:
-            arbitrator_counterparty = Counterparty(inn=item['arbit_manager_inn'], name=item['arbit_manager'])
-            session.add(arbitrator_counterparty)
-            session.commit()
-
-        debtor_counterparty = DBHelper.get_counterparty(inn=item['debtor_inn'], session=session)
-        if not debtor_counterparty:
-            debtor_counterparty = Counterparty(inn=item['debtor_inn'])
-            if item['address']:
-                address = DBHelper.get_or_create_address(item['address'], session)
-                debtor_counterparty.address_id = address.id
-            session.add(debtor_counterparty)
-            session.commit()
-        return organizer_counterparty.id, arbitrator_counterparty.id, debtor_counterparty.id
+            if case_number := item['case_number']:
+                legal_case = DBHelper.store_legal_case_from_case_number(case_number, session, debtor.id)
+                auction.legal_case_id = legal_case.id
+            lot = DBHelper.store_and_get_lot(item, auction.id, session)
+            DBHelper.store_lot_period(item, lot.id, session)
+            DBHelper.store_files(item, lot.id, auction.id, session)
 
     @staticmethod
-    def store_and_get_auction_id(item, organizer_id, arbitrator_id, debtor_id, trading_floor_id, session):
-        trade = session.query(Auction).filter_by(ext_id=item['trading_id']).first()
-        if not trade:
-            trade = Auction(
+    def store_and_get_auction(
+            item: EtpItem, trading_floor_id: int, session: SessionLocal,
+            organizer: Counterparty = None, arbitrator: Counterparty = None, debtor: Counterparty = None
+    ):
+        auction = session.query(Auction).filter_by(ext_id=item['trading_id']).first()
+        if not auction:
+            if not all([organizer, arbitrator]):
+                trading_floor_name = session.query(TradingFloor.name).filter_by(id=trading_floor_id).scalar()
+                auction_client = AuctionFedresurs(
+                    trading_id=item['trading_id'], trading_number=item['trading_number'],
+                    case_number=item['case_number'], trading_floor_name=trading_floor_name
+                )
+                if auction_client.get_guid():
+                    auction_client.parse_main_info()
+                arbitrator = arbitrator or DBHelper.store_and_get_arbitrator(auction_client.data, session)
+                organizer = organizer or DBHelper.store_and_get_organizer(item, arbitrator, session)
+            auction = Auction(
                 ext_id=item['trading_id'],
                 url=item['trading_link'],
                 number=item.get('trading_number'),
                 type=item.get('trading_type'),
                 form=item.get('trading_form'),
                 message_number=item.get('msg_number'),
-                organizer_id=organizer_id,
-                arbitrator_id=arbitrator_id,
-                debtor_id=debtor_id,
+                organizer_id=organizer.id if organizer else None,
+                arbitrator_id=arbitrator.id if arbitrator else None,
+                debtor_id=debtor.id if debtor else None,
                 trading_floor_id=trading_floor_id,
             )
-            session.add(trade)
-            session.commit()
-        return trade.id
+            session.add(auction)
+            session.flush()
+        return auction
 
     @staticmethod
-    def store_legal_case_id(item, auction_id, session):
-        legal_case = session.query(LegalCase).filter_by(number=item['case_number']).first()
-        if not legal_case:
+    def get_or_create_address(address_str: str, session: SessionLocal) -> Address | None:
+        if not address_str:
+            return
+        from general_utils.location import RegionIdentifier
+        with DBHelper.transaction_scope(session) as session:
+            address = session.query(Address).filter_by(name=address_str).first()
+            if not address:
+                address = Address(name=address_str)
+                region_name = RegionIdentifier.get_region(address_str)
+                if region_name:
+                    if region := session.query(Region).filter_by(name=region_name).first():
+                        address.region = region
+                    else:
+                        logger.warning(f"Region oktmo with name {region_name} not found.")
+                session.add(address)
+            return address
+
+    @staticmethod
+    def store_model(model_or_models: Base | list[Base]):
+        def _store_single_model(model: Base):
+            logger.info(f'Storing model {model}')
+            if isinstance(model, Counterparty):
+                if session.query(Counterparty).filter_by(inn=model.inn).first():
+                    return session.merge(model)
+            elif isinstance(model, LegalCase):
+                if session.query(LegalCase).filter_by(number=model.number).first():
+                    return session.merge(model)
+            elif isinstance(model, DebtorMessage):
+                if session.query(DebtorMessage).filter_by(number=model.number).first():
+                    return session.merge(model)
+            elif isinstance(model, File):
+                if session.query(File).filter_by(name=model.name).first():
+                    return session.merge(model)
+            session.add(model)
+            return model
+
+        with DBHelper.transaction_scope() as session:
+            if isinstance(model_or_models, list):
+                result = []
+                for model in model_or_models:
+                    result.append(_store_single_model(model))
+                return result
+            else:
+                return _store_single_model(model_or_models)
+
+    @staticmethod
+    def store_and_get_arbitrator(item: EtpItem | dict, session: SessionLocal):
+        arbitrator_counterparty = DBHelper.get_counterparty(
+            inn=item.get('arbit_manager_inn'),
+            name=item.get('arbit_manager'),
+            short_name=item.get('arbit_manager')
+        )
+        if not arbitrator_counterparty or not arbitrator_counterparty.fedresurs_url:
+            inn = item.get('arbit_manager_inn')
+            if inn:
+                if len(inn) > 10:
+                    arb_client = PersonFedresurs(inn, item.get('arbit_manager'))
+                else:
+                    arb_client = CompanyFedresurs(inn, item.get('arbit_manager'))
+            else:
+                amf = ArbitrManagerFedresurs(item.get('arbit_manager'))
+                if amf.get_guid():
+                    arb_client = amf
+                else:
+                    arb_client = None
+            if not arb_client:
+                pass
+            elif not arb_client.data['guid']:
+                arbitrator_counterparty = arbitrator_counterparty or Counterparty(
+                    inn=item['arbit_manager_inn'],
+                    short_name=item['arbit_manager'],
+                    type=arb_client.data['type']
+                )
+                if inspect(arbitrator_counterparty).transient:
+                    session.add(arbitrator_counterparty)
+                    session.flush()
+            else:
+                arb_client.parse()
+                if not (arbitrator_counterparty := DBHelper.get_counterparty(
+                        inn=arb_client.data.get('inn'),
+                        name=arb_client.data.get('name'),
+                        short_name=arb_client.data.get('short_name')
+                )):
+                    arb_client.parse_sro_membership()
+                    arbitrator_counterparty = DBHelper.store_counterparty_and_co_from_dict(arb_client.data, session)
+        return arbitrator_counterparty
+
+    @staticmethod
+    def store_and_get_organizer(item: EtpItem, arbitrator_counterparty: Counterparty, session: SessionLocal):
+        if (
+                (item.get('trading_org_inn') and item.get('trading_org_inn') == item.get('arbit_manager_inn')) or
+                (item.get('trading_org') and item.get('trading_org') == item.get('arbit_manager')) or
+                (item.get('trading_org') and arbitrator_counterparty and item.get(
+                    'trading_org') == arbitrator_counterparty.short_name) or
+                (item.get('trading_org') and arbitrator_counterparty and item.get(
+                    'trading_org_inn') == arbitrator_counterparty.inn)
+        ):
+            return arbitrator_counterparty
+        organizer_counterparty: Counterparty = DBHelper.get_counterparty(
+            inn=item.get('trading_org_inn'),
+            name=item.get('trading_org'),
+            short_name=item.get('trading_org')
+        )
+        if not organizer_counterparty or not organizer_counterparty.fedresurs_url:
+            inn = item.get('trading_org_inn')
+            if inn:
+                if len(inn) > 10:
+                    org_client = PersonFedresurs(inn, item['trading_org'])
+                else:
+                    org_client = CompanyFedresurs(inn, item['trading_org'])
+            else:
+                if guid := (
+                        ArbitrManagerFedresurs(item.get('trading_org')).get_guid() or
+                        PersonOrganizerFedresurs(item.get('trading_org')).get_guid()
+                ):
+                    org_client = PersonFedresurs(name=item.get('trading_org'), guid=guid)
+                elif guid := CompanyOrganizerFedresurs(item.get('trading_org')).get_guid():
+                    org_client = CompanyFedresurs(name=item.get('trading_org'), guid=guid)
+                else:
+                    org_client = None
+            if not org_client:
+                pass
+            elif not org_client.data['guid']:
+                organizer_counterparty = organizer_counterparty or Counterparty(
+                    inn=item.get('trading_org_inn'),
+                    short_name=item.get('trading_org'),
+                    email=item.get('trading_org_contacts', {}).get('email'),
+                    phone=item.get('trading_org_contacts', {}).get('phone'),
+                    type=org_client.data['type']
+                )
+                if inspect(organizer_counterparty).transient:
+                    session.add(organizer_counterparty)
+                    session.flush()
+            else:
+                org_client.parse()
+                if not (organizer_counterparty := DBHelper.get_counterparty(
+                        inn=org_client.data.get('inn'),
+                        name=org_client.data.get('name'),
+                        short_name=org_client.data.get('short_name')
+                )):
+                    org_client.parse_sro_membership()
+                    organizer_counterparty = DBHelper.store_counterparty_and_co_from_dict(org_client.data, session)
+        return organizer_counterparty
+
+    @staticmethod
+    def store_and_get_debtor(item: EtpItem | dict, session: SessionLocal):
+        debtor_counterparty = DBHelper.get_counterparty(inn=item['debtor_inn'])
+        if not debtor_counterparty or not debtor_counterparty.fedresurs_url:
+            inn = item['debtor_inn']
+            if inn:
+                if len(inn) > 10:
+                    debtor_client = PersonFedresurs(inn=inn)
+                else:
+                    debtor_client = CompanyFedresurs(inn=inn)
+            else:
+                if guid := CounterpartyFedresurs(inn=inn).get_guid():
+                    debtor_client = PersonFedresurs(inn=inn, guid=guid)
+                elif guid := CompanyFedresurs(inn=inn).get_guid():
+                    debtor_client = CompanyFedresurs(inn=inn, guid=guid)
+                else:
+                    debtor_client = None
+            if not debtor_client:
+                pass
+            elif not debtor_client.data['guid']:
+                debtor_counterparty = debtor_counterparty or Counterparty(
+                    inn=item['debtor_inn'], address_id=DBHelper.get_or_create_address(item['address'], session).id,
+                    type=debtor_client.data['type']
+                )
+                if inspect(debtor_counterparty).transient:
+                    session.add(debtor_counterparty)
+                    session.flush()
+            else:
+                debtor_client.parse()
+                if not (debtor_counterparty := DBHelper.get_counterparty(
+                        inn=debtor_client.data.get('inn'),
+                        name=debtor_client.data.get('name'),
+                        short_name=debtor_client.data.get('short_name')
+                )):
+                    debtor_client.parse_sro_membership()
+                    debtor_client.parse_bankruptcy()
+                    debtor_client.parse_publications()
+                    debtor_client.data['address'] = debtor_client.data['address'] or item['address']
+                    debtor_counterparty = DBHelper.store_counterparty_and_co_from_dict(debtor_client.data, session)
+        return debtor_counterparty
+
+    @staticmethod
+    def store_counterparty_and_co_from_dict(data: dict, session: SessionLocal) -> Counterparty:
+        counterparty = DBHelper.store_counterparty_from_dict(data, session)
+        if not counterparty.sro_memberships:
+            for membership in data.get('sro_memberships', []):
+                sro = DBHelper.store_counterparty_from_dict(membership, session)
+                if not DBHelper.get_counterparty_sro(counterparty.id, sro.short_name, session):
+                    sro_membership = CounterpartySRO(
+                        counterparty_id=counterparty.id,
+                        sro_id=sro.id,
+                        message_number=membership['message_number'],
+                        activity_type=membership['activity_type'],
+                        entered_at=membership['entered_at']
+                    )
+                    session.add(sro_membership)
+        for legal_case_data in data.get('legal_cases', []):
+            DBHelper.store_legal_case_from_dict(legal_case_data, session)
+        for message in data.get('publications', []):
+            DBHelper.store_debtor_message_from_dict(message, counterparty, session)
+        return counterparty
+
+    @staticmethod
+    def store_counterparty_from_dict(data: dict, session: SessionLocal) -> Counterparty:
+        address = DBHelper.get_or_create_address(data.get('address'), session)
+        counterparty = Counterparty(
+            inn=data['inn'],
+            kpp=data.get('kpp'),
+            snils=data.get('snils'),
+            ogrn=data.get('ogrn'),
+            ogrnip=data.get('ogrnip'),
+            okopf=data.get('okopf'),
+            name=data['name'],
+            short_name=data.get('short_name'),
+            email=data['email'],
+            phone=data['phone'],
+            url=data['url'],
+            fedresurs_url=data.get('fedresurs_url'),
+            type=data['type'],
+            address_id=address.id if address else None
+        )
+        existing_counterparty = session.query(Counterparty).filter_by(inn=counterparty.inn).first()
+        if existing_counterparty:
+            if not existing_counterparty.fedresurs_url:
+                for field in [
+                    'kpp', 'snils', 'ogrn', 'ogrnip', 'okopf',
+                    'name', 'short_name', 'email', 'phone', 'url',
+                    'fedresurs_url', 'type', 'address_id'
+                ]:
+                    setattr(existing_counterparty, field, getattr(counterparty, field))
+                counterparty = existing_counterparty
+            else:
+                return existing_counterparty
+        else:
+            session.add(counterparty)
+            session.flush()
+        return counterparty
+
+    # @staticmethod
+    # def store_legal_cases_and_messages_with_files_from_dict(
+    #         legal_case_and_messages: dict, debtor_id: int, session: SessionLocal
+    # ):
+    #     legal_case_data = legal_case_and_messages['case']
+    #     if legal_case_debtor_category := legal_case_data.get('debtor_category'):
+    #         if not (debtor_category_id := DBHelper.get_debtor_category_id(legal_case_debtor_category, session)):
+    #             new_debtor_category = DebtorCategory(name=legal_case_debtor_category)
+    #             session.add(new_debtor_category)
+    #             session.flush()
+    #             debtor_category_id = new_debtor_category.id
+    #         if not DBHelper.get_counterparty_debtor_category(debtor_id, debtor_category_id, session):
+    #             session.add(
+    #                 CounterpartyDebtorCategory(counterparty_id=debtor_id, debtor_category_id=debtor_category_id)
+    #             )
+    #     if not (legal_case := DBHelper.store_legal_case_from_dict(legal_case_data, session)):
+    #         legal_case = DBHelper.store_legal_case_from_dict(legal_case_data, session)
+    #     messages_and_files = legal_case_and_messages['messages']
+    #     for message_and_files in messages_and_files:
+    #         message = message_and_files['message']
+    #         files = message_and_files['files']
+    #         debtor_message = DBHelper.store_debtor_message_from_dict(message, legal_case.id, session)
+    #         for file in files:
+    #             file.model_id = debtor_message.id
+    #         session.add_all(files)
+
+    @staticmethod
+    def store_legal_case_from_dict(data: dict, session: SessionLocal) -> LegalCase:
+        if not (legal_case := session.query(LegalCase).filter_by(number=data['number']).first()):
             legal_case = LegalCase(
-                number=item['case_number'],
-                auction_id=auction_id,
+                number=data['number'],
+                court_name=data.get('court_name'),
+                fedresurs_url=data.get('fedresurs_url'),
+                status=data.get('status'),
+                debtor_category=data.get('debtor_category')
             )
             session.add(legal_case)
-            session.commit()
+            session.flush()
+        return legal_case
 
     @staticmethod
-    def store_and_get_lot_id(item, auction_id, session):
+    def store_debtor_message_from_dict(data: dict, debtor: Counterparty, session: SessionLocal) -> DebtorMessage:
+        if not (debtor_message := session.query(DebtorMessage).filter_by(number=data['number']).first()):
+            if not data.get('number'):
+                pass
+            debtor_message = DebtorMessage(
+                number=data.get('number'),
+                type=data['type'],
+                content=data.get('content'),
+                fedresurs_url=data['fedresurs_url'],
+                published_at=data['published_at'],
+                debtor_id=debtor.id
+            )
+            session.add(debtor_message)
+            session.flush()
+            for file in data.get('files'):
+                DBHelper.store_and_download_debtor_message_file_from_dict(
+                    data=file,
+                    message_number=data.get('number'),
+                    debtor=debtor,
+                    debtor_message=debtor_message,
+                    referer=data['fedresurs_url'],
+                    session=session
+                )
+        return debtor_message
+
+    @staticmethod
+    def store_and_download_debtor_message_file_from_dict(
+            data: dict, message_number: str, debtor: Counterparty, debtor_message: DebtorMessage, referer: str,
+            session: SessionLocal
+    ) -> File:
+        name_on_server = f'{message_number}_{data.get("name")}'
+        absolute_path = absolute_download_path / 'debtor_messages' / debtor.inn / name_on_server
+        relative_path = relative_download_path / 'debtor_messages' / debtor.inn / name_on_server
+        if not (file := session.query(File).filter_by(path=relative_path).first()):
+            if download_debtor_message_files:
+                if not Path(absolute_path).exists():
+                    load = DownloadFiles(referer=referer)
+                    Path(absolute_path).parent.mkdir(parents=True, exist_ok=True)
+                    load.request_to_download_general(
+                        request_data=RequestData(
+                            url=f'{Fedresurs.BACKEND_URL}/bankruptcy-message-docs/{data["guid"]}',
+                            headers=Fedresurs.HEADERS, referer=referer
+                        ), absolute_path=absolute_path, relative_path=relative_path
+                    )
+            file = File(
+                name=data.get('name'),
+                path=relative_path.as_posix(),
+                model_type=FileModelType.DebtorMessage,
+                model_id=debtor_message.id
+            )
+            session.add(file)
+        return file
+
+    @staticmethod
+    def store_legal_case_from_case_number(case_number: str, session: SessionLocal, debtor_id: int) -> LegalCase:
+        from general_utils.fedresurs import LegalCaseFedresurs
+        legal_case = session.execute(select(LegalCase).where(LegalCase.number.like(f'%{case_number}%'))).scalar()
+        if not legal_case:
+            fed_client = LegalCaseFedresurs(case_number)
+            fed_client.parse()
+            legal_case_data = fed_client.data
+            return DBHelper.store_legal_case_from_dict(legal_case_data, session)
+        return legal_case
+
+    @staticmethod
+    def store_and_get_lot(item: EtpItem, auction_id: int, session: SessionLocal):
         lot = session.query(Lot).filter_by(auction_id=auction_id, number=item['lot_number']).first()
         if not lot:
             lot = Lot(
@@ -405,42 +674,52 @@ class DBHelper:
                 price_step=item.get('step_price'),
                 price_start=item.get('start_price'),
                 property_info=item.get('property_information'),
-                auction_id=auction_id,
+                auction_id=auction_id
             )
             session.add(lot)
-            session.commit()
-        return lot.id
+            session.flush()
+
+            if categories := item.get('categories'):
+                for category in categories:
+                    if category.isdigit():
+                        code = category
+                    elif not (code := lot_classifiers_name_to_code.get(category)):
+                        continue
+                    lot_category = LotCategory(code=code, lot_id=lot.id)
+                    session.add(lot_category)
+        return lot
 
     @staticmethod
-    def store_lot_period(item, lot_id, session):
+    def store_lot_period(item: EtpItem, lot_id: int, session: SessionLocal):
+        def add_period(period: dict):
+            lot_period = LotPeriod(
+                request_start_at=period['start_date_requests'],
+                request_end_at=period['end_date_requests'],
+                trading_start_at=period['start_date_requests'],
+                trading_end_at=period['end_date_trading'],
+                price=period['current_price'],
+                lot_id=lot_id,
+            )
+            session.add(lot_period)
         lot_period = session.query(LotPeriod).filter_by(lot_id=lot_id).first()
         if not lot_period:
-            if item['step_price']:
-                lot_period = LotPeriod(
-                    request_start_at=item['start_date_requests'],
-                    request_end_at=item['end_date_requests'],
-                    trading_start_at=item['start_date_trading'],
-                    trading_end_at=item['end_date_trading'],
-                    price=item['step_price'],
-                    lot_id=lot_id,
-                )
-                session.add(lot_period)
-            elif periods := item['periods']:
-                for period in json.loads(periods):
-                    lot_period = LotPeriod(
-                        request_start_at=period['start_date_requests'],
-                        request_end_at=period['end_date_requests'],
-                        trading_start_at=period['start_date_requests'],
-                        trading_end_at=period['end_date_trading'],
-                        price=period['current_price'],
-                        lot_id=lot_id,
-                    )
-                    session.add(lot_period)
+            if periods := item['periods']:
+                for period in periods:
+                    add_period(period)
+            else:
+                if item['start_date_requests']:
+                    add_period(dict(
+                        start_date_requests=item['start_date_requests'],
+                        end_date_requests=item['end_date_requests'],
+                        start_date_trading=item['start_date_trading'],
+                        end_date_trading=item['end_date_trading'],
+                        current_price=item['step_price'] or 0,
+                    ))
 
     @staticmethod
-    def store_files(item, lot_id, auction_id, session):
-        files = json.loads(item['files'])
-        general_files = files['general']
+    def store_files(item: EtpItem, lot_id: int, auction_id: int, session: SessionLocal):
+        files = item.get('files', {})
+        general_files = files.get('general')
         storage_files = session.query(File).filter_by(model_type=FileModelType.Auction, model_id=auction_id).all()
         storage_file_names = {file.name for file in storage_files}
         for file in general_files:
@@ -454,7 +733,7 @@ class DBHelper:
                 )
                 session.add(file_obj)
 
-        lot_files = files['lot']
+        lot_files = files.get('lot')
         storage_files = session.query(File).filter_by(model_type=FileModelType.Lot, model_id=lot_id).all()
         storage_file_names = {file.name for file in storage_files}
         for file in lot_files:
@@ -470,4 +749,4 @@ class DBHelper:
 
 
 if __name__ == '__main__':
-    DBHelper.add_regions()
+    DBHelper.add_trading_floors()

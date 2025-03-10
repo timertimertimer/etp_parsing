@@ -235,7 +235,7 @@ class SerpPage:
         _inn = BS(str(_inn), features='lxml').get_text().strip()
         return CheckIfCorrectContactInfo.check_inn(_inn)
 
-    def get_address(self):
+    @property
+    def address(self):
         address = self.response.xpath(self.loc_trade.address_loc).get()
-        address = BS(str(address), features='lxml').get_text().strip()
-        return address
+        return BS(str(address), features='lxml').get_text().strip()

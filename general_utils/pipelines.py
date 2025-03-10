@@ -1,7 +1,8 @@
 import logging
 import time
 
-from mysql.connector import ProgrammingError, OperationalError
+import sqlalchemy.exc
+from pymysql.err import OperationalError, ProgrammingError
 from sqlalchemy.exc import SQLAlchemyError
 
 from .db import get_db, DBHelper
@@ -33,7 +34,10 @@ class BasePipeline:
                 return item
             except (ProgrammingError, OperationalError) as e:
                 error_msg = str(e)
-                if "MySQL Connection not available" in error_msg or "Lost connection to MySQL server" in error_msg:
+                if any([
+                    "MySQL Connection not available" in error_msg or
+                    "Lost connection to MySQL server" in error_msg
+                ]):
                     logger.warning(f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)")
                     self.session.close()
                     self.session = get_db()
@@ -41,12 +45,23 @@ class BasePipeline:
                     time.sleep(1)
                     continue
                 else:
-                    raise
+                    logger.error(f"Database error: {e}")
+                    self.session.rollback()
+                    break
             except SQLAlchemyError as e:
-                logger.error(f"Database error: {e}")
-                self.session.rollback()
-                break
-            except Exception as e:
-                logger.error(f"Unexpected error processing item {item}: {e}")
-                break
+                error_msg = str(e.orig)
+                if any([
+                    "MySQL Connection not available" in error_msg or
+                    "Lost connection to MySQL server" in error_msg
+                ]):
+                    logger.warning(f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)")
+                    self.session.close()
+                    self.session = get_db()
+                    attempt += 1
+                    time.sleep(1)
+                    continue
+                else:
+                    logger.error(f"Database error: {e}")
+                    self.session.rollback()
+                    break
         return item

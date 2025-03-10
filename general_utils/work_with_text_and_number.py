@@ -146,3 +146,22 @@ def fix_encoding(name):
         except (UnicodeDecodeError, UnicodeEncodeError):
             return name
     return name
+
+
+def parse_classifiers(string: str) -> tuple[list, list]:
+    pattern = r'(\d{2,7})\.? (.*?)(?=(?:, \d{2,7}\.|$))'
+
+    matches = re.findall(pattern, string)
+
+    if matches:
+        codes = [code for code, _ in matches]
+        names = [name for _, name in matches]
+    else:
+        codes = []
+        names = [el.strip() for el in string.split('.')]
+
+    return codes, names
+
+
+if __name__ == '__main__':
+    print(parse_classifiers('0401 Имущественные права: Права долевой собственности'))

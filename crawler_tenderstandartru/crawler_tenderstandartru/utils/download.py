@@ -7,7 +7,7 @@ from random import choice
 
 import urllib3
 
-from general_utils.config import socks_list, agent_list
+from general_utils.config import socks5_proxies, user_agents
 from ..utils.zip_file_manager import ZipFiles
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
@@ -21,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:
@@ -45,7 +45,7 @@ class DownloadFiles:
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
         'sec-gpc': '1',
-        'User-Agent': choice(agent_list),
+        'User-Agent': choice(user_agents),
         'x-requested-with': 'XMLHttpRequest'
     }
 

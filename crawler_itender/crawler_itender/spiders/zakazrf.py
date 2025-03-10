@@ -8,13 +8,13 @@ from itertools import chain
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from .base import ItenderBaseSpider
 from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction as pdac
-from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
-from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_competition as pdcom
+from ..utils.post_data_for_spiders.zakarf_post_data import post_data_auction as pdac
+from ..utils.post_data_for_spiders.zakarf_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer_period as pdop
-from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
-from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction_pagination as pdapag
+from ..utils.post_data_for_spiders.zakarf_post_data import post_data_competition as pdcom
+from ..utils.post_data_for_spiders.zakarf_post_data import post_data_auction_pagination_zakarf as pdapag
 from ..manage_spiders.app import Combo
+from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
 from ..utils.config import start_date, return_auction_link, data_origin, return_offer_link, return_compet_link, \
     tables
 import copy
@@ -22,11 +22,11 @@ import copy
 import logging
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_bankrupt_etpu']
+TABLE = tables['table_bankrot_zakazrf']
 
 
-class BankruptEtpuSpider(ItenderBaseSpider):
-    name = 'bankrupt_etpu'
+class BankrotZakazrfSpider(ItenderBaseSpider):
+    name = 'zakazrf'
 
     async def parse_(self, response, _type):
         first_post = None
@@ -104,18 +104,19 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         loader.add_value('msg_number', combo.auc.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.a() or (None, None)
+        address, region = combo.auc.a()
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.auc.start_date_request())
         loader.add_value('end_date_requests', combo.auc.end_date_request())
         loader.add_value('start_date_trading', combo.auc.start_date_trading())
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0], crawler_name=self.name)
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0],
+                                                  crawler_name=self.name)
         # lot_info auction
         # lot_link = combo.auc.get_lot_link(lot_number, self.data_origin)
         pagination_on_page: list = combo.auc.pagination
@@ -123,10 +124,9 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
-        yield Request(lot_link, callback=self.parse_lot_page,
-                       cb_kwargs={'loader': loader,
-                                                 'lot_number': lot_number,
-                                                 'general': general_files}, dont_filter=True)
+        yield Request(lot_link, callback=self.parse_lot_page, cb_kwargs={'loader': loader,
+                                                                         'lot_number': lot_number,
+                                                                         'general': general_files}, dont_filter=True)
 
     def parse_lot_page(self, response, loader, lot_number, general):
         """ parse lot page AUCTION"""
@@ -202,16 +202,15 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.a() or (None, None)
+        address, region = combo.auc.a()
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
                                                   host=self.allowed_domains[0], crawler_name=self.name)
-
         # lot_info
         pagination_on_page: list = combo.auc.pagination
         pdapag['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
@@ -219,10 +218,10 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_offer,
-                       cb_kwargs={'loader': loader,
-                                                 'lot_number': lot_number,
-                                                 'general': general_files,
-                                                 'pdata_lot_page_period': pdapag}, dont_filter=True)
+                      cb_kwargs={'loader': loader,
+                                 'lot_number': lot_number,
+                                 'general': general_files,
+                                 'pdata_lot_page_period': pdapag}, dont_filter=True)
 
     async def parse_lot_page_offer(self, response, loader, lot_number, general, pdata_lot_page_period):
         """ parse lot page """
@@ -294,7 +293,6 @@ class BankruptEtpuSpider(ItenderBaseSpider):
                 pdop_without_doc['__EVENTVALIDATION'] = eventvalidation
                 post_query = pdop_without_doc
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=post_query,
-                              
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -332,7 +330,6 @@ class BankruptEtpuSpider(ItenderBaseSpider):
             period_from_current_page = combo.offer.get_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(response.url, callback=self.parse_lot_page_offer_next_page, formdata=pdop,
-                              
                               method='POST',
                               cb_kwargs={'loader': loader,
                                          'lot_number': lot_number,
@@ -428,11 +425,11 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        address, region = combo.auc.a() or (None, None)
+        address, region = combo.auc.a()
         loader.add_value('address', address)
         loader.add_value('region', region)
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
-        loader.add_value('arbit_manager_inn', None)
+        loader.add_value('arbit_manager_inn', combo.auc.get_arbitr_inn())
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         loader.add_value('start_date_requests', combo.compet.start_date_request())
         loader.add_value('end_date_requests', combo.compet.end_date_request())
@@ -447,8 +444,7 @@ class BankruptEtpuSpider(ItenderBaseSpider):
         pdapag['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
-        yield Request(lot_link, callback=self.parse_lot_page_competition,
-                       cb_kwargs={'loader': loader,
+        yield Request(lot_link, callback=self.parse_lot_page_competition, cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files}, dont_filter=True)
 
@@ -479,4 +475,3 @@ class BankruptEtpuSpider(ItenderBaseSpider):
             loader.add_value('files', total_files)
             loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
-

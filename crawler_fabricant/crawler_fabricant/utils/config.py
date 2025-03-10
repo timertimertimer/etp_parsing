@@ -1,6 +1,6 @@
 from general_utils.config import absolute_download_path, relative_download_path, start_date
 
-data_origin_url = 'https://www.fabrikant.ru'
+data_origin_url = 'https://www.fabrikant.ru/'
 start_url = 'https://www.fabrikant.ru/trades/procedure/search/?filter_id=6'
 absolute_path = f'{absolute_download_path}/etp_fabricant'
 relative_path = f'{relative_download_path}/etp_fabricant'

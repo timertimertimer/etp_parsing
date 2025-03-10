@@ -3,20 +3,14 @@ from typing import Iterable
 
 from scrapy import Spider, Request, FormRequest
 
+from general_utils.base_spider import BaseSpider
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import RegionIdentifier, get_index
 from ..app import Combo
 from ..utils.config import formdata, data_origin, search_link, trade_link
-from general_utils import DBHelper, return_parse_date
 
 
-class TorgiGovSpider(Spider):
+class TorgiGovSpider(BaseSpider):
     name = 'torgigov'
-
-    def __init__(self):
-        super(TorgiGovSpider).__init__()
-        self.db_check = DBHelper(f'lots_{self.name}')
-        self.previous_lots = self.db_check.get_latest_lot(['lot_id'])
 
     def start_requests(self) -> Iterable[Request]:
         yield FormRequest(search_link, self.parse_serp, formdata=formdata, method='GET')

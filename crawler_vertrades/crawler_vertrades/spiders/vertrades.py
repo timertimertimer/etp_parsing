@@ -46,7 +46,7 @@ class VertradesSpider(scrapy.Spider):
         msg_number = combo.msg_number
         case_number = combo.case_number
         debtor_inn = combo.debitor_inn
-        address, region = combo.get_address() or (None, None)
+        address = combo.address
         arbit_manager = combo.arbitr_manager
         arbit_manager_inn = combo.arbitr_inn
         arbit_manager_org = combo.arbitr_manager_org
@@ -69,7 +69,6 @@ class VertradesSpider(scrapy.Spider):
             loader.add_value("case_number", case_number)
             loader.add_value("debtor_inn", debtor_inn)
             loader.add_value("address", address)
-            loader.add_value("region", region)
             loader.add_value("arbit_manager", arbit_manager)
             loader.add_value("arbit_manager_inn", arbit_manager_inn)
             loader.add_value("arbit_manager_org", arbit_manager_org)

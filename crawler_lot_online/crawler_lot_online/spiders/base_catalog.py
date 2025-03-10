@@ -5,10 +5,10 @@ from scrapy import Spider, Request, FormRequest
 
 from general_utils.config import format_parse_date
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import RegionIdentifier, get_index
+from general_utils.location import get_index
 from ..catalog_app import Combo
 from ..utils.config import formdata, hashes, start_date
-from general_utils import DBHelper, return_parse_date
+from general_utils import return_parse_date
 
 
 class LotOnlineBaseSpider(Spider):
@@ -54,13 +54,8 @@ class LotOnlineBaseSpider(Spider):
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('trading_org_contacts', combo.trading_org_contacts)
         loader.add_value('status', lot[3])
-        address = combo.address
-        region = None
-        if address:
-            region = RegionIdentifier.get_region(address)
         loader.add_value('index', get_index(address))
-        loader.add_value('address', address)
-        loader.add_value('region', region)
+        loader.add_value('address', combo.address)
         loader.add_value('encumbrance', 'Нет')
         loader.add_value('lot_number', combo.get_lot_number(lot[2]))
         loader.add_value('short_name', lot[2])

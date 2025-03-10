@@ -50,7 +50,7 @@ class OpentpSpider(scrapy.Spider):
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
         general_files = combo.download_general()
-        for lot_link, lot_number, short_name, status, address, region, start_price in combo.get_lots():
+        for lot_link, lot_number, short_name, status, address, start_price in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
             loader.add_value('trading_id', trading_id)
@@ -65,7 +65,6 @@ class OpentpSpider(scrapy.Spider):
             loader.add_value('case_number', case_number)
             loader.add_value('debtor_inn', debtor_inn)
             loader.add_value('address', address)
-            loader.add_value('region', region)
             loader.add_value('arbit_manager', arbit_manager)
             loader.add_value('arbit_manager_inn', arbit_manager_inn)
             loader.add_value('arbit_manager_org', arbit_manager_org)

@@ -30,4 +30,4 @@ def aukcioncenter():
 
 
 if __name__ == '__main__':
-    aukcioncenter()
+    etp_profit()

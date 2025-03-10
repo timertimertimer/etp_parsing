@@ -33,7 +33,7 @@ class CheckIfCorrectContactInfo:
             if phone:
                 only_numbers = ''.join(filter(lambda x: x.isdigit(), phone))
                 if re.match(r'\d{5}', only_numbers) and len(phone) < 55:
-                    return re.sub(r'\s+', ' ', phone)
+                    return re.sub(r'\s+', ' ', phone).strip()
                 else:
                     return ''
         except Exception as e:
@@ -45,7 +45,7 @@ class CheckIfCorrectContactInfo:
             if len(email) <= 50:
                 if '@' in email:
                     email = re.findall(r'.+\S@\S.+\.\D{2,4}$', email, flags=re.IGNORECASE)
-                    return ''.join(email)
+                    return ''.join(email).strip()
         except Exception as e:
             pass
 

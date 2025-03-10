@@ -208,7 +208,7 @@ class RegionIdentifier:
             # Region.storage[parsed_address.lower()] = region
             return region
         else:
-            logger.warning(f'No region found for address: "{address}"')
+            logger.warning(f'Not found region for address: "{address}"')
 
     @staticmethod
     def _get_region_from_storage(address: str):

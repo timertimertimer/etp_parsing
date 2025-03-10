@@ -95,6 +95,7 @@ class ElectroTorgiBaseSpider(BaseSpider):
         loader.add_value('property_information', combo.property_information)
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
+        loader.add_value('categories', combo.categories)
         if loader.get_collected_values('trading_type')[0] in ['auction', 'competition']:
             loader.add_value('start_date_trading', combo.auc.start_date_trading)
             loader.add_value('end_date_trading', combo.auc.end_date_trading)

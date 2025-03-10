@@ -2,7 +2,7 @@ import pathlib
 import logging
 import re
 
-from general_utils.config import lst_exet_archive, lst_exeption, lst_exet
+from general_utils.config import lst_exet_archive, lst_exeption, lst_exet, lst_exet_files
 from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
 from general_utils.work_with_path_and_dir import FilesDir
@@ -284,21 +284,19 @@ class MainTradingPage:
                         trading_id=trading_id
                     )
                     lst_general.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet:
+                elif pathlib.Path(name_on_server).suffix in lst_exet_files:
                     load.request_to_download_general(
                         request_data=request_data,
                         absolute_path=path_absolute,
                         relative_path=path_relative,
                         trading_id=trading_id,
                     )
-                    lst_general.append(
-                        {
-                            'original_name': name, 
-                            'link': files_dir.return_relative_path(name_on_server).as_posix(),
-                            'link_etp': self.response.url
-                        }
-                    )
+                    lst_general.append({
+                        'original_name': name,
+                        'link': files_dir.return_relative_path(name_on_server).as_posix(),
+                        'link_etp': None
+                    })
                 else:
-                    lst_general.append({'original_name': name, 'link': None, 'link_etp': self.response.url})
+                    lst_general.append({'original_name': name, 'link': None, 'link_etp': None})
                 del post_data_download[form_data]
         return lst_general

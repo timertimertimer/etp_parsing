@@ -7,7 +7,7 @@ from random import choice
 
 import urllib3
 
-from general_utils.config import socks_list, headers
+from general_utils.config import socks5_proxies, headers
 from ..utils.zip_file_manager import ZipFiles
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
@@ -21,10 +21,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:

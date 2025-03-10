@@ -5,10 +5,11 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
+from general_utils.download import DownloadFiles
 from general_utils.models import RequestData
+from general_utils.work_with_path_and_dir import FilesDir
 from .locator import Locator
-from general_utils import DownloadFiles, FilesDir, format_time_auction, UrlConfig, dedent_func, \
-    CheckIfCorrectContactInfo, contains
+from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, contains, format_time, parse_classifiers
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from .utils.config import data_origin_url, absolute_path, relative_path
 
@@ -355,9 +356,16 @@ class Combo:
             .find_next('div').get_text(strip=True)
         )
 
+    def get_categories(self, lot):
+        return parse_classifiers(' '.join(
+            self.create_soup(lot)
+            .find('div', text=re.compile('Классификатор имущества для ЕФРСБ', re.IGNORECASE))
+            .find_next('div').get_text(strip=True).split()
+        ))
+
     def get_start_date_requests(self, lot):
         try:
-            return format_time_auction(
+            return format_time(
                 self.create_soup(lot)
                 .find('div', text=re.compile('Дата и время начала приема заявок', re.IGNORECASE))
                 .find_next('div').get_text(strip=True)
@@ -368,7 +376,7 @@ class Combo:
 
     def get_end_date_requests(self, lot):
         try:
-            return format_time_auction(
+            return format_time(
                 self.create_soup(lot)
                 .find('div', text=re.compile('Дата и время окончания приема заявок', re.IGNORECASE))
                 .find_next('div').get_text(strip=True)
@@ -379,7 +387,7 @@ class Combo:
 
     def get_start_date_trading(self, lot):
         try:
-            return format_time_auction(
+            return format_time(
                 self.create_soup(lot)
                 .find('div', text=re.compile('Дата и время начала аукциона', re.IGNORECASE))
                 .find_next('div').get_text(strip=True)
@@ -390,7 +398,7 @@ class Combo:
 
     def get_end_date_trading(self, lot):
         try:
-            return format_time_auction(
+            return format_time(
                 self.create_soup(lot)
                 .find('div', text=re.compile('Дата и время подведения итогов', re.IGNORECASE))
                 .find_next('div').get_text(strip=True)
@@ -418,9 +426,9 @@ class Combo:
         _div_step = (
             self.create_soup(lot)
             .find('div', text=re.compile('Шаг аукциона', re.IGNORECASE))
-            .find_next('div').get_text(strip=True)
         )
         if _div_step:
+            _div_step = _div_step.find_next('div').get_text(strip=True)
             step = ''.join(re.findall(r'^\d*\,?\d+', _div_step.replace('\xa0', ''))).replace(',', '.')
             start_price = self.get_start_price(lot)
             try:
@@ -461,9 +469,9 @@ class Combo:
                 return None
             try:
                 period = {
-                    'start_date_requests': format_time_auction(start),
-                    'end_date_requests': format_time_auction(end),
-                    'end_date_trading': format_time_auction(end),
+                    'start_date_requests': format_time(start),
+                    'end_date_requests': format_time(end),
+                    'end_date_trading': format_time(end),
                     'current_price': price
                 }
                 periods.append(period)

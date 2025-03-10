@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from general_utils import UrlConfig, dedent_func, get_region, CheckIfCorrectContactInfo, format_time_auction
+from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time
 from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 from ..utils.config import main_url, data_origin_url
 from ..utils.download import DownloadFiles
@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class Combo:
-    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -134,7 +133,8 @@ class Combo:
                                                                      _relative_path=dir.return_download_dir_etp())
                     lot_list.extend(lst_files)
                 else:
-                    lot_list.append({'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(main_url, link)})
+                    lot_list.append(
+                        {'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(main_url, link)})
         return lot_list
 
     def get_trade_table(self):
@@ -156,14 +156,11 @@ class Combo:
                 short_name = dedent_func(data[1])
                 status = self.get_status(data[2])
                 address = (data[3].strip() if isinstance(data[3], str) else None) or self.get_sud_address()
-                if address not in self.addresses:
-                    self.addresses[address] = get_region(address) or get_region(self.get_sud_address())
-                region = self.addresses[address]
                 start_price = self.get_start_price(data[4])
-                lots.append(
-                    [UrlConfig.url_join(data_origin_url, link.get('href')), lot_number, short_name, status, address,
-                     region, start_price]
-                )
+                lots.append([
+                    UrlConfig.url_join(data_origin_url, link.get('href')),
+                    lot_number, short_name, status, address, start_price
+                ])
             return lots
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH LOTS\n{e}', exc_info=True)
@@ -326,7 +323,7 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время начала представления заявок на участие')).next_sibling.get_text()
-            return format_time_auction(date)
+            return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH START DATE REQUESTS\n{e}', exc_info=True)
 
@@ -335,7 +332,7 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время окончания представления заявок на участие')).next_sibling.get_text()
-            return format_time_auction(date)
+            return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE REQUESTS\n{e}', exc_info=True)
 
@@ -385,6 +382,6 @@ class Combo:
         try:
             date = self.get_trade_table().find('b', text=re.compile(
                 'Дата и время подведения итогов торгов')).next_sibling.get_text()
-            return format_time_auction(date)
+            return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE TRADING\n{e}', exc_info=True)

@@ -71,7 +71,7 @@ class FabrikantSpider(BaseSpider):
         else:
             for link in all_links:
                 link = link.replace('https://fabrikant.ru', 'https://www.fabrikant.ru')
-                if (link,) not in self.previous_lots:
+                if link not in self.previous_lots:
                     yield Request(link, self.parse_trade)
 
     async def parse_trade(self, response):
@@ -91,8 +91,7 @@ class FabrikantSpider(BaseSpider):
             transfer['msg_number'] = combo.msg_number
             transfer['case_number'] = combo.case_number
             transfer['debtor_inn'] = combo.debtor_inn
-            address = combo.address
-            transfer['address'] = address
+            transfer['address'] = combo.address
             transfer['arbit_manager'] = combo.arbit_manager
             transfer['arbit_manager_inn'] = combo.arbit_manager_inn
             transfer['arbit_manager_org'] = combo.arbit_manager_org
@@ -104,6 +103,7 @@ class FabrikantSpider(BaseSpider):
             transfer['short_name'] = combo.get_short_name(lot)
             transfer['lot_info'] = combo.get_lot_info(lot)
             transfer['property_information'] = combo.get_property_information(lot)
+            transfer['categories'] = combo.get_categories(lot)
             if transfer['trading_type'] in ['auction', 'competition']:
                 transfer['start_date_requests'] = combo.get_start_date_requests(lot)
                 transfer['end_date_requests'] = combo.get_end_date_requests(lot)
@@ -153,6 +153,7 @@ class FabrikantSpider(BaseSpider):
         loader.add_value('short_name', transfer['short_name'])
         loader.add_value('lot_info', transfer['lot_info'])
         loader.add_value('property_information', transfer['property_information'])
+        loader.add_value('categories', transfer['categories'])
         loader.add_value('start_date_requests', transfer['start_date_requests'])
         loader.add_value('end_date_requests', transfer['end_date_requests'])
         loader.add_value('start_date_trading', transfer['start_date_trading'])

@@ -9,8 +9,8 @@ trade_type_offer = '3'
 trade_auction = '1'
 trade_competition_ = '2'
 
-absolute_path = f'{absolute_download_path}/etp_bankrot_cd'
-relative_path = f'{relative_download_path}/etp_bankrot_cd'
+absolute_path = f'{absolute_download_path}/etp_bankrot_cdtrf'
+relative_path = f'{relative_download_path}/etp_bankrot_cdtrf'
 
 lst_auction = [
     'https://bankrot.cdtrf.ru/public/undef/card/trade.aspx?id=052050',

@@ -1,6 +1,6 @@
 import requests
 
-from general_utils.config import socks_list, headers
+from general_utils.config import socks5_proxies, headers
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from random import choice
 import logging
@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 class DownloadFiles(GeneralFilesDir):
     general = GeneralFilesDir()
 
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:

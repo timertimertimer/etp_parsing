@@ -11,7 +11,7 @@ from aiohttp_retry import RetryClient, RetryOptions
 from aiohttp_socks import ProxyConnector
 from bs4 import BeautifulSoup as BS
 
-from general_utils.config import socks_list, headers, agent_list, lst_exet
+from general_utils.config import socks5_proxies, headers, user_agents, lst_exet
 from ..utils.config import data_origin_url
 from ..utils.work_with_path_and_dir import GeneralFilesDir
 from ..utils.work_with_text_and_number import dedent_func
@@ -28,7 +28,7 @@ statuses.remove(200)
 
 
 async def fetch(url) -> list or None:
-    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
+    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks5_proxies)}')
     async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
         async with session.get(url) as response:
             try:
@@ -41,7 +41,7 @@ async def fetch(url) -> list or None:
 
 
 async def fetch_retry(url, referer=None):
-    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
+    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks5_proxies)}')
     retry_options = RetryOptions(attempts=10, statuses=statuses, max_timeout=5.0,
                                  exceptions={ValueError, Exception, ConnectionError})
     retry_client = RetryClient(raise_for_status=True, retry_options=retry_options, headers=headers,
@@ -60,8 +60,8 @@ async def fetch_retry(url, referer=None):
 
 
 async def fetch_retry_download(url, referer=None):
-    headers['User-Agent'] = random.choice(agent_list)
-    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
+    headers['User-Agent'] = random.choice(user_agents)
+    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks5_proxies)}')
     retry_options = RetryOptions(attempts=10, statuses=statuses, max_timeout=4.0)
     retry_client = RetryClient(raise_for_status=False, retry_options=retry_options, headers=headers,
                                connector=connector)
@@ -73,8 +73,8 @@ async def fetch_retry_download(url, referer=None):
         return text
 
 async def fetchdownload(url, referer=None):
-    headers['User-Agent'] = random.choice(agent_list)
-    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks_list)}')
+    headers['User-Agent'] = random.choice(user_agents)
+    connector = ProxyConnector.from_url(f'socks5://{random.choice(socks5_proxies)}')
     async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
         async with session.get(url) as response:
             content_file = await response.content.read()

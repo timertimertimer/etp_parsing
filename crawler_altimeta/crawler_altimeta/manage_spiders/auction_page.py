@@ -1,3 +1,4 @@
+from general_utils import parse_classifiers
 from ..locators.locator_lot_page import LocatorLotPage
 from ..locators.locators_trade_page import LocatorTradePage
 from ..utils.work_with_text_and_number import dedent_func, get_lot_number, make_float, cut_lot_number, \
@@ -57,10 +58,12 @@ class AucPage:
         status = table.find('tbody').find('td', string=re.compile('татус торгов'))
         if status is not None:
             status = dedent_func(status.findNext('td').get_text().strip().lower())
-            active = ('идет прием заявок', 'идет приём заявок', 'идёт приём заявок', 'идёт приём заявок (приостановлены)')
+            active = (
+            'идет прием заявок', 'идет приём заявок', 'идёт приём заявок', 'идёт приём заявок (приостановлены)')
             pending = ('объявлены', 'объявлены (приостановлены)')
             ended = ('прием заявок завершен', 'приём заявок завершен (приостановлены)',
-                     'в стадии проведения', 'подводятся итоги', 'подводятся итоги (приостановлены)', 'торги отменены (приостановлены)',
+                     'в стадии проведения', 'подводятся итоги', 'подводятся итоги (приостановлены)',
+                     'торги отменены (приостановлены)',
                      'торги завершены', 'торги отменены', 'приём заявок завершен', 'торги завершены (приостановлены)')
             if status in active:
                 return 'active'
@@ -121,7 +124,8 @@ class AucPage:
             """
         table = BS(str(table_), features='lxml')
         property_info = table.find('tbody').find('td',
-                                                 string=re.compile(r'орядок ознакомления с имуществом \(предприятием\)'))
+                                                 string=re.compile(
+                                                     r'орядок ознакомления с имуществом \(предприятием\)'))
         if property_info is not None:
             return property_info.findNext('td').get_text().strip().replace("'", "\"")
 
@@ -160,3 +164,8 @@ class AucPage:
                 logger.error(f'{self.response.url} ::: ERROR {e} ::: STEP PRICE', exc_info=True)
                 return None
 
+    def get_categories(self, table):
+        table = BS(str(table), features='lxml')
+        categories = table.find('tbody').find('td', string=re.compile('Классификатор имущества'))
+        if categories:
+            return parse_classifiers(categories.findNext('td').get_text().strip())[0]

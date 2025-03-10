@@ -8,7 +8,7 @@ from random import choice
 import requests
 import urllib3
 
-from general_utils.config import socks_list
+from general_utils.config import socks5_proxies
 from ..utils.rar_file_manager import RarFiles
 from ..utils.seven_z import SevenZFiles
 from ..utils.working_with_url import UrlConfig
@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class DownloadFiles:
-    if len(socks_list) > 0 and socks_list[0] != '':
+    if len(socks5_proxies) > 0 and socks5_proxies[0] != '':
         proxies = {
-            'http': 'socks5://' + choice(socks_list),
-            'https': 'socks5://' + choice(socks_list)
+            'http': 'socks5://' + choice(socks5_proxies),
+            'https': 'socks5://' + choice(socks5_proxies)
 
         }
     else:

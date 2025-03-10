@@ -1,20 +1,16 @@
 import scrapy
 from scrapy import FormRequest, Request
 
+from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import formdata, search_link, data_origin
-from general_utils import DBHelper, UrlConfig
+from general_utils import UrlConfig
 
 
-class RoseltorgSpider(scrapy.Spider):
+class RoseltorgSpider(BaseSpider):
     name = "roseltorg"
     start_urls = [search_link]
     unique_links = set()
-
-    def __init__(self):
-        super(RoseltorgSpider).__init__()
-        self.db_check = DBHelper(f'lots_{self.name}')
-        self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self):
         yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='GET')

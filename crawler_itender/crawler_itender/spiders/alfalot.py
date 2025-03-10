@@ -102,7 +102,7 @@ class AlfalotSpider(ItenderBaseSpider):
             first_post[''] = ''
             # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link not in self.previous_lots:
+            if link[0] not in self.previous_lots:
                 yield Request(link[0],
                               callback=self.parse_trading_page_auction,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'link_trade': link[0],
@@ -135,7 +135,7 @@ class AlfalotSpider(ItenderBaseSpider):
             loader.add_value('msg_number', combo.auc.msg_number)
             loader.add_value('case_number', combo.auc.case_number)
             loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-            loader.add_value('address', combo.auc.get_address())
+            loader.add_value('address', combo.auc.address())
             loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
             loader.add_value('arbit_manager_inn', None)
             loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -217,7 +217,7 @@ class AlfalotSpider(ItenderBaseSpider):
             first_post[''] = ''
         # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link not in self.previous_lots:
+            if link[0] not in self.previous_lots:
                 yield Request(link[0], callback=self.parse_trade_page_offer,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True)
 
@@ -243,7 +243,7 @@ class AlfalotSpider(ItenderBaseSpider):
         loader.add_value('msg_number', combo.offer.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        loader.add_value('address', combo.auc.get_address())
+        loader.add_value('address', combo.auc.address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
@@ -434,7 +434,7 @@ class AlfalotSpider(ItenderBaseSpider):
             first_post[''] = ''
         # GO TO TRADING PAGE
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link not in self.previous_lots:
+            if link[0] not in self.previous_lots:
                 yield Request(link[0], callback=self.parse_trade_page_competition,
                               cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True)
 
@@ -461,7 +461,7 @@ class AlfalotSpider(ItenderBaseSpider):
         loader.add_value('msg_number', combo.compet.msg_number)
         loader.add_value('case_number', combo.auc.case_number)
         loader.add_value('debtor_inn', combo.auc.get_debtor_inn())
-        loader.add_value('address', combo.auc.get_address())
+        loader.add_value('address', combo.auc.address())
         loader.add_value('arbit_manager', combo.auc.get_arbitr_name())
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())

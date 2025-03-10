@@ -1,2 +1,0 @@
-docker stop splash_msg_fedres
-docker rm splash_msg_fedres

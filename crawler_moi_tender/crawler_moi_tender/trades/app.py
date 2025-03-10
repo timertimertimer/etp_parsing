@@ -43,7 +43,6 @@ class Combo:
             region_city = lot.find('div', class_='region-city')
             span = region_city.find('span')
             address = dedent_func(span.find('b').get_text())
-            region = RegionIdentifier.get_region(address)
 
             trading_id = trading_number = dedent_func(
                 lot.find('div', class_='num').get_text(strip=True).replace('№', '')
@@ -64,7 +63,7 @@ class Combo:
                     'trading_id': trading_id, 'trading_link': trading_link, 'trading_number': trading_number,
                     'trading_form': trading_form, 'start_price': start_price,
                     'category': category, 'org': org, 'org_link': org_link, 'status': status, 'short_name': short_name,
-                    'address': address, 'region': region
+                    'address': address
                 }
             )
         return lots_data

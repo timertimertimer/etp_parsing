@@ -63,12 +63,7 @@ class BaseSpider(Spider):
         transfer['msg_number'] = combo.msg_number
         transfer['case_number'] = combo.case_number
         transfer['debtor_inn'] = combo.debtor_inn
-        address = combo.address
-        region = None
-        if address:
-            region = RegionIdentifier.get_region(address)
-        transfer['address'] = address
-        transfer['region'] = region
+        transfer['address'] = combo.address
         transfer['arbit_manager'] = combo.arbit_manager
         transfer['arbit_manager_inn'] = combo.arbit_manager_inn
         transfer['arbit_manager_org'] = combo.arbit_manager_org
@@ -106,7 +101,6 @@ class BaseSpider(Spider):
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
             loader.add_value('address', transfer['address'])
-            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])
@@ -151,7 +145,6 @@ class BaseSpider(Spider):
             loader.add_value('case_number', transfer['case_number'])
             loader.add_value('debtor_inn', transfer['debtor_inn'])
             loader.add_value('address', transfer['address'])
-            loader.add_value('region', transfer['region'])
             loader.add_value('arbit_manager', transfer['arbit_manager'])
             loader.add_value('arbit_manager_inn', transfer['arbit_manager_inn'])
             loader.add_value('arbit_manager_org', transfer['arbit_manager_org'])

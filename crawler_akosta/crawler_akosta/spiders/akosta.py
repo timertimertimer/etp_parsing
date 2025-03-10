@@ -1,20 +1,19 @@
 import copy
 import logging
 from itertools import chain
-from scrapy import Spider, Request, FormRequest
-from scrapy.exceptions import CloseSpider
+from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
-from general_utils.db import DBHelper
 from general_utils.config import start_date
 from general_utils.items import EtpItem, EtpItemLoader
 from general_utils.models import Auction
-from general_utils.working_with_time import return_servertime, return_parse_date
+from general_utils.working_with_time import return_servertime
 from ..manage_spider.app import Combo
 from ..utils.config import search_link, data_origin, common_link, debtor_link, lot_link, _link_post_period
-from ..utils.post_data import post_data_date_query, post_data_pagination, post_data_to_trade, \
-    post_data_panel_list_query, post_data_debitor, post_data_lot_tab, post_data_unique_lot_page, \
-    post_data_period_offer_page
+from ..utils.post_data import (
+    post_data_date_query, post_data_pagination, post_data_to_trade, post_data_panel_list_query, post_data_debitor,
+    post_data_lot_tab, post_data_unique_lot_page, post_data_period_offer_page
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,19 +61,22 @@ class AkostaSpider(BaseSpider):
 
     def parse_panel_list(self, response, page_number, total_pages, viewstate):
         combo = Combo(response)
+        sources = dict()
         if page_number == 1:
             current_page, total_pages = combo.pre.get_total_and_current_page
-            sources = dict()
             for tag_tr in combo.pre.get_trade_links():
                 data, id_ = combo.pre.get_post_id_and_trading_id(tag_tr)
-                # if id_ in self.previous_lots:
-                #     continue
+                if id_ in self.previous_lots:
+                    continue
                 if id_ not in sources:
                     sources[id_] = data
         else:
-            sources = combo.pre.get_trade_links_2()
-        if sources:
-            yield from self.process_trade_one_by_one(response, sources, page_number, total_pages, viewstate)
+            for id_, data in combo.pre.get_trade_links_2().items():
+                if id_ in self.previous_lots:
+                    continue
+                if id_ not in sources:
+                    sources[id_] = data
+        yield from self.process_trade_one_by_one(response, sources, page_number, total_pages, viewstate)
 
     def process_trade_one_by_one(self, response, sources, page_number, total_pages, viewstate):
         combo = Combo(response)
@@ -103,8 +105,8 @@ class AkostaSpider(BaseSpider):
                 post_data_pagination["formMain:lotListTable_first"] = str(data_lots)
                 post_data_pagination["formMain:inputServerTime"] = return_servertime()
                 post_data_pagination["javax.faces.ViewState"] = viewstate
-                yield FormRequest.from_response(
-                    response, callback=self.parse_panel_list, formdata=post_data_pagination, dont_filter=True,
+                yield FormRequest(
+                    response.url, callback=self.parse_panel_list, formdata=post_data_pagination, dont_filter=True,
                     cb_kwargs={'page_number': page_number, 'total_pages': total_pages, 'viewstate': viewstate}
                 )
 
@@ -171,7 +173,8 @@ class AkostaSpider(BaseSpider):
         transfer['arbit_manager'] = combo.deb.get_arbitr_full_name()
         transfer['arbit_manager_org'] = combo.deb.get_arbitr_company()
         transfer['debtor_inn'] = combo.deb.get_debtor_inn()
-        if combo.deb.soup.find('input', type='checkbox').get('checked') or transfer['trading_org'] == transfer['arbit_manager']:
+        if combo.deb.soup.find('input', type='checkbox').get('checked') or transfer['trading_org'] == transfer[
+            'arbit_manager']:
             transfer['trading_org_inn'] = transfer['arbit_manager_inn']
         transfer['address'] = combo.deb.get_debtor_address()
         post_data_lot_tab['formMain:inputServerTime'] = return_servertime()
@@ -298,7 +301,8 @@ class AkostaSpider(BaseSpider):
         loader.add_value('short_name', combo.auc.get_short_name(lot_number))
         loader.add_value('lot_info', combo.auc.get_lot_info())
         loader.add_value('property_information', combo.auc.get_property_info())
-        loader.add_value('start_price', combo.offer.get_start_price())
+        loader.add_value('start_price', combo.start_price)
+        loader.add_value('categories', combo.categories)
         lot_files = {'lot': []}
         _files = files
         gen = {'general': _files}
@@ -396,8 +400,9 @@ class AkostaSpider(BaseSpider):
         loader.add_value('short_name', combo.auc.get_short_name(lot_number))
         loader.add_value('lot_info', combo.auc.get_lot_info())
         loader.add_value('property_information', combo.auc.get_property_info())
-        loader.add_value('start_price', combo.auc.start_price_auction())
-        loader.add_value('step_price', combo.auc.step_price_auction())
+        loader.add_value('start_price', combo.start_price)
+        loader.add_value('step_price', combo.step_price)
+        loader.add_value('categories', combo.categories)
         lot_files = {'lot': list()}
         _files = files
         gen = {'general': _files}

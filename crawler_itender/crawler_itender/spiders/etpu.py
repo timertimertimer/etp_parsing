@@ -12,9 +12,9 @@ from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer as pdao
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_competition as pdcom
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_offer_period as pdop
+from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
 from ..utils.post_data_for_spiders.bankrupt_electro_torgi_post_data import post_data_auction_pagination as pdapag
 from ..manage_spiders.app import Combo
-from ..utils.post_data_for_spiders.arbitat_post_data import post_data_offer_period as pdop_without_doc
 from ..utils.config import start_date, return_auction_link, data_origin, return_offer_link, return_compet_link, \
     tables
 import copy
@@ -22,11 +22,11 @@ import copy
 import logging
 
 logger = logging.getLogger(__name__)
-TABLE = tables['table_bankrupt_centrr']
+TABLE = tables['table_bankrupt_etpu']
 
 
-class BankruptCentrrSpider(ItenderBaseSpider):
-    name = 'bankrupt_centrr'
+class EtpuSpider(ItenderBaseSpider):
+    name = 'etpu'
 
     async def parse_(self, response, _type):
         first_post = None
@@ -124,7 +124,7 @@ class BankruptCentrrSpider(ItenderBaseSpider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page,
-                      cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files}, dont_filter=True)
 
@@ -209,8 +209,8 @@ class BankruptCentrrSpider(ItenderBaseSpider):
         loader.add_value('arbit_manager_inn', None)
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
-        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin, host=self.allowed_domains[0],
-                                                  crawler_name=self.name)
+        general_files = combo.offer.general_files(_id=_id, _data_origin=self.data_origin,
+                                                  host=self.allowed_domains[0], crawler_name=self.name)
 
         # lot_info
         pagination_on_page: list = combo.auc.pagination
@@ -219,7 +219,7 @@ class BankruptCentrrSpider(ItenderBaseSpider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_offer,
-                      cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files,
                                                  'pdata_lot_page_period': pdapag}, dont_filter=True)
@@ -448,7 +448,7 @@ class BankruptCentrrSpider(ItenderBaseSpider):
         pdapag['__EVENTTARGET'] = combo.serp.body_scripts()
         pdapag['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(lot_link, callback=self.parse_lot_page_competition,
-                      cb_kwargs={'loader': loader,
+                       cb_kwargs={'loader': loader,
                                                  'lot_number': lot_number,
                                                  'general': general_files}, dont_filter=True)
 
@@ -479,3 +479,4 @@ class BankruptCentrrSpider(ItenderBaseSpider):
             loader.add_value('files', total_files)
             loader.add_value('created_at', return_parse_date())
             yield loader.load_item()
+

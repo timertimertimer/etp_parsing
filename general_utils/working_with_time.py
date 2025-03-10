@@ -42,7 +42,7 @@ def format_time_period(strtime):
         return None
 
 
-def parse_datetime(string: str) -> datetime:
+def parse_datetime(string: str, format: str) -> datetime:
     formats = [
         '%Y-%m-%dT%H:%M:%S.%fZ',  # с миллисекундами и Z
         '%Y-%m-%dT%H:%M:%S.%f',  # с миллисекундами без Z
@@ -56,14 +56,18 @@ def parse_datetime(string: str) -> datetime:
             return dt.replace(tzinfo=pytz.utc)
         except ValueError:
             continue
-
+    if format:
+        try:
+            return datetime.strptime(string, format)
+        except ValueError:
+            pass
     raise ValueError(f"Не удалось распарсить дату: {string}")
 
 
 @format_time_strftime
 def return_parse_date(string: str = None, format: str = None) -> datetime:
     if string:
-        utc_time = parse_datetime(string)
+        utc_time = parse_datetime(string, format)
         return utc_time.astimezone(moscow_tz)
     return datetime.now(moscow_tz)
 
@@ -85,4 +89,4 @@ def what_time_bigger(time_string_1, time_string_2, url):
 
 
 if __name__ == '__main__':
-    print(return_parse_date('2025-03-04T21:00:00Z', '%Y-%m-%dT%H:%M:%SZ'))
+    print(format_time('03.03.2025 10:00'))

@@ -104,12 +104,7 @@ class LotOnlineSpider(scrapy.Spider):
         loader.add_value('deposit', combo.deposit)
         loader.add_value('periods', combo.periods)
         loader.add_value('lot_info', combo.lot_info)
-        address = combo.address
-        region = None
-        if address:
-            region = RegionIdentifier.get_region(address)
-        loader.add_value('address', address)
-        loader.add_value('region', region)
+        loader.add_value('address', combo.address)
         loader.add_value('start_date_requests', combo.start_date_requests)
         loader.add_value('end_date_requests', combo.end_date_requests)
         loader.add_value('start_date_trading', combo.start_date_trading)

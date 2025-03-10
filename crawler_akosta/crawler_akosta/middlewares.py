@@ -10,6 +10,7 @@ class CrawlerAkostaDownloaderMiddleware(ETPDownloaderMiddleware):
         if response.url == 'https://www.akosta.info/akosta/sessionExpired.xhtml':
             logger.debug(f'{response.url} :: SESSION EXPIRED')
             request.headers.pop(b'Cookie')
+            request.url = request.headers['Referer']
             new_request = request.replace(cookies={}, dont_filter=True)
             return new_request
         return response

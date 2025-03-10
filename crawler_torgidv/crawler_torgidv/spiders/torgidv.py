@@ -69,7 +69,7 @@ class TorgidvSpider(scrapy.Spider):
         trading_org = combo.trading_org
         trading_org_inn = combo.trading_org_inn
         trading_org_contacts = combo.trading_org_contacts
-        address, region = combo.get_address() or (None, None)
+        address, region = combo.address
         msg_number = combo.msg_number
         case_number = combo.case_number
         start_date_requests = combo.start_date_requests
@@ -89,7 +89,6 @@ class TorgidvSpider(scrapy.Spider):
             loader.add_value('trading_org_inn', trading_org_inn)
             loader.add_value('trading_org_contacts', trading_org_contacts)
             loader.add_value('address', address)
-            loader.add_value('region', region)
             loader.add_value('msg_number', msg_number)
             loader.add_value('case_number', case_number)
             loader.add_value('start_date_requests', start_date_requests)

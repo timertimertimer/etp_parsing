@@ -3,77 +3,7 @@ import json
 import scrapy
 from scrapy import Item, Field
 from scrapy.loader import ItemLoader
-from itemloaders.processors import TakeFirst, Compose
-
-
-def to_json(value: list):
-    try:
-        data = json.dumps(value, indent=1, ensure_ascii=False).encode('utf-8')
-        return data
-    except:
-        data = json.dumps(value, indent=1, ensure_ascii=True).encode('utf-8')
-        return data
-
-
-class CounterpartyItem(Item):
-    id = Field()
-    inn = Field()
-    # kpp = Field()
-    # ogrn = Field()
-    # okpo = Field()
-    # snils = Field()
-    # ogrnip = Field()
-    name = Field()
-    short_name = Field()
-    email = Field()
-    phone = Field()
-    address = Field()
-    url = Field()
-    # fedresurs_url = Field()
-    type = Field()
-    # legal_entity_type = Field()
-    # registration_number = Field()
-    # registered_at = Field()
-    sro = Field()
-    # sro_entered_at = Field()
-
-
-class TradeItem(Item):
-    id = Field()
-    ext_id = Field()
-    url = Field()
-    number = Field()
-    type = Field()
-    form = Field()
-    message_number = Field()
-    case_number = Field()
-    address = Field()
-
-
-class LotItem(Item):
-    id = Field()
-    ext_id = Field()
-    url = Field()
-    number = Field()
-    name = Field()
-    info = Field()
-    property_info = Field()
-
-
-class LotPeriodItem(Item):
-    id = Field()
-    request_start_at = Field()
-    request_end_at = Field()
-    trading_start_at = Field()
-    trading_end_at = Field()
-    price = Field()
-
-
-class FileItem(Item):
-    id = Field()
-    name = Field()
-    path = Field()
-    url = Field()
+from itemloaders.processors import TakeFirst, Compose, Identity
 
 
 class EtpItem(scrapy.Item):
@@ -100,6 +30,7 @@ class EtpItem(scrapy.Item):
     lot_number = scrapy.Field()
     short_name = scrapy.Field()
     lot_info = scrapy.Field()
+    categories = scrapy.Field()
     property_information = scrapy.Field()
     start_date_requests = scrapy.Field()
     end_date_requests = scrapy.Field()
@@ -126,7 +57,7 @@ class EtpItemLoader(ItemLoader):
     region_out = TakeFirst()
     trading_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     trading_org_inn_out = TakeFirst()
-    trading_org_contacts_out = Compose(TakeFirst(), to_json)
+    trading_org_contacts_out = TakeFirst()
     arbit_manager_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     arbit_manager_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     arbit_manager_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
@@ -135,6 +66,7 @@ class EtpItemLoader(ItemLoader):
     lot_number_out = TakeFirst()
     short_name_out = TakeFirst()
     lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
+    categories_out = Identity()
     property_information_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     start_date_requests_out = TakeFirst()
     end_date_requests_out = TakeFirst()
@@ -142,8 +74,8 @@ class EtpItemLoader(ItemLoader):
     end_date_trading_out = TakeFirst()
     start_price_out = TakeFirst()
     step_price_out = TakeFirst()
-    periods_out = Compose(to_json)
-    files_out = Compose(TakeFirst(), to_json)
+    periods_out = Identity()
+    files_out = TakeFirst()
 
 
 class CrawlerNonBankruptItem(scrapy.Item):
@@ -189,7 +121,7 @@ class CrawlerNonBankruptItemLoader(ItemLoader):
     trading_type_out = TakeFirst()
     trading_form_out = TakeFirst()
     trading_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    trading_org_contacts_out = Compose(TakeFirst(), to_json)
+    trading_org_contacts_out = TakeFirst()
     status_out = TakeFirst()
     index_out = TakeFirst()
     address_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
@@ -197,7 +129,7 @@ class CrawlerNonBankruptItemLoader(ItemLoader):
     encumbrance_out = TakeFirst()
     description_encumbrance_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     lot_number_out = TakeFirst()
-    category_out = Compose(TakeFirst(), to_json)
+    category_out = TakeFirst()
     short_name_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     property_information_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
@@ -211,6 +143,6 @@ class CrawlerNonBankruptItemLoader(ItemLoader):
     start_price_out = TakeFirst()
     step_price_out = TakeFirst()
     min_price_out = TakeFirst()
-    periods_out = Compose(to_json)
-    files_out = Compose(TakeFirst(), to_json)
-    created_at_out = TakeFirst()
+    periods_out = TakeFirst()
+    files_out = Identity()
+    created_at_out = Identity()

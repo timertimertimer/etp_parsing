@@ -167,3 +167,4 @@ data/api_keys.json
 proxy*
 alembic/
 alembic.ini
+*.html

@@ -79,7 +79,7 @@ class TradePage:
         """ return full name of organizer """
         try:
             _div = self.return_org_text()
-            return dedent_func(_div.a.get_text().strip())
+            return dedent_func(' '.join(_div.a.get_text().strip().split()))
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR org name {ex}')
 

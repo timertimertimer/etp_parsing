@@ -102,17 +102,15 @@ class AuctionParse:
                 inn = div_inn.get_text()
                 return self.check.check_inn(inn)
 
-    def get_address(self):
+    @property
+    def address(self):
         label = self.soup.find('label', string=re.compile(r'Сведения о банкротстве', re.IGNORECASE))
         if label:
             div_bankrot_info = label.findNext('div', class_='auction_table') \
                 .find('div', string=re.compile(r'Наименование арбитражного суда:', re.IGNORECASE))
             if div_bankrot_info:
                 div_bankrot_info = div_bankrot_info.findNextSibling('div')
-                address = div_bankrot_info.get_text().strip()
-                if address not in self.addresses:
-                    self.addresses[address] = get_region(address)
-                return address, self.addresses[address]
+                return div_bankrot_info.get_text().strip()
 
     def get_property_information(self):
         """ :return property_information """
