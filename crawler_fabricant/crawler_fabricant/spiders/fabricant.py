@@ -1,20 +1,14 @@
 import urllib.parse
-
+import logging
+from scrapy import Request
+from bs4 import BeautifulSoup as BS
 from scrapy_splash import SplashRequest
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError, TCPTimedOutError
 from scrapy_splash import SplashFormRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from ..app import Combo
-from ..utils.data_for_requests import *
-from ..utils.config import *
-from scrapy import Request
-from bs4 import BeautifulSoup as BS
-import logging
-from ..trades.offer import OfferParse
+from ..config import *
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +43,6 @@ class FabrikantSpider(BaseSpider):
         current_page = response.meta['current_page']
         links = response.css('.marketplace-unit.ready h4 a::attr(href)').getall()
         all_links = (all_links or set()).union(links)
-        # next_page = response.xpath(pagination_button_loc).get()
         next_page = None
         parse_link = None
         link = None
@@ -75,9 +68,8 @@ class FabrikantSpider(BaseSpider):
                     yield Request(link, self.parse_trade)
 
     async def parse_trade(self, response):
-        offer = OfferParse(response_=response)
         combo = Combo(response)
-        for lot in offer.count_lots():
+        for lot in combo.count_lots():
             transfer = EtpItem()
             transfer['data_origin'] = data_origin_url
             transfer['trading_id'] = combo.trading_id
@@ -95,7 +87,6 @@ class FabrikantSpider(BaseSpider):
             transfer['arbit_manager'] = combo.arbit_manager
             transfer['arbit_manager_inn'] = combo.arbit_manager_inn
             transfer['arbit_manager_org'] = combo.arbit_manager_org
-
             transfer['status'] = combo.get_status(lot)
             transfer['lot_id'] = combo.get_lot_id(lot)
             transfer['lot_link'] = combo.get_lot_link(lot)
@@ -119,14 +110,14 @@ class FabrikantSpider(BaseSpider):
                 transfer['end_date_trading'] = transfer['periods'][-1]['end_date_trading']
                 transfer['start_price'] = transfer['periods'][0]['current_price']
             yield Request(
-                url=offer.link_doc_page(response.url), callback=self.documentation,
+                url=combo.link_doc_page(response.url), callback=self.documentation,
                 cb_kwargs={'transfer': transfer}, dont_filter=True
             )
 
     def documentation(self, response, transfer):
         combo = Combo(response)
-        general = combo.download_general(transfer['trading_id'])
-        lot_file = combo.download_lot(transfer['trading_id'], transfer['lot_number'])
+        general = combo.download_general()
+        lot_file = combo.download_lot(transfer['lot_number'])
         if lot_file is None:
             lot_file = list()
         loader = EtpItemLoader(EtpItem(), response=response)
@@ -163,16 +154,3 @@ class FabrikantSpider(BaseSpider):
         loader.add_value('periods', transfer.get('periods'))
         loader.add_value('files', {'general': general, 'lot': lot_file})
         yield loader.load_item()
-
-    def errback_httpbin(self, failure):
-        # logs failures
-        self.logger.error(repr(failure))
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url)
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

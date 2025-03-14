@@ -3,16 +3,15 @@ from bs4 import BeautifulSoup as BS
 import re
 import logging
 
-from ..utils.working_with_url import UrlConfig
+from general_utils import UrlConfig
 
 logger = logging.getLogger(__name__)
 
 
 class SerpPages:
 
-    def __init__(self, resposne_):
-        self.url = UrlConfig()
-        self.response = resposne_
+    def __init__(self, response):
+        self.response = response
         self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
                        features='lxml')
 
@@ -36,10 +35,8 @@ class SerpPages:
             return None
 
     def update_url_lot_param(self, url, new_value):
-        """ :arg url -> first url of lots for template
-            :arg new_value"""
         param = 'id'
-        return self.url.update_param(url, param, new_value)
+        return UrlConfig.update_param(url, param, new_value)
 
     def get_priceTo(self):
         """ get value of param organizationId for form data """

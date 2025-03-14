@@ -11,12 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 class AuctionPage:
-    def __init__(self, _response):
-        self.response = _response
+    def __init__(self, response):
+        self.response = response
         self.loc = LocatorSerp
         self.loc_auc = AuctionLocator
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
+        self.soup = (
+            BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        )
 
     @property
     def pagination(self):
@@ -372,3 +373,12 @@ class AuctionPage:
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA STEP PRICE AUCTION/COMPETITION\n{e}')
             return None
+
+    @property
+    def categories(self):
+        categories = self.response.xpath(self.loc_auc.categories_loc).get()
+        if categories:
+            return '. '.join([
+                category.get_text(strip=True)
+                for category in BS(str(categories), features='lxml').find_all('tr', class_='gridRow')
+            ])

@@ -1,7 +1,6 @@
 from scrapy import Request
 
 from general_utils import EtpItemLoader, EtpItem, return_parse_date
-from general_utils.location import RegionIdentifier
 from .base_catalog import LotOnlineBaseSpider
 from ..catalog_app import Combo
 

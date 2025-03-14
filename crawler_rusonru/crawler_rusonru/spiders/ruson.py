@@ -1,28 +1,25 @@
 import logging
 from itertools import chain
 
-from scrapy import Spider, Request, FormRequest
+from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from general_utils.base_spider import BaseSpider
+from ..config import data_origin, trade_link, stop_page, formdata
 from ..trades.app import Combo
-from ..utils.config import data_origin, trade_link, stop_page
-from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.pagination_param_data import param_data
 
 logger = logging.getLogger(__name__)
 
 
-class RusonSpider(Spider):
+class RusonSpider(BaseSpider):  # FIXME
     name = 'ruson'
     allowed_domains = ['rus-on.ru']
     start_url = data_origin
 
     def __init__(self):
-        super(RusonSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(RusonSpider, self).__init__(data_origin[self.name])
 
     def start_requests(self):
         yield Request(self.start_url, self.parse_main)
@@ -68,9 +65,9 @@ class RusonSpider(Spider):
         current_page = combo.serp.get_curent_page()
         next_page = current_page + 1
         if 0 < next_page < stop_page:
-            param_data['pagenum'] = str(next_page)
+            formdata['pagenum'] = str(next_page)
             yield FormRequest(trade_link, callback=self.parse_serp,
-                              formdata=param_data, method='GET',
+                              formdata=formdata, method='GET',
                               errback=self.errback_httpbin)
 
     def parse_auction(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):

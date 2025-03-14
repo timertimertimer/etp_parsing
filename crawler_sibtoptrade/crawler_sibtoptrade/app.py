@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup as BS
 
 from .config import relative_path, absolute_path
 from .locator import Locator
-from general_utils.models import RequestData
-from general_utils import FilesDir, dedent_func, CheckIfCorrectContactInfo, get_region, make_float, DownloadFiles
-from general_utils.config import lst_exet, lst_exet_archive
+from general_utils.models import DownloadData
+from general_utils import dedent_func, CheckIfCorrectContactInfo, make_float
+from general_utils.config import image_formats, archive_formats
 
 logger = logging.getLogger(__name__)
 
@@ -50,47 +50,13 @@ class Combo:
             logger.warning(e)
 
     def download_general(self):
-        load = DownloadFiles()
-        files_dir = FilesDir(relative_path, absolute_path)
+        files = list()
         soup = BS(self.response.text, 'lxml')
-        lst_general = list()
-        selector_links = soup.select('.doclist a')
-        if selector_links:
-            files_dir.create_dir()
-        for a in selector_links:
+        for a in soup.select('.doclist a'):
             link_etp = ''.join(a.get('href'))
             name = ''.join(a.get_text()).strip()
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(self.trading_id, name)
-            path_absolute = files_dir.return_absolute_path(name_on_server)
-            path_relative = files_dir.return_relative_path(name_on_server)
-            request_data = RequestData(url=link_etp)
-            if pathlib.Path(name_on_server).suffix in lst_exet_archive:
-                archive_lst = load.request_to_download_general(
-                    request_data=request_data,
-                    absolute_path=path_absolute,
-                    relative_path=path_relative,
-                    trading_id=self.trading_id
-                )
-                lst_general.extend(archive_lst)
-            elif pathlib.Path(name_on_server).suffix in lst_exet:
-                load.request_to_download_general(
-                    request_data=request_data,
-                    absolute_path=path_absolute,
-                    relative_path=path_relative,
-                    trading_id=self.trading_id,
-                )
-                lst_general.append(
-                    {
-                        'original_name': name,
-                        'link': files_dir.return_relative_path(name_on_server).as_posix(),
-                        'link_etp': link_etp
-                    }
-                )
-            else:
-                lst_general.append({'original_name': name, 'link': '', 'link_etp': link_etp})
-        return lst_general
+            files.append(DownloadData(url=link_etp, file_name=name))
+        return files
 
     def download_lot(self):
         return []
@@ -110,8 +76,6 @@ class Combo:
         auction = ['Открытый аукцион',
                    'Закрытый аукцион']
         competition = ['Конкурс', 'Закрытый конкурс']
-        #    pattern = r'(\D{4}$)'
-        #    match = ''.join(re.findall(pattern, str(code).strip()))
         string_ = (''.join(string_)).strip()
         if string_ in auction:
             return 'auction'
@@ -128,8 +92,6 @@ class Combo:
                      'Публичное предложение',
                      'Открытая форма предложения о цене']
         close_form = ['Закрытый аукцион', 'Закрытая форма предложения о цене', 'Закрытый конкурс']
-        #    pattern = r'(\D{4}$)'
-        #    match = ''.join(re.findall(pattern, str(code).strip()))
         string_ = (''.join(string_)).strip()
         if string_ in open_form:
             return 'open'

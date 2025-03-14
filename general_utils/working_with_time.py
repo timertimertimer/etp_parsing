@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import pytz
 
@@ -72,8 +72,12 @@ def return_parse_date(string: str = None, format: str = None) -> datetime:
     return datetime.now(moscow_tz)
 
 
-def return_servertime():
-    return datetime.now(moscow_tz).strftime('%H:%M:%S')
+def return_servertime(format: str = '%H:%M:%S'):
+    return datetime.now(moscow_tz).strftime(format)
+
+
+def return_servertime_timestamp():
+    return str(int(datetime.now(moscow_tz).timestamp()))
 
 
 def what_time_bigger(time_string_1, time_string_2, url):
@@ -88,5 +92,12 @@ def what_time_bigger(time_string_1, time_string_2, url):
     return date_var
 
 
+def increase_time_days(time_from, days):
+    time_delta = timedelta(days=days)
+    time_from = datetime.strptime(time_from, '%d.%m.%Y %H:%S')
+    time_to = time_from + time_delta
+    return time_to.strftime('%d.%m.%Y %H:%S')
+
+
 if __name__ == '__main__':
-    print(format_time('03.03.2025 10:00'))
+    print(return_servertime_timestamp())

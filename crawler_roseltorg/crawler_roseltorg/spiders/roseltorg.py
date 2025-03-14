@@ -1,4 +1,3 @@
-import scrapy
 from scrapy import FormRequest, Request
 
 from general_utils.base_spider import BaseSpider
@@ -12,13 +11,16 @@ class RoseltorgSpider(BaseSpider):
     start_urls = [search_link]
     unique_links = set()
 
+    def __init__(self):
+        super().__init__(data_origin)
+
     def start_requests(self):
         yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='GET')
 
     def parse_serp(self, response):
         combo = Combo(response)
         for link in combo.get_trade_links():
-            if (link,) not in self.previous_lots:
+            if link not in self.previous_lots:
                 self.unique_links.add(link)
         if next_page := combo.get_next_page_link():
             yield Request(next_page, self.parse_serp)

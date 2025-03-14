@@ -1,4 +1,4 @@
-from general_utils import get_region
+from general_utils import delete_extra_symbols, cut_lot_number
 from .libraries import *
 
 logger = logging.getLogger(__name__)
@@ -170,7 +170,7 @@ class AuctionParse:
         _div = self.soup.find('div', string=re.compile(r'Дата начала представления заявок на участие:', re.IGNORECASE))
         if _div:
             data_requests = _div.findNext('div').get_text().strip().lower()
-            return format_time_auction(data_requests)
+            return format_time(data_requests)
         logger.error(f'{self.response.url} :: ERROR function {self.start_date_requests_auction.__name__}')
 
     def end_date_requests_auction(self):
@@ -178,14 +178,14 @@ class AuctionParse:
         _div = self.response.xpath('//div[contains(text(), "Дата окончания")]/following::div[1]/text()').get()
         if _div:
             end_date_req = _div.strip().lower()
-            return format_time_auction(end_date_req)
+            return format_time(end_date_req)
         logger.error(f'{self.response.url} :: ERROR function {self.end_date_requests_auction.__name__}')
 
     def start_date_trading(self):
         _div = self.soup.find('div', string=re.compile(r'Дата проведения', re.IGNORECASE)) or self.soup.find('div', string=re.compile(r'Подведение результатов торгов:', re.IGNORECASE))
         if _div:
             end_date_req = _div.findNext('div').get_text().strip().lower()
-            return format_time_auction(end_date_req)
+            return format_time(end_date_req)
         logger.error(f'{self.response.url} :: ERROR function {self.start_date_trading.__name__}')
 
     def start_price(self):

@@ -5,8 +5,8 @@ def au_pro():
     execute(['scrapy', 'crawl', 'au_pro'])
 
 
-def tenderstandartru():
-    execute(['scrapy', 'crawl', 'tenderstandartru'])
+def tenderstandart():
+    execute(['scrapy', 'crawl', 'tenderstandart'])
 
 
 def torggroup():
@@ -19,6 +19,6 @@ def viomitra():
 
 if __name__ == '__main__':
     # au_pro()
-    tenderstandartru()
+    # tenderstandart()
     # torggroup()
-    # viomitra()
+    viomitra()

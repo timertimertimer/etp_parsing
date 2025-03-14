@@ -3,8 +3,8 @@ import pathlib
 
 from .utils.config import path_absolute, path_relative
 from general_utils import DownloadFiles, FilesDir, dedent_func, CheckIfCorrectContactInfo, return_parse_date
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
-from general_utils.models import RequestData
+from general_utils.config import lst_exeption, image_formats, archive_formats
+from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,10 @@ class Combo:
             relative_path = files_dir.return_relative_path(name_on_server)
             if not any(ele in name for ele in lst_exeption):
                 files_dir.create_dir()
-                request_data = RequestData(url=link)
-                if pathlib.Path(name).suffix in lst_exet:
+                request_data = DownloadData(url=link)
+                if pathlib.Path(name).suffix in image_formats:
                     load.request_to_download_general(
-                        request_data=request_data, absolute_path=absolute_path,
+                        download_data=request_data, absolute_path=absolute_path,
                         relative_path=relative_path, trading_id=self.trading_id,
                     )
                     lst_general.append(
@@ -43,9 +43,9 @@ class Combo:
                             'link_etp': link
                         }
                     )
-                elif pathlib.Path(name).suffix in lst_exet_archive:
+                elif pathlib.Path(name).suffix in archive_formats:
                     archive_lst = load.request_to_download_general(
-                        request_data=request_data, absolute_path=absolute_path,
+                        download_data=request_data, absolute_path=absolute_path,
                         relative_path=relative_path, trading_id=self.trading_id
                     )
                     lst_general.extend(archive_lst)
@@ -69,10 +69,10 @@ class Combo:
             relative_path = files_dir.return_relative_path(name_on_server)
             if not any(ele in name for ele in lst_exeption):
                 files_dir.create_dir()
-                request_data = RequestData(url=link)
-                if pathlib.Path(name).suffix in lst_exet:
+                request_data = DownloadData(url=link)
+                if pathlib.Path(name).suffix in image_formats:
                     load.request_to_download_general(
-                        request_data=request_data, absolute_path=absolute_path,
+                        download_data=request_data, absolute_path=absolute_path,
                         relative_path=relative_path, trading_id=self.trading_id, lot_number=self.get_lot_number(lot)
                     )
                     lst_lot.append(
@@ -82,9 +82,9 @@ class Combo:
                             'link_etp': link
                         }
                     )
-                elif pathlib.Path(name).suffix in lst_exet_archive:
+                elif pathlib.Path(name).suffix in archive_formats:
                     archive_lst = load.request_to_download_general(
-                        request_data=request_data, absolute_path=absolute_path,
+                        download_data=request_data, absolute_path=absolute_path,
                         relative_path=relative_path, trading_id=self.trading_id, lot_number=self.get_lot_number(lot)
                     )
                     lst_lot.extend(archive_lst)

@@ -1,6 +1,5 @@
 import copy
 import logging
-from itertools import chain
 from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
@@ -34,7 +33,6 @@ class AkostaSpider(BaseSpider):
         post_data_date_query["formMain:inputServerTime"] = return_servertime()
         post_data_date_query["javax.faces.ViewState"] = viewstate
         post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        # post_data_date_query["formMain:toIdAcceptancePeriod_input"] = ''
         yield FormRequest(
             self.start_urls[0], callback=self.refresh_from_date, formdata=post_data_date_query, dont_filter=True
         )
@@ -48,7 +46,6 @@ class AkostaSpider(BaseSpider):
         post_data_panel_list_query["formMain:inputServerTime"] = return_servertime()
         post_data_panel_list_query["javax.faces.ViewState"] = viewstate
         post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        # post_data_panel_list_query["formMain:toIdAcceptancePeriod_input"] = ''
         yield FormRequest.from_response(
             response, callback=self.refresh_panel_list, formdata=post_data_panel_list_query, dont_filter=True
         )
@@ -143,8 +140,7 @@ class AkostaSpider(BaseSpider):
         # !!! DOCS !!!
         new_view = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
         general_files = combo.main_.download_trade(
-            url=common_link, trading_id=''.join(transfer['trading_id']), view=new_view,
-            cookies=response.request.headers['Cookie'].decode()
+            url=common_link, view=new_view, cookies=response.request.headers['Cookie'].decode()
         )
 
         post_data = copy.deepcopy(post_data_debitor)
@@ -157,12 +153,12 @@ class AkostaSpider(BaseSpider):
         yield FormRequest(
             common_link, callback=self.parse_debitor, dont_filter=True, formdata=post_data,
             cb_kwargs={
-                'transfer': transfer, 'trading_type': trading_type, 'files': general_files,
+                'transfer': transfer, 'trading_type': trading_type, 'general_files': general_files,
                 'sources': sources, 'page_number': page_number, 'total_pages': total_pages
             }
         )
 
-    def parse_debitor(self, response, transfer, trading_type, files, sources, page_number, total_pages):
+    def parse_debitor(self, response, transfer, trading_type, general_files, sources, page_number, total_pages):
         """ parse debtor tab(page), get new viewstate  and make requests to lot tab(page) """
         combo = Combo(_response=response)
         debtor_view_state = combo.pre.get_post_data_values('input', 'j_id1:javax.faces.ViewState:0')
@@ -182,13 +178,15 @@ class AkostaSpider(BaseSpider):
         yield FormRequest(
             debtor_link, callback=self.parse_lot_tab, formdata=post_data_lot_tab, dont_filter=True,
             cb_kwargs={
-                'transfer': transfer, 'trading_type': trading_type, 'files': files, 'lots': None,
+                'transfer': transfer, 'trading_type': trading_type, 'general_files': general_files, 'lots': None,
                 'sources': sources, 'page_number': page_number, 'total_pages': total_pages
             },
         )
 
-    def parse_lot_tab(self, response, transfer, trading_type, files, lots, sources, page_number,
-                      total_pages, current_lot=None):
+    def parse_lot_tab(
+            self, response, transfer, trading_type, general_files, lots, sources, page_number, total_pages,
+            current_lot=None
+    ):
         """ fetch post data to all unique lot and make post request """
         combo = Combo(_response=response)
         lot_tab_link = response.url
@@ -205,7 +203,8 @@ class AkostaSpider(BaseSpider):
         yield FormRequest(
             lot_link, callback=self.parse_pre_lot_page, formdata=post_lot, dont_filter=True,
             cb_kwargs={
-                'files': files, 'trading_type': trading_type, 'transfer': transfer, 'lot_number': lot_number,
+                'general_files': general_files, 'trading_type': trading_type, 'transfer': transfer,
+                'lot_number': lot_number,
                 'sources': sources, 'page_number': page_number, 'total_pages': total_pages, 'lots': lots,
                 'current_lot': current_lot, 'lot_tab_link': lot_tab_link
             }
@@ -215,7 +214,7 @@ class AkostaSpider(BaseSpider):
                 lot_tab_link, callback=self.parse_lot_tab, cb_kwargs={
                     'transfer': transfer,
                     'trading_type': trading_type,
-                    'files': files,
+                    'general_files': general_files,
                     'lots': lots,
                     'sources': sources, 'page_number': page_number, 'total_pages': total_pages
                 },
@@ -232,8 +231,10 @@ class AkostaSpider(BaseSpider):
                 }
             )
 
-    def parse_pre_lot_page(self, response, transfer, trading_type, files, lot_number, sources, page_number,
-                           total_pages, lots, current_lot, lot_tab_link):
+    def parse_pre_lot_page(
+            self, response, transfer, trading_type, general_files, lot_number, sources, page_number, total_pages
+            , lots, current_lot, lot_tab_link
+    ):
         """ get link to lot """
         combo = Combo(_response=response)
         url_to_trade = combo.main_.get_link_redirect()
@@ -241,23 +242,26 @@ class AkostaSpider(BaseSpider):
             if trading_type == 'offer':
                 yield Request(
                     url_to_trade, callback=self.parse_lot_offer, dont_filter=True, cb_kwargs={
-                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number, 'files': files,
-                        'sources': sources, 'page_number': page_number, 'total_pages': total_pages
+                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number,
+                        'general_files': general_files, 'sources': sources, 'page_number': page_number,
+                        'total_pages': total_pages
                     }
                 )
             if trading_type == 'auction':
                 yield Request(
                     url_to_trade, callback=self.parse_lot_auction, dont_filter=True, cb_kwargs={
-                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number, 'files': files,
-                        'sources': sources, 'page_number': page_number, 'total_pages': total_pages
+                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number,
+                        'general_files': general_files, 'sources': sources, 'page_number': page_number,
+                        'total_pages': total_pages
                     }
                 )
 
             if trading_type == 'competition':
                 yield Request(
                     url_to_trade, callback=self.parse_lot_auction, dont_filter=True, cb_kwargs={
-                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number, 'files': files,
-                        'sources': sources, 'page_number': page_number, 'total_pages': total_pages
+                        'transfer': transfer, 'url_to_trade': url_to_trade, 'lot_number': lot_number,
+                        'general_files': general_files, 'sources': sources, 'page_number': page_number,
+                        'total_pages': total_pages
                     }
                 )
         else:
@@ -265,7 +269,7 @@ class AkostaSpider(BaseSpider):
                 lot_link, callback=self.parse_lot_tab, cb_kwargs={
                     'transfer': transfer,
                     'trading_type': trading_type,
-                    'files': files,
+                    'general_files': general_files,
                     'lots': lots,
                     'sources': sources, 'page_number': page_number, 'total_pages': total_pages,
                     'current_lot': current_lot
@@ -273,8 +277,9 @@ class AkostaSpider(BaseSpider):
                 dont_filter=True
             )
 
-    def parse_lot_offer(self, response, url_to_trade, transfer, lot_number, files: list, sources, page_number,
-                        total_pages):
+    def parse_lot_offer(
+            self, response, url_to_trade, transfer, lot_number, general_files: list, sources, page_number, total_pages
+    ):
         """ parse lot with type - offer """
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
@@ -303,11 +308,8 @@ class AkostaSpider(BaseSpider):
         loader.add_value('property_information', combo.auc.get_property_info())
         loader.add_value('start_price', combo.start_price)
         loader.add_value('categories', combo.categories)
-        lot_files = {'lot': []}
-        _files = files
-        gen = {'general': _files}
-        total_files = dict(chain(gen.items(), lot_files.items()))
-        loader.add_value('files', total_files)
+        lot_files = combo.download_lot()
+        loader.add_value('files', dict(general=general_files, lot=lot_files))
         period_first_page = combo.offer.return_periods()
         total_pages_period = combo.offer.return_period_pagination()
         # total_pages_period & total are info about how many pages has pariod table
@@ -367,7 +369,9 @@ class AkostaSpider(BaseSpider):
             loader.add_value('end_date_trading', combo.offer.get_end_date_request(periods_))
             yield loader.load_item()
 
-    def parse_lot_auction(self, response, url_to_trade, transfer, lot_number, files, sources, page_number, total_pages):
+    def parse_lot_auction(
+            self, response, url_to_trade, transfer, lot_number, general_files, sources, page_number, total_pages
+    ):
         """ parse lot page of auction and competition """
         # with open('res_lot.txt', 'w') as f:
         #     f.write(response.text)
@@ -403,9 +407,6 @@ class AkostaSpider(BaseSpider):
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
         loader.add_value('categories', combo.categories)
-        lot_files = {'lot': list()}
-        _files = files
-        gen = {'general': _files}
-        total_files = dict(chain(gen.items(), lot_files.items()))
-        loader.add_value('files', total_files)
+        lot_files = combo.download_lot()
+        loader.add_value('files', dict(general=general_files, lot=lot_files))
         yield loader.load_item()

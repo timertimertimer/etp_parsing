@@ -10,19 +10,15 @@ logger = logging.getLogger(__name__)
 
 
 class SerpPageSearchInfo:
-    """ fetch info from serp (infjrmation after request - current page, next page, links to trading page """
 
     def __init__(self, _response):
         self.response = _response
         self.loc = LocatorSerp
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
-
-    def return_url_if_scheme(self, url):
-        return UrlConfig.check_url_scheme(url)
+        self.soup = (
+            BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        )
 
     def fetch_pagination_links(self):
-        """ fetch link (.NET "doPostBack) """
         try:
             set_link = set()
             _a = self.response.xpath(self.loc.pager_href).getall()
@@ -33,7 +29,6 @@ class SerpPageSearchInfo:
             pass
 
     def fetch_pagination_links_lot_page(self):
-        """ fetch link (.NET "doPostBack) """
         try:
             set_link = set()
             _a = self.response.xpath(self.loc.pager_lot_page).getall()
@@ -44,7 +39,6 @@ class SerpPageSearchInfo:
             pass
 
     def get_href_post(self):
-        """ get post data (href) for pagination """
         try:
             lst_num_page = list()
             lst_href = list()
@@ -53,7 +47,7 @@ class SerpPageSearchInfo:
                 if a:
                     a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
                     a_text = a.get_text()
-                    lst_href.append(a_href)
+                    lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
             return lst_href, lst_num_page
         except:
@@ -70,7 +64,7 @@ class SerpPageSearchInfo:
                 if a:
                     a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
                     a_text = a.get_text()
-                    lst_href.append(a_href)
+                    lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
                     if len(lst_href) > 0:
                         return lst_href, lst_num_page

@@ -2,9 +2,9 @@ import logging
 import pathlib
 import re
 from bs4 import BeautifulSoup
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from general_utils.config import lst_exeption, image_formats, archive_formats
 from general_utils.download import DownloadFiles
-from general_utils.models import RequestData
+from general_utils.models import DownloadData
 from general_utils.work_with_path_and_dir import FilesDir
 from .utils.config import path_absolute, path_relative
 from .utils.working_with_time import format_time
@@ -47,19 +47,19 @@ class Combo:
                 )
                 _path_absolute = files_dir.return_absolute_path(name_on_server)
                 _path_relative = files_dir.return_relative_path(name_on_server)
-                request_data = RequestData(url=self.url.url_join(data_origin, link), referer=self.response.url)
-                if pathlib.Path(name).suffix in lst_exet:
+                request_data = DownloadData(url=self.url.url_join(data_origin, link), referer=self.response.url)
+                if pathlib.Path(name).suffix in image_formats:
                     load.request_to_download_general(
-                        request_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
+                        download_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
                     )
                     lot_list.append(
                         {'original_name': name, 'link': _path_relative.as_posix(),
                          'link_etp': self.url.url_join(data_origin, link)}
                     )
                 # FILES INSIDE ARCHIVE
-                elif pathlib.Path(name).suffix in lst_exet_archive:
+                elif pathlib.Path(name).suffix in archive_formats:
                     lst_files = load.request_to_download_general(
-                        request_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
+                        download_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
                     )
                     lot_list.extend(lst_files)
                 else:

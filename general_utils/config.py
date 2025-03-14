@@ -38,8 +38,8 @@ socks5_proxies = [i.replace('\\n', '').strip() for i in lines]
 
 lot_classifiers_name_to_code = dict()
 lot_classifiers_code_to_name = dict()
-with open(f'{lot_classifiers_path}', 'r', encoding='utf-8') as f:
-    reader = csv.DictReader(f, fieldnames=['Код', 'Наименование'], delimiter=';')
+with open(f'{lot_classifiers_path}', 'r', encoding='utf-8-sig') as f:
+    reader = csv.DictReader(f, delimiter=';')
     for row in reader:
         lot_classifiers_code_to_name[row['Код']] = row['Наименование']
         lot_classifiers_name_to_code[row['Наименование']] = row['Код']
@@ -74,19 +74,16 @@ headers = {
     'User-Agent': choice(user_agents)
 }
 
-lst_exet = [
+image_formats = [
     '.jpeg', '.png', '.jpg', '.bmp',
-    '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG'
+    '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG', '.PNG'
 ]
-lst_exet_files = [
-    '.jpeg', '.png', '.jpg', '.bmp', '.docx', '.doc', '.pdf',
-    '.JPG', '.JPEG', '.PNG' 'jpg', 'jpeg', 'JPG', 'JPEG', '.PNG', '.PDF', '.DOC', '.DOCX'
+image_and_doc_formats = image_formats + [
+    '.docx', '.doc', '.pdf', '.rtf',
+    '.PDF', '.DOC', '.DOCX', '.RTF'
 ]
-lst_exet_archive = ['.rar', '.zip', '.7z', '.RAR', '.ZIP', '.7Z', '.Rar', '.Zip']
-lst_exeption = [
-    'reshenie', 'protocol', 'протокол', 'решение',
-    'Reshenie', 'Protocol', 'Протокол', 'Решение', 'ПРОТОКОЛ'
-]
+archive_formats = ['.rar', '.zip', '.7z', '.RAR', '.ZIP', '.7Z', '.Rar', '.Zip']
+allowable_formats = image_and_doc_formats + archive_formats
 trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'eventsource', 'websocket', 'media', 'ping']
 
-download_debtor_message_files = False
+download_files_from_get_url = True

@@ -1,192 +1,95 @@
 import logging
-import os
 import pathlib
 import shutil
 import time
 import requests
+import urllib3
 from random import choice
-
 from requests import Session
 
-from .config import lst_exet_archive, socks5_proxies, headers
+from .config import archive_formats, socks5_proxies, headers
 from .archive import ZipFiles, RarFiles, SevenZipFiles
-from .models.request_data import RequestData
-from .working_with_url import UrlConfig
+from .models.download_data import DownloadData
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
+ARCHIVE_HANDLERS = {
+    '.zip': ZipFiles,
+    '.rar': RarFiles,
+    '.7z': SevenZipFiles
+}
+
 
 class DownloadFiles:
-    def __init__(self, referer: str = None, proxies: dict = None):
-        self.proxies = proxies or self.change_proxy()
-        self.session = requests.Session()
-        if self.proxies:
-            self.session.proxies.update(self.proxies)
-        self.session.headers.update(headers | {'Referer': referer} if referer else {})
-
-    def change_proxy(self):
+    @staticmethod
+    def change_proxy():
         if socks5_proxies:
             return {
                 'http': 'socks5://' + choice(socks5_proxies),
                 'https': 'socks5://' + choice(socks5_proxies)
             }
 
-    def make_request(self, url, referer):
-        u = UrlConfig()
-        url = u.parse_url(url)
-        try:
-            with self.session.get(url, allow_redirects=False) as r:
-                stop_counter = 0
-                while stop_counter < 10:
-                    if str(r.status_code) in ['200', '302', '301', '307']:
-                        return r.text
-                    else:
-                        self.session.proxies.update(self.change_proxy())
-                        stop_counter += 1
-                        r = self.session.head(url, allow_redirects=False)
-        except:
-            logger.critical(f'{url}:: REQUEST STATUS CODE - {r.status_code}')
-
+    @staticmethod
     def request_to_download_general(
-            self, request_data: RequestData, absolute_path: pathlib.PurePath, relative_path: pathlib.PurePath,
-            attempts: int = 5, trading_id=None, lot_number=None
-    ):
+            download_data: DownloadData, absolute_path: pathlib.PurePath, relative_path: pathlib.PurePath,
+            attempts: int = 5
+    ) -> list[pathlib.PurePath]:
         session = requests.Session()
-        if self.proxies:
-            session.proxies.update(self.proxies)
-        session.headers.update(headers | request_data.headers)
+        session.headers.update({'User-Agent': headers['User-Agent']})
         path = pathlib.Path(absolute_path)
+
         for attempt in range(1, attempts + 1):
             try:
-                if path.suffix not in lst_exet_archive:
-                    if path.exists():
-                        return
-                    return self.download_files(
-                        attempt=attempt, session=session, absolute_path=absolute_path, request_data=request_data
-                    )
-                elif path.suffix == '.zip':
-                    return self.download_zip(
-                        attempt=attempt, session=session, absolute_path=absolute_path, trading_id=trading_id,
-                        lot_number=lot_number,
-                        relative_path=relative_path, request_data=request_data
-                    )
-                elif path.suffix == '.rar':
-                    return self.download_rar(
-                        attempt=attempt, session=session, request_data=request_data, absolute_path=absolute_path,
-                        trading_id=trading_id, lot_number=lot_number, relative_path=relative_path
-                    )
-                elif path.suffix == '.7z':
-                    return self.download_7z(
-                        session=session, request_data=request_data, absolute_path=absolute_path, trading_id=trading_id,
-                        lot_number=lot_number, relative_path=relative_path
-                    )
+                if path.suffix not in archive_formats:
+                    if not path.exists():
+                        DownloadFiles.download_file(session, download_data, absolute_path, attempt)
+                    return [relative_path]
+                return DownloadFiles.download_archive(session, download_data, absolute_path, relative_path, attempt)
             except Exception as ex:
                 if attempt == attempts:
-                    logger.error(f'Attempt #{attempt} failed with error: {ex} Referer - {request_data.referer}')
-                    return []
-            time.sleep(2)
+                    logger.error(f'Attempt #{attempt} failed with error: {ex} Referer - {download_data.referer}')
+                time.sleep(2)
+        return []
 
-    def download_files(
-            self, session: Session, request_data: RequestData, attempt: int,
-            absolute_path: pathlib.PurePath
+    @staticmethod
+    def download_file(session: Session, download_data: DownloadData, absolute_path: pathlib.PurePath, attempt: int):
+        rd = download_data.model_dump()
+        verify = rd.pop('verify')
+        with session.request(**rd, stream=True, verify=verify if attempt == 1 else (attempt != 5)) as response:
+            response.raise_for_status()
+            with open(absolute_path, 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            logger.info(f'Download finished successfully (attempt {attempt})')
+
+    @staticmethod
+    def download_archive(
+            session: Session, download_data: DownloadData,
+            absolute_path: pathlib.PurePath, relative_path: pathlib.PurePath,
+            attempt: int
     ):
-        if attempt == 5:
-            rd = request_data.model_dump()
-            rd.pop('verify')
-            with session.request(**rd, stream=True, proxies=self.proxies, verify=False) as response:
-                response.raise_for_status()
-                with open(absolute_path, 'wb') as out_file:
-                    for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB chunks
-                        out_file.write(chunk)
-            logger.info(f'Download finished successfully - attempt == {attempt}')
-        else:
-            with session.request(**request_data.model_dump(), stream=True, proxies=self.proxies) as response:
-                with open(absolute_path, 'wb') as out_file:
-                    response.raw.decode_content = True
-                    shutil.copyfileobj(response.raw, out_file)
-            logger.info(f'Download finished successfully')
-
-    def download_zip(self, session: Session, request_data: RequestData, attempt: int, absolute_path: pathlib.PurePath,
-                     trading_id: str,
-                     lot_number: str, relative_path: pathlib.PurePath):
-        if attempt == 5:
-            rd = request_data.model_dump()
-            rd.pop('verify')
-            res = session.request(**rd, stream=True, proxies=self.proxies, verify=False)
-        else:
-            res = session.request(**request_data.model_dump(), stream=True, proxies=self.proxies)
-        with open(absolute_path, "wb") as zip_:
-            zip_.write(res.content)
-        root_directory, archive_name = os.path.split(absolute_path)
-        try:
-            objectZip = ZipFiles(
-                absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name,
-                trading_id=trading_id,
-                lot_number=lot_number,
-                url=request_data.url, relative_path=relative_path
-            )
-            lst_files = objectZip.extract_files()
-            objectZip.delete_archive()
-            logger.info(f'Download finished successfully ZIP')
-            return lst_files
-        except Exception as e:
-            logger.error(f'Error downloading {request_data.url}: {e}')
+        handler = ARCHIVE_HANDLERS.get(absolute_path.suffix)
+        if not handler:
             return []
 
-    def download_rar(
-            self, session: Session, request_data: RequestData, attempt: int, absolute_path: pathlib.PurePath,
-            trading_id: str,
-            lot_number: str, relative_path: pathlib.PurePath
-    ):
-        if attempt == 3:
-            with session.request(**request_data.model_dump(), stream=True, proxies=self.proxies) as response:
-                with open(absolute_path, 'wb') as out_file:
-                    response.raw.decode_content = True
-                    shutil.copyfileobj(response.raw, out_file)
-        else:
-            with session.request(**request_data.model_dump(), stream=True, proxies=self.proxies) as response:
-                response.raise_for_status()
-                with open(absolute_path, 'wb') as out_file:
-                    for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB chunks
-                        out_file.write(chunk)
-        root_directory, archive_name = os.path.split(absolute_path)
-        try:
-            objectRar = RarFiles(
-                absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name,
-                trading_id=trading_id,
-                lot_number=lot_number,
-                url=request_data.url, relative_path=relative_path
-            )
-            lst_files = objectRar.extract_files()
-            objectRar.delete_archive()
-            logger.info(f'Download finished successfully RAR')
-            return lst_files
-        except Exception as e:
-            logger.error(f'Error downloading {request_data.url}: {e}')
-            os.remove(absolute_path)
-            return []
+        rd = download_data.model_dump()
+        verify = rd.pop('verify')
 
-    def download_7z(
-            self, session: Session, request_data: RequestData, absolute_path: pathlib.PurePath, trading_id: str,
-            lot_number: str,
-            relative_path: pathlib.PurePath
-    ):
-        res = session.request(**request_data.model_dump(), stream=True, proxies=self.proxies)
-        with open(absolute_path, "wb") as zip_:
-            zip_.write(res.content)
-        root_directory, archive_name = os.path.split(absolute_path)
+        with session.request(**rd, stream=True, verify=verify if attempt == 1 else (attempt != 5)) as response:
+            with open(absolute_path, "wb") as archive_file:
+                archive_file.write(response.content)
+
+        archive = handler(
+            absolute_path=absolute_path, relative_path=relative_path,
+            file_name=download_data.file_name, url=download_data.url
+        )
         try:
-            objectZip = SevenZipFiles(
-                absolute_path=absolute_path, root_directory=root_directory, file_name=archive_name,
-                trading_id=trading_id,
-                lot_number=lot_number,
-                url=request_data.url, relative_path=relative_path
-            )
-            lst_files = objectZip.extract_files()
-            objectZip.delete_archive()
-            logger.info(f'Download finished successfully 7Z')
-            return lst_files
+            files = archive.extract_files()
+            archive.delete_archive()
+            logger.info(f'Download finished successfully {absolute_path.suffix.upper()}')
+            return files
         except Exception as e:
-            logger.error(f'Error downloading {request_data.url}: {e}')
-            os.remove(absolute_path)
+            logger.error(f'Error downloading {download_data.url}: {e}')
+            archive.delete_archive()
             return []

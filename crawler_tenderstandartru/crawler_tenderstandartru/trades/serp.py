@@ -1,15 +1,13 @@
-import pandas as pd
-
 from .libraries import *
 
 logger = logging.getLogger(__name__)
+
 
 class SerpParse:
 
     def __init__(self, response_):
         self.response = response_
         self.soup = soup(self.response)
-        self.url = UrlConfig()
 
     def get_length_param(self):
         """ get one of param data for request - Length """
@@ -24,10 +22,6 @@ class SerpParse:
         type_value = self.soup.find('input', id='types')
         if type_value:
             return str(type_value['value'])
-
-    def get_time_stamp(self):
-        """ timestamp - param for  request """
-        return str(return_timestamp_moskow())
 
     def get_next_page_link(self, current_page: str, data_origin_):
         """ check if next page exists if true - return full link """
@@ -66,17 +60,17 @@ class SerpParse:
         if id_tradesTable:
             return id_tradesTable
 
-    def get_lots_data_from_div_table(self):
+    def get_lots_data_from_div_table(self, crawler_name: str):
         """ fetch data (trading_link, lot_link, lot_number, organizer, status) """
         if _div := self.get_div_with_lots():
             short_lot_data = list()
             for lot_data in _div.find_all('div', class_='row item-row'):
                 trading_link = lot_data.find(href=re.compile(r'/Trade/View/\d+$'))
                 if trading_link:
-                    trading_link = re.sub(r'/$', '', data_origin['tenderstandart']) + trading_link.get('href')
+                    trading_link = re.sub(r'/$', '', data_origin[crawler_name]) + trading_link.get('href')
                 lot_link = lot_data.find(href=re.compile(r'/TradeLot/View/\d+$'))
                 if lot_link:
-                    lot_link = re.sub(r'/$', '', data_origin['tenderstandart']) + lot_link.get('href')
+                    lot_link = re.sub(r'/$', '', data_origin[crawler_name]) + lot_link.get('href')
                 lot_number = lot_data.find('span', class_='item-number')
                 if lot_number:
                     lot_number = lot_number.get_text().replace('№', '').strip()
@@ -105,7 +99,9 @@ class SerpParse:
                     except Exception as e:
                         print(e)
                         start_date_trading = None
-                short_lot_data.append((trading_link, lot_link, lot_number, organizer, status, start_price, start_date_trading))
+                short_lot_data.append(
+                    (trading_link, lot_link, lot_number, organizer, status, start_price, start_date_trading)
+                )
             return deque(short_lot_data)
 
     def get_lots_data_from_table(self, _data_origin):
@@ -116,9 +112,9 @@ class SerpParse:
         try:
             for lot_data in table.find_all('tr')[1:]:
                 lot_data_splitted = lot_data.find_all('td')
-                trading_link = self.url.url_join(_data_origin, lot_data_splitted[0].find('a').get('href'))
+                trading_link = UrlConfig.url_join(_data_origin, lot_data_splitted[0].find('a').get('href'))
                 lot_number = lot_data_splitted[2].get_text().strip()
-                lot_link = self.url.url_join(_data_origin, lot_data_splitted[3].find('a').get('href'))
+                lot_link = UrlConfig.url_join(_data_origin, lot_data_splitted[3].find('a').get('href'))
                 status = lot_data_splitted[-2].get_text().strip()
                 lots.append((trading_link, lot_link, lot_number, status))
             return lots
@@ -135,7 +131,7 @@ class SerpParse:
             return 'auction'
         elif re.match('.+Trade/PublicOfferTrades.?', str(self.response.url)):
             return 'offer'
-        elif re.match('.+Trade/CompetitionTrades.?',  str(self.response.url)):
+        elif re.match('.+Trade/CompetitionTrades.?', str(self.response.url)):
             return 'competition'
         else:
             logger.error(f'{self.response.url} :: ERROR {self.get_trading_type.__name__} {self.response.url}')

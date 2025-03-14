@@ -1,5 +1,5 @@
-from .base import BaseSpider
+from .base import RusonBaseSpider
 
 
-class NistpSpider(BaseSpider):
+class NistpSpider(RusonBaseSpider):
     name = 'nistp'

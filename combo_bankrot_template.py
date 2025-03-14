@@ -5,7 +5,7 @@ import re
 from bs4 import BeautifulSoup
 
 from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
+from general_utils.config import lst_exeption, image_formats, archive_formats
 
 logger = logging.getLogger(__name__)
 

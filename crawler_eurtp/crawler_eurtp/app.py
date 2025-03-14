@@ -1,15 +1,11 @@
 import logging
-import pathlib
 import re
 
 from bs4 import BeautifulSoup
 
-from general_utils.download import DownloadFiles
-from general_utils.work_with_path_and_dir import FilesDir
-from .config import path_absolute, path_relative, data_origin
+from .config import data_origin
 from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, return_parse_date
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
-from general_utils.models import RequestData
+from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
 
@@ -37,50 +33,14 @@ class Combo:
                 except Exception as e:
                     return
 
-    def download(self, lot_number: str = None):
-        load = DownloadFiles()
-        files_lst = list()
-        files_dir = FilesDir(path_relative, path_absolute)
+    def download(self):
+        files = list()
         for row in self.soup.select_one('.etp-main-content>.row:last-child table:last-child').select('tr')[1:]:
             t = row.find_all('td')
             name = t[2].get_text(strip=True)
             link = UrlConfig.url_join(data_origin, t[5].find('a').get('href'))
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name,
-                                                           lot_number=lot_number)
-            absolute_path = files_dir.return_absolute_path(name_on_server)
-            relative_path = files_dir.return_relative_path(name_on_server)
-            if not any(ele in name_on_server for ele in lst_exeption):
-                files_dir.create_dir()
-                request_data = RequestData(url=link)
-                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
-                    archive_lst = load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=absolute_path,
-                        relative_path=relative_path,
-                        trading_id=self.trading_id,
-                        lot_number=lot_number
-                    )
-                    files_lst.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet:
-                    load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=absolute_path,
-                        relative_path=relative_path,
-                        trading_id=self.trading_id,
-                        lot_number=lot_number
-                    )
-                    files_lst.append(
-                        {
-                            'original_name': name,
-                            'link': relative_path.as_posix(),
-                            'link_etp': self.response.url
-                        }
-                    )
-                else:
-                    files_lst.append({'original_name': name, 'link': None, 'link_etp': link})
-        return files_lst
+            files.append(DownloadData(url=link, file_name=name))
+        return files
 
     @property
     def trading_id(self):
@@ -284,10 +244,10 @@ class Combo:
         ]
         start_date_requests = None
         for arr_item in date:
-            if arr_item is not None:
-                start_date_requests = arr_item
+            if arr_item:
+                start_date_requests = format_time(arr_item)
         if start_date_requests is None and len(self.periods) != 0:
-            return return_parse_date(self.periods[0]['start_date_requests'], '%Y-%m-%d %H:%M:%S')
+            return self.periods[0]['start_date_requests']
         return start_date_requests
 
     @property
@@ -304,10 +264,10 @@ class Combo:
         ]
         end_date_requests = None
         for arr_item in date:
-            if arr_item is not None:
-                end_date_requests = arr_item
+            if arr_item:
+                end_date_requests = format_time(arr_item)
         if end_date_requests is None and len(self.periods) != 0:
-            return return_parse_date(self.periods[-1]['end_date_requests'], '%Y-%m-%d %H:%M:%S')
+            return self.periods[-1]['end_date_requests']
         return end_date_requests
 
     @property
@@ -324,10 +284,10 @@ class Combo:
         ]
         start_date_trading = None
         for arr_item in date:
-            if arr_item is not None:
-                start_date_trading = arr_item
+            if arr_item:
+                start_date_trading = format_time(arr_item)
         if start_date_trading is None and len(self.periods) != 0:
-            return return_parse_date(self.periods[0]['start_date_requests'], '%Y-%m-%d %H:%M:%S')
+            return self.periods[0]['start_date_requests']
         return start_date_trading
 
     @property

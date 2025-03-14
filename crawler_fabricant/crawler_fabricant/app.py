@@ -1,17 +1,12 @@
 import logging
-import pathlib
 import re
-
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils.download import DownloadFiles
-from general_utils.models import RequestData
-from general_utils.work_with_path_and_dir import FilesDir
+from general_utils.models import DownloadData
 from .locator import Locator
-from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, contains, format_time, parse_classifiers
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
-from .utils.config import data_origin_url, absolute_path, relative_path
+from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, contains, format_time
+from .config import data_origin_url
 
 logger = logging.getLogger(__name__)
 
@@ -21,91 +16,42 @@ class Combo:
         self.response = response
         self.soup = BS(response.text, features='lxml')
 
-    def download_general(self, trading_id):
-        load = DownloadFiles()
-        files_dir = FilesDir(relative_path, absolute_path)
-        lst_general = []
-        table = self.soup.find('div', id="proc").find('table')
-        files_dir.create_dir()
-        if not table:
-            return []
+    def download_general(self):
+        files = list()
+        if not (table := self.soup.find('div', id="proc").find('table')):
+            return files
         for file in table.find_all('tr')[1:]:
-            link = file.find('td', class_='action')
-            if not link:
+            if not (link := file.find('td', class_='action')):
                 continue
-            link = UrlConfig.url_join(
-                data_origin_url, link.find('a', text=contains('Скачать')).get('href')
-            )
+            link = UrlConfig.url_join(data_origin_url, link.find('a', text=contains('Скачать')).get('href'))
             name = file.find('td', class_='procedure-document-file').find('b').get_text(strip=True)
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
-            path_absolute = files_dir.return_absolute_path(name_on_server)
-            path_relative = files_dir.return_relative_path(name_on_server)
-            if not any(ele in name_on_server for ele in lst_exeption):
-                request_data = RequestData(url=link, referer=self.trading_link)
-                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
-                    archive_lst = load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id
-                    )
-                    lst_general.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet:
-                    load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id
-                    )
-                    lst_general.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
-                else:
-                    lst_general.append({'original_name': name, 'link': None, 'link_etp': link})
-        return lst_general
+            files.append(DownloadData(url=link, file_name=name, referer=self.trading_link))
+        return files
 
-    def download_lot(self, trading_id: str, lot_number: str):
-        load = DownloadFiles()
-        files_dir = FilesDir(relative_path, absolute_path)
-        lst_lot = []
-        table = self.soup.find('div', id=f"lot{lot_number}")
-        if not table:
-            return []
+    def download_lot(self, lot_number: str):
+        files = list()
+        if not (table := self.soup.find('div', id=f"lot{lot_number}")):
+            return files
         for file in table.find('table').find_all('tr')[1:]:
-            link = file.find('td', class_='action')
-            if not link:
+            if not (link := file.find('td', class_='action')):
                 continue
-            link = UrlConfig.url_join(
-                data_origin_url, link.find('a', text=contains('Скачать')).get('href')
-            )
+            link = UrlConfig.url_join(data_origin_url, link.find('a', text=contains('Скачать')).get('href'))
             name = file.find('td', class_='lot-document-file').find('b').get_text(strip=True)
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
-            path_absolute = files_dir.return_absolute_path(name_on_server)
-            path_relative = files_dir.return_relative_path(name_on_server)
-            if not any(ele in name_on_server for ele in lst_exeption):
-                files_dir.create_dir()
-                request_data = RequestData(url=link, referer=self.trading_link)
-                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
-                    archive_lst = load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id
-                    )
-                    lst_lot.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet:
-                    load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id
-                    )
-                    lst_lot.append({'original_name': name, 'link': path_relative.as_posix(), 'link_etp': link})
-                else:
-                    lst_lot.append({'original_name': name, 'link': None, 'link_etp': link})
-        return lst_lot
+            files.append(DownloadData(url=link, file_name=name, referer=self.trading_link))
+        return files
+
+    def count_lots(self):
+        return self.response.xpath(Locator.div_info_lot_offer).getall()[1:]
+
+    def link_doc_page(self, url):
+        try:
+            link_to_document = BS(self.response.css(Locator.doc_link_loc).get(), features='lxml').a['href']
+            if data_origin_url not in link_to_document:
+                return UrlConfig.url_join(data_origin_url, link_to_document)
+            else:
+                return link_to_document
+        except:
+            logger.error(f'{url}:: INVALID DATA REFERENCE TO DOC PAGE')
 
     @property
     def trading_id(self):
@@ -357,11 +303,11 @@ class Combo:
         )
 
     def get_categories(self, lot):
-        return parse_classifiers(' '.join(
+        return ' '.join(
             self.create_soup(lot)
             .find('div', text=re.compile('Классификатор имущества для ЕФРСБ', re.IGNORECASE))
             .find_next('div').get_text(strip=True).split()
-        ))
+        )
 
     def get_start_date_requests(self, lot):
         try:

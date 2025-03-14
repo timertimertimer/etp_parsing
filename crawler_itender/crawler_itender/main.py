@@ -6,7 +6,7 @@ def arbitat():
 
 
 def zakazrf():
-    execute(['scrapy', 'crawl', 'bankrot_zakazrf'])
+    execute(['scrapy', 'crawl', 'zakazrf'])
 
 
 def propertytrade():
@@ -37,12 +37,12 @@ def gloriaservice():
     execute(['scrapy', 'crawl', 'gloriaservice'])
 
 
-def bankrupt_centrr():
-    execute(['scrapy', 'crawl', 'bankrupt_centrr'])
+def centerr():
+    execute(['scrapy', 'crawl', 'centerr'])
 
 
-def bankrupt_etpu():
-    execute(['scrapy', 'crawl', 'bankrupt_etpu'])
+def etpu():
+    execute(['scrapy', 'crawl', 'etpu'])
 
 
 def torgibankrot():

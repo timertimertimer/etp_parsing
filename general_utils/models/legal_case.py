@@ -19,6 +19,7 @@ class LegalCase(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     auctions = relationship("Auction", back_populates="legal_case")
+    debtor_messages = relationship("DebtorMessage", back_populates="legal_case")
 
     def __repr__(self):
         return f'<LegalCase(id={self.id}, number={self.number})>'

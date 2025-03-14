@@ -1,3 +1,5 @@
+from io import StringIO
+
 from bs4 import BeautifulSoup as BS
 import logging
 import re
@@ -11,10 +13,9 @@ logger = logging.getLogger(__name__)
 
 class LotOfferPage:
 
-    def __init__(self, _response):
+    def __init__(self, _response, soup):
         self.response = _response
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
+        self.soup = soup
 
     def get_start_price(self):
         """ return start price offer NOT from periods"""
@@ -45,7 +46,8 @@ class LotOfferPage:
             thead = self.soup.find('thead', id='formMain:dataRSList_head').parent
             if thead:
                 thead.thead.decompose()
-                table = pd.read_html(re.sub(r',', '.', str(thead)), header=None)
+                html_content = re.sub(r',', '.', str(thead))
+                table = pd.read_html(StringIO(html_content), header=None)
                 if table:
                     return table[0]
         except Exception as e:

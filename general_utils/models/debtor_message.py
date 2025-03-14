@@ -20,5 +20,10 @@ class DebtorMessage(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     debtor_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"), nullable=False)
+    legal_case_id: Mapped[int] = mapped_column(ForeignKey("legal_cases.id"), nullable=True)
 
     debtor = relationship("Counterparty", back_populates="debtor_messages")
+    legal_case = relationship("LegalCase", back_populates="debtor_messages")
+
+    def __repr__(self):
+        return f'<DebtorMessage(id={self.id}, number={self.number})>'

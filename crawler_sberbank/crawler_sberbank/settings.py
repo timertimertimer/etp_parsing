@@ -9,7 +9,6 @@ DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
-UNIQUE_CO = ['trading_id', 'lot_number', 'lot_id']
 # LOG_FILE = 'sberbank.log'
-CONCURRENT_REQUESTS = 1
-DOWNLOAD_DELAY = 3
+# CONCURRENT_REQUESTS = 1
+# DOWNLOAD_DELAY = 3

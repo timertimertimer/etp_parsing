@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import logging
 
 from general_utils import dedent_func
@@ -24,8 +23,9 @@ class Compose:
         trading_type = self.response.xpath(self.loc.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(BS(str(trading_type), features='lxml').get_text()).strip()
-            if type_ in ['Аукцион', 'Открытый аукцион', 'Закрытый аукцион', 'Конкурс', 'Открытый конкурс',
-                         'Закрытый конкурс']:
+            if type_ in [
+                'Аукцион', 'Открытый аукцион', 'Закрытый аукцион', 'Конкурс', 'Открытый конкурс', 'Закрытый конкурс'
+            ]:
                 return 'auction'
             elif type_ in ['Публичное предложение', 'Открытое публичное предложение', 'Закрытое публичное предложение']:
                 return 'offer'

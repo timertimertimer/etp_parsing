@@ -5,13 +5,6 @@ import re
 from bs4 import BeautifulSoup
 
 from .config import data_origin, search_link
-from general_utils.download import DownloadFiles
-from general_utils.work_with_path_and_dir import FilesDir
-from general_utils.working_with_time import format_time
-from general_utils.working_with_url import UrlConfig
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
-from general_utils.work_with_text_and_number import dedent_func
-from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
 
 logger = logging.getLogger(__name__)
 

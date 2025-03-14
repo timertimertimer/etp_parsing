@@ -7,7 +7,7 @@ import shutil
 import rarfile
 
 from general_utils import count_cyrillic
-from general_utils.config import lst_exet_files
+from general_utils.config import image_and_doc_formats
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class RarFiles:
         new_file_name = ''
         for fileName in lst:
             _suffix = pathlib.Path(fileName.replace(' ', '')).suffix
-            if _suffix in lst_exet_files:
+            if _suffix in image_and_doc_formats:
                 # check if folder in rar. If true -> extract first from rar then from folder
                 if re.match(f'.+/.+{_suffix}', fileName):
                     check = 0

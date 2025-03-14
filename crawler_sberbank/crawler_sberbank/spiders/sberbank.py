@@ -1,39 +1,26 @@
-# -*- coding: utf-8 -*-
 import logging
 
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 from scrapy import FormRequest
-from scrapy.spidermiddlewares.httperror import HttpError
-from scrapy.spiders import CrawlSpider
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError, TCPTimedOutError
 import json
 import xmltodict
-import pprint
 
-from general_utils import EtpItem, EtpItemLoader
+from general_utils import EtpItem, EtpItemLoader, increase_time_days
+from general_utils.base_spider import BaseSpider
 from ..trades.app import ComposeTrades
 from ..utils.config import *
-from ..utils.data_for_requests import xml_request_data
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.manage_spider import *
-from ..utils.working_with_time import increase_time_days, return_parse_date
 
 logger = logging.getLogger(__name__)
 
-lst_links = list()
-pp = pprint.PrettyPrinter(indent=4)
 
-
-class SberbankSpider(CrawlSpider, ComposeTrades):
+class SberbankSpider(BaseSpider):
     name = 'sberbank'
     start_urls = ['https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList']
 
-    def __init__(self, *args, **kwargs):
-        super(SberbankSpider).__init__(*args, **kwargs)
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+    def __init__(self):
+        super(SberbankSpider).__init__(data_origin_url)
 
     def start_requests(self):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
@@ -129,7 +116,7 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
         try:
             data = json.loads(response.text)
         except Exception as e:
-            pass
+            raise e
         combo = ComposeTrades(data, lot_link)
         loader.add_value('lot_id', combo.auc.get_lot_id)
         loader.add_value('lot_link', lot_link)
@@ -155,19 +142,4 @@ class SberbankSpider(CrawlSpider, ComposeTrades):
             photos = [photos['file']] if isinstance(photos['file'], dict) else photos['file']
         files_lot = combo.offer.download(combo.auc.get_lot_id, docs + photos)
         loader.add_value('files', {'general': files, 'lot': files_lot})
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()
-
-    def errback_httpbin(self, failure):
-        self.logger.error(repr(failure))
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url)
-
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

@@ -1,5 +1,5 @@
-from .base import BaseSpider
+from .base import RusonBaseSpider
 
 
-class SistematorgSpider(BaseSpider):
+class SistematorgSpider(RusonBaseSpider):
     name = 'sistematorg'

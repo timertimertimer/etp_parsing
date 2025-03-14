@@ -1,21 +1,17 @@
 import re
-import pathlib
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
 from general_utils import dedent_func, UrlConfig, format_time
-from general_utils.work_with_path_and_dir import FilesDir
+from general_utils.models import DownloadData
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
-from ..utils.config import path_absolute, path_relative, lst_exet, lst_exet_archive
 import logging
-from ..utils.download_img_files.download2 import DownloadFiles
 
 logger = logging.getLogger(__name__)
 
 
 class OfferPage:
-    """ fetch info from serp (infjrmation after request - current page, next page, links to trading page """
 
     def __init__(self, _response):
         self.response = _response
@@ -93,12 +89,10 @@ class OfferPage:
             logger.error(f'{self.response.url} :: PERIOD TABLE NOT FOUND\{e}', exc_info=True)
 
     def return_periods(self):
-        """:return table with all intervals"""
         try:
             period_lst = list()
             periods = self.get_period_table()
             col = periods.columns
-            # len -1 does because o row it's text
             for p in range(len(periods) - 1):
                 try:
                     start = periods.iloc[p + 1][1]
@@ -160,104 +154,17 @@ class OfferPage:
             return round(float(price), 2)
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA START PRICE offer\n{e}')
-            return None
+            return
 
-    @property
-    def get_documents(self):
-        """ return files links (general and lots documents have similar selectors) """
-        links = self.response.xpath(self.loc_offer.documents).getall()
-        return links
-
-    def general_files(self, _id, _data_origin, host, crawler_name):
-        """return dictionary with general files"""
-        files_dir = FilesDir(path_relative[crawler_name], path_absolute[crawler_name])
-        load = DownloadFiles()
-        try:
-            general_dict = dict()
-            general_lst = list()
-            if len(self.get_documents) > 0:
-                doc = self.get_documents
-                for d in doc:
-                    d = BS(str(d), features='lxml')
-                    link_etp = d.find('a').get('href')
-                    link_etp = UrlConfig.url_join(_data_origin, link_etp[1:])
-                    file_name = d.find('a').get_text()
-                    # on utender parser will frozen when download png pictures
-                    if 'utender.ru' not in self.response.url:
-                        lst_exet_ = lst_exet
-                    else:
-                        lst_exet_ = ['.jpeg', '.jpg', '.bmp', '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
-                    files_dir.create_dir()
-                    name_on_server = files_dir.name_file_on_server(_id, original_name=file_name)
-                    _path_absolute = files_dir.return_absolute_path(name_on_server)
-                    _path_relative = files_dir.return_relative_path(name_on_server)
-                    if pathlib.Path(file_name.replace(' ', '')).suffix in lst_exet_:
-                        # itterate thought dictc and find path according dict key
-                        load.request_to_download_general(url=link_etp, referer=self.response.url,
-                                                         _abs_path=_path_absolute,
-                                                         host=host, _id=_id, _relative_path=_path_relative)
-                        general_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
-                    elif pathlib.Path(file_name).suffix in lst_exet_archive:
-                        archive_files = load.request_to_download_general(url=link_etp, referer=self.response.url,
-                                                                         _abs_path=_path_absolute,
-                                                                         host=host, _id=_id,
-                                                                         _relative_path=_path_relative)
-                        general_lst.extend(archive_files)
-                    else:
-                        general_lst.append({'original_name': file_name, 'link': None, 'link_etp': link_etp})
-                general_dict['general'] = general_lst
-            return general_dict
-        except:
-            pass
-
-    def lot_files(self, _id, lot_num, _data_origin, host, crawler_name):
-        """ return dictionary with lots files"""
-        load = DownloadFiles()
-        files_dir = FilesDir(path_relative[crawler_name], path_absolute[crawler_name])
-        try:
-            lot_dict = dict()
-            lot_lst = list()
-            if len(self.get_documents) > 0:
-                doc = self.get_documents
-                for d in doc:
-                    d = BS(str(d), features='lxml')
-                    link_etp = d.find('a').get('href')
-                    link_etp = UrlConfig.url_join(_data_origin, link_etp[1:])
-                    file_name = d.find('a').get_text()
-                    files_dir.create_dir()
-                    name_on_server = files_dir.name_file_lot_on_server(_id, lot_num, file_name)
-                    _path_absolute = files_dir.return_absolute_path(name_on_server)
-                    _path_relative = files_dir.return_relative_path(name_on_server)
-                    # if file is picture
-                    # on utender parser will frozen when download png pictures
-                    if 'utender.ru' not in self.response.url:
-                        lst_exet_ = lst_exet
-                    else:
-                        lst_exet_ = ['.jpeg', '.jpg', '.bmp', '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG']
-                    if pathlib.Path(file_name.replace(' ', '')).suffix in lst_exet_:
-                        # itterate thought dictc and find path according dict key
-                        load.request_to_download_general(url=link_etp, referer=self.response.url,
-                                                         _abs_path=_path_absolute,
-                                                         host=host, _id=_id,
-                                                         _relative_path=_path_relative)
-                        lot_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
-                    elif pathlib.Path(file_name).suffix in lst_exet_archive:
-                        archive_files = load.request_to_download_general(url=link_etp, referer=self.response.url,
-                                                                         _abs_path=_path_absolute,
-                                                                         host=host, _id=_id,
-                                                                         _relative_path=_path_relative)
-                        lot_lst.extend(archive_files)
-                    else:
-                        lot_lst.append({'original_name': file_name, 'link': _path_relative.as_posix(), 'link_etp': link_etp})
-                lot_dict['lot'] = lot_lst
-            return lot_dict
-        except Exception as e:
-            logger.error(f'{self.response.url} :: SOMETHING WENT WRONG\n{e}')
-
-    # EXTRA FUNCTIONS - WHEN PERIODS HAS TWO (2) PAGES
-    def concatination_two_list(self):
-        """ return full list with periods from first and second pages """
-        pass
+    def download(self, host: str):
+        files = list()
+        for d in self.response.xpath(self.loc_offer.documents).getall():
+            d = BS(str(d), features='lxml')
+            a = d.find('a')
+            link_etp = UrlConfig.url_join(host, a.get('href')[1:])
+            file_name = a.get_text()
+            files.append(DownloadData(url=link_etp, file_name=file_name, referer=self.response.url))
+        return files
 
     def find_error_page(self):
         """ if error text present on page """

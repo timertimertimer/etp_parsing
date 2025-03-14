@@ -8,7 +8,7 @@ from general_utils.config import start_date
 from ..locators_and_attributes.locators_attributes import Offer
 from ..manage_spiders.app import Compose
 from general_utils.base_spider import BaseSpider
-from ..utils.config import data_origin_url
+from ..config import data_origin_url
 
 
 class BankrotCDTRFSpider(BaseSpider):
@@ -140,6 +140,7 @@ class BankrotCDTRFSpider(BaseSpider):
         else:
             loader.add_value('end_date_trading', combo.offer.get_end_date_trading)
             loader.add_value('periods', combo.offer.get_periods)
+        loader.add_value('categories', None)
         link_to_lot_file = combo.auction.clean_files_lot_links
         link_to_doc_1 = combo.auction.general_file_link_doc_1()
         link_to_doc_2 = combo.auction.general_file_link_doc_2()
@@ -163,7 +164,7 @@ class BankrotCDTRFSpider(BaseSpider):
         combo = Compose(response_=response)
         get_files_lst_2 = combo.auction.find_all_files(lot_link)
         get_files_lst_2.extend(files_gen_2)
-        general_files_dict = combo.auction.return_general(get_files_lst_2)
+        general_files_dict = combo.auction.download(get_files_lst_2)
         if link_to_lot_file:
             if isinstance(link_to_lot_file, set) and len(link_to_lot_file) > 0:
                 link_to_lot_file = list(link_to_lot_file)
@@ -183,12 +184,7 @@ class BankrotCDTRFSpider(BaseSpider):
         files_on_page = combo.auction.find_all_files(lot_link)
         lot_files.extend(files_on_page)
         if len(link_to_lot_file) == 0:
-            page_id = ''.join(loader.get_collected_values('trading_id'))
-            lot_number = ''.join(loader.get_collected_values('lot_number'))
-            _id = ''.join(loader.get_collected_values('trading_id'))
-            l_files = combo.auction.return_and_download_lot_files(
-                page_id, lot_link, lot_files, _id=_id, lot_num=lot_number
-            )
+            l_files = combo.auction.download(lot_files)
             loader.add_value('files', {'general': general_files_dict, 'lot': l_files})
             yield loader.load_item()
         else:

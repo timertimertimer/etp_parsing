@@ -1,13 +1,11 @@
 from general_utils.config import absolute_download_path, relative_download_path
 
-main_url_sib = 'https://sibtoptrade.ru'
+data_origin = 'https://sibtoptrade.ru/'
 url_bankrupty = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1& '
 
 start_urls = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page={}&'
 start_urls1 = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1&'
 start_page = 1
-# number ex. 25 means that parse will fetch data before page 25(25 doesn't include)
-# for parsing only one page, example- start_page = 1 finish_page = 2
 finish_page = 10
 Referer = 'https://sibtoptrade.ru/trade/bankruptcy/'
 

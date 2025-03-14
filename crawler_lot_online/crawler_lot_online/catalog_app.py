@@ -8,8 +8,8 @@ from general_utils.download import DownloadFiles
 from general_utils.work_with_path_and_dir import FilesDir
 from .utils.config import path_relative, path_absolute
 from general_utils import dedent_func, CheckIfCorrectContactInfo, contains, UrlConfig, format_time
-from general_utils.config import lst_exeption, lst_exet_archive, lst_exet
-from general_utils.models import RequestData
+from general_utils.config import lst_exeption, archive_formats, image_formats
+from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
 
@@ -83,18 +83,18 @@ class Combo:
             absolute_path = files_dir.return_absolute_path(name_on_server)
             relative_path = files_dir.return_relative_path(name_on_server)
             if not any(ele in name_on_server for ele in lst_exeption):
-                request_data = RequestData(url=link, referer=self.response.url)
-                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
+                request_data = DownloadData(url=link, referer=self.response.url)
+                if pathlib.Path(name_on_server).suffix in archive_formats:
                     archive_lst = load.request_to_download_general(
-                        request_data=request_data,
+                        download_data=request_data,
                         absolute_path=absolute_path,
                         relative_path=relative_path,
                         trading_id=self.trading_id
                     )
                     lst_general.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet:
+                elif pathlib.Path(name_on_server).suffix in image_formats:
                     load.request_to_download_general(
-                        request_data=request_data,
+                        download_data=request_data,
                         absolute_path=absolute_path,
                         relative_path=relative_path,
                         trading_id=self.trading_id
@@ -126,9 +126,9 @@ class Combo:
             relative_path = files_dir.return_relative_path(name_on_server)
             if pathlib.Path(absolute_path).exists():
                 continue
-            request_data = RequestData(url=link, referer=self.response.url)
+            request_data = DownloadData(url=link, referer=self.response.url)
             load.request_to_download_general(
-                request_data=request_data,
+                download_data=request_data,
                 absolute_path=absolute_path,
                 relative_path=relative_path,
                 trading_id=self.trading_id

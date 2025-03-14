@@ -2,7 +2,7 @@ import logging
 import requests
 
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
-from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage, Auction, File
+from general_utils.models import Counterparty, TradingFloor, LegalCase
 from general_utils.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
@@ -79,6 +79,8 @@ class CounterpartyFedresurs(Fedresurs):
 
     def get_guid(self):
         search_string = self.data['inn'] or self.data['name']
+        if not search_string:
+            return
         data = self.search(search_string, path='fast')
         if not data:
             return
@@ -130,7 +132,7 @@ class CounterpartyFedresurs(Fedresurs):
             ))
             sro.parse_main_info()
             sro.data['message_number'] = membership.get('messageInclude', {}).get('number')
-            sro.data['activity_type'] = membership['sroActivities'][0]
+            sro.data['activity_type'] = membership.get('sroActivities', [None])[0]
             sro.data['entered_at'] = return_parse_date(membership['dateInclude'], '%Y-%m-%dT%H:%M:%S')
             memberships.append(sro.data)
         self.data['sro_memberships'] = memberships
@@ -284,11 +286,14 @@ class BankrotMessageFedresurs(Fedresurs):
             self.data['content'] = data['content']['messageInfo']['messageContent'].get('text')
         except Exception as e:
             pass
+        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(data['bankrupt']['legalCaseNumber'].strip())
         self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
         self.data['published_at'] = return_parse_date(data['datePublish'])
         files = list()
         for doc in data['docs']:
-            files.append(dict(name=doc['name'].strip(), guid=doc['guid'].strip()))
+            files.append(dict(
+                name=doc['name'].strip(), url=f'{Fedresurs.BACKEND_URL}/bankruptcy-message-docs/{doc["guid"].strip()}'
+            ))
         self.data['files'] = files
 
 
@@ -343,7 +348,7 @@ class AuctionFedresurs(Fedresurs):
             if not data:
                 continue
             for data_ in data:
-                if data_['tradePlace']['name'].strip() == self.data['trading_floor_name']:
+                if data_['tradePlace']['name'].strip() == self.data['trading_floor_name'].strip():
                     self.data['guid'] = data_['guid']
                     return data_['guid']
         return
@@ -352,8 +357,6 @@ class AuctionFedresurs(Fedresurs):
         if not self.data["guid"]:
             return
         self.parse_main_info()
-        messages_guid = self.get_messages()
-        self.parse_messages(messages_guid)
 
     def parse_main_info(self):
         data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
@@ -365,35 +368,15 @@ class AuctionFedresurs(Fedresurs):
         data = self.make_request(f'{self.BACKEND_URL}/{guid or self.data["guid"]}')
         main_message_guid = data.get('message', {}).get('guid')
         self.legal_case_guid = data.get('legalCase', {}).get('guid')
-        # messages = self.get_auction_messages()
         messages = []
         return [main_message_guid] + messages
 
     def get_auction_messages(self):
         data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}/messages', params={'limit': 3, 'offset': 0})
         if not (data := data.get('pageData')):
-            logger.info(f'Not found messages for {self.auction}')
+            logger.info(f'Not found messages for {self.data["guid"]}')
             return
         return [message['guid'] for message in data]
-
-    def parse_messages(self, messages):  # FIXME
-        for message in messages:
-            data = self.make_request(f'{BankrotMessageFedresurs.BACKEND_URL}/{message}')
-            legal_case_number = CheckIfCorrectContactInfo.check_case_number(
-                data.get('bankrupt', {}).get('legalCaseNumber'))
-            if not (legal_case := DBHelper.get_legal_case_id(number=legal_case_number, session=self.db_session)):
-                legal_case = LegalCase(number=legal_case_number)
-            legal_case.auction_id = self.auction.id
-            if not legal_case.fedresurs_url:
-                lgf = LegalCaseFedresurs(legal_case, guid=self.legal_case_guid)
-                lgf.parse(self.auction.debtor)
-            message_number = data.get('number')
-            if not (debtor_message := DBHelper.get_debtor_message_id(message_number, self.db_session)):
-                debtor_message = DebtorMessage(number=message_number, type=data.get('typeName'))
-            debtor_message.legal_case_id = legal_case.id
-            if not debtor_message.fedresurs_url:
-                bmf = BankrotMessageFedresurs(data.get('guid'))
-                bmf.parse()
 
 
 def parse_counterparties():
@@ -412,7 +395,7 @@ def parse_trading_floors():
     from general_utils.db import DBHelper
     trading_floors = DBHelper.get_all(TradingFloor)
     for trading_floor in trading_floors:
-        fed_client = TradingFloorFedresurs(name=trading_floor.name)
+        fed_client = TradingFloorFedresurs(name=trading_floor.file_name)
         trading_floor_counterparty_data = fed_client.parse()
         if trading_floor_counterparty_data:
             trading_floor_counterparty_data, _ = trading_floor_counterparty_data

@@ -1,5 +1,5 @@
-from .base import BaseSpider
+from .base import RusonBaseSpider
 
 
-class EltorgSpider(BaseSpider):
+class EltorgSpider(RusonBaseSpider):
     name = 'eltorg'

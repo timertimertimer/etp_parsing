@@ -6,4 +6,3 @@ SPIDER_MODULES = ['crawler_eurtp.spiders']
 NEWSPIDER_MODULE = 'crawler_eurtp.spiders'
 
 # LOG_FILE = 'eurtp.log'
-UNIQUE_CO = ['trading_id', 'lot_id', 'lot_number']

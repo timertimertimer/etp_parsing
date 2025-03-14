@@ -1,26 +1,23 @@
 import logging
-import scrapy
 from scrapy import Request
 
-from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_parse_date
-from ..trades.app import Combo
-from ..utils.config import data_origin_url
-from ..utils.get_data_from_table import DbConnectCheckLots
+from general_utils import UrlConfig, EtpItem, EtpItemLoader
+from general_utils.base_spider import BaseSpider
+from ..config import data_origin_url
+from ..app import Combo
 
 logger = logging.getLogger(__name__)
 
 
-class OpentpSpider(scrapy.Spider):
+class OpentpSpider(BaseSpider):
     name = "opentp"
     start_urls = ["http://opentp.ru/tenders/kind/s/"]
 
     def __init__(self):
-        super(OpentpSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(OpentpSpider, self).__init__(data_origin_url)
 
     def parse(self, response, unique_links: set = None):
-        combo = Combo(response_=response)
+        combo = Combo(response=response)
         unique_links = unique_links or set()
         unique_links.update(combo.get_trading_links())
         next_page = combo.get_next_page()
@@ -49,7 +46,7 @@ class OpentpSpider(scrapy.Spider):
         arbit_manager_org = combo.arbitr_manager_org
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
-        general_files = combo.download_general()
+        general_files = combo.download()
         for lot_link, lot_number, short_name, status, address, start_price in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
@@ -78,14 +75,14 @@ class OpentpSpider(scrapy.Spider):
             loader.add_value('start_date_trading', combo.start_date_trading)
             loader.add_value('end_date_trading', combo.end_date_trading)
             loader.add_value('start_price', start_price)
-            yield Request(lot_link, self.parse_lot, cb_kwargs={'loader': loader, 'general_files': general_files, 'lot_number': lot_number})
+            yield Request(lot_link, self.parse_lot, cb_kwargs={'loader': loader, 'general_files': general_files})
 
-    def parse_lot(self, response, loader, general_files, lot_number):
+    def parse_lot(self, response, loader, general_files):
         combo = Combo(response)
         loader.add_value('lot_id', combo.lot_id)
         loader.add_value('lot_info', combo.lot_info)
         if loader.get_collected_values('trading_type')[0] == 'auction':
             loader.add_value('step_price', combo.step_price)
-        loader.add_value('files', {'general': general_files, 'lot': combo.download_lot(lot_number)})
-        loader.add_value('created_at', return_parse_date())
+        loader.add_value('files', {'general': general_files, 'lot': combo.download()})
+        loader.add_value('categories', None)
         yield loader.load_item()

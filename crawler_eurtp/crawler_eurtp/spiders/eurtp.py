@@ -1,12 +1,11 @@
 import scrapy
+import logging
+
 from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from general_utils.base_spider import BaseSpider
 from general_utils.config import start_date
-
 from ..app import Combo
 from ..config import categories, end_date, page_limit
-import logging
-
 from ..config import data_origin
 
 logger = logging.getLogger(__name__)
@@ -19,18 +18,20 @@ class EurtpSpider(BaseSpider):
     def __init__(self):
         super().__init__(data_origin)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         for category in categories:
             yield scrapy.FormRequest(
                 url=category,
-                method='GET',
+                method='POST',
                 formdata={'page': '1', 'DateStart': start_date, 'DateFinish': end_date},
                 callback=self.collect_links
             )
 
     def collect_links(self, response, current_page: int = 1, all_links: set = None):
-        links_on_page = {tr.css('td:nth-child(2)>a::attr(href)').get() for tr in
-                         response.css('.table-responsive table:nth-child(2) tr')[1:]}
+        links_on_page = {
+            tr.css('td:nth-child(2)>a::attr(href)').get()
+            for tr in response.css('.table-responsive table:nth-child(2) tr')[1:]
+        }
         all_links = all_links or set()
         all_links.update(links_on_page)
         pages = response.xpath('//div[@class="pager"]/a')
@@ -54,8 +55,10 @@ class EurtpSpider(BaseSpider):
 
     def parse_trades(self, response):
         combo = Combo(response)
-        lots_on_page = [tr.css('td:nth-child(2)>a::attr(href)').get() for tr in
-                        response.css('.table-responsive:first-child table:nth-child(2) tr')[1:]]
+        lots_on_page = [
+            tr.css('td:nth-child(2)>a::attr(href)').get()
+            for tr in response.css('.table-responsive:first-child table:nth-child(2) tr')[1:]
+        ]
         trading_id = combo.trading_id
         trading_link = combo.trading_link
         trading_number = combo.trading_number
@@ -89,6 +92,7 @@ class EurtpSpider(BaseSpider):
             loader.add_value('start_date_requests', combo.start_date_requests)
             loader.add_value('end_date_requests', combo.end_date_requests)
             loader.add_value('start_date_trading', combo.start_date_trading)
+            loader.add_value('categories', None)
             yield scrapy.Request(
                 url=UrlConfig.url_join(data_origin, lot_link), callback=self.parse_lot,
                 cb_kwargs={'loader': loader, 'general_files': general_files}
@@ -111,5 +115,5 @@ class EurtpSpider(BaseSpider):
             loader.add_value('start_date_trading', combo.start_date_trading)
             loader.add_value('end_date_trading', combo.end_date_trading)
             loader.add_value('periods', combo.periods)
-        loader.add_value('files', {'general': general_files, 'lot': combo.download(combo.lot_number)})
+        loader.add_value('files', {'general': general_files, 'lot': combo.download()})
         yield loader.load_item()

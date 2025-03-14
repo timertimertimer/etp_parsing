@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from numpy import float64
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time_auction, make_float
+from general_utils import dedent_func, CheckIfCorrectContactInfo, make_float, format_time
 from .serp import SerpParse
 from .files import DocumentGeneral, DocumentLot
 from bs4 import BeautifulSoup as BS
@@ -16,13 +16,12 @@ logger = logging.getLogger(__name__)
 
 class Combo:
 
-    def __init__(self, response, domain):
+    def __init__(self, response):
         self.response = response
-        self.loc = Locator
         self.soup = BS(self.response.text, 'lxml')
         self.serp = SerpParse(response_=self.response)
-        self.gen = DocumentGeneral(self.response, domain)
-        self.lot = DocumentLot(self.response, domain)
+        self.gen = DocumentGeneral(self.response)
+        self.lot = DocumentLot(self.response)
 
     @property
     def trading_id(self):
@@ -39,7 +38,7 @@ class Combo:
     @property
     def trading_number(self):
         try:
-            _number = self.response.xpath(self.loc.trading_number).get()
+            _number = self.response.xpath(Locator.trading_number).get()
             return dedent_func(_number)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA Trading Number {ex}')
@@ -55,7 +54,7 @@ class Combo:
                            'конкурс с закрытой формой представления цены',
                            'закрытый конкурс с открытой формой представления цены',
                            'закрытый конкурс с закрытой формой представления цены')
-            _type_text = self.response.xpath(self.loc.trading_type).get()
+            _type_text = self.response.xpath(Locator.trading_type).get()
             _type_text1 = BS(str(_type_text), features='lxml').get_text().lower()
             text = dedent_func(_type_text1)
             if text in offer:
@@ -76,7 +75,7 @@ class Combo:
                   'закрытый аукцион с закрытой формой представления цены',
                   'закрытый конкурс с открытой формой представления цены',
                   'закрытый конкурс с закрытой формой представления цены')
-        _type_text = self.response.xpath(self.loc.trading_type).get()
+        _type_text = self.response.xpath(Locator.trading_type).get()
         _type_text1 = BS(str(_type_text), features='lxml').get_text().lower()
         text = dedent_func(_type_text1)
         if text in _open:
@@ -86,9 +85,9 @@ class Combo:
 
     def get_block_org(self):
         try:
-            org_block = self.response.xpath(self.loc.trading_org).get()
+            org_block = self.response.xpath(Locator.trading_org).get()
             if not org_block:
-                org_block = self.response.xpath(self.loc.trading_org2).get()
+                org_block = self.response.xpath(Locator.trading_org2).get()
             org_block = BS(str(org_block), features='lxml')
             return org_block
         except Exception as ex:
@@ -162,7 +161,7 @@ class Combo:
 
     def get_block_trade_info(self):
         try:
-            info_block = self.response.xpath(self.loc.trade_info).get()
+            info_block = self.response.xpath(Locator.trade_info).get()
             info_block = BS(str(info_block), features='lxml')
             return info_block
         except Exception as ex:
@@ -179,7 +178,7 @@ class Combo:
 
     def get_block_debtor_info(self):
         try:
-            debtor_block = self.response.xpath(self.loc.debtor_info).get()
+            debtor_block = self.response.xpath(Locator.debtor_info).get()
             debtor_block = BS(str(debtor_block), features='lxml')
             return debtor_block
         except Exception as ex:
@@ -195,7 +194,7 @@ class Combo:
                 if re.match(r'\d{9,13}', _inn):
                     inn = _inn
                 else:
-                    inn = self.response.xpath(self.loc.extra_loc_debtor).get()
+                    inn = self.response.xpath(Locator.extra_loc_debtor).get()
                 return CheckIfCorrectContactInfo.check_inn(inn)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INN {ex}')
@@ -224,7 +223,7 @@ class Combo:
     def get_arbitr_block(self):
         """ :return block with arbitr info """
         try:
-            block_arbitr = self.response.xpath(self.loc.arbitr_info).get()
+            block_arbitr = self.response.xpath(Locator.arbitr_info).get()
             arb = BS(str(block_arbitr), features='lxml')
             return arb
         except Exception as ex:
@@ -284,7 +283,7 @@ class Combo:
     def date_block_auction(self):
         """ :return block with auction dates of trading """
         try:
-            block = self.response.xpath(self.loc.dates_trading).get()
+            block = self.response.xpath(Locator.dates_trading).get()
             date_ = BS(str(block), features='lxml')
             return date_
         except Exception as ex:
@@ -379,7 +378,7 @@ class Combo:
                 start = block.find('td', string=re.compile('ата начала представления заявок на участи',
                                                            re.IGNORECASE)).findNext('td')
                 if start:
-                    start = format_time_auction(dedent_func(start.get_text().strip()))
+                    start = format_time(dedent_func(start.get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -393,7 +392,7 @@ class Combo:
             if block:
                 end = block.find('td', string=re.compile('ата окончания представления заявок на', re.IGNORECASE))
                 if end:
-                    end = format_time_auction(dedent_func(end.findNext('td').get_text().strip()))
+                    end = format_time(dedent_func(end.findNext('td').get_text().strip()))
                     return end
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -407,7 +406,7 @@ class Combo:
             if block:
                 start = block.find('td', string=re.compile('ата проведени', re.IGNORECASE))
                 if start:
-                    start = format_time_auction(dedent_func(start.findNext('td').get_text().strip()))
+                    start = format_time(dedent_func(start.findNext('td').get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -439,7 +438,7 @@ class Combo:
         try:
             table_period = self.get_period_table(table)
             start_date = table_period.iloc[0][0]
-            return format_time_auction(start_date)
+            return format_time(start_date)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA START DATE TRADING OFFER {ex}')
 
@@ -447,7 +446,7 @@ class Combo:
         try:
             table_period = self.get_period_table(table)
             end_date = table_period.iloc[-1][1]
-            return format_time_auction(end_date)
+            return format_time(end_date)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA END DATE TRADING {ex}')
 
@@ -541,9 +540,9 @@ class Combo:
                         logger.error(f'{self.response.url} :: INVALID TYPE CURRENT PRICE')
                         current_price_ = None
                     period = {
-                        'start_date_requests': format_time_auction(start_date_request),
-                        'end_date_requests': format_time_auction(end_date_request),
-                        'end_date_trading': format_time_auction(end_date_trading),
+                        'start_date_requests': format_time(start_date_request),
+                        'end_date_requests': format_time(end_date_request),
+                        'end_date_trading': format_time(end_date_trading),
                         'current_price': current_price_
                     }
                     periods.append(period)

@@ -2,6 +2,8 @@ import time
 import scrapy
 from scrapy import signals
 from scrapy.exceptions import CloseSpider
+from scrapy.spidermiddlewares.httperror import HttpError
+from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from .db import DBHelper
 
@@ -29,3 +31,15 @@ class BaseSpider(scrapy.Spider):
         duration = time.time() - self.time_started
         self.logger.info(f"Spider {self.name} closed. Scraped {self.counter} items in {duration:.2f} seconds.")
         DBHelper.save_counter_and_duration(self.counter, duration, self.name)
+
+    def errback_httpbin(self, failure):
+        self.logger.error(repr(failure))
+        if failure.check(HttpError):
+            response = failure.value.response
+            self.logger.error("HttpError occurred on %s", response.url)
+        elif failure.check(DNSLookupError):
+            request = failure.request
+            self.logger.error("DNSLookupError occurred on %s", request.url)
+        elif failure.check(TimeoutError, TCPTimedOutError):
+            request = failure.request
+            self.logger.error("TimeoutError occurred on %s", request.url)

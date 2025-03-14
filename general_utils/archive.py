@@ -3,9 +3,9 @@ import os
 from pathlib import PurePath, Path
 from pydantic import HttpUrl
 
-from .work_with_path_and_dir import FilesDir
-from .config import lst_exet_files
-from .work_with_text_and_number import count_cyrillic, fix_encoding
+from .work_with_path_and_dir import sanitize_filename
+from .config import image_and_doc_formats
+from .work_with_text_and_number import fix_encoding
 
 logger = logging.getLogger(__name__)
 
@@ -17,57 +17,44 @@ class ArchiveFiles:
             self,
             absolute_path: PurePath,
             relative_path: PurePath | str,
-            root_directory: str,
-            file_name: str, trading_id: str, lot_number: str, url: str | HttpUrl,
+            file_name: str, url: str | HttpUrl
     ):
-        self.absolute_path = PurePath(absolute_path)
-        self.root_directory = PurePath(root_directory)
+        self.absolute_archive_path = PurePath(absolute_path)
+        self.relative_archive_path = PurePath(relative_path)
         self.file_name = file_name
-        self.trading_id = trading_id
-        self.lot_number = lot_number
-        self.url = url
-        self.relative_path = PurePath(relative_path)
+        if isinstance(url, HttpUrl):
+            self.url = str(url)
+        else:
+            self.url = url
         self.archive_class = None
 
     def extract_files(self):
         files_list = []
-        with self.archive_class(str(self.absolute_path)) as archive:
+        with self.archive_class(str(self.absolute_archive_path)) as archive:
             for file_name in archive.namelist():
-                fixed_name = FilesDir.name_file_on_server(self.trading_id, fix_encoding(file_name), self.lot_number)
-                fixed_extract_path = Path(self.root_directory / fixed_name)
-                if file_name.endswith('/'):
-                    if not fixed_extract_path.exists():
-                        fixed_extract_path.mkdir()
+                fixed_name = sanitize_filename(fix_encoding(file_name))
+                fixed_absolute_file_path = Path(self.absolute_archive_path.parent / fixed_name)
+                fixed_relative_file_path = Path(self.relative_archive_path.parent / fixed_name)
+                if fixed_name.endswith('/'):
+                    fixed_absolute_file_path.mkdir(parents=True, exist_ok=True)
                     continue
-                elif not fixed_extract_path.parent.exists():
-                    fixed_extract_path.parent.mkdir(parents=True)
-                link = ''
-                if fixed_extract_path.exists():
-                    link = (self.relative_path.parent / fixed_name).as_posix()
-                elif fixed_extract_path.suffix in lst_exet_files:
-                    # archive.extract(file_name, self.root_directory)
-                    # extracted_file = None
-                    # for root, _, files in os.walk(self.root_directory):
-                    #     for f in files:
-                    #         if f == os.path.basename(file_name):
-                    #             extracted_file = Path(root) / f
-                    #             break
-                    #     if extracted_file:
-                    #         break
-                    # os.rename(extracted_file, fixed_extract_path)
-                    with archive.open(file_name) as source, open(fixed_extract_path, 'wb') as target:
+                fixed_absolute_file_path.parent.mkdir(parents=True, exist_ok=True)
+                link = None
+                if fixed_absolute_file_path.exists():
+                    link = fixed_relative_file_path
+                elif fixed_absolute_file_path.suffix in image_and_doc_formats:
+                    with archive.open(file_name) as source, open(fixed_absolute_file_path, 'wb') as target:
                         target.write(source.read())
-                    link = (self.relative_path.parent / fixed_name).as_posix()
-                files_list.append(
-                    {'original_name': count_cyrillic(fixed_name), 'link': link, 'link_etp': str(self.url)}
-                )
+                    link = fixed_relative_file_path
+                if link:
+                    files_list.append(link)
         return files_list
 
     def delete_archive(self):
         try:
-            os.remove(self.absolute_path)
+            os.remove(self.absolute_archive_path)
         except NotADirectoryError as ex:
-            logger.error(f'{self.trading_id} :: ERROR ARCHIVE FILE\n{ex}')
+            logger.error(f'{self.file_name} :: ERROR ARCHIVE FILE\n{ex}')
 
 
 class ZipFiles(ArchiveFiles):

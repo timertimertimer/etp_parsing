@@ -8,6 +8,6 @@ class Combo:
     def __init__(self, response_):
         self.response = response_
         self.serp = SerpPage(response_=self.response)
-        self.auc = AucPage(response_=self.response)
+        self.auc = AucPage(response=self.response)
         self.offer = OfferPage(response_=self.response)
         self.doc = DocPage(response_=self.response)

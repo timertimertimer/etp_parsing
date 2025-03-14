@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 import re
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import *
-from scrapy.spiders import CrawlSpider
 from scrapy_splash import SplashRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError, TCPTimedOutError
 import scrapy_splash
 
-from ..get_data_from_table import DbConnectCheckLots
 from scrapy import Request
 from bs4 import BeautifulSoup as BS
 import logging
@@ -19,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SibtoptradeSpider(CrawlSpider):
+class SibtoptradeSpider(BaseSpider):
     name = 'sibtoptrade'
     total_iterations = int(finish_page) - int(start_page)
     addresses = dict()
@@ -29,8 +27,6 @@ class SibtoptradeSpider(CrawlSpider):
 
     def __init__(self):
         super(SibtoptradeSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
 
     def start_requests(self):
         yield SplashRequest(start_urls1, self.iterrate_througth_pages,
@@ -70,7 +66,7 @@ class SibtoptradeSpider(CrawlSpider):
     def parse_lots(self, response):
         loader = EtpItemLoader(EtpItem(), response=response)
         combo = Combo(response)
-        loader.add_value('data_origin', main_url_sib)
+        loader.add_value('data_origin', data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)
         loader.add_value('trading_number', response.meta['trading_number'])

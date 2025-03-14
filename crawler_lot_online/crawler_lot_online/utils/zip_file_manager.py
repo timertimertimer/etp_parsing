@@ -5,7 +5,7 @@ from zipfile import ZipFile
 import os
 import logging
 
-from general_utils.config import lst_exet_files
+from general_utils.config import image_and_doc_formats
 from ..utils.work_with_text_and_number import count_cyrillic
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class ZipFiles:
         new_file_name = ''
         for fileName in lst:
             _suffix = pathlib.Path(fileName.replace(' ', '')).suffix
-            if pathlib.Path(fileName.replace(' ', '')).suffix in lst_exet_files:
+            if pathlib.Path(fileName.replace(' ', '')).suffix in image_and_doc_formats:
                 # check if folder in zip. If true -> extract first from zip then from folder
                 if re.match(f'.+/.+{_suffix}', fileName):
                     check = 0

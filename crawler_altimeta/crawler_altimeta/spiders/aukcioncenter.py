@@ -3,11 +3,14 @@ from scrapy import Request
 from general_utils import UrlConfig
 from .base import AltimetaBaseSpider
 from ..manage_spiders.app import Combo
-from ..utils.config import stop_page
+from ..config import stop_page
 
 
 class AukcioncenterSpider(AltimetaBaseSpider):
     name = 'aukcioncenter'
+    custom_settings = {
+        # 'LOG_FILE': f'{name}.log',
+    }
 
     def parse_serp(self, response, current_page):
         combo = Combo(response_=response)

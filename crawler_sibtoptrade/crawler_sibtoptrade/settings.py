@@ -4,9 +4,9 @@ BOT_NAME = 'crawler_sibtoptrade'
 
 SPIDER_MODULES = ['crawler_sibtoptrade.spiders']
 NEWSPIDER_MODULE = 'crawler_sibtoptrade.spiders'
-DOWNLOAD_DELAY = 3
-CONCURRENT_REQUESTS_PER_DOMAIN = 1
-CONCURRENT_REQUESTS_PER_IP = 1
+# DOWNLOAD_DELAY = 3
+# CONCURRENT_REQUESTS_PER_DOMAIN = 1
+# CONCURRENT_REQUESTS_PER_IP = 1
 
 # LOG_FILE = 'sibtoptrade.log'
 DEFAULT_REQUEST_HEADERS.pop('Accept-Encoding')

@@ -1,19 +1,15 @@
-import copy
 import json
 import re
 from itertools import chain
 
-from scrapy import Spider, Request, FormRequest
+from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
-
-from general_utils import cookie_parser, return_main_cookies, return_parse_date
 from general_utils.base_spider import BaseSpider
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import RegionIdentifier, get_index
 from ..manage_spider.app import Combo
-from ..utils.config import go_to_urls, start_url, data_pagination, pagination_url, organization_ids
+from ..utils.config import start_url, data_pagination, pagination_url, organization_ids
 from ..utils.data_for_requests import script_lua
 
 
@@ -22,6 +18,9 @@ class ZalogLotOnlineSpider(BaseSpider):
     custom_settings = {
         # 'LOG_FILE': f'{name}.log'
     }
+    
+    def __init__(self):
+        super().__init__(data)
 
     def start_requests(self):
         yield SplashRequest(

@@ -1,29 +1,28 @@
-# -*- coding: utf-8 -*-
 import logging
+import re
+import urllib.parse
+
 import pandas as pd
 import numpy as np
 
 from bs4 import BeautifulSoup as BS
 
+from general_utils import (
+    UrlConfig, dedent_func, CheckIfCorrectContactInfo, delete_extra_symbols, cut_lot_number, get_lot_number, format_time
+)
 from ..locators_and_attributes.locators_attributes import Offer
-from ..utils.config import data_origin_url
-from ..utils.working_with_url import UrlConfig
-from ..utils.working_with_time import format_time
-from ..utils.work_with_text_and_number import *
-from ..utils.check_inn_email_phone import CheckIfCorrectContactInfo
+from ..config import data_origin_url
 
 logger = logging.getLogger(__name__)
 
 
 class OfferSpider:
 
-    def __init__(self, response_):
-        self.response = response_
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
-        self.url = UrlConfig()
-        self.loc = Offer
-        self.check = CheckIfCorrectContactInfo()
+    def __init__(self, response):
+        self.response = response
+        self.soup = (
+            BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        )
 
     def get_post_data_values(self, tag_html: str, post_argument: str) -> str or None:
         """
@@ -50,7 +49,7 @@ class OfferSpider:
                 [s.get('src') for s in self.soup.find_all('script') if 'AjaxControlToolkit' in str(s.get('src'))])
             if ajax_control and len(ajax_control) > 0:
                 a = ''.join(re.findall(r'TSM_CombinedScripts_=(.*)$', ajax_control))
-                return self.url.make_url_unquote(a)
+                return urllib.parse.unquote(a, encoding='utf-8')
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR GETTING ctl00_ToolkitScriptManager1_HiddenField value ::\n{e}')
             return ''
@@ -60,11 +59,11 @@ class OfferSpider:
         """gettting links to the trading page and return set"""
         try:
             link_set = set()
-            list_tag_links = self.response.xpath(self.loc.trading_links_loc).getall()
+            list_tag_links = self.response.xpath(Offer.trading_links_loc).getall()
             if list_tag_links and len(list_tag_links) > 0:
                 for link in list_tag_links:
                     if link and re.match('/public.+aspx.+\d+$', link):
-                        link_set.add(self.url.url_join(data_origin_url, link))
+                        link_set.add(UrlConfig.url_join(data_origin_url, link))
                 return link_set
         except:
             logger.error(f'{self.response.url} :: ERROR DURING GETTING LINKS TO TRADING PAGE')
@@ -88,11 +87,11 @@ class OfferSpider:
     @property
     def get_trading_number(self) -> str or None:
         """ return trading number """
-        trade_number = self.response.xpath(self.loc.trading_number_loc).get()
+        trade_number = self.response.xpath(Offer.trading_number_loc).get()
         if trade_number and len(trade_number) > 0:
             t = dedent_func(BS(str(trade_number), features='lxml').get_text()).strip()
             if len(t) > 0 and re.match(r'\d{1,12}', t):
-                return self.check.check_number(t)
+                return CheckIfCorrectContactInfo.check_number(t)
         else:
             logger.warning(f'{self.response.url} :: INVALID DATA OR IS MISSING TARDING NUMBER')
             return None
@@ -100,7 +99,7 @@ class OfferSpider:
     @property
     def get_trading_type(self):
         """ return trading type """
-        trading_type = self.response.xpath(self.loc.trading_type_loc).get()
+        trading_type = self.response.xpath(Offer.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(BS(str(trading_type), features='lxml').get_text()).strip()
             if type_ in ['Публичное предложение', 'Открытое публичное предложение', 'Закрытое публичное предложение']:
@@ -110,7 +109,7 @@ class OfferSpider:
 
     def get_status(self):
         """ return status """
-        trading_status = self.response.xpath(self.loc.trading_status_loc).get()
+        trading_status = self.response.xpath(Offer.trading_status_loc).get()
         if trading_status and len(trading_status) > 0:
             status = dedent_func(BS(str(trading_status), features='lxml').get_text()).strip().lower()
             if status == 'прием заявок':
@@ -123,7 +122,7 @@ class OfferSpider:
     @property
     def get_trading_form(self):
         """ return trading form """
-        trading_type = self.response.xpath(self.loc.trading_type_loc).get()
+        trading_type = self.response.xpath(Offer.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(BS(str(trading_type), features='lxml').get_text()).strip()
             if type_ in ['Аукцион', 'Открытый аукцион', 'Конкурс', 'Открытый конкурс', 'Публичное предложение',
@@ -136,8 +135,8 @@ class OfferSpider:
     def get_trading_org_name(self):
         """determine the organizer(company or person)"""
         try:
-            if_company = self.response.xpath(self.loc.list_of_company_id).getall()
-            person = self.response.xpath(self.loc.list_person_info_id).getall()
+            if_company = self.response.xpath(Offer.list_of_company_id).getall()
+            person = self.response.xpath(Offer.list_person_info_id).getall()
             if len(if_company) > 0:
                 for tr in if_company:
                     td = BS(str(tr), features='lxml').find_all('td')
@@ -164,20 +163,20 @@ class OfferSpider:
     def get_org_inn(self) -> str or None:
         """:return trading organizer inn """
         try:
-            if_company = self.response.xpath(self.loc.list_of_company_id).getall()
-            person = self.response.xpath(self.loc.list_person_info_id).getall()
+            if_company = self.response.xpath(Offer.list_of_company_id).getall()
+            person = self.response.xpath(Offer.list_person_info_id).getall()
             if len(if_company) > 0:
                 for tr in if_company:
                     td = BS(str(tr), features='lxml').find_all('td')
                     if len(td) == 2:
                         if 'ИНН' in dedent_func(td[0].get_text()):
-                            return self.check.check_inn(dedent_func(td[1].get_text()))
+                            return CheckIfCorrectContactInfo.check_inn(dedent_func(td[1].get_text()))
             elif len(person) > 0:
                 for tr in person:
                     td = BS(str(tr), features='lxml').find_all('td')
                     if len(td) == 2:
                         if 'ИНН' in dedent_func(td[0].get_text()):
-                            return self.check.check_inn(dedent_func(td[1].get_text()))
+                            return CheckIfCorrectContactInfo.check_inn(dedent_func(td[1].get_text()))
 
         except Exception as e:
             logger.error(f'{self.response.url} :: {e}\n INVALID DATA ORG INN')
@@ -187,9 +186,9 @@ class OfferSpider:
     def get_email_org(self):
         """:return organizer email"""
         try:
-            email = self.soup.find(id=self.loc.org_email_loc).get_text()
+            email = self.soup.find(id=Offer.org_email_loc).get_text()
             if email:
-                return self.check.check_email(dedent_func(email))
+                return CheckIfCorrectContactInfo.check_email(dedent_func(email))
             else:
                 return ''
         except Exception as e:
@@ -199,10 +198,10 @@ class OfferSpider:
     def get_phone_org(self):
         """:return """
         try:
-            phone_ = self.response.xpath(self.loc.phone_org_loc).get()
+            phone_ = self.response.xpath(Offer.phone_org_loc).get()
             if phone_:
                 phone = BS(str(phone_), features='lxml').get_text()
-                return self.check.check_phone(dedent_func(phone))
+                return CheckIfCorrectContactInfo.check_phone(dedent_func(phone))
             else:
                 return ''
         except Exception as e:
@@ -236,26 +235,26 @@ class OfferSpider:
                 if case__:
                     case = dedent_func(case__.get_text())
                     if len(case) > 4:
-                        return self.check.check_case_number(case)
+                        return CheckIfCorrectContactInfo.check_case_number(case)
 
     @property
     def get_debtor_inn(self):
         """:return debtor inn"""
         try:
-            debtor = self.response.xpath(self.loc.list_debtor_id).getall()
+            debtor = self.response.xpath(Offer.list_debtor_id).getall()
             if len(debtor) > 0:
                 for tr in debtor:
                     td = BS(str(tr), features='lxml').find_all('td')
                     if len(td) == 2:
                         if 'ИНН' in dedent_func(td[0].get_text()):
-                            return self.check.check_inn(dedent_func(td[1].get_text()))
+                            return CheckIfCorrectContactInfo.check_inn(dedent_func(td[1].get_text()))
         except:
             logger.error(f'{self.response.url} :: INVALID DATA dbtor inn')
 
     @property
     def address(self):
         try:
-            address = self.response.xpath(self.loc.sud_loc).get()
+            address = self.response.xpath(Offer.sud_loc).get()
             if address:
                 address = BS(str(address), features='lxml').find('span', id='ctl00_cph1_lDealArbJud')
                 if address:
@@ -267,7 +266,7 @@ class OfferSpider:
     def get_arbitr_name(self):
         """ :return arbitr name"""
         try:
-            arbitr = self.response.xpath(self.loc.list_arbitr_id).getall()
+            arbitr = self.response.xpath(Offer.list_arbitr_id).getall()
             lastname, fistname, middlename = '', '', ''
             for tr in arbitr:
                 td = BS(str(tr), features='lxml').find_all('td')
@@ -289,13 +288,13 @@ class OfferSpider:
     def get_arbitr_inn(self):
         """:return debtor inn"""
         try:
-            arbitr = self.response.xpath(self.loc.list_arbitr_id).getall()
+            arbitr = self.response.xpath(Offer.list_arbitr_id).getall()
             if len(arbitr) > 0:
                 for tr in arbitr:
                     td = BS(str(tr), features='lxml').find_all('td')
                     if len(td) == 2:
                         if 'ИНН' in dedent_func(td[0].get_text()):
-                            return self.check.check_inn(dedent_func(td[1].get_text()).strip())
+                            return CheckIfCorrectContactInfo.check_inn(dedent_func(td[1].get_text()).strip())
         except:
             logger.error(f'{self.response.url} :: INVALID DATA arbitr inn')
 
@@ -303,7 +302,7 @@ class OfferSpider:
     def get_arbitr_org(self):
         """:return arbitr manager org"""
         try:
-            arbitr_org = self.response.xpath(self.loc.list_arbitr_id).getall()
+            arbitr_org = self.response.xpath(Offer.list_arbitr_id).getall()
             if len(arbitr_org) > 0:
                 for tr in arbitr_org:
                     td = BS(str(tr), features='lxml').find_all('td')
@@ -323,7 +322,7 @@ class OfferSpider:
     def get_short_name(self):
         """:return short name of lot"""
         try:
-            short_name = self.soup.find(id=self.loc.short_name_id_loc)
+            short_name = self.soup.find(id=Offer.short_name_id_loc)
             if short_name:
                 return dedent_func(short_name.get_text())
         except:
@@ -334,7 +333,7 @@ class OfferSpider:
     def get_lot_info(self):
         """:return short name of lot"""
         try:
-            lot_info = self.soup.find(id=self.loc.lot_info_id_loc)
+            lot_info = self.soup.find(id=Offer.lot_info_id_loc)
             if lot_info:
                 return dedent_func(lot_info.get_text())
         except:
@@ -344,7 +343,7 @@ class OfferSpider:
     def get_lot_number_(self):
         """:return short name of lot"""
         try:
-            short_name = self.soup.find(id=self.loc.short_name_id_loc)
+            short_name = self.soup.find(id=Offer.short_name_id_loc)
             if short_name:
                 return dedent_func(short_name.get_text())
         except:
@@ -353,7 +352,7 @@ class OfferSpider:
     def get_property_info(self):
         """:return short name of lot"""
         try:
-            property_ = self.soup.find(id=self.loc.property_info_if_loc)
+            property_ = self.soup.find(id=Offer.property_info_if_loc)
             if property_:
                 return dedent_func(property_.get_text())
         except:
@@ -364,7 +363,7 @@ class OfferSpider:
     def get_period_table(self) -> list or None:
         """:return list with  periods table tag"""
         try:
-            lst_table = self.response.xpath(self.loc.period_table).getall()
+            lst_table = self.response.xpath(Offer.period_table).getall()
             if lst_table and len(lst_table) > 0:
                 return lst_table
             else:

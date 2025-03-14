@@ -1,19 +1,15 @@
 import logging
-import pathlib
 import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import UrlConfig, dedent_func, format_time, parse_classifiers
+from general_utils import dedent_func, format_time
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from general_utils.download import DownloadFiles
-from general_utils.models import RequestData
-from general_utils.work_with_path_and_dir import FilesDir
+from general_utils.models import DownloadData
 from ..config import data_origin, path_absolute, path_relative
 from ..trades.auc import Auc
 from ..trades.offer import Offer
 from ..locators.locator_trade import LocatorTrade
-from general_utils.config import lst_exeption, lst_exet, lst_exet_archive
 
 logger = logging.getLogger(__name__)
 
@@ -63,88 +59,15 @@ class Combo:
                 current_path_relative = path_relative[k]
         return current_path_relative, current_path_absolute
 
-    def download_general(self, data_origin_url: str):
-        current_path_relative, current_path_absolute = self.get_paths(data_origin_url)
-        files_dir = FilesDir(current_path_relative, current_path_absolute)
-        load = DownloadFiles()
-        lst_general = list()
+    def download(self):
+        files = list()
         for file in self.response.xpath(self.loc.files_loc).getall():
-            link_ = BeautifulSoup(str(file), features='lxml').find('a', target="_blank")
-            link = link_.get('href')
-            name = link_.get_text()
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(self.id_, name)
-            absolute_path = files_dir.return_absolute_path(name_on_server)
-            relative_path = files_dir.return_relative_path(name_on_server)
-            if not any(ele in name for ele in lst_exeption):
-                files_dir.create_dir()
-                request_data = RequestData(url=link, referer=self.response.url)
-                if pathlib.Path(name).suffix in lst_exet:
-                    load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=absolute_path, relative_path=relative_path,
-                        trading_id=self.id_,
-                    )
-                    lst_general.append(
-                        {
-                            'original_name': name,
-                            'link': relative_path.as_posix(),
-                            'link_etp': UrlConfig.parse_url(link)
-                        }
-                    )
-                elif pathlib.Path(name).suffix in lst_exet_archive:
-                    archive_lst = load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=absolute_path, relative_path=relative_path,
-                        trading_id=self.id_
-                    )
-                    lst_general.extend(archive_lst)
-                else:
-                    lst_general.append(
-                        {'original_name': name, 'link': None, 'link_etp': UrlConfig.url_join(data_origin_url, link)}
-                    )
-        return lst_general
-
-    def download_lot(self, lot_number, data_origin_url):
-        current_path_relative, current_path_absolute = self.get_paths(data_origin_url)
-        files_dir = FilesDir(current_path_relative, current_path_absolute)
-        load = DownloadFiles()
-        lot_list = list()
-        try:
-            for link in self.response.xpath(self.loc.files_loc).getall():
-                link = BeautifulSoup(str(link), features='lxml').find('a', target="_blank")
-                name = link.get_text()
-                link = link.get('href')
-                if len(name) > 75:
-                    name = name[:30] + '_' + name[-35::1]
-                name_on_server = files_dir.name_file_lot_on_server(self.id_, lot_number, name)
-                absolute_path = files_dir.return_absolute_path(name_on_server)
-                relative_path = files_dir.return_relative_path(name_on_server)
-                if not any(ele in name for ele in lst_exeption):
-                    files_dir.create_dir()
-                    request_data = RequestData(url=link, referer=self.response.url)
-                    if pathlib.Path(name).suffix in lst_exet:
-                        load.request_to_download_general(
-                            request_data=request_data,
-                            absolute_path=absolute_path, relative_path=relative_path,
-                            trading_id=self.id_, lot_number=lot_number
-                        )
-                        lot_list.append({'original_name': name, 'link': relative_path.as_posix(), 'link_etp': link})
-                    elif pathlib.Path(name).suffix in lst_exet_archive:
-                        archive_lst = load.request_to_download_general(
-                            request_data=request_data,
-                            absolute_path=absolute_path, relative_path=relative_path,
-                            trading_id=self.id_, lot_number=lot_number
-                        )
-                        lot_list.extend(archive_lst)
-                    else:
-                        lot_list.append(
-                            {'original_name': name, 'link': '', 'link_etp': UrlConfig.url_join(data_origin_url, link)}
-                        )
-            return lot_list
-        except Exception as e:
-            return []
+            a = BeautifulSoup(str(file), features='lxml').find('a', target="_blank")
+            link = a.get('href')
+            name = a.get_text()
+            download_data = DownloadData(url=link, file_name=name, referer=self.response.url)
+            files.append(download_data)
+        return files
 
     @property
     def id_(self):
@@ -354,4 +277,4 @@ class Combo:
 
     @property
     def categories(self):
-        return parse_classifiers(self.response.xpath(self.loc.categories_loc).get().strip())[1]
+        return self.response.xpath(self.loc.categories_loc).get().strip()

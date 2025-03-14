@@ -1,24 +1,19 @@
 from typing import Iterable
-
-import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
+from general_utils.base_spider import BaseSpider
 from general_utils.config import start_date
+from ..config import data_origin_url
 from ..trades.app import Combo
-from ..utils.config import data_origin_url
-from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.working_with_time import return_parse_date
 
 
-class MoiTenderSpider(scrapy.Spider):
+class MoiTenderSpider(BaseSpider):
     name = "moi_tender"
     start_urls = ["https://xn--d1abbnoievn.xn--p1ai/tenders.html"]
 
     def __init__(self):
-        super(MoiTenderSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(MoiTenderSpider, self).__init__(data_origin_url)
         self.trade_links = set()
         self.orgs_contacts = {}
 
@@ -52,7 +47,7 @@ class MoiTenderSpider(scrapy.Spider):
             if lot['trading_link'] not in self.previous_lots:
                 if lot['org'] not in self.orgs_contacts:
                     yield Request(
-                        combo.url.url_join(data_origin_url, lot['org_link']), self.parse_org, cb_kwargs={'lot': lot}
+                        UrlConfig.url_join(data_origin_url, lot['org_link']), self.parse_org, cb_kwargs={'lot': lot}
                     )
                 else:
                     yield Request(lot['trading_link'], self.parse_trade, cb_kwargs={'lot': lot})
@@ -82,6 +77,6 @@ class MoiTenderSpider(scrapy.Spider):
         loader.add_value('lot_info', combo.lot_info)
         loader.add_value('start_date_requests', combo.start_date_requests)
         loader.add_value('end_date_requests', combo.end_date_requests)
-        loader.add_value('files', {'general': combo.download_trade(lot['trading_id']), 'lot': combo.download_lot()})
-        loader.add_value('created_at', return_parse_date())
+        loader.add_value('files', {'general': combo.download_trade(), 'lot': combo.download_lot()})
+        loader.add_value('categories', None)
         yield loader.load_item()

@@ -33,3 +33,5 @@ class LocatorTrade:
     property_information_loc = '//td[contains(normalize-space(text()), "Порядок ознакомления с имуществом")]/following-sibling::td/text()'
     start_price_loc = '//td[contains(normalize-space(text()), "Начальная цена продажи")]/following-sibling::td/text()'
     step_price_loc = '//td[contains(normalize-space(text()), "Величина повышения начальной цены продажи")]/following-sibling::td/text()'
+
+    categories_loc = '//td[contains(normalize-space(text()), "Классификатор имущества для")]/following-sibling::td/text()'

@@ -13,6 +13,14 @@ class CheckIfCorrectContactInfo:
             return ''.join(pattern.findall(inn))
 
     @staticmethod
+    def check_number(num):
+        match = ''.join(re.findall(r'\d+', num))
+        if 4 <= len(match) < 12:
+            return match
+        else:
+            return None
+
+    @staticmethod
     def check_case_number(case_number: str or None):
         if case_number:
             # find if 4 characters are inline together

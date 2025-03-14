@@ -3,31 +3,28 @@ import scrapy
 import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
-from general_utils import EtpItemLoader, EtpItem, DBHelper, return_parse_date
-from general_utils.location import RegionIdentifier
+from general_utils import EtpItemLoader, EtpItem
+from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import page_limits, formdata, data_origin
 
 logger = logging.getLogger(__name__)
 
 
-class Rutrade24Spider(scrapy.Spider):
+class Rutrade24Spider(BaseSpider):
     name = 'rutrade24'
     start_urls = ['https://ru-trade24.ru/query/Filter']
     custom_settings = {
-        'UNIQUE_CO': ['trading_id', 'lot_number'],
         # 'LOG_FILE': f'{name}.log'
     }
 
     def __init__(self):
-        super(Rutrade24Spider, self).__init__()
-        self.db_check = DBHelper(self.custom_settings.get('TABLE_NAME', f'lots_{self.name}'))
-        self.previous_lots = self.db_check.get_latest_lot(self.custom_settings.get('UNIQUE_CO', ['trading_link']))
+        super(Rutrade24Spider, self).__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
         yield FormRequest(self.start_urls[0], self.parse, method='POST', formdata=formdata)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         current_page = self.get_currentPage(response)
         nextPage_url = self.get_next_page(response)
         trade_containers = response.css(".row.row--v-offset.trade-card")
@@ -105,9 +102,8 @@ class Rutrade24Spider(scrapy.Spider):
                 'step_price': combo.step_price(lot),
                 'files': {
                     'general': general_files,
-                    'lot': combo.download_lot(lot, combo.lot_number(lot))
+                    'lot': combo.download_lot(lot)
                 },
-                'created_at': return_parse_date(),
             }
             item_data = {**common_data, **lot_data}
             loader = EtpItemLoader(item=EtpItem(), response=response)

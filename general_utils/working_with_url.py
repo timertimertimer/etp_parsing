@@ -63,3 +63,16 @@ class UrlConfig:
     def clean_url(url):
         parsed_url = urllib.parse.urlparse(url)
         return f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+
+    @staticmethod
+    def update_param(url, param_name, param_new_value):
+        params = {param_name: param_new_value}
+
+        url_parts = list(urllib.parse.urlparse(url))
+        query = dict(urllib.parse.parse_qsl(url_parts[4]))
+        query.update(params)
+
+        url_parts[4] = urllib.parse.urlencode(query)
+
+        url_output = urllib.parse.urlunparse(url_parts)
+        return url_output.replace('+', '%20')

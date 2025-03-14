@@ -1,13 +1,10 @@
-from bs4 import BeautifulSoup as BS
 import re
+import logging
+from bs4 import BeautifulSoup as BS
 
-from general_utils import CheckIfCorrectContactInfo
+from general_utils import CheckIfCorrectContactInfo, format_time, dedent_func
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
-import logging
-
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import format_time_auction
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +27,7 @@ class SerpPage:
         if _date:
             _date = BS(str(_date), features='lxml').get_text().strip()
             if re.match(r'\d{1,2}\.\d{1,2}\.\d{2,4}.*?\d{1,2}\:\d{1,2}', _date):
-                _date = format_time_auction(_date)
+                _date = format_time(_date)
                 if _date > '2017-01-01 00:00':
                     return _date
                 else:
@@ -59,9 +56,7 @@ class SerpPage:
         else:
             return None
 
-    # lot page. Get only info about type
     def get_original_text_type(self):
-        """ get original text from td with type and form info """
         try:
             _form = self.response.xpath(self.loc_trade.trading_type_loc).get()
             _form = BS(str(_form), features='lxml').get_text().strip()

@@ -12,4 +12,4 @@ from .parser_status import ParserStatus
 from .region import Region
 from .trading_floor import TradingFloor
 
-from .request_data import RequestData
+from .download_data import DownloadData

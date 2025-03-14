@@ -11,12 +11,11 @@ logger = logging.getLogger(__name__)
 
 class PreTradePage:
 
-    def __init__(self, _response):
+    def __init__(self, _response, soup):
         self.response = _response
+        self.soup = soup
         self.loc = SearchLocator
         self.url = UrlConfig()
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
 
     @property
     def get_link_to_serp_trade(self):

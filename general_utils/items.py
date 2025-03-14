@@ -66,7 +66,7 @@ class EtpItemLoader(ItemLoader):
     lot_number_out = TakeFirst()
     short_name_out = TakeFirst()
     lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
-    categories_out = Identity()
+    categories_out = TakeFirst()
     property_information_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', '\''), str)
     start_date_requests_out = TakeFirst()
     end_date_requests_out = TakeFirst()

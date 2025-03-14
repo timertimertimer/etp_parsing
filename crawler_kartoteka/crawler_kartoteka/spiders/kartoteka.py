@@ -1,41 +1,27 @@
 import json
 from typing import Iterable
 
-from bs4 import BeautifulSoup
-import scrapy
 from scrapy import Request, FormRequest
 
 from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader, return_parse_date
-from general_utils.config import trash_resources, format_parse_date, start_date
+from general_utils.base_spider import BaseSpider
+from general_utils.config import trash_resources, start_date
 from ..locators.serp_locator import SerpLocator
 from ..trades.app import Combo
 from ..utils.config import data_origin_url
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data import form_data
 
 
-class KartotekaSpider(scrapy.Spider):
+class KartotekaSpider(BaseSpider):
     name = "kartoteka"
     start_urls = ["https://www.kartoteka.ru/bankruptcy2/"]
     custom_settings = {
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources
     }
 
-    def __init__(self):
-        super(KartotekaSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
-        self.loc = SerpLocator
-
     def start_requests(self):
         for url in self.start_urls:
-            yield Request(
-                url,
-                callback=self.get_validate_data,
-                meta=dict(
-                    playwright=True,
-                ),
-            )
+            yield Request(url, callback=self.get_validate_data, meta=dict(playwright=True))
 
     def get_validate_data(self, response) -> Iterable[Request]:
         validate_data = response.xpath('//input[@name="validate"]/@value').get()
@@ -55,16 +41,16 @@ class KartotekaSpider(scrapy.Spider):
         yield Request(f"{self.start_urls[0]}{hash}", self.parse_serp)
 
     def parse_serp(self, response):
-        trade_cards = response.xpath(self.loc.trade_card_loc)
+        trade_cards = response.xpath(SerpLocator.trade_card_loc)
         for trade in trade_cards:
-            link = UrlConfig.url_join(data_origin_url, trade.xpath(self.loc.link_to_trade_loc).get())
+            link = UrlConfig.url_join(data_origin_url, trade.xpath(SerpLocator.link_to_trade_loc).get())
             if link not in self.previous_lots:
-                status = trade.xpath(self.loc.status_loc).get()
-                short_name = dedent_func(trade.xpath(self.loc.short_name_loc).get())
+                status = trade.xpath(SerpLocator.status_loc).get()
+                short_name = dedent_func(trade.xpath(SerpLocator.short_name_loc).get())
                 yield Request(link, self.parse_trade, cb_kwargs={"status": status, "short_name": short_name})
-        pagination = response.xpath(self.loc.pagination_loc).get()
+        pagination = response.xpath(SerpLocator.pagination_loc).get()
         if pagination:
-            next_page = response.xpath(self.loc.next_page_loc).get()
+            next_page = response.xpath(SerpLocator.next_page_loc).get()
             if next_page:
                 form_data["page"] = next_page
                 yield FormRequest(

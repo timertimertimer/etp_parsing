@@ -1,12 +1,11 @@
-from bs4 import BeautifulSoup as BS
-from ..locators.locator_lot_page import LocatorLotPage
 import re
-import pandas as pd
-from numpy import float64
 import logging
+import pandas as pd
+from bs4 import BeautifulSoup as BS
 
-from ..utils.work_with_text_and_number import make_float, dedent_func
-from ..utils.working_with_time import format_time, format_time_auction
+from general_utils import format_time, make_float, dedent_func
+from ..locators.locator_lot_page import LocatorLotPage
+from numpy import float64
 
 logger = logging.getLogger(__name__)
 
@@ -18,49 +17,40 @@ class OfferPage:
         self.soup = BS(str(self.response.text).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
 
     def get_lot_tables(self):
-        """ fetch all lotstables) on page and return list with tables(lot info) on page """
         tables_all = self.response.xpath(self.loc_lot.get_lot_table_offer).getall()
         return tables_all
 
     def get_table_period(self, table_):
-        """ :arg table_ -> current table from iteration
-            :return period table -> bs4 object
-            """
         table = BS(str(table_), features='lxml')
         return table
 
     def start_date_request(self, table_):
-        """ :return start date request offer from period table """
         try:
             table = self.get_table_period(table_)
             table = table.find('table', class_='data inner')
             table = pd.read_html(str(table))
             df = table[0]
-            return format_time_auction(df.iloc[0][0])
+            return format_time(df.iloc[0][0])
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR start_date_request {e}', exc_info=True)
 
     def end_date_request(self, table_):
-        """ :return end date request offer from period table """
         try:
             table = self.get_table_period(table_)
             table = table.find('table', class_='data inner')
             table = pd.read_html(str(table))
             df = table[0]
-            return format_time_auction(df.iloc[-1][1])
+            return format_time(df.iloc[-1][1])
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR end_date_request {e}', exc_info=True)
 
     def start_date_trading(self, table_):
-        """ :return start date trading offer from period table """
         return self.start_date_request(table_)
 
     def end_date_trading(self, table_):
-        """ :return end date trading offer from period table """
         return self.end_date_request(table_)
 
     def start_price_offer(self, table_):
-        """ :return start price offer from period table """
         try:
             table = self.get_table_period(table_)
             table = table.find('table', class_='data inner')
@@ -79,9 +69,6 @@ class OfferPage:
             logger.error(f'{self.response.url} :: ERROR start_price_offer {e}', exc_info=True)
 
     def get_period(self, table_):
-        """ :arg table_ -> current table from iteration
-            :return lst with period table (text)
-            """
         check_value = int(10000000000000000000000)
         periods = list()
         table = BS(str(table_), features='lxml')
@@ -103,9 +90,9 @@ class OfferPage:
                         logger.error(f'{self.response.url} :: INVALID TYPE CURRENT PRICE')
                         current_price_ = None
                     period = {
-                        'start_date_requests': format_time_auction(start_date_request),
-                        'end_date_requests': format_time_auction(end_date_request),
-                        'end_date_trading': format_time_auction(end_date_trading),
+                        'start_date_requests': format_time(start_date_request),
+                        'end_date_requests': format_time(end_date_request),
+                        'end_date_trading': format_time(end_date_trading),
                         'current_price': current_price_
                     }
                     periods.append(period)
@@ -118,9 +105,7 @@ class OfferPage:
             logger.error(f'{self.response.url} :: PERIODS ERROR {e}\n{df}', exc_info=True)
             return None
 
-    # Pagination
     def get_next_page_number(self):
-        """ :return next page number if it exists """
         page = self.response.xpath(self.loc_lot.pagination).get()
         if page:
             return dedent_func(page.strip())

@@ -1,9 +1,11 @@
 from datetime import datetime
 
 from sqlalchemy import Integer, String, Text, ForeignKey, DateTime, Float, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from general_utils.models.base import Base
+
+TEXT_MAX_LENGTH = 65535
 
 
 class Lot(Base):
@@ -16,6 +18,13 @@ class Lot(Base):
     name: Mapped[str] = mapped_column(Text, nullable=True)
     info: Mapped[str] = mapped_column(Text, nullable=True)
     property_info: Mapped[str] = mapped_column(Text, nullable=True)
+
+    @validates("name", "info", "property_info")
+    def validate_text_fields(self, key, value):
+        if value and len(value.encode('utf-8')) > TEXT_MAX_LENGTH:
+            value = value.encode('utf-8')[:TEXT_MAX_LENGTH].decode('utf-8', errors='ignore')
+        return value
+
     price_start: Mapped[float] = mapped_column(Float)
     price_step: Mapped[float] = mapped_column(Float, nullable=True)
     auction_id: Mapped[int] = mapped_column(ForeignKey("auctions.id"))

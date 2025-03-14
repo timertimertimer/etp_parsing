@@ -1,28 +1,24 @@
 import json
 import re
-import scrapy
 from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
-from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_parse_date
-from ..trades.app import Combo
-from ..utils.config import main_url, data_origin_url
-from ..utils.data_for_requests import form_data
-from ..utils.get_data_from_table import DbConnectCheckLots
+from ..app import Combo
+from ..config import data_origin_url, form_data, main_url
+from general_utils import UrlConfig, EtpItem, EtpItemLoader
+from general_utils.base_spider import BaseSpider
 
 
-class TorgidvSpider(scrapy.Spider):
+class TorgidvSpider(BaseSpider):
     name = "torgidv"
     start_urls = ["https://torgidv.ru/bankrupt/"]
 
     def __init__(self):
-        super(TorgidvSpider).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(TorgidvSpider, self).__init__(data_origin_url)
         self.trades = set()
         self.pending_requests = 0
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         match = re.search(r'"bitrix_sessid":"([a-f0-9]{32})"', response.text)
         sessid = match.group(1)
         url_params = {
@@ -37,8 +33,6 @@ class TorgidvSpider(scrapy.Spider):
 
     def parse_serp(self, response):
         data = json.loads(response.text)
-        # if len(data['recordsTotal']) > len(data['data']):
-        #     form_data['length']
         for link in [el[0] for el in data['data']]:
             link = BeautifulSoup(link, 'lxml').a['href']
             self.pending_requests += 1
@@ -69,14 +63,14 @@ class TorgidvSpider(scrapy.Spider):
         trading_org = combo.trading_org
         trading_org_inn = combo.trading_org_inn
         trading_org_contacts = combo.trading_org_contacts
-        address, region = combo.address
+        address = combo.address
         msg_number = combo.msg_number
         case_number = combo.case_number
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
         start_date_trading = combo.start_date_trading
         end_date_trading = combo.end_date_trading
-        files = combo.download_general()
+        files = combo.download()
         for lot in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
@@ -95,8 +89,9 @@ class TorgidvSpider(scrapy.Spider):
             loader.add_value('end_date_requests', end_date_requests)
             loader.add_value('start_date_trading', start_date_trading)
             loader.add_value('end_date_trading', end_date_trading)
-            yield Request(UrlConfig.url_join(main_url, lot), self.parse_lot,
-                          cb_kwargs={'loader': loader, 'general_files': files})
+            yield Request(
+                UrlConfig.url_join(main_url, lot), self.parse_lot,cb_kwargs={'loader': loader, 'general_files': files}
+            )
 
     def parse_lot(self, response, loader, general_files):
         combo = Combo(response)
@@ -114,6 +109,6 @@ class TorgidvSpider(scrapy.Spider):
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
         loader.add_value('periods', combo.periods)
-        loader.add_value('files', {'general': general_files, 'lot': combo.download_lot()})
-        loader.add_value('created_at', return_parse_date())
+        loader.add_value('categories', combo.categories)
+        loader.add_value('files', {'general': general_files, 'lot': combo.download()})
         yield loader.load_item()

@@ -1,30 +1,24 @@
 import asyncio
 import logging
-import re
 from typing import Iterable
 
 import scrapy
 from playwright.async_api import Page
 from scrapy import Request
-from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy_playwright.page import PageMethod
-from bs4 import BeautifulSoup as BS
-from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils import EtpItem, EtpItemLoader
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
+from general_utils.base_spider import BaseSpider
 from general_utils.config import trash_resources, start_date
 from ..trades.combo import ComposeTrades
-from ..utils.manage_spider import sort_trading_type, get_trading_form
-from ..utils.working_with_time import return_parse_date
+from ..config import data_origin_url
 from ..locators.serp_locator import SerpLocator
-from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.working_with_url import UrlConfig
-from ..utils.config import data_origin_url, start_date
 
 
 async def filter_lots(page: Page) -> str:
-    await page.route("**/*", lambda route,
-                                    request: route.abort() if request.resource_type in trash_resources else route.continue_())
+    await page.route(
+        "**/*", lambda route, request: route.abort() if request.resource_type in trash_resources else route.continue_()
+    )
     is_bankr_selector = 'input[name="isbankr"]'
     await page.wait_for_selector(selector=is_bankr_selector, state="attached")
     await page.evaluate("document.querySelector('input[name=\"isbankr\"]').click()")
@@ -43,19 +37,15 @@ async def filter_lots(page: Page) -> str:
 logger = logging.getLogger(__name__)
 
 
-class MetsSpider(scrapy.Spider):
+class MetsSpider(BaseSpider):
     name = 'mets'
     start_urls = ['https://m-ets.ru/search']
     custom_settings = {
-        'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources
+        'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
     }
 
-    def __init__(self, name=None, **kwargs):
-        super().__init__(name, **kwargs)
-        self.loc = SerpLocator
-        self.url = UrlConfig()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+    def __init__(self):
+        super().__init__(data_origin_url)
         self.formatted_url = ''
 
     def start_requests(self) -> Iterable[Request]:
@@ -68,12 +58,12 @@ class MetsSpider(scrapy.Spider):
     def parse(self, response: scrapy.http.Response, **kwargs) -> Iterable[Request]:
         self.formatted_url = self.formatted_url or response.url
         current_page = response.meta.get('current_page', 1)
-        # amount_page = int(response.xpath(self.loc.count_pagination_loc).get() or current_page)
-        amount_page = 5
-        links_to_lots = response.xpath(self.loc.link_to_trade_loc).getall()
+        amount_page = int(response.xpath(SerpLocator.count_pagination_loc).get() or current_page)
+        # amount_page = 5
+        links_to_lots = response.xpath(SerpLocator.link_to_trade_loc).getall()
         trade_links = response.meta.get('trade_links', set())
         for link in links_to_lots:
-            trade_links.add('-'.join(link.split('-')[:-1]) + '-1')
+            trade_links.add('-'.join(UrlConfig.url_join(data_origin_url, link).split('-')[:-1]) + '-1')
         if amount_page > 1 and int(current_page) < amount_page:
             current_page = int(current_page) + 1
             yield Request(
@@ -82,13 +72,13 @@ class MetsSpider(scrapy.Spider):
             )
         else:
             for link in trade_links:
-                yield Request(self.url.parse_url(link), callback=self.sort_trades, errback=self.errback_httpbin)
+                yield Request(UrlConfig.parse_url(link), callback=self.sort_trades, errback=self.errback_httpbin)
 
     def sort_trades(self, response):
-        comp = ComposeTrades(response_=response)
+        comp = ComposeTrades(response=response)
         trading_type_ = comp.offer.trading_type
-        trading_type = sort_trading_type(trading_type_)
-        trading_form = get_trading_form(trading_type_)
+        trading_type = comp.sort_trading_type(trading_type_)
+        trading_form = comp.get_trading_form(trading_type_)
         match trading_type:
             case 'auction':
                 return self.parse_auction(response=response, trading_type=trading_type, trading_form=trading_form)
@@ -100,11 +90,10 @@ class MetsSpider(scrapy.Spider):
                 pass
 
     def parse_auction(self, response, trading_type, trading_form):
-        """getting data from trade - auction"""
-        comp = ComposeTrades(response_=response)
-        files_general = comp.offer.download_general_files(comp.offer.trading_id)
+        comp = ComposeTrades(response=response)
+        files_general = comp.offer.download()
         property_info = comp.offer.property_info
-        status = comp.offer.get_status
+        status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
@@ -123,34 +112,33 @@ class MetsSpider(scrapy.Spider):
             loader.add_value('arbit_manager', comp.offer.arbitr_manager_org)
             loader.add_value('arbit_manager_inn', comp.offer.arbitr_inn)
             loader.add_value('arbit_manager_org', comp.offer.arbitr_org)
-            # PARSE LOT
-            lot_number = comp.offer.get_lot_number(lot)
+            lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
-            if (response.url, lot_number) not in self.previous_lots:
+            if comp.offer.trading_link not in self.previous_lots:
+                loader.add_value('lot_id', comp.offer.lot_id(lot_number))
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
                 loader.add_value('address', comp.offer.address)
                 loader.add_value('property_information', property_info)
                 loader.add_value('start_price', comp.offer.start_price(lot_number))
-                loader.add_value('step_price', comp.auc.get_step_price(trading_number, lot_number))
+                loader.add_value('step_price', comp.auc.step_price(trading_number, lot_number))
                 loader.add_value('start_date_requests', comp.auc.start_date_request)
                 loader.add_value('end_date_requests', comp.auc.end_date_request)
                 loader.add_value('start_date_trading', comp.auc.start_date_trading)
                 loader.add_value('end_date_trading', comp.auc.end_date_trading)
                 loader.add_value('periods', None)
-                files_lot = comp.offer.download_lot_files(comp.offer.trading_id, lot_number)
+                loader.add_value('categories', None)
+                files_lot = comp.offer.download()
                 loader.add_value('files', {'general': files_general, 'lot': files_lot})
-                loader.add_value('created_at', return_parse_date())
                 yield loader.load_item()
 
     def parse_offer(self, response, trading_type, trading_form):
-        """getting data from trade - offer"""
-        comp = ComposeTrades(response_=response)
-        files_general = comp.offer.download_general_files(comp.offer.trading_id)
+        comp = ComposeTrades(response=response)
+        files_general = comp.offer.download()
         property_info = comp.offer.property_info
-        status = comp.offer.get_status
+        status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', comp.offer.data_origin)
@@ -168,11 +156,11 @@ class MetsSpider(scrapy.Spider):
             loader.add_value('arbit_manager', comp.offer.arbitr_manager_org)
             loader.add_value('arbit_manager_inn', comp.offer.arbitr_inn)
             loader.add_value('arbit_manager_org', comp.offer.arbitr_org)
-            # PARSE LOT
-            lot_number = comp.offer.get_lot_number(lot)
+            lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
-            if (comp.offer.trading_link, lot_number) not in self.previous_lots:
+            if comp.offer.trading_link not in self.previous_lots:
+                loader.add_value('lot_id', comp.offer.lot_id(lot))
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))
@@ -184,23 +172,11 @@ class MetsSpider(scrapy.Spider):
                 loader.add_value('start_date_trading', comp.offer.start_date_request(lot_number))
                 loader.add_value('end_date_trading', comp.offer.end_date_request(lot_number))
                 loader.add_value('periods', comp.offer.get_period(lot_number))
-                files_lot = comp.offer.download_lot_files(comp.offer.trading_id, lot_number)
+                loader.add_value('categories', None)
+                files_lot = comp.offer.download()
                 loader.add_value('files', {'general': files_general, 'lot': files_lot})
-                loader.add_value('created_at', return_parse_date())
                 yield loader.load_item()
 
     async def errback(self, failure):
         page = failure.request.meta["playwright_page"]
         await page.close()
-
-    def errback_httpbin(self, failure):
-        self.logger.error(repr(failure))
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url)
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

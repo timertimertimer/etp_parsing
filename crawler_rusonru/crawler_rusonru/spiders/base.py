@@ -1,19 +1,16 @@
 import logging
-from itertools import chain
 
-from scrapy import Spider, Request, FormRequest
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError, TCPTimedOutError
+from scrapy import Request, FormRequest
 
-from general_utils.location import RegionIdentifier
+from general_utils.base_spider import BaseSpider
 from ..trades.app import Combo
-from ..utils.config import trade_link, data_origin, serp_link, formdata
-from general_utils import DBHelper, EtpItem, EtpItemLoader, return_parse_date, UrlConfig
+from ..config import trade_link, data_origin, serp_link, formdata
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
 
 logger = logging.getLogger(__name__)
 
 
-class BaseSpider(Spider):
+class RusonBaseSpider(BaseSpider):
     name = 'base'
     custom_settings = {
         # 'LOG_FILE': f'{name}.log'
@@ -22,9 +19,7 @@ class BaseSpider(Spider):
     unique_links = set()
 
     def __init__(self):
-        super(BaseSpider, self).__init__()
-        self.db_check = DBHelper(f'lots_{self.name}')
-        self.previous_lots = self.db_check.get_latest_lot(['trading_link', 'lot_link', 'status'])
+        super(BaseSpider, self).__init__(data_origin[self.name])
 
     def start_requests(self):
         yield FormRequest(
@@ -72,7 +67,7 @@ class BaseSpider(Spider):
             transfer['end_date_requests'] = combo.end_date_requests_auc
             transfer['start_date_trading'] = combo.start_date_trading_auc
             transfer['end_date_trading'] = None
-        general_files = combo.gen.download_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.gen.download_general()
         transfer['property_information'] = combo.property_information
         lots_table = combo.count_lots()
         if 'auction' in transfer['trading_type']:
@@ -117,13 +112,8 @@ class BaseSpider(Spider):
                 loader.add_value('end_date_trading', None)
                 loader.add_value('start_price', combo.get_start_price_auc(lots_table[i]))
                 loader.add_value('step_price', combo.get_step_price(lots_table[i]))
-                general_files = files
-                trade_id = ''.join(loader.get_collected_values('trading_id'))
-                lot_number_ = loader.get_collected_values('lot_number')
-                lot_files = combo.lot.download_lot_files(_id=trade_id, lot_number=lot_number_, table=lots_table[i])
-                files_ = dict(chain(general_files.items(), lot_files.items()))
-                loader.add_value('files', files_)
-                loader.add_value('created_at', return_parse_date())
+                lot_files = combo.lot.download_lot_files(table=lots_table[i])
+                loader.add_value('files', {'general': files, 'lot': lot_files})
                 yield loader.load_item()
 
     def parse_offer(self, response, transfer_, lots_table, files):
@@ -162,25 +152,6 @@ class BaseSpider(Spider):
                 loader.add_value('start_price', combo.get_start_price_offer(lots_table[i]))
                 loader.add_value('step_price', None)
                 loader.add_value('periods', combo.get_periods(lots_table[i]))
-                general_files = files
-                trade_id = ''.join(loader.get_collected_values('trading_id'))
-                lot_number_ = loader.get_collected_values('lot_number')
-                lot_files = combo.lot.download_lot_files(_id=trade_id, lot_number=lot_number_, table=lots_table[i])
-                files_ = dict(chain(general_files.items(), lot_files.items()))
-                loader.add_value('files', files_)
-                loader.add_value('created_at', return_parse_date())
+                lot_files = combo.lot.download_lot_files(table=lots_table[i])
+                loader.add_value('files', {'general': files, 'lot': lot_files})
                 yield loader.load_item()
-
-    def errback_httpbin(self, failure):
-        self.logger.error(repr(failure))
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url, )
-
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

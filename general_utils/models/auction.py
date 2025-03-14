@@ -38,10 +38,12 @@ class Auction(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     organizer = relationship("Counterparty", back_populates="organized_auctions", foreign_keys='[Auction.organizer_id]')
-    arbitrator = relationship("Counterparty", back_populates="arbitrated_auctions", foreign_keys='[Auction.arbitrator_id]')
+    arbitrator = relationship(
+        "Counterparty", back_populates="arbitrated_auctions", foreign_keys='[Auction.arbitrator_id]'
+    )
     debtor = relationship("Counterparty", back_populates="debtor_auctions", foreign_keys='[Auction.debtor_id]')
     trading_floor = relationship("TradingFloor", back_populates="auctions")
-    lots = relationship('Lot', back_populates='auction', cascade="all, delete-orphan")
+    lots = relationship('Lot', back_populates='auction', cascade="all")
     legal_case = relationship("LegalCase", back_populates="auctions")
 
     def __repr__(self):

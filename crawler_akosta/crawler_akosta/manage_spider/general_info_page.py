@@ -2,12 +2,10 @@ import pathlib
 import logging
 import re
 
-from general_utils.config import lst_exet_archive, lst_exeption, lst_exet, lst_exet_files
-from general_utils.download import DownloadFiles
-from general_utils.models import RequestData
-from general_utils.work_with_path_and_dir import FilesDir
+from general_utils.config import allowable_formats
+from general_utils.models import DownloadData
 from ..locators.trading_page_locator import GeneralInfoLocator
-from ..utils.config import data_origin, debtor_link, lot_link, absolute_path, relative_path, host
+from ..utils.config import data_origin, debtor_link, lot_link, host
 from ..utils.post_data import post_data_download
 from general_utils import (
     dedent_func, replaceMultiple, pattern_replace1,
@@ -22,13 +20,10 @@ logger = logging.getLogger(__name__)
 class MainTradingPage:
     """ first page of every lot  """
 
-    def __init__(self, response):
+    def __init__(self, response, soup):
         self.response = response
+        self.soup = soup
         self.main_url = re.sub(r'/$', '', data_origin)
-        self.soup = BS(
-            str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-            features='lxml'
-        )
 
     def get_link_redirect(self):
         """ get link from redirect page """
@@ -160,7 +155,6 @@ class MainTradingPage:
                         return None
         except Exception as e:
             logger.critical(f'{self.response.url} :: INVALID DATA STATUS {e}', exc_info=True)
-            return None
 
     def get_period_requests_auction(self):
         """ return list with statrt date request and end_date_requests """
@@ -176,7 +170,6 @@ class MainTradingPage:
         else:
             logger.error(
                 f'{self.response.url} :: INVALID DATA GETTING LIST PERIODS START DATE REQUESTS AUCTION/COMPETITION')
-            return None
 
     def start_date_req_auc(self):
         """ :return date of start date request """
@@ -184,7 +177,6 @@ class MainTradingPage:
             return format_time(self.get_period_requests_auction()[0])
         else:
             logger.error(f'{self.response.url} :: INVALID START DATE REQUEST AUCTION')
-            return None
 
     def end_date_request_auc(self):
         """ :return end of start date request """
@@ -192,7 +184,6 @@ class MainTradingPage:
             return format_time(self.get_period_requests_auction()[1])
         else:
             logger.error(f'{self.response.url} :: INVALID END DATE REQUEST AUCTION')
-            return None
 
     def start_date_trading_auc(self):
         """ :return start date trading auction """
@@ -248,55 +239,23 @@ class MainTradingPage:
 
     def return_post_data(self, view_state, a_id) -> dict:
         """ return dict post data """
-        _post = post_data_download
+        _post = post_data_download.copy()
         _post['formMain:inputServerTime'] = return_parse_date()
         _post['javax.faces.ViewState'] = view_state
         data_ = self.find_correct_form_number_1()
         _post[data_] = 'false'
-        # that param(a_id) must be deleted after call functions
         _post[a_id] = a_id
         return _post
 
-    def download_trade(self, url: str, trading_id: str, cookies: str, view: str):
-        load = DownloadFiles()
-        lst_general = list()
-        files_dir = FilesDir(relative_path, absolute_path)
+    def download_trade(self, url: str, cookies: str, view: str):
+        files = list()
         for t in self.get_documents_table():
             form_data, name = t
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=trading_id, original_name=name)
-            if not any(ele in name_on_server for ele in lst_exeption):
-                files_dir.create_dir()
-                path_absolute = files_dir.return_absolute_path(name_on_server)
-                path_relative = files_dir.return_relative_path(name_on_server)
-                request_data = RequestData(
-                    url=url, referer=self.response.url,
+            if pathlib.PurePath(name).suffix in allowable_formats:
+                files.append(DownloadData(
+                    url=url, file_name=name, referer=self.response.url,
                     host=host, cookies=cookies, method='POST',
                     data=self.return_post_data(view_state=view, a_id=form_data),
                     verify=False
-                )
-                if pathlib.Path(name_on_server).suffix in lst_exet_archive:
-                    archive_lst = load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id
-                    )
-                    lst_general.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in lst_exet_files:
-                    load.request_to_download_general(
-                        request_data=request_data,
-                        absolute_path=path_absolute,
-                        relative_path=path_relative,
-                        trading_id=trading_id,
-                    )
-                    lst_general.append({
-                        'original_name': name,
-                        'link': files_dir.return_relative_path(name_on_server).as_posix(),
-                        'link_etp': None
-                    })
-                else:
-                    lst_general.append({'original_name': name, 'link': None, 'link_etp': None})
-                del post_data_download[form_data]
-        return lst_general
+                ))
+        return files

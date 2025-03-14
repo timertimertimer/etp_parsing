@@ -24,7 +24,7 @@ class Counterparty(Base):
     ogrn: Mapped[str] = mapped_column(String(13), nullable=True)
     ogrnip: Mapped[str] = mapped_column(String(15), nullable=True)
     okopf: Mapped[int] = mapped_column(String(5), nullable=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=True)  # TODO: maybe should not be nullable
+    name: Mapped[str] = mapped_column(String(255), nullable=True)
     short_name: Mapped[str] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255), nullable=True)
     phone: Mapped[str] = mapped_column(String(255), nullable=True)

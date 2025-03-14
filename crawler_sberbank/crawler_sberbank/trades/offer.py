@@ -1,7 +1,7 @@
 import re
 
 from general_utils import format_time_auction, dedent_func
-from general_utils.config import lst_exet
+from general_utils.config import image_formats
 from ..utils.config import first_part_link
 from bs4 import BeautifulSoup as BS
 
@@ -110,7 +110,7 @@ class OfferParse(GeneralFilesDir):
         for i in range(len(name)):
             relative_path_f = ''
             name_on_server = dir_.name_file_on_server(id=id, original_name=name[i])
-            if pathlib.Path(name[i]).suffix in lst_exet:
+            if pathlib.Path(name[i]).suffix in image_formats:
                 dir_.create_dir()
                 relative_path_f = dir_.name_in_column_files(url=id, original_name=name[i])
                 load.request_to_download(link[i], referer=self.url, original_name=name_on_server)

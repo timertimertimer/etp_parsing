@@ -1,28 +1,23 @@
 import logging
 from typing import Iterable
 
-import scrapy
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader, return_parse_date, UrlConfig
+from general_utils import EtpItem, EtpItemLoader, UrlConfig
+from general_utils.base_spider import BaseSpider
 from general_utils.config import start_date
-from ..utils.config import data_origin_url, main_url
-from ..utils.get_data_from_table import DbConnectCheckLots
-from ..utils.params_data import params_data
+from ..config import data_origin, params_data
 from ..trades.app import Combo
 
 logger = logging.getLogger(__name__)
 
 
-class VertradesSpider(scrapy.Spider):
+class VertradesSpider(BaseSpider):
     name = "vertrades"
-    allowed_domains = ["bankrot.vertrades.ru"]
     start_urls = ["https://bankrot.vertrades.ru/bidding"]
 
     def __init__(self):
-        super(VertradesSpider, self).__init__()
-        self.db_check = DbConnectCheckLots()
-        self.previous_lots = self.db_check.get_latest_lot()
+        super().__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
         params_data["from"] = start_date
@@ -31,7 +26,7 @@ class VertradesSpider(scrapy.Spider):
     def parse(self, response):
         combo = Combo(response)
         for link in combo.serp.get_trading_links():
-            if UrlConfig.url_join(main_url, link.removesuffix('#lot')) not in self.previous_lots:
+            if UrlConfig.url_join(data_origin, link.removesuffix('#lot')) not in self.previous_lots:
                 yield response.follow(link, callback=self.parse_trading)
 
     def parse_trading(self, response):
@@ -55,7 +50,7 @@ class VertradesSpider(scrapy.Spider):
         general_files = combo.download_general()
         for lot in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", data_origin_url)
+            loader.add_value("data_origin", data_origin)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", response.url)
             loader.add_value("trading_number", trading_number)
@@ -77,15 +72,15 @@ class VertradesSpider(scrapy.Spider):
             loader.add_value("lot_info", combo.lot_info(lot))
             loader.add_value("property_information", combo.property_information(lot))
             loader.add_value("start_price", combo.start_price(lot))
+            loader.add_value('categories', combo.categories(lot))
             loader.add_value("start_date_requests", start_date_requests)
             loader.add_value("end_date_requests", end_date_requests)
-            loader.add_value("created_at", return_parse_date())
             lot_files = combo.download_lot(lot)
             loader.add_value("files", {"general": general_files, "lot": lot_files})
             if trading_type in ["auction", "competition"]:
                 loader.add_value("start_date_trading", combo.auc.start_date_trading)
                 loader.add_value("end_date_trading", combo.auc.end_date_trading)
-                loader.add_value("step_price", combo.auc.get_step_price(lot))
+                loader.add_value("step_price", combo.auc.step_price(lot))
             elif trading_type == "offer":
                 loader.add_value("start_date_trading", combo.offer.start_date_trading(lot))
                 loader.add_value("end_date_trading", combo.offer.end_date_trading(lot))

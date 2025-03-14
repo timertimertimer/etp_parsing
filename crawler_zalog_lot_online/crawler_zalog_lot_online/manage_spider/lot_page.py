@@ -5,13 +5,11 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils.config import lst_exet
+from general_utils import dedent_func, format_time, make_float
+from general_utils.config import image_formats
 from general_utils.download import DownloadFiles
-from general_utils.models import RequestData
-from general_utils.work_with_path_and_dir import FilesDir
+from general_utils.models import DownloadData
 from ..utils.check_inn_email_etc import CheckIfCorrectContactInfo
-from ..utils.work_with_text_and_number import dedent_func, make_float
-from ..utils.working_with_time import format_time
 from ..utils.config import path_absolute, path_relative
 
 logger = logging.getLogger(__name__)
@@ -252,35 +250,13 @@ class LotPage:
         else:
             return []
 
-    def download_img(self, lst_pictures: list, name: str):
-        """ download all pictures
-            :arg lst_pictures
-         """
-        lst_files = []
-        dict_files = dict()
-        files_dir = FilesDir(path_relative[name], path_absolute[name])
-        load = DownloadFiles()
+    def download_img(self, lst_pictures: list):
+        files = list()
         if len(lst_pictures) == 0:
-            return dict_files
-
-        elif len(lst_pictures) > 0:
-            for pic in lst_pictures:
-                _sufix = Path(pic).suffix
-                if _sufix in lst_exet:
-                    files_dir.create_dir()
-                    name = ''.join(Path(pic).name).strip()
-                    lot_id = self.get_trading_id()
-                    name_on_server = files_dir.name_file_on_server(lot_id, name)
-                    name_in_db = files_dir.name_file_on_server(lot_id, name_on_server)
-                    absolute_path = files_dir.return_absolute_path(name_on_server)
-                    relative_path = files_dir.return_relative_path(name_on_server)
-                    request_data = RequestData(url=pic, referer=self.response.url)
-                    downloaded_file = load.request_to_download_general(
-                        request_data=request_data, absolute_path=absolute_path,
-                        relative_path=relative_path, trading_id = lot_id
-                    )
-                    if downloaded_file == 0:
-                        lst_files.append({'original_name': name, 'link': name_in_db,
-                                          'link_etp': pic})
-        dict_files['lot'] = lst_files
-        return dict_files
+            return files
+        for pic in lst_pictures:
+            _sufix = Path(pic).suffix
+            if _sufix in image_formats:
+                name = ''.join(Path(pic).name).strip()
+                files.append(DownloadData(url=pic, file_name=name, referer=self.response.url))
+        return files

@@ -35,8 +35,8 @@ class ElectroTorgiBaseSpider(BaseSpider):
         links = response.xpath('//a[@class="block-lot"]/@href').getall()
         for link in links:
             link = UrlConfig.url_join(data_origin[self.name], link)
-            if (link,) not in self.previous_lots:
-                yield Request(UrlConfig.url_join(data_origin[self.name], link), self.parse_trade)
+            if link not in self.previous_lots:
+                yield Request(link, self.parse_trade)
 
         pagination = response.xpath('//ul[@class="pagination"]').get()
         if pagination:
@@ -61,7 +61,7 @@ class ElectroTorgiBaseSpider(BaseSpider):
         arbit_manager_org = combo.arbit_manager_org
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
-        files = combo.download_general(data_origin[self.name])
+        files = combo.download()
         for lot_link, lot_number, status in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin[self.name])
@@ -103,6 +103,6 @@ class ElectroTorgiBaseSpider(BaseSpider):
             loader.add_value('periods', combo.offer.periods)
             loader.add_value('start_date_trading', combo.offer.start_date_trading)
             loader.add_value('end_date_trading', combo.offer.end_date_trading)
-        lot_files = combo.download_lot(loader.get_collected_values('lot_number')[0], data_origin[self.name])
+        lot_files = combo.download()
         loader.add_value('files', {'general': general_files, 'lot': lot_files})
         yield loader.load_item()

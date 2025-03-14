@@ -1,30 +1,33 @@
 import csv
 import logging
+import pathlib
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 
-from sqlalchemy import create_engine, text, select, and_, or_, inspect
+from sqlalchemy import create_engine, text, select, and_, or_, inspect, literal
 from sqlalchemy.orm import sessionmaker, joinedload, aliased
 from typing import Type, Union, List
 
-from general_utils import EtpItem
-from general_utils.config import data_path, absolute_download_path, relative_download_path, \
-    download_debtor_message_files, lot_classifiers_name_to_code, lot_classifiers_code_to_name
+from general_utils import EtpItem, parse_classifiers
+from general_utils.config import (
+    data_path, absolute_download_path, relative_download_path, download_files_from_get_url, allowable_formats
+)
 from general_utils.download import DownloadFiles
 from general_utils.models import (
     Auction, ParserStatus, TradingFloor, Address, Region, City, Counterparty, Lot, LotPeriod, File, LegalCase, Base,
-    DebtorMessage, RequestData
+    DebtorMessage, DownloadData
 )
 from general_utils.fedresurs import (
     PersonFedresurs, CompanyFedresurs, ArbitrManagerFedresurs, CounterpartyFedresurs, PersonOrganizerFedresurs,
-    CompanyOrganizerFedresurs, AuctionFedresurs, Fedresurs
+    CompanyOrganizerFedresurs, AuctionFedresurs
 )
 from general_utils.models.counterparty import CounterpartySRO
 from general_utils.models.file import FileModelType
 from general_utils.models.lot import LotCategory
 from general_utils.models.parser_status import StatusType
 from general_utils.python_mysql_dbconfig import read_db_config
+from general_utils.work_with_path_and_dir import sanitize_filename
 
 logger = logging.getLogger(__name__)
 db_config = read_db_config()
@@ -68,7 +71,7 @@ class DBHelper:
     @staticmethod
     def set_wait_timeout(session: SessionLocal, timeout: int = 600):
         session.execute(text(f"SET SESSION wait_timeout = {timeout};"))
-        logger.info(f"Session wait_timeout set to {timeout} seconds.")
+        # logger.info(f"Session wait_timeout set to {timeout} seconds.")
 
     @staticmethod
     def get_latest_lot(
@@ -83,7 +86,7 @@ class DBHelper:
         with DBHelper.transaction_scope(commit=False) as session:
             trading_floor_id = DBHelper.get_trading_floor_id(session, crawler_name, data_origin_url)
             if trading_floor_id is None:
-                return (None, None)
+                return
 
             stmt = select(*keys).where(
                 and_(Auction.created_at >= date_threshold, Auction.trading_floor_id == trading_floor_id)
@@ -94,7 +97,7 @@ class DBHelper:
     @staticmethod
     def get_trading_floor_id(session: SessionLocal, crawler_name: str, data_origin_url: str):
         trading_floor_id = session.scalars(
-            select(ParserStatus.trading_floor_id).where(ParserStatus.name == crawler_name)
+            select(ParserStatus.trading_floor_id).where(ParserStatus.name == literal(crawler_name))
         ).first()
 
         if trading_floor_id is None:
@@ -102,7 +105,7 @@ class DBHelper:
                 f"get_latest_lot :: trading_floor_id not found for crawler {crawler_name}. Creating new record."
             )
             trading_floor_id = session.scalars(
-                select(TradingFloor.id).where(TradingFloor.url == data_origin_url)
+                select(TradingFloor.id).where(TradingFloor.url == literal(data_origin_url))
             ).first()
             if trading_floor_id is None:
                 logger.error(f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping.")
@@ -130,11 +133,13 @@ class DBHelper:
         with DBHelper.transaction_scope() as session:
             parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
             if parser:
-                parser.counter = counter
-                parser.duration = duration
-                parser.updated_at = datetime.utcnow()
-                logger.info(
-                    f"save_counter_and_duration :: Updated counter and duration for '{spider_name}' to {counter}, {duration}.")
+                if counter > parser.counter:
+                    parser.counter = counter
+                    parser.duration = duration
+                    parser.updated_at = datetime.utcnow()
+                    logger.info(
+                        f"save_counter_and_duration :: Updated counter and duration for '{spider_name}' to {counter}, {duration}."
+                    )
             else:
                 logger.warning(f"save_counter_and_duration :: ParserStatus with name '{spider_name}' not found.")
 
@@ -142,20 +147,20 @@ class DBHelper:
     def add_regions():
         regions = []
         with open(data_path / 'regions_with_oktmo.csv', newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=':')
+            reader: csv.DictReader = csv.DictReader(csvfile, delimiter=':')
             for row in reader:
-                regions.append(Region(oktmo=row['oktmo'], name=row['region']))
+                regions.append(Region(oktmo=int(row['oktmo']), name=row['region']))
 
         with DBHelper.transaction_scope() as session:
             session.add_all(regions)
 
     @staticmethod
-    def add_addresses(source_path: PurePath = data_path / 'addresses.csv', addresses: list[City] = None):
+    def add_addresses(source_path: PurePath = data_path / 'addresses.csv', addresses: list[Address] = None):
         addresses = addresses or []
         regions = DBHelper.get_regions_dict()
         if not addresses:
             with open(source_path, newline='', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter=';')
+                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
                     if id_ := regions.get(row['region']):
                         addresses.append(Address(region_id=id_, name=row['address']))
@@ -170,7 +175,7 @@ class DBHelper:
         regions = DBHelper.get_regions_dict()
         if not cities:
             with open(source_path, newline='', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter=';')
+                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
                     if id_ := regions.get(row['region']):
                         cities.append(City(region_id=id_, name=row['city']))
@@ -186,7 +191,7 @@ class DBHelper:
         trading_floors = trading_floors or []
         if not trading_floors:
             with open(source_path, newline='', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter=';')
+                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
                     trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
         with DBHelper.transaction_scope() as session:
@@ -232,7 +237,7 @@ class DBHelper:
     @staticmethod
     def get_regions_dict():
         with DBHelper.transaction_scope(commit=False) as session:
-            return {region.name: region.id for region in session.query(Region).all()}
+            return {region.file_name: region.id for region in session.query(Region).all()}
 
     @staticmethod
     def get_counterparty(session: SessionLocal = None, inn: str = None, name: str = None, short_name: str = None):
@@ -274,7 +279,7 @@ class DBHelper:
                 trading_floor_id=trading_floor_id, session=session
             )
             if case_number := item['case_number']:
-                legal_case = DBHelper.store_legal_case_from_case_number(case_number, session, debtor.id)
+                legal_case = DBHelper.store_legal_case_from_case_number(case_number, session)
                 auction.legal_case_id = legal_case.id
             lot = DBHelper.store_and_get_lot(item, auction.id, session)
             DBHelper.store_lot_period(item, lot.id, session)
@@ -599,7 +604,8 @@ class DBHelper:
     @staticmethod
     def store_debtor_message_from_dict(data: dict, debtor: Counterparty, session: SessionLocal) -> DebtorMessage:
         if not (debtor_message := session.query(DebtorMessage).filter_by(number=data['number']).first()):
-            if not data.get('number'):
+            legal_case = session.query(LegalCase).filter_by(number=data['legal_case_number']).first()
+            if not legal_case:
                 pass
             debtor_message = DebtorMessage(
                 number=data.get('number'),
@@ -607,51 +613,19 @@ class DBHelper:
                 content=data.get('content'),
                 fedresurs_url=data['fedresurs_url'],
                 published_at=data['published_at'],
-                debtor_id=debtor.id
+                debtor_id=debtor.id,
+                legal_case_id=legal_case.id if legal_case else None
             )
             session.add(debtor_message)
             session.flush()
-            for file in data.get('files'):
-                DBHelper.store_and_download_debtor_message_file_from_dict(
-                    data=file,
-                    message_number=data.get('number'),
-                    debtor=debtor,
-                    debtor_message=debtor_message,
-                    referer=data['fedresurs_url'],
-                    session=session
-                )
+            DBHelper.download_files(session, debtor_message.id, DebtorMessage, [
+                DownloadData(url=file['url'], file_name=file['name'], referer=data['fedresurs_url'])
+                for file in data.get('files')
+            ])
         return debtor_message
 
     @staticmethod
-    def store_and_download_debtor_message_file_from_dict(
-            data: dict, message_number: str, debtor: Counterparty, debtor_message: DebtorMessage, referer: str,
-            session: SessionLocal
-    ) -> File:
-        name_on_server = f'{message_number}_{data.get("name")}'
-        absolute_path = absolute_download_path / 'debtor_messages' / debtor.inn / name_on_server
-        relative_path = relative_download_path / 'debtor_messages' / debtor.inn / name_on_server
-        if not (file := session.query(File).filter_by(path=relative_path).first()):
-            if download_debtor_message_files:
-                if not Path(absolute_path).exists():
-                    load = DownloadFiles(referer=referer)
-                    Path(absolute_path).parent.mkdir(parents=True, exist_ok=True)
-                    load.request_to_download_general(
-                        request_data=RequestData(
-                            url=f'{Fedresurs.BACKEND_URL}/bankruptcy-message-docs/{data["guid"]}',
-                            headers=Fedresurs.HEADERS, referer=referer
-                        ), absolute_path=absolute_path, relative_path=relative_path
-                    )
-            file = File(
-                name=data.get('name'),
-                path=relative_path.as_posix(),
-                model_type=FileModelType.DebtorMessage,
-                model_id=debtor_message.id
-            )
-            session.add(file)
-        return file
-
-    @staticmethod
-    def store_legal_case_from_case_number(case_number: str, session: SessionLocal, debtor_id: int) -> LegalCase:
+    def store_legal_case_from_case_number(case_number: str, session: SessionLocal) -> LegalCase:
         from general_utils.fedresurs import LegalCaseFedresurs
         legal_case = session.execute(select(LegalCase).where(LegalCase.number.like(f'%{case_number}%'))).scalar()
         if not legal_case:
@@ -680,11 +654,8 @@ class DBHelper:
             session.flush()
 
             if categories := item.get('categories'):
-                for category in categories:
-                    if category.isdigit():
-                        code = category
-                    elif not (code := lot_classifiers_name_to_code.get(category)):
-                        continue
+                categories = parse_classifiers(categories)
+                for code in categories:
                     lot_category = LotCategory(code=code, lot_id=lot.id)
                     session.add(lot_category)
         return lot
@@ -701,6 +672,7 @@ class DBHelper:
                 lot_id=lot_id,
             )
             session.add(lot_period)
+
         lot_period = session.query(LotPeriod).filter_by(lot_id=lot_id).first()
         if not lot_period:
             if periods := item['periods']:
@@ -719,33 +691,55 @@ class DBHelper:
     @staticmethod
     def store_files(item: EtpItem, lot_id: int, auction_id: int, session: SessionLocal):
         files = item.get('files', {})
-        general_files = files.get('general')
-        storage_files = session.query(File).filter_by(model_type=FileModelType.Auction, model_id=auction_id).all()
-        storage_file_names = {file.name for file in storage_files}
-        for file in general_files:
-            if file['original_name'] not in storage_file_names:
-                file_obj = File(
-                    name=file['original_name'],
-                    path=file['link'],
-                    url=file['link_etp'],
-                    model_type=FileModelType.Auction,
-                    model_id=auction_id
-                )
-                session.add(file_obj)
+        if not files:
+            return
+        general_files_download_data: list[DownloadData] = files.get('general')
+        if general_files_download_data:
+            DBHelper.download_files(session, auction_id, Auction, general_files_download_data)
 
-        lot_files = files.get('lot')
-        storage_files = session.query(File).filter_by(model_type=FileModelType.Lot, model_id=lot_id).all()
-        storage_file_names = {file.name for file in storage_files}
-        for file in lot_files:
-            if file['original_name'] not in storage_file_names:
-                file_obj = File(
-                    name=file['original_name'],
-                    path=file['link'],
-                    url=file['link_etp'],
-                    model_type=FileModelType.Lot,
-                    model_id=lot_id
+        if not (lot_files_download_data := files.get('lot')):
+            return
+        DBHelper.download_files(session, lot_id, Lot, lot_files_download_data)
+
+    @staticmethod
+    def download_files(
+            session: SessionLocal, model_id: int, model: Type[Auction | Lot | LegalCase | DebtorMessage],
+            download_datas: list[DownloadData]
+    ):
+        model_type = {
+            Auction: FileModelType.Auction, Lot: FileModelType.Lot, LegalCase: FileModelType.LegalCase,
+            DebtorMessage: FileModelType.DebtorMessage
+        }[model]
+        model_lowercase = {
+            Auction: 'auction', Lot: 'lot', LegalCase: 'legal_case', DebtorMessage: 'debtor_message'
+        }[model]
+        existing_files = session.query(File).filter_by(model_type=model_type, model_id=model_id).all()
+        existing_file_names = {file.name for file in existing_files}
+        absolute_download_dir_path = absolute_download_path / f'{model_lowercase}_{model_id}'
+        relative_download_dir_path = relative_download_path / f'{model_lowercase}_{model_id}'
+        file_objs = list()
+        for download_data in download_datas:
+            file_name = sanitize_filename(download_data.file_name)
+            if file_name in existing_file_names:
+                continue
+            absolute_path = absolute_download_dir_path / file_name
+            relative_path = relative_download_dir_path / file_name
+            if absolute_path.suffix not in allowable_formats:
+                continue
+            if download_data.method == 'GET' and not download_files_from_get_url:
+                paths = [None]
+            else:
+                Path(absolute_download_dir_path).mkdir(parents=True, exist_ok=True)
+                paths = DownloadFiles.request_to_download_general(
+                    download_data=download_data, absolute_path=absolute_path, relative_path=relative_path
                 )
-                session.add(file_obj)
+            for path in paths:  # type: pathlib.Path
+                file_objs.append(File(
+                    name=path.name if path else file_name, path=path.as_posix() if path else None,
+                    url=str(download_data.url) if download_data.method == 'GET' else None,
+                    model_type=model_type, model_id=model_id
+                ))
+        session.add_all(file_objs)
 
 
 if __name__ == '__main__':

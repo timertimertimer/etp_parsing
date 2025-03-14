@@ -40,6 +40,8 @@ class AuctionLocator:
     step_price_auc_percent = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Шаг, %")]//following-sibling::td[1]'
     step_price_auc_rub = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Шаг, руб")]//following-sibling::td[1]'
 
+    categories_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Классификатор ЕФРСБ")]//following-sibling::td[1]'
+
     status_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Статус")]//following-sibling::td[1]'
     status2_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Статус")]//following-sibling::td[1]/span'
 

@@ -9,10 +9,9 @@ logger = logging.getLogger(__name__)
 
 class LotAuctionPage:
 
-    def __init__(self, _response):
+    def __init__(self, _response, soup):
         self.response = _response
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
+        self.soup = soup
 
     def get_lot_status(self):
         """ return lot status """

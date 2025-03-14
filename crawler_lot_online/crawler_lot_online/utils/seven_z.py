@@ -5,7 +5,7 @@ import py7zr
 import os
 import logging
 
-from general_utils.config import lst_exet_files
+from general_utils.config import image_and_doc_formats
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class SevenZFiles:
         files_list = list()
         with py7zr.SevenZipFile(self.abs_path, 'r') as _zip:
             allfiles = _zip.getnames()
-            targets = [f for f in allfiles if pathlib.Path(f).suffix in lst_exet_files]
+            targets = [f for f in allfiles if pathlib.Path(f).suffix in image_and_doc_formats]
             _zip.extract(path=self.root_dir, targets=targets)
             for t in targets:
                 _suffix = pathlib.Path(t).suffix

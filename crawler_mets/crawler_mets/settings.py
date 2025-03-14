@@ -10,4 +10,3 @@ DOWNLOAD_HANDLERS = {
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
 # LOG_FILE = 'mets.log'
-UNIQUE_CO = ['trading_id', 'lot_number']

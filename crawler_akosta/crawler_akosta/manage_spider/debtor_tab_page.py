@@ -7,10 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class DebrorTab:
-    def __init__(self, _response):
+    def __init__(self, _response, soup):
         self.response = _response
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
+        self.soup = soup
 
     def find_correct_form_number_collapsed(self):
         """ return form with corret number : formMain:j_idt93_collapsed  or formMain:j_idt82_collapsed """
