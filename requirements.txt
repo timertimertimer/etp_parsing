@@ -3,6 +3,7 @@ scrapy-rotating-proxies
 beautifulsoup4
 chardet
 mysql-connector-python
+pymysql
 tqdm
 pandas
 rarfile
