@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class AlfalotSpider(ItenderBaseSpider):
     name = 'alfalot'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log',
         'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
         'DOWNLOAD_HANDLERS': {
             "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
