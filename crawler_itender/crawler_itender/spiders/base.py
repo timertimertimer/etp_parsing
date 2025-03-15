@@ -68,17 +68,17 @@ class ItenderBaseSpider(BaseSpider):
         first_post['__VIEWSTATE'] = combo.mpost.get_post_data_values('input', '__VIEWSTATE')
         first_post['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         yield FormRequest(
-            response.url, formdata=first_post, callback=function_for_parse, cb_kwargs={'first_post': first_post}
+            response.url, formdata=first_post, callback=function_for_parse, cb_kwargs={'first_post': first_post, '_type': _type}
         )
 
-    def parse_serp_auction(self, response, first_post):
+    def parse_serp_auction(self, response, first_post, trading_type: str):
         combo = Combo(_response=response)
         eventvalidation = (''.join(re.findall(
             r'hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs', response.body.decode('utf-8')
         )))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        logger.info(f'Current serp page: {current_page}')
+        logger.info(f'Current serp page ({trading_type}): {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
@@ -173,14 +173,14 @@ class ItenderBaseSpider(BaseSpider):
             loader.add_value('files', {'general': general, 'lot': lot_file})
             yield loader.load_item()
 
-    def parse_serp_offer(self, response, first_post):
+    def parse_serp_offer(self, response, first_post, trading_type: str):
         combo = Combo(_response=response)
         eventvalidation = ''.join(re.findall(
             r'hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs', response.body.decode('utf-8')
         ))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        logger.info(f'Current serp page: {current_page}')
+        logger.info(f'Current serp page ({trading_type}): {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
@@ -366,14 +366,14 @@ class ItenderBaseSpider(BaseSpider):
             else:
                 logger.error(f'TWO PAGE PERIODS ERROR ERROR, {response.url}')
 
-    def parse_competiton_serp(self, response, first_post):
+    def parse_competiton_serp(self, response, first_post, trading_type: str):
         combo = Combo(_response=response)
         eventvalidation = ''.join(re.findall(
             r'hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs', response.body.decode('utf-8')
         ))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
-        logger.info(f'Current serp page: {current_page}')
+        logger.info(f'Current serp page ({trading_type}): {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()

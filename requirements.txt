@@ -19,3 +19,4 @@ aiohttp_retry
 aiohttp_socks
 sqlalchemy
 alembic
+pymorphy3
