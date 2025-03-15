@@ -87,9 +87,9 @@ class DownloadFiles:
         try:
             files = archive.extract_files()
             archive.delete_archive()
-            logger.info(f'Download finished successfully {absolute_path.suffix.upper()}')
+            logger.info(f'Extracting archive finished successfully {absolute_path.suffix.upper()}')
             return files
         except Exception as e:
-            logger.error(f'Error downloading {download_data.url}: {e}')
+            logger.error(f'Error extracting archive {download_data.url}: {e}')
             archive.delete_archive()
             return []

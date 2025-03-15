@@ -116,7 +116,7 @@ class MetsSpider(BaseSpider):
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
             if comp.offer.trading_link not in self.previous_lots:
-                loader.add_value('lot_id', comp.offer.lot_id(lot_number))
+                loader.add_value('lot_id', comp.offer.lot_id(lot))
                 loader.add_value('lot_number', lot_number)
                 loader.add_value('short_name', comp.offer.short_name(lot_number))
                 loader.add_value('lot_info', comp.offer.lot_info(lot_number))

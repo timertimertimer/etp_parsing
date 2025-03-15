@@ -10,6 +10,9 @@ from ..manage_spiders.app import Compose
 from general_utils.base_spider import BaseSpider
 from ..config import data_origin_url
 
+all_links = list()
+unique_links = set()
+
 
 class BankrotCDTRFSpider(BaseSpider):
     name = 'bankrot_cdtrf'
@@ -39,19 +42,19 @@ class BankrotCDTRFSpider(BaseSpider):
         format_post_data['__EVENTTARGET'] = Offer.EVENTTARGET_1st_post
         format_post_data['__EVENTARGUMENT'] = combo.offer.get_post_data_values('input', '__EVENTARGUMENT')
         format_post_data['__ASYNCPOST'] = 'true'
-        for trading_type, trade_type_id in (('auction', '1'), ('competition', '2'), ('offer', '3')):
-            format_post_data['ctl00$cph1$hiddenTradeTypeID'] = trade_type_id
-            format_post_data['ctl00$cph1$ddlTradeTypeID'] = trade_type_id
-            yield FormRequest(response.url, callback=self.parse_serp, formdata=format_post_data, cb_kwargs={
-                'format_post_data': format_post_data, 'current_page': 1, 'trading_type': trading_type
-            })
+        format_post_data['ctl00$cph1$ddlTradeTypeID'] = '0'
+        yield FormRequest(response.url, callback=self.parse_serp, formdata=format_post_data, cb_kwargs={
+            'format_post_data': format_post_data, 'current_page': 1
+        })
 
-    def parse_serp(self, response, format_post_data, current_page, trading_type):
+    def parse_serp(self, response, format_post_data, current_page):
         combo = Compose(response_=response)
         list_tag_links = combo.offer.trade_link_serp
         for link in list_tag_links:
             if link not in self.previous_lots:
-                yield Request(link, callback=self.parse_auction_page, cb_kwargs={'trading_type': trading_type})
+                all_links.append(link)
+                unique_links.add(link)
+                yield Request(link, callback=self.parse_auction_page)
         next_page = response.css('#ctl00_cph1_pgvTrades_ctl22_lnkNext').get()
         last_page_visible = combo.offer.get_total_pages(
             current_page, format_post_data['ctl00$cph1$tbRequestTimeBegin1']
@@ -97,14 +100,10 @@ class BankrotCDTRFSpider(BaseSpider):
         if next_page and current_page <= last_page_visible and current_page < 2400:
             yield FormRequest(
                 response.url, callback=self.parse_serp, formdata=pagination_form, dont_filter=True, method='POST',
-                cb_kwargs={
-                    'format_post_data': pagination_form,
-                    'current_page': current_page,
-                    'trading_type': trading_type
-                }
+                cb_kwargs={'format_post_data': pagination_form, 'current_page': current_page}
             )
 
-    async def parse_auction_page(self, response, trading_type):
+    async def parse_auction_page(self, response):
         combo = Compose(response_=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         trading_id = ''.join(re.findall(r'\d+$', response.url))

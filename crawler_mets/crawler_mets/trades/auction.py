@@ -25,11 +25,6 @@ class AuctionParse:
             match = ''.join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)
-            else:
-                if not re.match(r'\d{3,}-ОАЗФ', trading_number):
-                    logger.error(
-                        f'{self.response.url} :: INVALID DATA STEP PRICE - LOT {lot_num}')
-                return None
         except:
             if not re.match(r'\d{3,}-ОАЗФ', trading_number):
                 logger.error(f'{self.response.url} :: LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}')

@@ -483,8 +483,9 @@ class DBHelper:
             if not debtor_client:
                 pass
             elif not debtor_client.data['guid']:
+                address = DBHelper.get_or_create_address(item['address'], session)
                 debtor_counterparty = debtor_counterparty or Counterparty(
-                    inn=item['debtor_inn'], address_id=DBHelper.get_or_create_address(item['address'], session).id,
+                    inn=item['debtor_inn'], address_id=address.id if address else None,
                     type=debtor_client.data['type']
                 )
                 if inspect(debtor_counterparty).transient:

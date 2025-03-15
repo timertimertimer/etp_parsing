@@ -24,7 +24,7 @@ class OfferParse:
     @property
     def trading_id(self):
         _id = re.findall(r'\d+', str(self.trading_link))
-        return _id[0] + '-' + 'МЭТС'
+        return _id[0]
 
     @property
     def trading_link(self):
@@ -208,8 +208,10 @@ class OfferParse:
         return
 
     def lot_id(self, lot):
-        id_ = BS(lot, features='lxml').find('div', class_='lot-regnumber').get_text(strip=True)
-        return id_.removeprefix('Идентификационный номер: ')
+        id_ = BS(lot, features='lxml').find('div', class_='lot-regnumber')
+        if not id_:
+            return
+        return id_.get_text(strip=True).removeprefix('Идентификационный номер: ')
 
     def lot_link(self, lot_num):
         return f'{self.trading_link}-{lot_num}'
