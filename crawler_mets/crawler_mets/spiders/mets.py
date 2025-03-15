@@ -9,7 +9,7 @@ from scrapy_playwright.page import PageMethod
 
 from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from general_utils.base_spider import BaseSpider
-from general_utils.config import trash_resources, start_date
+from general_utils.config import trash_resources, start_date, write_log_to_file
 from ..trades.combo import ComposeTrades
 from ..config import data_origin_url
 from ..locators.serp_locator import SerpLocator
@@ -41,6 +41,7 @@ class MetsSpider(BaseSpider):
     name = 'mets'
     start_urls = ['https://m-ets.ru/search']
     custom_settings = {
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
         'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
     }
 

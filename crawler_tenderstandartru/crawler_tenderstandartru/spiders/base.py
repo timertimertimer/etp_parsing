@@ -1,6 +1,7 @@
 from scrapy import Request, FormRequest
 
 from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_servertime_timestamp
+from general_utils.config import write_log_to_file
 from ..config import trades, data_origin, search_param
 from general_utils.base_spider import BaseSpider
 from ..trades.app import Combo
@@ -8,6 +9,9 @@ from ..trades.app import Combo
 
 class TenderstandartBaseSpider(BaseSpider):
     name = 'base'
+    custom_settings = {
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+    }
 
     def __init__(self):
         self.data_origin = data_origin[self.name]

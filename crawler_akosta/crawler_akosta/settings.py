@@ -1,3 +1,4 @@
+from general_utils.config import write_log_to_file
 from .utils.config import host
 from general_utils.settings import *
 
@@ -7,4 +8,4 @@ NEWSPIDER_MODULE = 'crawler_akosta.spiders'
 CONCURRENT_REQUESTS = 1
 DEFAULT_REQUEST_HEADERS['Host'] = host
 DOWNLOADER_MIDDLEWARES['crawler_akosta.middlewares.CrawlerAkostaDownloaderMiddleware'] = 543
-# LOG_FILE = 'akosta.log'
+LOG_FILE = 'akosta.log' if write_log_to_file else None

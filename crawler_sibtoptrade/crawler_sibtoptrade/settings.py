@@ -1,3 +1,4 @@
+from general_utils.config import write_log_to_file
 from general_utils.settings import *
 
 BOT_NAME = 'crawler_sibtoptrade'
@@ -8,7 +9,7 @@ NEWSPIDER_MODULE = 'crawler_sibtoptrade.spiders'
 # CONCURRENT_REQUESTS_PER_DOMAIN = 1
 # CONCURRENT_REQUESTS_PER_IP = 1
 
-# LOG_FILE = 'sibtoptrade.log'
+LOG_FILE = 'sibtoptrade.log' if write_log_to_file else None
 DEFAULT_REQUEST_HEADERS.pop('Accept-Encoding')
 DOWNLOADER_MIDDLEWARES = DOWNLOADER_MIDDLEWARES | {
     'scrapy_splash.SplashCookiesMiddleware': 723,

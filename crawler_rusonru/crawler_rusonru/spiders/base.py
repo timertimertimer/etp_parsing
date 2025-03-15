@@ -3,6 +3,7 @@ import logging
 from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..trades.app import Combo
 from ..config import trade_link, data_origin, serp_link, formdata
 from general_utils import EtpItem, EtpItemLoader, UrlConfig
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class RusonBaseSpider(BaseSpider):
     name = 'base'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log'
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
     all_links = list()
     unique_links = set()
@@ -28,7 +29,7 @@ class RusonBaseSpider(BaseSpider):
         )
 
     def parse_serp(self, response, all_links: set = None):
-        combo = Combo(response, self.name)
+        combo = Combo(response)
         current_page = combo.serp.get_current_page()
         next_page = combo.serp.next_page()
         links = combo.serp.links_to_trade()
@@ -44,7 +45,7 @@ class RusonBaseSpider(BaseSpider):
                 yield Request(url=UrlConfig.url_join(trade_link[self.name], link[0]), callback=self.parse_trade)
 
     def parse_trade(self, response):
-        combo = Combo(response, self.name)
+        combo = Combo(response)
         transfer = EtpItem()
         transfer['data_origin'] = data_origin[self.name]
         transfer['trading_id'] = combo.trading_id
@@ -79,7 +80,7 @@ class RusonBaseSpider(BaseSpider):
 
     def parse_auction(self, response, transfer_, lots_table, files):
         """ parse all auction lots """
-        combo = Combo(response, self.name)
+        combo = Combo(response)
         transfer = transfer_
         for i in range(len(lots_table)):
             loader = EtpItemLoader(EtpItem(), response=response)
@@ -118,7 +119,7 @@ class RusonBaseSpider(BaseSpider):
 
     def parse_offer(self, response, transfer_, lots_table, files):
         """ parse all offer lots """
-        combo = Combo(response, self.name)
+        combo = Combo(response)
         transfer = transfer_
         for i in range(len(lots_table)):
             loader = EtpItemLoader(EtpItem(), response=response)

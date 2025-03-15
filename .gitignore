@@ -169,3 +169,4 @@ alembic/
 alembic.ini
 *.html
 files/
+set_main_path_to_download

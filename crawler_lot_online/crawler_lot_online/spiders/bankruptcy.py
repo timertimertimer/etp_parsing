@@ -1,6 +1,7 @@
 from scrapy import Request
 
 from general_utils import EtpItemLoader, EtpItem, return_parse_date
+from general_utils.config import write_log_to_file
 from .base_catalog import LotOnlineBaseSpider
 from ..catalog_app import Combo
 
@@ -8,9 +9,7 @@ from ..catalog_app import Combo
 class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
     name = "lot_online_bankruptcy"
     custom_settings = {
-        'ITEM_PIPELINES': {
-            'general_utils.pipelines.ETPBankruptPipeline': 300,
-        }
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def parse_lot(self, response, lot):

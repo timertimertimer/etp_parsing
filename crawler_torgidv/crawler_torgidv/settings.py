@@ -1,7 +1,8 @@
+from general_utils.config import write_log_to_file
 from general_utils.settings import *
 
 BOT_NAME = "crawler_torgidv"
 
 SPIDER_MODULES = ["crawler_torgidv.spiders"]
 NEWSPIDER_MODULE = "crawler_torgidv.spiders"
-# LOG_FILE = 'torigdv.log'
+LOG_FILE = 'torigdv.log' if write_log_to_file else None

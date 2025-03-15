@@ -4,8 +4,7 @@ import json
 
 from scrapy import FormRequest, Request
 
-from general_utils.items import EtpItemLoader, EtpItem, CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import RegionIdentifier
+from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
 from ..utils.config import data_origin
 from ..utils.get_data_from_table import DbConnectCheckLots
@@ -17,6 +16,9 @@ from ..utils.working_with_time import return_parse_date
 class LotOnlineSpider(scrapy.Spider):
     name = "lot_online"
     start_urls = ["https://{}.lot-online.ru/lot/categories-grid-json.html"]
+    custom_settings = {
+        'LOG_FILE': f'{name}.log',
+    }
 
     def __init__(self, domain):
         super(LotOnlineSpider, self).__init__()
@@ -68,7 +70,7 @@ class LotOnlineSpider(scrapy.Spider):
     def parse_trade(self, response, trading_id, trading_number, current_page=1):
         data = json.loads(response.text)
         for lot in data['rows']:
-            loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
+            loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin[self.domain])
             loader.add_value('trading_id', trading_id)
             loader.add_value(
@@ -97,11 +99,9 @@ class LotOnlineSpider(scrapy.Spider):
         loader.add_value('trading_form', 'open')
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('status', combo.status)
-        loader.add_value('category', combo.category)
+        loader.add_value('categories', combo.category)  # FIXME
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
-        loader.add_value('min_price', combo.min_price)
-        loader.add_value('deposit', combo.deposit)
         loader.add_value('periods', combo.periods)
         loader.add_value('lot_info', combo.lot_info)
         loader.add_value('address', combo.address)
@@ -113,5 +113,4 @@ class LotOnlineSpider(scrapy.Spider):
             str(loader.get_collected_values('trading_id')[0]), str(loader.get_collected_values('lot_number')[0]),
             data_origin[self.domain], self.domain
         )})
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()

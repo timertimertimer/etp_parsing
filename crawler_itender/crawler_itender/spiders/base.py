@@ -8,6 +8,7 @@ from scrapy_splash import SplashRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..manage_spiders.app import Combo
 from ..config import (
     return_auction_link, data_origin, return_offer_link, return_compet_link, post_data_auction, post_data_offer,
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class ItenderBaseSpider(BaseSpider):
     name = 'base'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     @classmethod
@@ -68,7 +69,8 @@ class ItenderBaseSpider(BaseSpider):
         first_post['__VIEWSTATE'] = combo.mpost.get_post_data_values('input', '__VIEWSTATE')
         first_post['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         yield FormRequest(
-            response.url, formdata=first_post, callback=function_for_parse, cb_kwargs={'first_post': first_post, '_type': _type}
+            response.url, formdata=first_post, callback=function_for_parse,
+            cb_kwargs={'first_post': first_post, '_type': _type}
         )
 
     def parse_serp_auction(self, response, first_post, trading_type: str):
@@ -102,7 +104,7 @@ class ItenderBaseSpider(BaseSpider):
             if int(current_page) < int(next_page):
                 yield FormRequest(
                     response.url, formdata=first_post, callback=self.parse_serp_auction,
-                    cb_kwargs={'first_post': first_post}, dont_filter=True
+                    cb_kwargs={'first_post': first_post, 'trading_type': trading_type}, dont_filter=True
                 )
 
     async def parse_trading_page_auction(self, response, lot_number, lot_link, link_trade, attemp):
@@ -203,7 +205,7 @@ class ItenderBaseSpider(BaseSpider):
             if int(current_page) < int(next_page):
                 yield FormRequest(
                     response.url, formdata=first_post, callback=self.parse_serp_offer,
-                    cb_kwargs={'first_post': first_post}
+                    cb_kwargs={'first_post': first_post, 'trading_type': trading_type}, dont_filter=True
                 )
 
     def parse_trade_page_offer(self, response, lot_number, lot_link, attemp):
@@ -396,7 +398,7 @@ class ItenderBaseSpider(BaseSpider):
             if int(current_page) < int(next_page):
                 yield FormRequest(
                     response.url, formdata=first_post, callback=self.parse_competiton_serp,
-                    cb_kwargs={'first_post': first_post}
+                    cb_kwargs={'first_post': first_post, 'trading_type': trading_type}, dont_filter=True
                 )
 
     async def parse_trade_page_competition(self, response, lot_number, lot_link):

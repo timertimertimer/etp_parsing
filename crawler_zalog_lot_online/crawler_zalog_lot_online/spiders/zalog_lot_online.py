@@ -7,6 +7,7 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy_splash import SplashRequest, SlotPolicy
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..manage_spider.app import Combo
 from ..utils.config import start_url, data_pagination, pagination_url, organization_ids
@@ -16,11 +17,11 @@ from ..utils.data_for_requests import script_lua
 class ZalogLotOnlineSpider(BaseSpider):
     name = 'zalog_lot_online'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log'
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
     
     def __init__(self):
-        super().__init__(data)
+        super().__init__()  # FIXME
 
     def start_requests(self):
         yield SplashRequest(

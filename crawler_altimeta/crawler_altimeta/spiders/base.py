@@ -4,6 +4,7 @@ from scrapy import Request, FormRequest
 
 from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..manage_spiders.app import Combo
 from ..config import data_origin, serp_link, lot_link, doc_link, path_absolute, path_relative, url_file, query_param
 
@@ -12,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 class AltimetaBaseSpider(BaseSpider):
     name = 'base'
+    custom_settings = {
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+    }
 
     @classmethod
     def set_links(cls):

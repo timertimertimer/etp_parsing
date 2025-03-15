@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable
 from scrapy import Request
-from general_utils.config import trash_resources
+from general_utils.config import trash_resources, write_log_to_file
 from .base import ItenderBaseSpider
 
 logger = logging.getLogger(__name__)
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class AlfalotSpider(ItenderBaseSpider):
     name = 'alfalot'
     custom_settings = {
-        'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
         'PLAYWRIGHT_ABORT_REQUEST': lambda request: request.resource_type in trash_resources,
         'DOWNLOAD_HANDLERS': {
             "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",

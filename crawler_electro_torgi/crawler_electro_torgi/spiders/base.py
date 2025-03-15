@@ -3,6 +3,7 @@ from typing import Iterable
 from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..config import start_date, end_date, data_origin
 from ..trades.app import Combo
 from general_utils import UrlConfig, EtpItemLoader, EtpItem
@@ -11,7 +12,7 @@ from general_utils import UrlConfig, EtpItemLoader, EtpItem
 class ElectroTorgiBaseSpider(BaseSpider):
     name = 'base'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     @classmethod

@@ -1,28 +1,29 @@
 version: '3.8'
+
 services:
-  etp_parsing_db:
-    image: mysql:latest
-    container_name: mysql
+  mysql:
+    image: mysql:8.0
+    container_name: my-mysql
     restart: always
-    env_file:
+    env_file: 
       - .env
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT}:3306"
     volumes:
-      - etp_parsing_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
 
-  etp_parsing_splash:
-    image: scrapinghub/splash
-    container_name: splash
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: my-phpmyadmin
     restart: always
     ports:
-      - "8050:8050"
-    command: [ "--maxrss", "1024", "--max-timeout", "3600" ]
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1g
-
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql
 volumes:
-  etp_parsing_data:
+  mysql_data:
+

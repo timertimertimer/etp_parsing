@@ -5,6 +5,7 @@ from typing import Iterable
 from scrapy import Request, FormRequest
 from general_utils import EtpItemLoader, EtpItem
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..app import Combo
 from ..config import page_limits, formdata, data_origin
 
@@ -15,7 +16,7 @@ class Rutrade24Spider(BaseSpider):
     name = 'rutrade24'
     start_urls = ['https://ru-trade24.ru/query/Filter']
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log'
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def __init__(self):
