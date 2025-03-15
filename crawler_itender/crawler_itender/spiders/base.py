@@ -78,6 +78,7 @@ class ItenderBaseSpider(BaseSpider):
         )))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
+        logger.info(f'Current serp page: {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
@@ -179,6 +180,7 @@ class ItenderBaseSpider(BaseSpider):
         ))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
+        logger.info(f'Current serp page: {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
@@ -371,6 +373,7 @@ class ItenderBaseSpider(BaseSpider):
         ))
         cviewstate = ''.join(re.findall(r'hiddenField\|__CVIEWSTATE\|(.*)\|', response.body.decode('utf-8')))
         current_page = combo.serp.get_current_page()
+        logger.info(f'Current serp page: {current_page}')
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
