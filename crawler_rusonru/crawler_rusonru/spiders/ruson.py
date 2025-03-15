@@ -7,6 +7,7 @@ from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from general_utils import EtpItem, EtpItemLoader, return_parse_date
 from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from ..config import data_origin, trade_link, stop_page, formdata
 from ..trades.app import Combo
 
@@ -17,6 +18,9 @@ class RusonSpider(BaseSpider):  # FIXME
     name = 'ruson'
     allowed_domains = ['rus-on.ru']
     start_url = data_origin
+    custom_settings = {
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+    }
 
     def __init__(self):
         super(RusonSpider, self).__init__(data_origin[self.name])

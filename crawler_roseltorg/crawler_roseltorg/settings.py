@@ -1,6 +1,8 @@
+from general_utils.config import write_log_to_file
 from general_utils.settings import *
 
 BOT_NAME = "crawler_roseltorg"
 
 SPIDER_MODULES = ["crawler_roseltorg.spiders"]
 NEWSPIDER_MODULE = "crawler_roseltorg.spiders"
+LOG_FILE = 'roseltorg.log' if write_log_to_file else None

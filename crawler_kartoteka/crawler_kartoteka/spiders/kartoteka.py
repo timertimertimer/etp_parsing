@@ -5,17 +5,17 @@ from scrapy import Request, FormRequest
 
 from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader, return_parse_date
 from general_utils.base_spider import BaseSpider
-from general_utils.config import trash_resources, start_date
+from general_utils.config import trash_resources, start_date, write_log_to_file
 from ..locators.serp_locator import SerpLocator
 from ..trades.app import Combo
-from ..utils.config import data_origin_url
-from ..utils.post_data import form_data
+from ..config import data_origin_url, form_data
 
 
 class KartotekaSpider(BaseSpider):
     name = "kartoteka"
     start_urls = ["https://www.kartoteka.ru/bankruptcy2/"]
     custom_settings = {
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources
     }
 

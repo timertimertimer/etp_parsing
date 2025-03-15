@@ -1,6 +1,7 @@
 from scrapy import Request
 
 from general_utils import UrlConfig
+from general_utils.config import write_log_to_file
 from .base import AltimetaBaseSpider
 from ..manage_spiders.app import Combo
 from ..config import stop_page
@@ -9,7 +10,7 @@ from ..config import stop_page
 class AukcioncenterSpider(AltimetaBaseSpider):
     name = 'aukcioncenter'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def parse_serp(self, response, current_page):

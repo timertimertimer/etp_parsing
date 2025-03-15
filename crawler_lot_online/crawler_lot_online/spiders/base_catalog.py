@@ -3,26 +3,24 @@ from typing import Iterable
 from datetime import datetime
 from scrapy import Spider, Request, FormRequest
 
-from general_utils.config import format_parse_date
+from general_utils.base_spider import BaseSpider
+from general_utils.config import format_parse_date, write_log_to_file
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
-from general_utils.location import get_index
 from ..catalog_app import Combo
 from ..utils.config import formdata, hashes, start_date
 from general_utils import return_parse_date
 
 
-class LotOnlineBaseSpider(Spider):
+class LotOnlineBaseSpider(BaseSpider):
     name = 'lot_online_base'
     start_urls = ['https://catalog.lot-online.ru/index.php']
     data_origin = 'https://lot-online.ru/'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log'
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def __init__(self, domain):
-        super(LotOnlineBaseSpider, self).__init__()
-        self.db_check = DBHelper(f'lots_{self.name}')
-        self.previous_lots = self.db_check.get_latest_lot()
+        super(LotOnlineBaseSpider, self).__init__(self.data_origin)
         self.domain = domain
 
     def start_requests(self) -> Iterable[Request]:
@@ -54,9 +52,7 @@ class LotOnlineBaseSpider(Spider):
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('trading_org_contacts', combo.trading_org_contacts)
         loader.add_value('status', lot[3])
-        loader.add_value('index', get_index(address))
         loader.add_value('address', combo.address)
-        loader.add_value('encumbrance', 'Нет')
         loader.add_value('lot_number', combo.get_lot_number(lot[2]))
         loader.add_value('short_name', lot[2])
         loader.add_value('lot_info', combo.lot_info)

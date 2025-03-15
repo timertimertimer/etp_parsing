@@ -1,6 +1,7 @@
 import logging
 
 from general_utils import headers
+from general_utils.config import write_log_to_file
 from .base import ItenderBaseSpider
 
 logger = logging.getLogger(__name__)
@@ -9,6 +10,6 @@ logger = logging.getLogger(__name__)
 class BepspbSpider(ItenderBaseSpider):
     name = 'bepspb'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
         'DEFAULT_REQUEST_HEADERS': headers | {'Accept-Encoding': 'gzip, deflate'}
     }

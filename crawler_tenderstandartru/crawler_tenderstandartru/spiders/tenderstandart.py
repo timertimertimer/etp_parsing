@@ -1,6 +1,7 @@
 from scrapy import Request
 
 from general_utils import EtpItemLoader, EtpItem
+from general_utils.config import write_log_to_file
 from .base import TenderstandartBaseSpider
 from ..trades.app import Combo
 
@@ -8,7 +9,7 @@ from ..trades.app import Combo
 class TenderstandartSpider(TenderstandartBaseSpider):
     name = 'tenderstandart'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def parse_serp(self, response, page, trading_type):

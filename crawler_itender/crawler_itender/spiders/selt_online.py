@@ -1,8 +1,9 @@
+from general_utils.config import write_log_to_file
 from .base import ItenderBaseSpider
 
 
 class SeltOnlineSpider(ItenderBaseSpider):
     name = 'selt_online'
     custom_settings = {
-        # 'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }

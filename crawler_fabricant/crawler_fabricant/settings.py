@@ -1,3 +1,4 @@
+from general_utils.config import write_log_to_file
 from general_utils.settings import *
 
 BOT_NAME = 'crawler_fabricant'
@@ -7,4 +8,4 @@ NEWSPIDER_MODULE = 'crawler_fabricant.spiders'
 # DOWNLOAD_DELAY = 3
 # CONCURRENT_REQUESTS_PER_DOMAIN = 2
 # CONCURRENT_REQUESTS_PER_IP = 2
-# LOG_FILE = 'fabricant.log'
+LOG_FILE = 'fabricant.log' if write_log_to_file else None
