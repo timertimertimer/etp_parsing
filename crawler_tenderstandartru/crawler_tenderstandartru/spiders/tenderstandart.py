@@ -30,7 +30,7 @@ class TenderstandartSpider(TenderstandartBaseSpider):
                 transfer['start_price'] = lot_data[5]
                 transfer['start_date_trading'] = lot_data[6]
                 data_check_with_db = (lot_data[0], lot_data[1], status)
-                if data_check_with_db not in self.previous_lots:
+                if data_check_with_db not in self.previous_trades:
                     yield Request(url=lot_data[0], callback=self.parse_trading_page,
                                   cb_kwargs={'transfer': transfer, 'trading_type': trading_type},
                                   dont_filter=True,

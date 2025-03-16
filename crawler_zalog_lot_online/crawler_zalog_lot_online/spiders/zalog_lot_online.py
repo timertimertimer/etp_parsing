@@ -38,7 +38,7 @@ class ZalogLotOnlineSpider(BaseSpider):
             json_res = json.loads(response.text)
             for lot in list(map(lambda x: x['id'], json_res['rows'])):
                 link = f'https://zalog.lot-online.ru/user/collateral/catalog_page.html?id={lot}'
-                if (link,) not in self.previous_lots:
+                if (link,) not in self.previous_trades:
                     yield Request(link, self.parse_lot_page)
             if next_page - 1 < int(json_res['total']):
                 next_page += 1

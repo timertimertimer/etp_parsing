@@ -54,7 +54,7 @@ class TenderstandartBaseSpider(BaseSpider):
             transfer['lot_number'] = lot_number
             transfer['lot_link'] = lot_link
             transfer['status'] = status
-            if (trading_link, lot_link, status) not in self.previous_lots:
+            if (trading_link, lot_link, status) not in self.previous_trades:
                 yield Request(
                     url=trading_link, callback=self.parse_trading_page, dont_filter=True, errback=self.errback_httpbin,
                     cb_kwargs={'transfer': transfer, 'trading_type': trading_type},

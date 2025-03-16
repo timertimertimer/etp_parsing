@@ -59,13 +59,16 @@ class MetsSpider(BaseSpider):
     def parse(self, response: scrapy.http.Response, **kwargs) -> Iterable[Request]:
         self.formatted_url = self.formatted_url or response.url
         current_page = response.meta.get('current_page', 1)
-        amount_page = int(response.xpath(SerpLocator.count_pagination_loc).get() or current_page)
-        # amount_page = 5
+        total_pages = int(response.xpath(SerpLocator.count_pagination_loc).get() or current_page)
+        logger.info(f'Current page: {current_page}/{total_pages}')
         links_to_lots = response.xpath(SerpLocator.link_to_trade_loc).getall()
         trade_links = response.meta.get('trade_links', set())
         for link in links_to_lots:
-            trade_links.add('-'.join(UrlConfig.url_join(data_origin_url, link).split('-')[:-1]) + '-1')
-        if amount_page > 1 and int(current_page) < amount_page:
+            trading_link = '-'.join(UrlConfig.url_join(data_origin_url, link).split('-')[:-1])
+            if trading_link not in self.previous_trades:
+                self.previous_trades.append(trading_link)
+                trade_links.add(trading_link + '-1')
+        if total_pages > 1 and int(current_page) < total_pages:
             current_page = int(current_page) + 1
             yield Request(
                 self.formatted_url + f'&page={current_page}', callback=self.parse, dont_filter=True,
@@ -82,11 +85,11 @@ class MetsSpider(BaseSpider):
         trading_form = comp.get_trading_form(trading_type_)
         match trading_type:
             case 'auction':
-                return self.parse_auction(response=response, trading_type=trading_type, trading_form=trading_form)
+                yield from self.parse_auction(response=response, trading_type=trading_type, trading_form=trading_form)
             case 'competition':
-                return self.parse_auction(response=response, trading_type=trading_type, trading_form=trading_form)
+                yield from self.parse_auction(response=response, trading_type=trading_type, trading_form=trading_form)
             case 'offer':
-                return self.parse_offer(response=response, trading_type=trading_type, trading_form=trading_form)
+                yield from self.parse_offer(response=response, trading_type=trading_type, trading_form=trading_form)
             case _:
                 pass
 
@@ -116,24 +119,23 @@ class MetsSpider(BaseSpider):
             lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
-            if comp.offer.trading_link not in self.previous_lots:
-                loader.add_value('lot_id', comp.offer.lot_id(lot))
-                loader.add_value('lot_number', lot_number)
-                loader.add_value('short_name', comp.offer.short_name(lot_number))
-                loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                loader.add_value('address', comp.offer.address)
-                loader.add_value('property_information', property_info)
-                loader.add_value('start_price', comp.offer.start_price(lot_number))
-                loader.add_value('step_price', comp.auc.step_price(trading_number, lot_number))
-                loader.add_value('start_date_requests', comp.auc.start_date_request)
-                loader.add_value('end_date_requests', comp.auc.end_date_request)
-                loader.add_value('start_date_trading', comp.auc.start_date_trading)
-                loader.add_value('end_date_trading', comp.auc.end_date_trading)
-                loader.add_value('periods', None)
-                loader.add_value('categories', None)
-                files_lot = comp.offer.download()
-                loader.add_value('files', {'general': files_general, 'lot': files_lot})
-                yield loader.load_item()
+            loader.add_value('lot_id', comp.offer.lot_id(lot))
+            loader.add_value('lot_number', lot_number)
+            loader.add_value('short_name', comp.offer.short_name(lot_number))
+            loader.add_value('lot_info', comp.offer.lot_info(lot_number))
+            loader.add_value('address', comp.offer.address)
+            loader.add_value('property_information', property_info)
+            loader.add_value('start_price', comp.offer.start_price(lot_number))
+            loader.add_value('step_price', comp.auc.step_price(trading_number, lot_number))
+            loader.add_value('start_date_requests', comp.auc.start_date_request)
+            loader.add_value('end_date_requests', comp.auc.end_date_request)
+            loader.add_value('start_date_trading', comp.auc.start_date_trading)
+            loader.add_value('end_date_trading', comp.auc.end_date_trading)
+            loader.add_value('periods', None)
+            loader.add_value('categories', None)
+            files_lot = comp.offer.download()
+            loader.add_value('files', {'general': files_general, 'lot': files_lot})
+            yield loader.load_item()
 
     def parse_offer(self, response, trading_type, trading_form):
         comp = ComposeTrades(response=response)
@@ -160,23 +162,22 @@ class MetsSpider(BaseSpider):
             lot_number = comp.offer.lot_number(lot)
             loader.add_value('status', status)
             loader.add_value('lot_link', comp.offer.lot_link(lot_number))
-            if comp.offer.trading_link not in self.previous_lots:
-                loader.add_value('lot_id', comp.offer.lot_id(lot))
-                loader.add_value('lot_number', lot_number)
-                loader.add_value('short_name', comp.offer.short_name(lot_number))
-                loader.add_value('lot_info', comp.offer.lot_info(lot_number))
-                loader.add_value('address', comp.offer.address)
-                loader.add_value('property_information', property_info)
-                loader.add_value('start_price', comp.offer.start_price(lot_number))
-                loader.add_value('start_date_requests', comp.offer.start_date_request(lot_number))
-                loader.add_value('end_date_requests', comp.offer.end_date_request(lot_number))
-                loader.add_value('start_date_trading', comp.offer.start_date_request(lot_number))
-                loader.add_value('end_date_trading', comp.offer.end_date_request(lot_number))
-                loader.add_value('periods', comp.offer.get_period(lot_number))
-                loader.add_value('categories', None)
-                files_lot = comp.offer.download()
-                loader.add_value('files', {'general': files_general, 'lot': files_lot})
-                yield loader.load_item()
+            loader.add_value('lot_id', comp.offer.lot_id(lot))
+            loader.add_value('lot_number', lot_number)
+            loader.add_value('short_name', comp.offer.short_name(lot_number))
+            loader.add_value('lot_info', comp.offer.lot_info(lot_number))
+            loader.add_value('address', comp.offer.address)
+            loader.add_value('property_information', property_info)
+            loader.add_value('start_price', comp.offer.start_price(lot_number))
+            loader.add_value('start_date_requests', comp.offer.start_date_request(lot_number))
+            loader.add_value('end_date_requests', comp.offer.end_date_request(lot_number))
+            loader.add_value('start_date_trading', comp.offer.start_date_request(lot_number))
+            loader.add_value('end_date_trading', comp.offer.end_date_request(lot_number))
+            loader.add_value('periods', comp.offer.get_period(lot_number))
+            loader.add_value('categories', None)
+            files_lot = comp.offer.download()
+            loader.add_value('files', {'general': files_general, 'lot': files_lot})
+            yield loader.load_item()
 
     async def errback(self, failure):
         page = failure.request.meta["playwright_page"]

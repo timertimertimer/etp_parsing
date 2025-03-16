@@ -1,4 +1,5 @@
 import copy
+import logging
 import re
 
 from scrapy import Request, FormRequest
@@ -10,8 +11,7 @@ from ..manage_spiders.app import Compose
 from general_utils.base_spider import BaseSpider
 from ..config import data_origin_url
 
-all_links = list()
-unique_links = set()
+logger = logging.getLogger(__name__)
 
 
 class BankrotCDTRFSpider(BaseSpider):
@@ -51,15 +51,16 @@ class BankrotCDTRFSpider(BaseSpider):
         combo = Compose(response_=response)
         list_tag_links = combo.offer.trade_link_serp
         for link in list_tag_links:
-            if link not in self.previous_lots:
-                all_links.append(link)
-                unique_links.add(link)
+            if link not in self.previous_trades:
+                self.previous_trades.append(link)
                 yield Request(link, callback=self.parse_auction_page)
         next_page = response.css('#ctl00_cph1_pgvTrades_ctl22_lnkNext').get()
-        last_page_visible = combo.offer.get_total_pages(
+        last_page_visible = combo.offer.get_total_visible_pages(
             current_page, format_post_data['ctl00$cph1$tbRequestTimeBegin1']
         )
+        total_pages = combo.offer.get_total_pages()
         current_page += 1
+        logger.info(f'Current page: {current_page}/{total_pages}')
         pagination_form = copy.deepcopy(format_post_data)
         pagination_form['ctl00$ToolkitScriptManager1'] = 'ctl00$cph1$upList|ctl00$cph1$pgvTrades$ctl22$lnkNext'
         pagination_form['ctl00$cph1$pgvTrades$ctl22$ddlPager'] = 'Номер страницы'

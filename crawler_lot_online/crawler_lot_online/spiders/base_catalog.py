@@ -8,7 +8,6 @@ from general_utils.config import format_parse_date, write_log_to_file
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..catalog_app import Combo
 from ..utils.config import formdata, hashes, start_date
-from general_utils import return_parse_date
 
 
 class LotOnlineBaseSpider(BaseSpider):
@@ -33,7 +32,7 @@ class LotOnlineBaseSpider(BaseSpider):
         html = json.loads(response.text)['html']['pagination_contents']
         combo = Combo(response)
         for lot in combo.get_lots(html):
-            if (lot[0],) not in self.previous_lots:
+            if (lot[0],) not in self.previous_trades:
                 yield Request(lot[0], self.parse_lot, cb_kwargs={'lot': lot})
 
         if combo.next_page(html):
@@ -62,7 +61,6 @@ class LotOnlineBaseSpider(BaseSpider):
             {'general': combo.download_general(self.domain), 'lot': combo.download_lot(self.domain)}
         )
         loader.add_value('start_price', combo.start_price)
-        loader.add_value('created_at', return_parse_date())
         if combo.trading_type == 'offer' and combo.periods:
             loader.add_value('periods', combo.periods)
             loader.add_value('start_date_requests', combo.periods[0]['start_date_requests'])

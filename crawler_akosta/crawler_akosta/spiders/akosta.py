@@ -63,13 +63,13 @@ class AkostaSpider(BaseSpider):
             current_page, total_pages = combo.pre.get_total_and_current_page
             for tag_tr in combo.pre.get_trade_links():
                 data, id_ = combo.pre.get_post_id_and_trading_id(tag_tr)
-                if id_ in self.previous_lots:
+                if id_ in self.previous_trades:
                     continue
                 if id_ not in sources:
                     sources[id_] = data
         else:
             for id_, data in combo.pre.get_trade_links_2().items():
-                if id_ in self.previous_lots:
+                if id_ in self.previous_trades:
                     continue
                 if id_ not in sources:
                     sources[id_] = data

@@ -20,7 +20,7 @@ class RoseltorgSpider(BaseSpider):
     def parse_serp(self, response):
         combo = Combo(response)
         for link in combo.get_trade_links():
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 self.unique_links.add(link)
         if next_page := combo.get_next_page_link():
             yield Request(next_page, self.parse_serp)

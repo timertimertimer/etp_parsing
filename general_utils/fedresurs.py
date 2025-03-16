@@ -133,7 +133,7 @@ class CounterpartyFedresurs(Fedresurs):
             sro.parse_main_info()
             sro.data['message_number'] = membership.get('messageInclude', {}).get('number')
             sro.data['activity_type'] = membership.get('sroActivities', [None])[0]
-            sro.data['entered_at'] = return_parse_date(membership['dateInclude'], '%Y-%m-%dT%H:%M:%S')
+            sro.data['entered_at'] = return_parse_date(membership['dateInclude'])
             memberships.append(sro.data)
         self.data['sro_memberships'] = memberships
 
@@ -286,7 +286,8 @@ class BankrotMessageFedresurs(Fedresurs):
             self.data['content'] = data['content']['messageInfo']['messageContent'].get('text')
         except Exception as e:
             pass
-        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(data['bankrupt']['legalCaseNumber'].strip())
+        legal_case_number = data['bankrupt'].get('legalCaseNumber')
+        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(legal_case_number.strip()) if legal_case_number else None
         self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
         self.data['published_at'] = return_parse_date(data['datePublish'])
         files = list()

@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup
 
 from .config import data_origin
-from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, return_parse_date
+from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
 from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
@@ -293,7 +293,7 @@ class Combo:
     @property
     def end_date_trading(self):
         if len(self.periods) != 0:
-            return return_parse_date(self.periods[-1]['end_date_requests'], '%Y-%m-%d %H:%M:%S')
+            return self.periods[-1]['end_date_requests']
 
     def clean_price(self, price):
         if '%' in price:

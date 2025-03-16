@@ -70,7 +70,7 @@ class ItenderBaseSpider(BaseSpider):
         first_post['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
         yield FormRequest(
             response.url, formdata=first_post, callback=function_for_parse,
-            cb_kwargs={'first_post': first_post, '_type': _type}
+            cb_kwargs={'first_post': first_post, 'trading_type': _type}
         )
 
     def parse_serp_auction(self, response, first_post, trading_type: str):
@@ -94,7 +94,7 @@ class ItenderBaseSpider(BaseSpider):
                 del first_post["ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton"]
             first_post[''] = ''
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link[0] not in self.previous_lots:
+            if link[0] not in self.previous_trades:
                 yield Request(
                     link[0], callback=self.parse_trading_page_auction, dont_filter=True,
                     cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'link_trade': link[0], 'attemp': 1}
@@ -195,7 +195,7 @@ class ItenderBaseSpider(BaseSpider):
                 del first_post["ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton"]
             first_post[''] = ''
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link[0] not in self.previous_lots:
+            if link[0] not in self.previous_trades:
                 yield Request(
                     link[0], callback=self.parse_trade_page_offer,
                     cb_kwargs={'lot_number': link[1], 'lot_link': link[2], 'attemp': 1}, dont_filter=True
@@ -389,7 +389,7 @@ class ItenderBaseSpider(BaseSpider):
                 del first_post["ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton"]
             first_post[''] = ''
         for link in combo.serp.get_link_to_lot(current_page, self.data_origin):
-            if link[0] not in self.previous_lots:
+            if link[0] not in self.previous_trades:
                 yield Request(
                     link[0], callback=self.parse_trade_page_competition,
                     cb_kwargs={'lot_number': link[1], 'lot_link': link[2]}, dont_filter=True

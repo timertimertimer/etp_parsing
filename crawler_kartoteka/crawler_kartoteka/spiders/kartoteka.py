@@ -3,7 +3,7 @@ from typing import Iterable
 
 from scrapy import Request, FormRequest
 
-from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader, return_parse_date
+from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from general_utils.config import trash_resources, start_date, write_log_to_file
 from ..locators.serp_locator import SerpLocator
@@ -44,7 +44,7 @@ class KartotekaSpider(BaseSpider):
         trade_cards = response.xpath(SerpLocator.trade_card_loc)
         for trade in trade_cards:
             link = UrlConfig.url_join(data_origin_url, trade.xpath(SerpLocator.link_to_trade_loc).get())
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 status = trade.xpath(SerpLocator.status_loc).get()
                 short_name = dedent_func(trade.xpath(SerpLocator.short_name_loc).get())
                 yield Request(link, self.parse_trade, cb_kwargs={"status": status, "short_name": short_name})
@@ -98,5 +98,4 @@ class KartotekaSpider(BaseSpider):
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
         loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
-        loader.add_value("created_at", return_parse_date())
         yield loader.load_item()

@@ -69,7 +69,7 @@ class OfferSpider:
             logger.error(f'{self.response.url} :: ERROR DURING GETTING LINKS TO TRADING PAGE')
             return set()
 
-    def get_total_pages(self, page, date):
+    def get_total_visible_pages(self, page, date):
         """ return number of the last available page """
         try:
             select = self.soup.find('select', title='Выбор номера страницы').find_all_next('option')
@@ -83,6 +83,11 @@ class OfferSpider:
         except ValueError as e:
             logger.error(f'{e} :: {self.response.url} :: ERROR on page {page} :: time {date} ')
             return None
+
+    def get_total_pages(self):
+        pages = self.soup.find('span', class_='page_info').get_text(strip=True)
+        current_page, total_pages = pages.split('/')
+        return total_pages.strip()
 
     @property
     def get_trading_number(self) -> str or None:

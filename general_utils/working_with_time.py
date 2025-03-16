@@ -65,11 +65,11 @@ def parse_datetime(string: str, format: str) -> datetime:
 
 
 @format_time_strftime
-def return_parse_date(string: str = None, format: str = None) -> datetime:
+def return_parse_date(string: str = None, format: str = None, adjust_to_moscow_time_zone: bool = False) -> datetime:
     if string:
         utc_time = parse_datetime(string, format)
-        return utc_time.astimezone(moscow_tz)
-    return datetime.now(moscow_tz)
+        return utc_time.astimezone(moscow_tz if adjust_to_moscow_time_zone else pytz.utc)
+    return datetime.now(moscow_tz if adjust_to_moscow_time_zone else pytz.utc)
 
 
 def return_servertime(format: str = '%H:%M:%S'):
@@ -100,4 +100,4 @@ def increase_time_days(time_from, days):
 
 
 if __name__ == '__main__':
-    print(return_servertime_timestamp())
+    print(f"{return_parse_date('2025-01-16T12:58:27.577')=}")

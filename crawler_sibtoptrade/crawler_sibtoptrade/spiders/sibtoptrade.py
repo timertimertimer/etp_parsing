@@ -1,6 +1,6 @@
 import re
 
-from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import *
@@ -58,7 +58,7 @@ class SibtoptradeSpider(BaseSpider):
             trading_number = ''.join(link.get_text()).strip()
             status = trade.find('td', class_='center').find_next_sibling().get_text().strip().lower()
             link = link.get("href")
-            if (link,) not in self.previous_lots:
+            if (link,) not in self.previous_trades:
                 yield Request(url=link, callback=self.parse_lots,
                               errback=self.errback_httpbin,
                               meta={'trading_number': trading_number, 'status': status})
@@ -97,7 +97,6 @@ class SibtoptradeSpider(BaseSpider):
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
         loader.add_value('files', {'general': combo.download_general(), 'lot': combo.download_lot()})
-        loader.add_value('created_at', return_parse_date())
         return loader.load_item()
 
     def errback_httpbin(self, failure):

@@ -48,7 +48,7 @@ class AltimetaBaseSpider(BaseSpider):
             for link, trading_number in links:
                 url = UrlConfig.unquote_url(self.start_url[0].replace('/index.html', '').strip())
                 url = UrlConfig.url_join(url, link)
-                if url not in self.previous_lots:
+                if url not in self.previous_trades:
                     yield Request(
                         url, callback=self.parse_trade_page, dont_filter=True,
                         cb_kwargs={'trading_number': trading_number}

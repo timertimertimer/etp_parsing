@@ -5,7 +5,7 @@ from scrapy import Request, FormRequest
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from general_utils import EtpItem, EtpItemLoader, return_parse_date
+from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from general_utils.config import write_log_to_file
 from ..config import data_origin, trade_link, stop_page, formdata
@@ -43,7 +43,7 @@ class RusonSpider(BaseSpider):  # FIXME
             trading_form = type_and_form[1]
             status = combo.serp.get_status_of_trade(lot_data[4], lot_data[0])
             data_check_with_db = (lot_data[0], lot_data[1], status)
-            if data_check_with_db not in self.previous_lots:
+            if data_check_with_db not in self.previous_trades:
                 if status == 'active' or status == 'pending':
                     if trading_type == 'auction':
                         yield Request(url=lot_data[0], callback=self.parse_auction,
@@ -142,12 +142,9 @@ class RusonSpider(BaseSpider):  # FIXME
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()
 
     def parse_offer(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
-        """ parse offer page """
-
         combo = Combo(response=response)
         transfer = EtpItem()
         transfer['data_origin'] = data_origin
@@ -220,7 +217,6 @@ class RusonSpider(BaseSpider):  # FIXME
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
         loader.add_value('files', total_files)
-        loader.add_value('created_at', return_parse_date())
         yield loader.load_item()
 
     def errback_httpbin(self, failure):

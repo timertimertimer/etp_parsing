@@ -99,7 +99,7 @@ class SberbankSpider(BaseSpider):
                 loader.add_value('start_date_trading', combo.auc.get_start_date_trading)
                 loader.add_value('end_date_trading', combo.auc.get_end_date_trading)
             url = _link
-            if url not in self.previous_lots:
+            if url not in self.previous_trades:
                 files_general = combo.offer.download(
                     combo.auc.trading_id, data['Purchase']['PurchaseinfoPanel']['ContractInfo']['contractdoc']['file']
                 )

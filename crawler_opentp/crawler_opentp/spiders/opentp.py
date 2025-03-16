@@ -27,7 +27,7 @@ class OpentpSpider(BaseSpider):
             )
         else:
             for link in list(unique_links):
-                if link not in self.previous_lots:
+                if link not in self.previous_trades:
                     yield Request(link, callback=self.parse_trade)
 
     def parse_trade(self, response):

@@ -18,7 +18,7 @@ class TorgiGovSpider(BaseSpider):
     def parse_serp(self, response):
         data = json.loads(response.text)
         for trade in data['content']:
-            if trade['id'] not in self.previous_lots:
+            if trade['id'] not in self.previous_trades:
                 yield Request(f'{trade_link}/{trade["id"]}', self.parse_trade)
         if (int(data['number']) + 1) * int(data['size']) < int(data['totalElements']):
             formdata['page'] = str(int(formdata['page']) + 1)

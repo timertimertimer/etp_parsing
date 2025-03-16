@@ -165,7 +165,7 @@ class AuctionPage:
             arbitr = self.response.xpath(self.loc_auc.arbitr_name_loc).get()
             if arbitr:
                 arbitr = BS(str(arbitr), features='lxml').get_text()
-                return dedent_func(arbitr)
+                return dedent_func(' '.join(arbitr.split()))
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR ARBITR NAME\n{e}')
 

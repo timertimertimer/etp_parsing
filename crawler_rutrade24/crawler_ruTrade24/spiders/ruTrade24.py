@@ -42,7 +42,7 @@ class Rutrade24Spider(BaseSpider):
             for trade_container in trade_containers:
                 trade_link = 'https://ru-trade24.ru' + trade_container.css('a::attr(href)').get()
                 status = trade_container.css('.trade-card__status::text').get()
-                if (trade_link,) not in self.previous_lots:
+                if (trade_link,) not in self.previous_trades:
                     yield scrapy.Request(
                         url=trade_link,
                         callback=self.parse_trade,

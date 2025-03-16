@@ -64,7 +64,7 @@ class FabrikantSpider(BaseSpider):
         else:
             for link in all_links:
                 link = link.replace('https://fabrikant.ru', 'https://www.fabrikant.ru')
-                if link not in self.previous_lots:
+                if link not in self.previous_trades:
                     yield Request(link, self.parse_trade)
 
     async def parse_trade(self, response):

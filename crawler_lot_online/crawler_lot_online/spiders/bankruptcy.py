@@ -1,6 +1,6 @@
 from scrapy import Request
 
-from general_utils import EtpItemLoader, EtpItem, return_parse_date
+from general_utils import EtpItemLoader, EtpItem
 from general_utils.config import write_log_to_file
 from .base_catalog import LotOnlineBaseSpider
 from ..catalog_app import Combo
@@ -41,7 +41,6 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
             'files',
             {'general': combo.download_general(self.domain), 'lot': combo.download_lot(self.domain)}
         )
-        loader.add_value('created_at', return_parse_date())
         loader.add_value('start_price', combo.start_price)
         if combo.trading_type == 'offer':
             loader.add_value('periods', combo.periods)

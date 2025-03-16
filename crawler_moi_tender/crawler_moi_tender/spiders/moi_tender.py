@@ -44,7 +44,7 @@ class MoiTenderSpider(BaseSpider):
         combo = Combo(response)
         for lot in combo.get_lots():
             lot['trading_type'] = trading_type
-            if lot['trading_link'] not in self.previous_lots:
+            if lot['trading_link'] not in self.previous_trades:
                 if lot['org'] not in self.orgs_contacts:
                     yield Request(
                         UrlConfig.url_join(data_origin_url, lot['org_link']), self.parse_org, cb_kwargs={'lot': lot}

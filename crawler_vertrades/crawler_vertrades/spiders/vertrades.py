@@ -26,7 +26,7 @@ class VertradesSpider(BaseSpider):
     def parse(self, response):
         combo = Combo(response)
         for link in combo.serp.get_trading_links():
-            if UrlConfig.url_join(data_origin, link.removesuffix('#lot')) not in self.previous_lots:
+            if UrlConfig.url_join(data_origin, link.removesuffix('#lot')) not in self.previous_trades:
                 yield response.follow(link, callback=self.parse_trading)
 
     def parse_trading(self, response):

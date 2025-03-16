@@ -51,7 +51,7 @@ class TorgidvSpider(BaseSpider):
 
     def process_trades(self):
         for link in self.trades:
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 yield Request(link, self.parse_trade)
 
     def parse_trade(self, response):

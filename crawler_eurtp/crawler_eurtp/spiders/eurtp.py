@@ -50,7 +50,7 @@ class EurtpSpider(BaseSpider):
                     return
         for link in all_links:
             link = UrlConfig.url_join(data_origin, link)
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 yield scrapy.Request(url=link, callback=self.parse_trades)
 
     def parse_trades(self, response):

@@ -31,6 +31,7 @@ class BasePipeline:
             try:
                 DBHelper.store_item(item, spider.trading_floor_id, session=self.session)
                 spider.counter += 1
+                logger.info(f'Stored {spider.counter} lots')
                 return item
             except (ProgrammingError, OperationalError) as e:
                 error_msg = str(e)
@@ -64,4 +65,8 @@ class BasePipeline:
                     logger.error(f"Database error: {e}")
                     self.session.rollback()
                     break
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                self.session.rollback()
+                break
         return item

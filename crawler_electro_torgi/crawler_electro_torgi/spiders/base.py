@@ -36,7 +36,7 @@ class ElectroTorgiBaseSpider(BaseSpider):
         links = response.xpath('//a[@class="block-lot"]/@href').getall()
         for link in links:
             link = UrlConfig.url_join(data_origin[self.name], link)
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 yield Request(link, self.parse_trade)
 
         pagination = response.xpath('//ul[@class="pagination"]').get()
