@@ -1,5 +1,11 @@
-from general_utils.config import write_log_to_file
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+
 from general_utils.settings import *
+from general_utils.config import write_log_to_file
 
 BOT_NAME = 'crawler_bankrot_cdtrf'
 
