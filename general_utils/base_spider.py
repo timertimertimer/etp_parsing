@@ -33,8 +33,12 @@ class BaseSpider(scrapy.Spider):
 
     def spider_closed(self):
         duration = time.time() - self.time_started
-        self.logger.info(f"Spider {self.name} closed. Scraped {self.counter} items in {duration:.2f} seconds.")
-        DBHelper.save_counter_and_duration(self.counter, duration, self.name)
+        status_active = getattr(self, "status_active", False)
+        self.logger.info(
+            f"Spider {self.name} closed. "
+            f"Scraped {self.counter} items in {duration:.2f} seconds with status active {status_active}."
+        )
+        DBHelper.save_counter_and_duration(self.counter, duration, status_active, self.name, self.trading_floor_id)
 
     def errback_httpbin(self, failure):
         self.logger.error(repr(failure))

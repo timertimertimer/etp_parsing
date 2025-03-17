@@ -32,8 +32,8 @@ class Lot(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     auction = relationship("Auction", back_populates="lots")
-    lot_periods = relationship("LotPeriod", back_populates="lot", cascade="all, delete-orphan")
-    lot_category = relationship("LotCategory", back_populates="lot", cascade="all, delete-orphan")
+    lot_periods = relationship("LotPeriod", back_populates="lot", cascade="all, delete")
+    lot_category = relationship("LotCategory", back_populates="lot", cascade="all, delete")
 
 
 class LotCategory(Base):

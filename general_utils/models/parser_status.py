@@ -17,7 +17,8 @@ class StatusType(str, Enum):
 class ParserStatus(Base):
     __tablename__ = 'parsers_status'
 
-    name: Mapped[str] = mapped_column(String(255), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255))
     trading_floor_id: Mapped[int] = mapped_column(ForeignKey("trading_floors.id"))
     status: Mapped[StatusType] = mapped_column(SAEnum(StatusType, convert_unicode=True), default=StatusType.disabled)
     counter: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

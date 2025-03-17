@@ -8,11 +8,11 @@ from scrapy_splash import SplashRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file, headers
+from general_utils.config import write_log_to_file
 from ..manage_spiders.app import Combo
 from ..config import (
     return_auction_link, data_origin, return_offer_link, return_compet_link, post_data_auction, post_data_offer,
-    post_data_competition, start_date, post_data_pagination, post_data_offer_period, script_lua_nojs
+    post_data_competition, start_date, script_lua_nojs, common_data
 )
 
 logger = logging.getLogger(__name__)
@@ -144,10 +144,10 @@ class ItenderBaseSpider(BaseSpider):
             loader.add_value('end_date_trading', None)
             _id = ''.join(loader.get_collected_values('trading_id'))
             general_files = combo.offer.download(self.name)
-            post_data_pagination['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
-            post_data_pagination['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
-            post_data_pagination['__EVENTTARGET'] = combo.serp.body_scripts()
-            post_data_pagination['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
+            common_data['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
+            common_data['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
+            common_data['__EVENTTARGET'] = combo.serp.body_scripts()
+            common_data['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
             yield Request(
                 lot_link, callback=self.parse_lot_page, dont_filter=True,
                 cb_kwargs={'loader': loader, 'lot_number': lot_number, 'general': general_files}
@@ -237,16 +237,16 @@ class ItenderBaseSpider(BaseSpider):
         loader.add_value('arbit_manager_org', combo.auc.get_arbitr_company())
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.download(self.name)
-        post_data_pagination['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
-        post_data_pagination['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
-        post_data_pagination['__EVENTTARGET'] = combo.serp.body_scripts()
-        post_data_pagination['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
+        common_data['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
+        common_data['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
+        common_data['__EVENTTARGET'] = combo.serp.body_scripts()
+        common_data['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(
             lot_link, callback=self.parse_lot_page_offer, cb_kwargs={
                 'loader': loader,
                 'lot_number': lot_number,
                 'general': general_files,
-                'pdata_lot_page_period': post_data_pagination
+                'pdata_lot_page_period': common_data
             }, dont_filter=True
         )
 
@@ -288,22 +288,22 @@ class ItenderBaseSpider(BaseSpider):
             if cviewstate is None or len(cviewstate) < 0:
                 cviewstate = pdata_lot_page_period['__CVIEWSTATE']
                 eventvalidation = pdata_lot_page_period['__EVENTVALIDATION']
-            post_data_offer_period['__EVENTTARGET'] = combo.serp.body_scripts()
-            post_data_offer_period['__EVENTARGUMENT'] = pdata_lot_page_period['__EVENTARGUMENT']
-            post_data_offer_period['__CVIEWSTATE'] = cviewstate
-            post_data_offer_period['__VIEWSTATE'] = pdata_lot_page_period['__VIEWSTATE']
-            post_data_offer_period['__SCROLLPOSITIONY'] = pdata_lot_page_period['__SCROLLPOSITIONY']
-            post_data_offer_period['__EVENTVALIDATION'] = eventvalidation
+            common_data['__EVENTTARGET'] = combo.serp.body_scripts()
+            common_data['__EVENTARGUMENT'] = pdata_lot_page_period['__EVENTARGUMENT']
+            common_data['__CVIEWSTATE'] = cviewstate
+            common_data['__VIEWSTATE'] = pdata_lot_page_period['__VIEWSTATE']
+            common_data['__SCROLLPOSITIONY'] = pdata_lot_page_period['__SCROLLPOSITIONY']
+            common_data['__EVENTVALIDATION'] = eventvalidation
             period_from_current_page = combo.offer.return_periods()
             yield FormRequest(
-                response.url, callback=self.parse_lot_page_offer_next_page, formdata=post_data_offer_period,
+                response.url, callback=self.parse_lot_page_offer_next_page, formdata=common_data,
                 method='POST', cb_kwargs={
                     'loader': loader,
                     'lot_number': lot_number,
                     'general': general,
                     'period_current_page': period_from_current_page,
                     'pages': pages,
-                    'post_data_period': post_data_offer_period
+                    'post_data_period': common_data
                 }, dont_filter=True
             )
 
@@ -324,23 +324,23 @@ class ItenderBaseSpider(BaseSpider):
             if cviewstate is None or len(cviewstate) < 0:
                 cviewstate = post_data_period['__CVIEWSTATE']
                 eventvalidation = post_data_period['__EVENTVALIDATION']
-            post_data_offer_period['__EVENTTARGET'] = combo.serp.body_scripts()
-            post_data_offer_period['__EVENTARGUMENT'] = post_data_period['__EVENTARGUMENT']
-            post_data_offer_period['__CVIEWSTATE'] = cviewstate
-            post_data_offer_period['__VIEWSTATE'] = post_data_period['__VIEWSTATE']
-            post_data_offer_period['__SCROLLPOSITIONY'] = post_data_period['__SCROLLPOSITIONY']
-            post_data_offer_period['__EVENTVALIDATION'] = eventvalidation
+            common_data['__EVENTTARGET'] = combo.serp.body_scripts()
+            common_data['__EVENTARGUMENT'] = post_data_period['__EVENTARGUMENT']
+            common_data['__CVIEWSTATE'] = cviewstate
+            common_data['__VIEWSTATE'] = post_data_period['__VIEWSTATE']
+            common_data['__SCROLLPOSITIONY'] = post_data_period['__SCROLLPOSITIONY']
+            common_data['__EVENTVALIDATION'] = eventvalidation
             period_from_current_page = combo.offer.return_periods()
             period_current_page.extend(period_from_current_page)
             yield FormRequest(
                 response.url, callback=self.parse_lot_page_offer_next_page,
-                formdata=post_data_offer_period, method='POST', cb_kwargs={
+                formdata=common_data, method='POST', cb_kwargs={
                     'loader': loader,
                     'lot_number': lot_number,
                     'general': general,
                     'period_current_page': period_current_page,
                     'pages': pages,
-                    'post_data_period': post_data_offer_period
+                    'post_data_period': common_data
                 }, dont_filter=True
             )
         else:
@@ -433,10 +433,10 @@ class ItenderBaseSpider(BaseSpider):
         loader.add_value('end_date_trading', None)
         _id = ''.join(loader.get_collected_values('trading_id'))
         general_files = combo.offer.download(self.name)
-        post_data_pagination['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
-        post_data_pagination['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
-        post_data_pagination['__EVENTTARGET'] = combo.serp.body_scripts()
-        post_data_pagination['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
+        common_data['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
+        common_data['__EVENTVALIDATION'] = combo.mpost.get_post_data_values('input', '__EVENTVALIDATION')
+        common_data['__EVENTTARGET'] = combo.serp.body_scripts()
+        common_data['__SCROLLPOSITIONY'] = str(randint(2289, 3662))
         yield Request(
             lot_link, callback=self.parse_lot_page_competition,
             cb_kwargs={'loader': loader, 'lot_number': lot_number, 'general': general_files}, dont_filter=True

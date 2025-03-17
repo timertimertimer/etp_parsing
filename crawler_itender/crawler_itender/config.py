@@ -48,7 +48,7 @@ for name in data_origin.keys():
     path_absolute[name] = f'{absolute_download_path}/etp_{name}'
     path_relative[name] = f'{relative_download_path}/etp_{name}'
 
-common__data = {
+common_data = {
     "__EVENTTARGET": "",
     "__EVENTARGUMENT": "",
     "__VIEWSTATE": "",
@@ -62,7 +62,7 @@ common__data = {
 }
 
 common_post_data = {
-    **common__data,
+    **common_data,
     "ctl00$ctl00$BodyScripts$BodyScripts$scripts": "ctl00$ctl00$MainExpandableArea$phExpandCollapse$UpdatePanel1|ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_lotNumber_лота": "",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_lotTitle_Наименованиелота": "",
@@ -100,30 +100,6 @@ post_data_competition = {
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_конкурса': '',
     'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеконкурса': '',
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton": "Искать конкурсы",
-}
-
-post_data_pagination = {
-    **common__data,
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$DownloadTokenValue': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$RequiredFileTypes': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$CheckedIds': '|',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$hfAttachmentID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$hfFileTypeID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$UploadedFileIds': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$tbCustomFileType': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$documents$tbComments': '',
-}
-
-post_data_offer_period = {
-    **common__data,
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$DownloadTokenValue': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$RequiredFileTypes': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$CheckedIds': '|',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$hfAttachmentID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$hfFileTypeID': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$UploadedFileIds': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$tbCustomFileType': '',
-    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$AttachmentsControl$tbComments': '',
 }
 
 script_lua_nojs = """

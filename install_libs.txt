@@ -1,4 +1,4 @@
 sudo apt-get install pkg-config libicu-dev
 pip install --no-binary=:pyicu: pyicu
-sudo apt-get install unrar
+sudo apt install unrar zip p7zip-full p7zip-rar
 playwright install

@@ -43,7 +43,7 @@ class Auction(Base):
     )
     debtor = relationship("Counterparty", back_populates="debtor_auctions", foreign_keys='[Auction.debtor_id]')
     trading_floor = relationship("TradingFloor", back_populates="auctions")
-    lots = relationship('Lot', back_populates='auction', cascade="all")
+    lots = relationship('Lot', back_populates='auction', cascade="all, delete")
     legal_case = relationship("LegalCase", back_populates="auctions")
 
     def __repr__(self):

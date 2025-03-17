@@ -325,28 +325,18 @@ class AuctionPage:
         try:
             price = self.response.xpath(self.loc_auc.start_price_auc_loc).get()
             extra_price = self.response.xpath(self.loc_auc.start_price_extra_auc_loc).get()
-            if price and "ачальная" in price:
+            if price:
                 price = dedent_func(BS(str(price), features='lxml').get_text().strip().replace(',', '.'))
                 price = ''.join([x for x in price if x.isdigit() or x == '.'])
                 if len(price) > 0:
                     return round(float(price), 2)
             elif extra_price:
-                extra_price = dedent_func(BS(str(extra_price), features='lxml').get_text().strip().replace(',', '.'))
+                extra_price = (
+                    dedent_func(BS(str(extra_price), features='lxml').get_text().strip().replace(',', '.'))
+                )
                 extra_price = ''.join([x for x in extra_price if x.isdigit() or x == '.'])
                 if len(extra_price) > 0:
                     return round(float(extra_price), 2)
-            elif price is not None or extra_price is not None:
-                if price:
-                    price = dedent_func(BS(str(price), features='lxml').get_text().strip().replace(',', '.'))
-                    price = ''.join([x for x in price if x.isdigit() or x == '.'])
-                    if len(price) > 0:
-                        return round(float(price), 2)
-                else:
-                    extra_price = dedent_func(
-                        BS(str(extra_price), features='lxml').get_text().strip().replace(',', '.'))
-                    extra_price = ''.join([x for x in extra_price if x.isdigit() or x == '.'])
-                    if len(extra_price) > 0:
-                        return round(float(extra_price), 2)
             else:
                 logger.error(f'{self.response.url} :: INVALID DATA START PRICE AUCTION/COMPETITION')
         except Exception as e:

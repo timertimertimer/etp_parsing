@@ -117,31 +117,19 @@ class DBHelper:
         return trading_floor_id
 
     @staticmethod
-    def update_status(status: bool, spider_name: str):
+    def save_counter_and_duration(counter: int, duration: float, status_active: bool, spider_name: str, trading_floor_id: int):
         with DBHelper.transaction_scope() as session:
-            new_status = StatusType.active if status else StatusType.disabled
-            parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
-            if parser:
-                parser.status = new_status
-                parser.updated_at = datetime.utcnow()
-                logger.info(f"update_status :: ParserStatus for '{spider_name}' updated to '{new_status}'.")
-            else:
-                logger.warning(f"update_status :: ParserStatus with name '{spider_name}' not found.")
-
-    @staticmethod
-    def save_counter_and_duration(counter: int, duration: float, spider_name: str):
-        with DBHelper.transaction_scope() as session:
-            parser = session.query(ParserStatus).filter(ParserStatus.name == spider_name).first()
-            if parser:
-                if counter > parser.counter:
-                    parser.counter = counter
-                    parser.duration = duration
-                    parser.updated_at = datetime.utcnow()
-                    logger.info(
-                        f"save_counter_and_duration :: Updated counter and duration for '{spider_name}' to {counter}, {duration}."
-                    )
-            else:
-                logger.warning(f"save_counter_and_duration :: ParserStatus with name '{spider_name}' not found.")
+            session.add(ParserStatus(
+                name=spider_name,
+                trading_floor_id=trading_floor_id,
+                counter=counter,
+                duration=duration,
+                status=StatusType.active if status_active else StatusType.disabled
+            ))
+            logger.info(
+                f"save_counter_and_duration :: "
+                f"Updated counter and duration for '{spider_name}' to {counter}, {duration}."
+            )
 
     @staticmethod
     def add_regions():
@@ -720,6 +708,8 @@ class DBHelper:
         file_objs = list()
         for download_data in download_datas:
             file_name = sanitize_filename(download_data.file_name)
+            if len(file_name) > 75:
+                file_name = file_name[:30] + '_' + file_name[-35::1]
             if file_name in existing_file_names:
                 continue
             absolute_path = absolute_download_dir_path / file_name

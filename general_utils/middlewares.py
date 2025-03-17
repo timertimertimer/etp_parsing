@@ -164,11 +164,6 @@ class ETPSpiderMiddleware:
 
 class ETPDownloaderMiddleware:
     def process_response(self, request, response, spider):
-        if not hasattr(spider, "status_updated"):
-            spider.status_updated = False
-        if not spider.status_updated:
-            status = response.status in range(200, 400)
-            DBHelper.update_status(status, spider.name)
-            spider.status_updated = True
-
+        if not hasattr(spider, "status_active"):
+            spider.status_active = response.status in range(200, 400)
         return response

@@ -1,10 +1,6 @@
 from general_utils.config import write_log_to_file
 from .base import ItenderBaseSpider
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class CenterrSpider(ItenderBaseSpider):
     name = 'centerr'
