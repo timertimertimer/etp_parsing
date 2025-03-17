@@ -87,7 +87,7 @@ class OfferPage:
             table = pd.read_html(str(table).replace(',', '.'))
             return table[0]
         except Exception as e:
-            logger.error(f'{self.response.url} :: PERIOD TABLE NOT FOUND\{e}', exc_info=True)
+            logger.error(f'{self.response.url} :: PERIOD TABLE NOT FOUND {e}', exc_info=True)
 
     def return_periods(self):
         try:
