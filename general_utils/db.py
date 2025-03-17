@@ -243,9 +243,7 @@ class DBHelper:
     def get_counterparty(session: SessionLocal = None, inn: str = None, name: str = None, short_name: str = None):
         with DBHelper.transaction_scope(session, commit=False) as session:
             query = session.query(Counterparty)
-            if inn and name:
-                query = query.filter(or_(Counterparty.inn == inn, Counterparty.name == name))
-            elif inn:
+            if inn:
                 query = query.filter(Counterparty.inn == inn)
             elif name:
                 query = query.filter(Counterparty.name == name)
@@ -366,11 +364,12 @@ class DBHelper:
 
     @staticmethod
     def store_and_get_arbitrator(item: EtpItem | dict, session: SessionLocal):
-        arbitrator_counterparty = session.query(Counterparty).filter_by(
-            inn=item.get('arbit_manager_inn'),
-            name=item.get('arbit_manager'),
-            short_name=item.get('arbit_manager')
-        ).first()
+        name = item.get('arbit_manager')
+        if name and name == item.get('trading_org'):
+            inn = item.get('trading_org_inn', item.get('arbit_manager_inn'))
+        else:
+            inn = item.get('arbit_manager_inn')
+        arbitrator_counterparty = DBHelper.get_counterparty(inn=inn, name=name, short_name=name)
         if not arbitrator_counterparty or not arbitrator_counterparty.fedresurs_url:
             inn = item.get('arbit_manager_inn')
             if inn:
@@ -397,11 +396,11 @@ class DBHelper:
                     session.flush()
             else:
                 arb_client.parse()
-                if not (arbitrator_counterparty := session.query(Counterparty).filter_by(
+                if not (arbitrator_counterparty := DBHelper.get_counterparty(
                         inn=arb_client.data.get('inn'),
                         name=arb_client.data.get('name'),
                         short_name=arb_client.data.get('short_name')
-                ).first()):
+                )):
                     arb_client.parse_sro_membership()
                     arbitrator_counterparty = DBHelper.store_counterparty_and_co_from_dict(arb_client.data, session)
         return arbitrator_counterparty
@@ -417,11 +416,11 @@ class DBHelper:
                     'trading_org_inn') == arbitrator_counterparty.inn)
         ):
             return arbitrator_counterparty
-        organizer_counterparty: Counterparty = session.query(Counterparty).filter_by(
+        organizer_counterparty: Counterparty = DBHelper.get_counterparty(
             inn=item.get('trading_org_inn'),
             name=item.get('trading_org'),
             short_name=item.get('trading_org')
-        ).fisrt()
+        )
         if not organizer_counterparty or not organizer_counterparty.fedresurs_url:
             inn = item.get('trading_org_inn')
             if inn:
@@ -454,18 +453,18 @@ class DBHelper:
                     session.flush()
             else:
                 org_client.parse()
-                if not (organizer_counterparty := session.query(Counterparty).filter_by(
+                if not (organizer_counterparty := DBHelper.get_counterparty(
                         inn=org_client.data.get('inn'),
                         name=org_client.data.get('name'),
                         short_name=org_client.data.get('short_name')
-                ).first()):
+                )):
                     org_client.parse_sro_membership()
                     organizer_counterparty = DBHelper.store_counterparty_and_co_from_dict(org_client.data, session)
         return organizer_counterparty
 
     @staticmethod
     def store_and_get_debtor(item: EtpItem | dict, session: SessionLocal):
-        debtor_counterparty = session.query(Counterparty).filter_by(inn=item['debtor_inn']).first()
+        debtor_counterparty = DBHelper.get_counterparty(inn=item['debtor_inn'])
         if not debtor_counterparty or not debtor_counterparty.fedresurs_url:
             inn = item['debtor_inn']
             if inn:
@@ -493,11 +492,11 @@ class DBHelper:
                     session.flush()
             else:
                 debtor_client.parse()
-                if not (debtor_counterparty := session.query(Counterparty).filter_by(
+                if not (debtor_counterparty := DBHelper.get_counterparty(
                         inn=debtor_client.data.get('inn'),
                         name=debtor_client.data.get('name'),
                         short_name=debtor_client.data.get('short_name')
-                ).first()):
+                )):
                     debtor_client.parse_sro_membership()
                     debtor_client.parse_bankruptcy()
                     debtor_client.parse_publications()

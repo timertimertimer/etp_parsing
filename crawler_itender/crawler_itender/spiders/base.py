@@ -8,7 +8,7 @@ from scrapy_splash import SplashRequest, SlotPolicy
 
 from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
+from general_utils.config import write_log_to_file, headers
 from ..manage_spiders.app import Combo
 from ..config import (
     return_auction_link, data_origin, return_offer_link, return_compet_link, post_data_auction, post_data_offer,
@@ -51,18 +51,24 @@ class ItenderBaseSpider(BaseSpider):
         if _type == 'auction':
             first_post = copy.deepcopy(post_data_auction)
             function_for_parse = self.parse_serp_auction
-            first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
+            first_post[(
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_'
+                'Датапроведенияс_dateInput'
+            )] = start_date
         if _type == 'offer':
             first_post = copy.deepcopy(post_data_offer)
             function_for_parse = self.parse_serp_offer
-            first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'] = start_date
+            first_post[(
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_'
+                'bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput'
+            )] = start_date
         if _type == 'competition':
             first_post = copy.deepcopy(post_data_competition)
             function_for_parse = self.parse_competiton_serp
-            first_post[
-                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput'] = start_date
+            first_post[(
+                'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_'
+                'Датапроведенияс_dateInput'
+            )] = start_date
         first_post['__EVENTTARGET'] = combo.mpost.get_post_data_values(tag_html='input', post_argument='__EVENTTARGET')
         first_post['__EVENTARGUMENT'] = combo.mpost.get_post_data_values('input', '__EVENTARGUMENT')
         first_post['__CVIEWSTATE'] = combo.mpost.get_post_data_values('input', '__CVIEWSTATE')
@@ -186,8 +192,9 @@ class ItenderBaseSpider(BaseSpider):
         next_page = combo.serp.get_next_page()
         if combo.serp.body_scripts():
             data_next_page_post = combo.serp.body_scripts()
-            first_post[
-                'ctl00$ctl00$BodyScripts$BodyScripts$scripts'] = 'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$UpdatePanel2|' + data_next_page_post
+            first_post['ctl00$ctl00$BodyScripts$BodyScripts$scripts'] = (
+                    'ctl00$ctl00$MainContent$ContentPlaceHolderMiddle$UpdatePanel2|' + data_next_page_post
+            )
             first_post['__CVIEWSTATE'] = cviewstate
             first_post['__EVENTVALIDATION'] = eventvalidation
             first_post['__EVENTTARGET'] = data_next_page_post
