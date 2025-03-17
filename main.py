@@ -1,6 +1,8 @@
 import os
+import logging
 from multiprocessing import Process
 
+logger = logging.getLogger(__name__)
 
 def run_spider(project, spider):
     os.system(f"cd {project} && scrapy crawl {spider}")
@@ -19,6 +21,7 @@ projects = {
 
 processes = []
 for project, spider in projects.items():
+    logger.info(f'Starting {project}/{spider}')
     p = Process(target=run_spider, args=(project, spider))
     p.start()
     processes.append(p)
