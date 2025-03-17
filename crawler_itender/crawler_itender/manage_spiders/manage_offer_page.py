@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup as BS
 
 from general_utils import dedent_func, UrlConfig, format_time
 from general_utils.models import DownloadData
+from ..config import data_origin
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
 import logging
@@ -156,14 +157,17 @@ class OfferPage:
             logger.error(f'{self.response.url} :: INVALID DATA START PRICE offer\n{e}')
             return
 
-    def download(self, host: str):
+    def download(self, crawler_name: str):
         files = list()
         for d in self.response.xpath(self.loc_offer.documents).getall():
             d = BS(str(d), features='lxml')
             a = d.find('a')
-            link_etp = UrlConfig.url_join(host, a.get('href')[1:])
+            link_etp = UrlConfig.url_join(data_origin[crawler_name], a.get('href')[1:])
             file_name = a.get_text()
-            files.append(DownloadData(url=link_etp, file_name=file_name, referer=self.response.url))
+            files.append(DownloadData(
+                url=link_etp, file_name=file_name, referer=self.response.url,
+                verify=False if crawler_name in ['etpu'] else True
+            ))
         return files
 
     def find_error_page(self):
