@@ -1,14 +1,9 @@
-import logging
-import pathlib
 import re
+import logging
 import pandas as pd
 from itertools import takewhile
 from bs4 import BeautifulSoup
-from general_utils.download import DownloadFiles
-from general_utils.work_with_path_and_dir import FilesDir
-from .utils.config import path_relative, path_absolute
 from general_utils import dedent_func, CheckIfCorrectContactInfo, contains, UrlConfig, format_time
-from general_utils.config import lst_exeption, archive_formats, image_formats
 from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
@@ -65,82 +60,24 @@ class Combo:
         except Exception as e:
             logger.error(f"{self.response.url} :: INVALID START PRICE\n{e}")
 
-    def download_general(self, domain: str):
-        load = DownloadFiles()
-        lst_general = list()
-        files_dir = FilesDir(path_relative[domain], path_absolute[domain])
-        files = self.soup.find('div', id='content_documents').find_all('div', class_='attachment__item')
-        files_dir.create_dir()
-        for file in files:
+    def download_general(self):
+        files = list()
+        for file in self.soup.find('div', id='content_documents').find_all('div', class_='attachment__item'):
             name = file.get_text(strip=True).split('\n')[0]
             link = file.find('a', class_='attachment__a cm-no-ajax')
             if not link:
                 continue
             link = link.get('href')
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
-            absolute_path = files_dir.return_absolute_path(name_on_server)
-            relative_path = files_dir.return_relative_path(name_on_server)
-            if not any(ele in name_on_server for ele in lst_exeption):
-                request_data = DownloadData(url=link, referer=self.response.url)
-                if pathlib.Path(name_on_server).suffix in archive_formats:
-                    archive_lst = load.request_to_download_general(
-                        download_data=request_data,
-                        absolute_path=absolute_path,
-                        relative_path=relative_path,
-                        trading_id=self.trading_id
-                    )
-                    lst_general.extend(archive_lst)
-                elif pathlib.Path(name_on_server).suffix in image_formats:
-                    load.request_to_download_general(
-                        download_data=request_data,
-                        absolute_path=absolute_path,
-                        relative_path=relative_path,
-                        trading_id=self.trading_id
-                    )
-                    lst_general.append(
-                        {
-                            'original_name': name,
-                            'link': relative_path.as_posix(),
-                            'link_etp': link
-                        }
-                    )
-                else:
-                    lst_general.append({'original_name': name, 'link': '', 'link_etp': link})
-        return lst_general
+            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
+        return files
 
-    def download_lot(self, domain):
-        load = DownloadFiles()
-        files_dir = FilesDir(path_relative[domain], path_absolute[domain])
-        lst_lot = list()
-        files = self.soup.find('div', class_='ty-product-block__img').find_all('img')
-        files_dir.create_dir()
-        for file in files:
+    def download_lot(self):
+        files = list()
+        for file in self.soup.find('div', class_='ty-product-block__img').find_all('img'):
             link = file.get('src')
             name = UrlConfig.clean_url(link).split('/')[-1]
-            if len(name) > 75:
-                name = name[:30] + '_' + name[-35::1]
-            name_on_server = files_dir.name_file_on_server(trading_id=self.trading_id, original_name=name)
-            absolute_path = files_dir.return_absolute_path(name_on_server)
-            relative_path = files_dir.return_relative_path(name_on_server)
-            if pathlib.Path(absolute_path).exists():
-                continue
-            request_data = DownloadData(url=link, referer=self.response.url)
-            load.request_to_download_general(
-                download_data=request_data,
-                absolute_path=absolute_path,
-                relative_path=relative_path,
-                trading_id=self.trading_id
-            )
-            lst_lot.append(
-                {
-                    'original_name': name,
-                    'link': relative_path.as_posix(),
-                    'link_etp': link
-                }
-            )
-        return lst_lot
+            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
+        return files
 
     def get_main_info(self):
         return self.soup.find('div', class_='ty-product-block_product_main')

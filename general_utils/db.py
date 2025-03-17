@@ -109,8 +109,9 @@ class DBHelper:
         return trading_floor_id
 
     @staticmethod
-    def save_counter_and_duration(counter: int, duration: float, status_active: bool, spider_name: str,
-                                  trading_floor_id: int):
+    def save_counter_and_duration(
+            counter: int, duration: float, status_active: bool, spider_name: str, trading_floor_id: int
+    ):
         if status_active is not None:
             with DBHelper.transaction_scope() as session:
                 session.add(ParserStatus(
@@ -353,25 +354,21 @@ class DBHelper:
             inn = item.get('arbit_manager_inn')
         arbitrator_counterparty = DBHelper.get_counterparty(inn=inn, name=name, short_name=name)
         if not arbitrator_counterparty or not arbitrator_counterparty.fedresurs_url:
-            inn = item.get('arbit_manager_inn')
-            if inn:
+            if inn := item.get('arbit_manager_inn'):
                 if len(inn) > 10:
                     arb_client = PersonFedresurs(inn, item.get('arbit_manager'))
                 else:
                     arb_client = CompanyFedresurs(inn, item.get('arbit_manager'))
             else:
                 amf = ArbitrManagerFedresurs(item.get('arbit_manager'))
-                if amf.data.get('guid', amf.get_guid()):
-                    arb_client = amf
-                else:
-                    arb_client = None
+                arb_client = amf if amf.data.get('guid') else None
             if not arb_client:
                 pass
-            elif not arb_client.data['guid']:
+            elif not arb_client.data.get('guid'):
                 arbitrator_counterparty = arbitrator_counterparty or Counterparty(
-                    inn=item['arbit_manager_inn'],
-                    short_name=item['arbit_manager'],
-                    type=arb_client.data['type']
+                    inn=item.get('arbit_manager_inn'),
+                    short_name=item.get('arbit_manager'),
+                    type=arb_client.data.get('type')
                 )
                 if inspect(arbitrator_counterparty).transient:
                     session.add(arbitrator_counterparty)
@@ -392,10 +389,14 @@ class DBHelper:
         if (
                 (item.get('trading_org_inn') and item.get('trading_org_inn') == item.get('arbit_manager_inn')) or
                 (item.get('trading_org') and item.get('trading_org') == item.get('arbit_manager')) or
-                (item.get('trading_org') and arbitrator_counterparty and item.get(
-                    'trading_org') == arbitrator_counterparty.short_name) or
-                (item.get('trading_org') and arbitrator_counterparty and item.get(
-                    'trading_org_inn') == arbitrator_counterparty.inn)
+                (
+                        item.get('trading_org') and arbitrator_counterparty and
+                        item.get('trading_org') == arbitrator_counterparty.short_name
+                ) or
+                (
+                        item.get('trading_org') and arbitrator_counterparty and
+                        item.get('trading_org_inn') == arbitrator_counterparty.inn
+                )
         ):
             return arbitrator_counterparty
         organizer_counterparty: Counterparty = DBHelper.get_counterparty(
@@ -404,19 +405,18 @@ class DBHelper:
             short_name=item.get('trading_org')
         )
         if not organizer_counterparty or not organizer_counterparty.fedresurs_url:
-            inn = item.get('trading_org_inn')
-            if inn:
+            if inn := item.get('trading_org_inn'):
                 if len(inn) > 10:
                     org_client = PersonFedresurs(inn, item['trading_org'])
                 else:
                     org_client = CompanyFedresurs(inn, item['trading_org'])
             else:
                 if guid := (
-                        ArbitrManagerFedresurs(item.get('trading_org')).get_guid() or
-                        PersonOrganizerFedresurs(item.get('trading_org')).get_guid()
+                        ArbitrManagerFedresurs(item.get('trading_org')).data.get('guid') or
+                        PersonOrganizerFedresurs(item.get('trading_org')).data.get('guid')
                 ):
                     org_client = PersonFedresurs(name=item.get('trading_org'), guid=guid)
-                elif guid := CompanyOrganizerFedresurs(item.get('trading_org')).get_guid():
+                elif guid := CompanyOrganizerFedresurs(item.get('trading_org')).data.get('guid'):
                     org_client = CompanyFedresurs(name=item.get('trading_org'), guid=guid)
                 else:
                     org_client = None
@@ -448,19 +448,14 @@ class DBHelper:
     def store_and_get_debtor(item: EtpItem | dict, session: SessionLocal):
         debtor_counterparty = DBHelper.get_counterparty(inn=item['debtor_inn'])
         if not debtor_counterparty or not debtor_counterparty.fedresurs_url:
-            inn = item['debtor_inn']
-            if inn:
-                if len(inn) > 10:
-                    debtor_client = PersonFedresurs(inn=inn)
-                else:
-                    debtor_client = CompanyFedresurs(inn=inn)
+            if inn := item['debtor_inn']:
+                debtor_client = PersonFedresurs(inn=inn) if len(inn) > 10 else CompanyFedresurs(inn=inn)
             else:
-                if guid := CounterpartyFedresurs(inn=inn).get_guid():
+                debtor_client = None
+                if guid := CounterpartyFedresurs(inn=inn).data.get('guid'):
                     debtor_client = PersonFedresurs(inn=inn, guid=guid)
-                elif guid := CompanyFedresurs(inn=inn).get_guid():
+                elif guid := CompanyFedresurs(inn=inn).data.get('guid'):
                     debtor_client = CompanyFedresurs(inn=inn, guid=guid)
-                else:
-                    debtor_client = None
             if not debtor_client:
                 pass
             elif not debtor_client.data['guid']:

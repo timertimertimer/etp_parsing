@@ -7,7 +7,7 @@ from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from general_utils.config import trash_resources, start_date, write_log_to_file
 from ..locators.serp_locator import SerpLocator
-from ..trades.app import Combo
+from ..app import Combo
 from ..config import data_origin_url, form_data
 
 
@@ -19,14 +19,16 @@ class KartotekaSpider(BaseSpider):
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources
     }
 
+    def __init__(self):
+        super().__init__(data_origin_url)
+
     def start_requests(self):
         for url in self.start_urls:
             yield Request(url, callback=self.get_validate_data, meta=dict(playwright=True))
 
     def get_validate_data(self, response) -> Iterable[Request]:
         validate_data = response.xpath('//input[@name="validate"]/@value').get()
-        data_trade_begin = start_date
-        form_data["data-trade-begin"] = data_trade_begin
+        form_data["data-trade-begin"] = start_date
         form_data["validate"] = validate_data
         yield FormRequest(
             f"{self.start_urls[0]}/?action=Hash",
@@ -97,5 +99,6 @@ class KartotekaSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
+        loader.add_value('categories', None)
         loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
         yield loader.load_item()

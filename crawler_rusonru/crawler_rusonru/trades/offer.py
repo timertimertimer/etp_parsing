@@ -1,5 +1,11 @@
-from .libraries import *
 import logging
+import re
+
+import pandas as pd
+from bs4 import BeautifulSoup
+from numpy import float64
+
+from general_utils import dedent_func, format_time, make_float
 
 logger = logging.getLogger(__name__)
 
@@ -8,13 +14,13 @@ class OfferParse:
 
     def __init__(self, response_):
         self.response = response_
-        self.soup = soup(self.response)
+        self.soup = BeautifulSoup(self.response)
 
     def get_lot_block(self, table: str):
         """ :return table with lot info """
         try:
             if table and len(table) > 0:
-                table_html = BS(str(table), features='lxml')
+                table_html = BeautifulSoup(str(table), features='lxml')
                 return table_html
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR TABLE LOT INFO {ex}', exc_info=True)
@@ -174,7 +180,7 @@ class OfferParse:
         try:
             table_period = self.get_period_table(table)
             start_date = table_period.iloc[0][0]
-            return format_time_auction(start_date)
+            return format_time(start_date)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA START DATE TRADING OFFER {ex}')
 
@@ -183,7 +189,7 @@ class OfferParse:
         try:
             table_period = self.get_period_table(table)
             end_date = table_period.iloc[-1][1]
-            return format_time_auction(end_date)
+            return format_time(end_date)
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA END DATE TRADING {ex}')
 
@@ -215,9 +221,9 @@ class OfferParse:
                         logger.error(f'{self.response.url} :: INVALID TYPE CURRENT PRICE')
                         current_price_ = None
                     period = {
-                        'start_date_requests': format_time_auction(start_date_request),
-                        'end_date_requests': format_time_auction(end_date_request),
-                        'end_date_trading': format_time_auction(end_date_trading),
+                        'start_date_requests': format_time(start_date_request),
+                        'end_date_requests': format_time(end_date_request),
+                        'end_date_trading': format_time(end_date_trading),
                         'current_price': current_price_
                     }
                     periods.append(period)

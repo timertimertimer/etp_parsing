@@ -1,16 +1,9 @@
-import logging
-import pathlib
 import re
+import logging
 from bs4 import BeautifulSoup
-from general_utils.config import lst_exeption, image_formats, archive_formats
-from general_utils.download import DownloadFiles
+
+from general_utils import UrlConfig, contains, dedent_func, format_time
 from general_utils.models import DownloadData
-from general_utils.work_with_path_and_dir import FilesDir
-from .utils.config import path_absolute, path_relative
-from .utils.working_with_time import format_time
-from .utils.working_with_url import UrlConfig
-from .utils.work_with_text_and_number import dedent_func, contains
-from .utils.check_inn_email_phone import CheckIfCorrectContactInfo
 
 logger = logging.getLogger(__name__)
 
@@ -18,55 +11,22 @@ logger = logging.getLogger(__name__)
 class Combo:
     addresses = dict()
 
-    def __init__(self, response, spider):
+    def __init__(self, response):
         self.response = response
-        self.check = CheckIfCorrectContactInfo()
-        self.url = UrlConfig()
         self.soup = BeautifulSoup(response.text, 'lxml')
 
     def download_general(self):
         return []
 
-    def download_lot(self, trading_id, lot_number, data_origin, domain):
-        files_dir = FilesDir(path_absolute=path_absolute[domain], path_relative=path_relative[domain])
-        load = DownloadFiles()
-        lot_list = list()
-        _path_relative = ''
-        lst_files = self.soup.find('div', id='lot_documents').find_all('a')
-        for link in lst_files:
+    def download_lot(self, data_origin):
+        files = list()
+        for link in self.soup.find('div', id='lot_documents').find_all('a'):
             name = link.get_text().strip()
             link = link.get('href')
-            if not any(ele in name for ele in lst_exeption):
-                files_dir.create_dir()
-                if len(name) > 75:
-                    file_name_server = name[:30] + '_' + name[-35::1]
-                else:
-                    file_name_server = name
-                name_on_server = files_dir.name_file_lot_on_server(
-                    trading_id=trading_id, lot_number=lot_number, original_name=file_name_server
-                )
-                _path_absolute = files_dir.return_absolute_path(name_on_server)
-                _path_relative = files_dir.return_relative_path(name_on_server)
-                request_data = DownloadData(url=self.url.url_join(data_origin, link), referer=self.response.url)
-                if pathlib.Path(name).suffix in image_formats:
-                    load.request_to_download_general(
-                        download_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
-                    )
-                    lot_list.append(
-                        {'original_name': name, 'link': _path_relative.as_posix(),
-                         'link_etp': self.url.url_join(data_origin, link)}
-                    )
-                # FILES INSIDE ARCHIVE
-                elif pathlib.Path(name).suffix in archive_formats:
-                    lst_files = load.request_to_download_general(
-                        download_data=request_data, absolute_path=_path_absolute, relative_path=_path_relative
-                    )
-                    lot_list.extend(lst_files)
-                else:
-                    lot_list.append(
-                        {'original_name': name, 'link': '', 'link_etp': self.url.url_join(data_origin, link)}
-                    )
-        return lot_list
+            files.append(
+                DownloadData(url=UrlConfig.url_join(data_origin, link), file_name=name, referer=self.response.url)
+            )
+        return files
 
     @property
     def trading_type(self):

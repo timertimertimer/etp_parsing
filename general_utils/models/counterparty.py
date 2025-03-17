@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, ForeignKey, DateTime, PrimaryKeyConstraint
+from sqlalchemy import Integer, String, ForeignKey, DateTime, PrimaryKeyConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from general_utils.models.base import Base
@@ -60,7 +60,7 @@ class CounterpartySRO(Base):
     counterparty_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"))
     sro_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
-    activity_type: Mapped[str] = mapped_column(String(255), nullable=True)
+    activity_type: Mapped[str] = mapped_column(Text, nullable=True)
     entered_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=True)
 
     counterparty = relationship("Counterparty", foreign_keys=[counterparty_id])

@@ -1,7 +1,10 @@
-from .libraries import *
 import logging
+import re
+from collections import deque
 
-from ..utils.config import trade_link
+from bs4 import BeautifulSoup
+
+from general_utils import dedent_func, CheckIfCorrectContactInfo
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +14,7 @@ class SerpParse:
 
     def __init__(self, response_):
         self.response = response_
-        self.soup = soup(self.response)
-        self.check = CheckIfCorrectContactInfo()
+        self.soup = BeautifulSoup(self.response)
 
     def get_current_page(self):
         """ return current page of pagination """
@@ -187,7 +189,7 @@ class SerpParse:
                     text = '^ИНН$'
                     org_inn = table.find('td', string=re.compile(text, re.IGNORECASE))
                 org_inn = org_inn.findNextSibling('td').get_text()
-                return self.check.check_inn(dedent_func(org_inn))
+                return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
         except Exception as e:
             print(e)
             logger.error(f'{self.response.url} :: ERROR INN')
@@ -199,7 +201,7 @@ class SerpParse:
             org_email = table.find('td', string=re.compile(text, re.IGNORECASE))
             if org_email:
                 org_email = org_email.findNextSibling('td').get_text()
-                return self.check.check_email(dedent_func(org_email))
+                return CheckIfCorrectContactInfo.check_email(dedent_func(org_email))
 
     def get_organizer_phone(self):
         """ return organizer phone """
@@ -208,7 +210,7 @@ class SerpParse:
             org_phone = table.find('td', string=re.compile(text, re.IGNORECASE))
             if org_phone:
                 org_phone = org_phone.findNextSibling('td').get_text()
-                return self.check.check_phone(dedent_func(org_phone))
+                return CheckIfCorrectContactInfo.check_phone(dedent_func(org_phone))
 
     def get_organizer_contacts(self):
         """ return organizer email and phone """
@@ -236,7 +238,7 @@ class SerpParse:
         if table := self.table_debtor_info():
             text = 'Номер дела о банкротстве'
             td_case_number = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
-            return self.check.check_case_number(dedent_func(td_case_number))
+            return CheckIfCorrectContactInfo.check_case_number(dedent_func(td_case_number))
 
     def table_debtor_info(self):
         """ return table with title "Information about debtor" """
@@ -251,7 +253,7 @@ class SerpParse:
         if table := self.table_debtor_info():
             text = 'ИНН'
             org_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
-            return self.check.check_inn(dedent_func(org_inn))
+            return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
 
     @property
     def address(self):
@@ -296,7 +298,7 @@ class SerpParse:
         if table := self.table_arbitrator_info():
             text = 'ИНН'
             arb_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
-            return self.check.check_inn(dedent_func(arb_inn))
+            return CheckIfCorrectContactInfo.check_inn(dedent_func(arb_inn))
 
     def get_arbitr_company(self):
         """ return arbitrator company """

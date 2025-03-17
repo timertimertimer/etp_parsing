@@ -1,6 +1,5 @@
-from datetime import datetime
-import scrapy
 import json
+from datetime import datetime
 
 from scrapy import FormRequest, Request
 
@@ -8,8 +7,7 @@ from general_utils.base_spider import BaseSpider
 from general_utils.config import write_log_to_file
 from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
-from ..utils.config import data_origin
-from ..utils.post_data import form_data
+from ..config import form_data, domain, main_data_origin
 
 
 class LotOnlineSpider(BaseSpider):
@@ -20,7 +18,7 @@ class LotOnlineSpider(BaseSpider):
     }
 
     def __init__(self, domain):
-        super(LotOnlineSpider, self).__init__()
+        super(LotOnlineSpider, self).__init__(main_data_origin)
         self.domain = domain
 
     def start_requests(self):

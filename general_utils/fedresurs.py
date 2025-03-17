@@ -288,7 +288,8 @@ class BankrotMessageFedresurs(Fedresurs):
         except Exception as e:
             pass
         legal_case_number = data['bankrupt'].get('legalCaseNumber')
-        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(legal_case_number.strip()) if legal_case_number else None
+        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(
+            legal_case_number.strip()) if legal_case_number else None
         self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
         self.data['published_at'] = return_parse_date(data['datePublish'])
         files = list()
@@ -341,9 +342,11 @@ class AuctionFedresurs(Fedresurs):
     def get_guid(self):
         if self.data.get('guid'):
             return self.data['guid']
-        for search_string in (
-                self.data['trading_id'], self.data['trading_number'], self.data['case_number']
-        ):
+        for search_string in {
+                self.data['trading_id'],
+                self.data['trading_number'],
+                self.data['case_number']
+        }:
             if not search_string:
                 continue
             data = self.search(search_string, params={'onlyAvailableToParticipate': True})

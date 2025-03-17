@@ -33,10 +33,18 @@ itender = [
     'alfalot', 'arbbitlot', 'arbitat', 'bepspb', 'centerr', 'etpu', 'etpugra', 'ets24', 'gloriaservice', 'meta_invest',
     'propertytrade', 'selt_online', 'tender_one', 'tendergarant', 'torgibankrot', 'utender', 'utpl', 'zakazrf'
 ]
+altimeta = ['atctrade', 'aukcioncenter', 'ausib', 'etp_profit', 'ptp_center', 'regtorg', 'seltim']
+electro_torgi = ['electro_torgi', 'uralbidin', 'vetp']
 
 projects = {
     'crawler_akosta': 'akosta',
-    'crawler_itender': itender
+    'crawler_bankrot_cdtrf': 'bankrot_cdtrf',
+    'crawler_altimeta': altimeta,
+    'crawler_electro_torig': electro_torgi,
+    'crawler_eurtp': 'eurtp',
+    'crawler_fabricant': 'crawler_fabricant',
+    'crawler_itender': itender,
+    'crawler_karoteka': 'kartoteka'
 }
 
 processes = []
@@ -52,8 +60,7 @@ for project, spider in projects.items():
         processes.append((p, project, spider))
 
 for p, project, spider in processes:
-    start_time = time.time()
     p.join()
-    duration = time.time() - start_time
+
 duration = time.time() - start_time
 logger.info(f"~~~~~ Finished main in {duration:.2f} seconds ~~~~~")

@@ -113,6 +113,7 @@ class RusonBaseSpider(BaseSpider):
                 loader.add_value('end_date_trading', None)
                 loader.add_value('start_price', combo.get_start_price_auc(lots_table[i]))
                 loader.add_value('step_price', combo.get_step_price(lots_table[i]))
+                loader.add_value('categories', None)
                 lot_files = combo.lot.download_lot_files(table=lots_table[i])
                 loader.add_value('files', {'general': files, 'lot': lot_files})
                 yield loader.load_item()

@@ -1,25 +1,24 @@
 import json
 from typing import Iterable
 from datetime import datetime
-from scrapy import Spider, Request, FormRequest
+from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
 from general_utils.config import format_parse_date, write_log_to_file
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..catalog_app import Combo
-from ..utils.config import catalog_formdata, hashes, start_date
+from ..config import catalog_formdata, hashes, start_date, main_data_origin
 
 
 class LotOnlineBaseSpider(BaseSpider):
     name = 'lot_online_base'
     start_urls = ['https://catalog.lot-online.ru/index.php']
-    data_origin = 'https://lot-online.ru/'
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def __init__(self, domain):
-        super(LotOnlineBaseSpider, self).__init__(self.data_origin)
+        super(LotOnlineBaseSpider, self).__init__(main_data_origin)
         self.domain = domain
 
     def start_requests(self) -> Iterable[Request]:
@@ -42,7 +41,7 @@ class LotOnlineBaseSpider(BaseSpider):
     def parse_lot(self, response, lot):
         combo = Combo(response)
         loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
-        loader.add_value('data_origin', self.data_origin)
+        loader.add_value('data_origin', main_data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)
         loader.add_value('trading_number', lot[1])
@@ -58,7 +57,7 @@ class LotOnlineBaseSpider(BaseSpider):
         loader.add_value('property_information', combo.property_information)
         loader.add_value(
             'files',
-            {'general': combo.download_general(self.domain), 'lot': combo.download_lot(self.domain)}
+            {'general': combo.download_general(), 'lot': combo.download_lot()}
         )
         loader.add_value('start_price', combo.start_price)
         if combo.trading_type == 'offer' and combo.periods:

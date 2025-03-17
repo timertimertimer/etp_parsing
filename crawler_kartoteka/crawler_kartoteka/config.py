@@ -7,8 +7,8 @@ path_absolute = f'{absolute_download_path}/etp_kartoteka'
 path_relative = f'{relative_download_path}/etp_kartoteka'
 
 form_data = {
-    'rows-per-page': '15',
-    'rows-per-page-current': '15',
+    'rows-per-page': '100',
+    'rows-per-page-current': '100',
     'type-of-bidding': '0',
     'in-lot': '0',
     'only-favorites': '0',

@@ -1,5 +1,9 @@
+import re
+
+from bs4 import BeautifulSoup
+
+from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
 from ..locators.locator_auction import LocatorAuction
-from .libraries import *
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +13,7 @@ class Auction:
 
     def __init__(self, response_):
         self.response = response_
-        self.soup = soup(self.response)
+        self.soup = BeautifulSoup(self.response)
         self.loc_auc = LocatorAuction
 
     def get_trading_type(self):
@@ -24,7 +28,7 @@ class Auction:
                            'закрытый конкурс с открытой формой представления цены',
                            'закрытый конкурс с закрытой формой представления цены')
             _type_text = self.response.xpath(self.loc_auc.trading_type).get()
-            _type_text1 = BS(str(_type_text), features='lxml').get_text().lower()
+            _type_text1 = BeautifulSoup(str(_type_text), features='lxml').get_text().lower()
             text = dedent_func(_type_text1)
             if text in offer:
                 return 'offer'
@@ -45,7 +49,7 @@ class Auction:
                   'закрытый конкурс с открытой формой представления цены',
                   'закрытый конкурс с закрытой формой представления цены')
         _type_text = self.response.xpath(self.loc_auc.trading_type).get()
-        _type_text1 = BS(str(_type_text), features='lxml').get_text().lower()
+        _type_text1 = BeautifulSoup(str(_type_text), features='lxml').get_text().lower()
         text = dedent_func(_type_text1)
         if text in _open:
             return 'open'
@@ -66,7 +70,7 @@ class Auction:
             org_block = self.response.xpath(self.loc_auc.trading_org).get()
             if not org_block:
                 org_block = self.response.xpath(self.loc_auc.trading_org2).get()
-            org_block = BS(str(org_block), features='lxml')
+            org_block = BeautifulSoup(str(org_block), features='lxml')
             return org_block
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA TRADING ORG {ex}')
@@ -134,7 +138,7 @@ class Auction:
         """ return block(bs4) that contains msg number """
         try:
             info_block = self.response.xpath(self.loc_auc.trade_info).get()
-            info_block = BS(str(info_block), features='lxml')
+            info_block = BeautifulSoup(str(info_block), features='lxml')
             return info_block
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA get_block_trade_info {ex}')
@@ -142,7 +146,7 @@ class Auction:
     def msg_number(self):
         """ retur mesage number """
         block = self.get_block_trade_info()
-        block = BS(str(block), features='lxml')
+        block = BeautifulSoup(str(block), features='lxml')
         msg = block.find('td', string=re.compile('о проведении торгов на fedresurs.ru', re.IGNORECASE)).findNext('td')
         if msg:
             msg = re.findall(r'\d{6,8}', msg.get_text())
@@ -153,7 +157,7 @@ class Auction:
         """ :return block with debtor info """
         try:
             debtor_block = self.response.xpath(self.loc_auc.debtor_info).get()
-            debtor_block = BS(str(debtor_block), features='lxml')
+            debtor_block = BeautifulSoup(str(debtor_block), features='lxml')
             return debtor_block
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA DEBTOR INFO {ex}')
@@ -208,7 +212,7 @@ class Auction:
         """ :return block with arbitr info """
         try:
             block_arbitr = self.response.xpath(self.loc_auc.arbitr_info).get()
-            arb = BS(str(block_arbitr), features='lxml')
+            arb = BeautifulSoup(str(block_arbitr), features='lxml')
             return arb
         except Exception as ex:
             logger.error(f'{self.response.url} :: {ex}')
@@ -270,7 +274,7 @@ class Auction:
         """ :return block with auction dates of trading """
         try:
             block = self.response.xpath(self.loc_auc.dates_trading).get()
-            date_ = BS(str(block), features='lxml')
+            date_ = BeautifulSoup(str(block), features='lxml')
             return date_
         except Exception as ex:
             logger.error(f'{self.response.url} :: {ex}')
@@ -284,7 +288,7 @@ class Auction:
                 start = block.find('td', string=re.compile('ата начала представления заявок на участи',
                                                            re.IGNORECASE)).findNext('td')
                 if start:
-                    start = format_time_auction(dedent_func(start.get_text().strip()))
+                    start = format_time(dedent_func(start.get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -298,7 +302,7 @@ class Auction:
             if block:
                 end = block.find('td', string=re.compile('ата окончания представления заявок на', re.IGNORECASE))
                 if end:
-                    end = format_time_auction(dedent_func(end.findNext('td').get_text().strip()))
+                    end = format_time(dedent_func(end.findNext('td').get_text().strip()))
                     return end
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -312,7 +316,7 @@ class Auction:
             if block:
                 start = block.find('td', string=re.compile('ата проведени', re.IGNORECASE))
                 if start:
-                    start = format_time_auction(dedent_func(start.findNext('td').get_text().strip()))
+                    start = format_time(dedent_func(start.findNext('td').get_text().strip()))
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
@@ -345,7 +349,7 @@ class Auction:
                 start = start.findNextSibling('td').get_text().replace('-', ' ')
                 start = re.sub(r'\s+', ' ', start)
                 try:
-                    return format_time_auction(start)
+                    return format_time(start)
                 except Exception as e:
                     print(e)
                     logger.error(f'{self.response.url} :: ERROR function {self.start_date_requests.__name__}')
@@ -359,7 +363,7 @@ class Auction:
                 end = end.findNextSibling('td').get_text().replace('-', ' ')
                 end = re.sub(r'\s+', ' ', end)
                 try:
-                    return format_time_auction(end)
+                    return format_time(end)
                 except Exception as e:
                     print(e)
                     logger.error(f'{self.response.url} :: ERROR function {self.end_date_requests.__name__}')
@@ -378,7 +382,7 @@ class Auction:
                             start_trading = start_t.findNextSibling('td').get_text().replace('-', ' ')
                             start_trading = re.sub(r'\s+', ' ', start_trading)
                             try:
-                                return format_time_auction(start_trading)
+                                return format_time(start_trading)
                             except Exception as e:
                                 print(e)
                                 logger.error(f'{self.response.url} :: ERROR function {self.start_date_requests.__name__}')
@@ -388,7 +392,7 @@ class Auction:
                     start_trading = start_trading.findNextSibling('td').get_text().replace('-', ' ')
                     start_trading = re.sub(r'\s+', ' ', start_trading)
                     try:
-                        return format_time_auction(start_trading)
+                        return format_time(start_trading)
                     except Exception as e:
                         print(e)
                         logger.error(f'{self.response.url} :: ERROR function {self.start_date_requests.__name__}')
