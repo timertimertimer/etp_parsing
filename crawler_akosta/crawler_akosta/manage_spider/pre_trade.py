@@ -58,7 +58,7 @@ class PreTradePage:
         """:return total page return tuple"""
         try:
             span = self.soup.find('span', class_='ui-paginator-current').get_text()
-            logger.info('THIS IS SPAN "PRE_TRADE"', span)
+            logger.info(f'THIS IS SPAN "PRE_TRADE" {span}')
             pattern = re.compile(r'\d+\/\d+')
             p = pattern.findall(span)
             current_page = ''.join(p).split('/')[0]

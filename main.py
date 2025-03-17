@@ -15,15 +15,18 @@ if not logger.hasHandlers():
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
+start_time = time.time()
+logger.info(f"~~~~~ Started main ~~~~~")
+
 
 def run_spider(project: str, spider: str) -> None:
     logger.info(f"Started {project}/{spider}")
-    start_time = time.time()
+    start_spider_time = time.time()
 
     os.system(f"cd {project} && scrapy crawl {spider}")
 
-    duration = time.time() - start_time
-    logger.info(f"Finished {project}/{spider} in {duration:.2f} seconds")
+    spider_duration = time.time() - start_spider_time
+    logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
 
 
 itender = [
@@ -48,8 +51,6 @@ for project, spider in projects.items():
         p.start()
         processes.append((p, project, spider))
 
-start_time = time.time()
-logger.info(f"~~~~~ Started main ~~~~~")
 for p, project, spider in processes:
     start_time = time.time()
     p.join()
