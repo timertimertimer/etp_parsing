@@ -212,15 +212,16 @@ class CompanyFedresurs(CounterpartyFedresurs):
 class ArbitrManagerFedresurs(PersonFedresurs):
     def get_guid(self) -> str | None:
         search_string = self.data.get("inn") or self.data.get("name")
-        data = self.search(
-            search_string, url=f'{BankrotFedresurs.BACKEND_URL}/arbitrmanagers',
-            headers={'referer': 'https://bankrot.fedresurs.ru/'}
-        )
-        if data:
-            if len(data) > 1:
-                return
-            self.data["guid"] = data[0]['guid']
-            return self.data["guid"]
+        if search_string:
+            data = self.search(
+                search_string, url=f'{BankrotFedresurs.BACKEND_URL}/arbitrmanagers',
+                headers={'referer': 'https://bankrot.fedresurs.ru/'}
+            )
+            if data:
+                if len(data) > 1:
+                    return
+                self.data["guid"] = data[0]['guid']
+                return self.data["guid"]
 
 
 class PersonOrganizerFedresurs(PersonFedresurs):

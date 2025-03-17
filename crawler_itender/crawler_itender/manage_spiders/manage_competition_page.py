@@ -90,4 +90,8 @@ class CompetitionPage:
         except Exception as e:
             logger.error(f'{self.response.url} :: START DATE TRADING ERROR (COMPETITION)::{e}')
 
-
+    def get_property_info(self):
+        property_info = self.response.xpath(self.loc_comp.property_info_loc).get()
+        if property_info:
+            property_info = dedent_func(BS(str(property_info), features='lxml').get_text())
+            return property_info.strip()

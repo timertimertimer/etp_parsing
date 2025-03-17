@@ -39,7 +39,7 @@ socks5_proxies = [i.replace('\\n', '').strip() for i in lines]
 lot_classifiers_name_to_code = dict()
 lot_classifiers_code_to_name = dict()
 with open(f'{lot_classifiers_path}', 'r', encoding='utf-8-sig') as f:
-    reader = csv.DictReader(f, delimiter=';')
+    reader: csv.DictReader = csv.DictReader(f, delimiter=';')
     for row in reader:
         lot_classifiers_code_to_name[row['Код']] = row['Наименование']
         lot_classifiers_name_to_code[row['Наименование']] = row['Код']
@@ -56,7 +56,8 @@ def format_parse_date(days_: int, time_format=None):
     return _start_date.strftime(time_format)
 
 
-start_date = format_parse_date(30)
+days = 30
+start_date = format_parse_date(days)
 
 headers = {
     'Accept': '*/*',
@@ -64,7 +65,7 @@ headers = {
     'Accept-Language': 'ru-RU,ru;q=0.9',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    'DNT': '1',
+    # 'DNT': '1',
     'Pragma': 'no-cache',
     'Sec-Fetch-Dest': 'document',
     'Sec-Fetch-Mode': 'navigate',
@@ -88,3 +89,6 @@ trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'even
 
 download_files_from_get_url = True
 write_log_to_file = False
+
+if __name__ == '__main__':
+    print(f'{format_parse_date(10, "%Y-%m-%d 0:0:-1")=}')
