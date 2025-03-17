@@ -166,12 +166,11 @@ class OfferPage:
             file_name = a.get_text()
             files.append(DownloadData(
                 url=link_etp, file_name=file_name, referer=self.response.url,
-                verify=False if crawler_name in ['etpu'] else True
+                verify=False if crawler_name in ['etpu', 'meta_invest'] else True
             ))
         return files
 
     def find_error_page(self):
-        """ if error text present on page """
         error_text = 'В приложении произошла ошибка'
         if error_text in self.response.text:
             logger.error(f'{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ')
