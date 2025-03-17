@@ -74,9 +74,7 @@ class DBHelper:
         # logger.info(f"Session wait_timeout set to {timeout} seconds.")
 
     @staticmethod
-    def get_latest_lot(
-            crawler_name: str, data_origin_url: str, keys=None, day: int = 30
-    ) -> Union[tuple[List, int], None]:
+    def get_latest_lot(data_origin_url: str, keys=None, day: int = 30) -> Union[tuple[List, int], None]:
         date_threshold = datetime.utcnow() - timedelta(days=day)
         if keys is None:
             keys = [Auction.url]
@@ -84,7 +82,9 @@ class DBHelper:
             keys = [keys]
 
         with DBHelper.transaction_scope(commit=False) as session:
-            trading_floor_id = DBHelper.get_trading_floor_id(session, crawler_name, data_origin_url)
+            trading_floor_id = session.scalars(
+                select(TradingFloor.id).where(TradingFloor.url == literal(data_origin_url))
+            ).first()
             if trading_floor_id is None:
                 return
 
@@ -96,14 +96,7 @@ class DBHelper:
 
     @staticmethod
     def get_trading_floor_id(session: SessionLocal, crawler_name: str, data_origin_url: str):
-        trading_floor_id = session.scalars(
-            select(ParserStatus.trading_floor_id).where(ParserStatus.name == literal(crawler_name))
-        ).first()
-
-        if trading_floor_id is None:
-            logger.info(
-                f"get_latest_lot :: trading_floor_id not found for crawler {crawler_name}. Creating new record."
-            )
+        with DBHelper.transaction_scope(session) as session:
             trading_floor_id = session.scalars(
                 select(TradingFloor.id).where(TradingFloor.url == literal(data_origin_url))
             ).first()
@@ -113,23 +106,24 @@ class DBHelper:
 
             new_parser_status = ParserStatus(name=crawler_name, trading_floor_id=trading_floor_id)
             session.add(new_parser_status)
-            session.commit()
         return trading_floor_id
 
     @staticmethod
-    def save_counter_and_duration(counter: int, duration: float, status_active: bool, spider_name: str, trading_floor_id: int):
-        with DBHelper.transaction_scope() as session:
-            session.add(ParserStatus(
-                name=spider_name,
-                trading_floor_id=trading_floor_id,
-                counter=counter,
-                duration=duration,
-                status=StatusType.active if status_active else StatusType.disabled
-            ))
-            logger.info(
-                f"save_counter_and_duration :: "
-                f"Updated counter and duration for '{spider_name}' to {counter}, {duration}."
-            )
+    def save_counter_and_duration(counter: int, duration: float, status_active: bool, spider_name: str,
+                                  trading_floor_id: int):
+        if status_active is not None:
+            with DBHelper.transaction_scope() as session:
+                session.add(ParserStatus(
+                    name=spider_name,
+                    trading_floor_id=trading_floor_id,
+                    counter=counter,
+                    duration=duration,
+                    status=StatusType.active if status_active else StatusType.disabled
+                ))
+                logger.info(
+                    f"save_counter_and_duration :: "
+                    f"Updated counter and duration for '{spider_name}' to {counter}, {duration}."
+                )
 
     @staticmethod
     def add_regions():

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class BaseSpider(scrapy.Spider):
     def __init__(self, data_origin, keys=None, *args, **kwargs):
         super(BaseSpider, self).__init__(*args, **kwargs)
-        self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(self.name, data_origin, keys)
+        self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(data_origin, keys)
         if self.previous_trades is None:
             raise CloseSpider(f"Stopping the spider, no previous lots or trading floor found for {self.name}.")
         logger.info(f"Previous trades: {len(self.previous_trades)}")
@@ -33,7 +33,7 @@ class BaseSpider(scrapy.Spider):
 
     def spider_closed(self):
         duration = time.time() - self.time_started
-        status_active = getattr(self, "status_active", False)
+        status_active = getattr(self, "status_active", None)
         self.logger.info(
             f"Spider {self.name} closed. "
             f"Scraped {self.counter} items in {duration:.2f} seconds with status active {status_active}."
