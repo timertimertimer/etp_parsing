@@ -17,7 +17,7 @@ hashes = {
     'bankruptcy': '172-186359',
     'private_property': '172-186357',
 }
-formdata = {
+catalog_formdata = {
     'dispatch': 'categories.view',
     'category_id': '9876',
     'features_hash': '',
@@ -30,4 +30,28 @@ formdata = {
     'page': '1',
     'is_ajax': '1'
 }
+
+form_data = {
+    'saleTypeId': '3001',
+    'applicationSubmitStart': start_time_from,
+    'applicationSubmitStop': '',
+    'biddingStart': '',
+    'biddingStop': '',
+    'tenderType': '',
+    'nonElectronic': '',
+    'country': '1001',
+    'region': '',
+    'category': '',
+    'keyWords': '',
+    'tenderLotFilter': 'TENDER',
+    'tenderStatusSet': '',
+    'lotStatusSet': '',
+    'profileId': '',
+    '_search': 'false',
+    'rows': '100',
+    'page': '1',
+    'sidx': '',
+    'sord': 'asc'
+}
+
 start_date = format_parse_date(1)

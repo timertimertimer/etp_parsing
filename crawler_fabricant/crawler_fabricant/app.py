@@ -317,7 +317,7 @@ class Combo:
                 .find_next('div').get_text(strip=True)
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return None
 
     def get_end_date_requests(self, lot):
@@ -328,7 +328,7 @@ class Combo:
                 .find_next('div').get_text(strip=True)
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return None
 
     def get_start_date_trading(self, lot):
@@ -339,7 +339,7 @@ class Combo:
                 .find_next('div').get_text(strip=True)
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return None
 
     def get_end_date_trading(self, lot):
@@ -350,7 +350,7 @@ class Combo:
                 .find_next('div').get_text(strip=True)
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return None
 
     def get_start_price(self, lot):
@@ -365,7 +365,7 @@ class Combo:
             if match:
                 return float(match.group())
         except (ValueError, TypeError) as e:
-            print(e)
+            logger.error(e)
             return None
 
     def get_step_price(self, lot):

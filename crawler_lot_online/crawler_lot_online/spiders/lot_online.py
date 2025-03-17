@@ -4,27 +4,26 @@ import json
 
 from scrapy import FormRequest, Request
 
+from general_utils.base_spider import BaseSpider
+from general_utils.config import write_log_to_file
 from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
 from ..utils.config import data_origin
-from ..utils.get_data_from_table import DbConnectCheckLots
 from ..utils.post_data import form_data
-from ..utils.work_with_text_and_number import dedent_func
-from ..utils.working_with_time import return_parse_date
 
 
-class LotOnlineSpider(scrapy.Spider):
+class LotOnlineSpider(BaseSpider):
     name = "lot_online"
     start_urls = ["https://{}.lot-online.ru/lot/categories-grid-json.html"]
     custom_settings = {
-        'LOG_FILE': f'{name}.log',
+        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def __init__(self, domain):
         super(LotOnlineSpider, self).__init__()
         self.domain = domain
-        self.db_check = DbConnectCheckLots(domain)
-        self.previous_lots = self.db_check.get_latest_lot()
+
+    def start_requests(self):
         form_data['saleTypeId'] = {
             'rad': '3001',
             'confiscate': '6001',
@@ -32,8 +31,6 @@ class LotOnlineSpider(scrapy.Spider):
             'privatization': '4001',
             'arrested': '8001'
         }[domain]
-
-    def start_requests(self):
         form_data['nd'] = str(int(datetime.now().timestamp() * 1000))
         yield FormRequest(
             self.start_urls[0].format(self.domain), self.parse_serp, formdata=form_data, method='POST',

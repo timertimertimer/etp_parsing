@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 from multiprocessing import Process
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,13 @@ if not logger.hasHandlers():
 
 
 def run_spider(project: str, spider: str) -> None:
+    logger.info(f"Started {project}/{spider}")
+    start_time = time.time()
+
     os.system(f"cd {project} && scrapy crawl {spider}")
+
+    duration = time.time() - start_time
+    logger.info(f"Finished {project}/{spider} in {duration:.2f} seconds")
 
 
 itender = [
@@ -33,15 +40,19 @@ processes = []
 for project, spider in projects.items():
     if isinstance(spider, list):
         for sp in spider:
-            logger.info(f'Starting {project}/{sp}')
             p = Process(target=run_spider, args=(project, sp))
             p.start()
-            processes.append(p)
+            processes.append((p, project, sp))
     else:
-        logger.info(f'Starting {project}/{spider}')
         p = Process(target=run_spider, args=(project, spider))
         p.start()
-        processes.append(p)
+        processes.append((p, project, spider))
 
-for p in processes:
+start_time = time.time()
+logger.info(f"~~~~~ Started main ~~~~~")
+for p, project, spider in processes:
+    start_time = time.time()
     p.join()
+    duration = time.time() - start_time
+duration = time.time() - start_time
+logger.info(f"~~~~~ Finished main in {duration:.2f} seconds ~~~~~")

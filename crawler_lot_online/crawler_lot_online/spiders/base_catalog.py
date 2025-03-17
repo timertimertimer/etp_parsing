@@ -7,7 +7,7 @@ from general_utils.base_spider import BaseSpider
 from general_utils.config import format_parse_date, write_log_to_file
 from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
 from ..catalog_app import Combo
-from ..utils.config import formdata, hashes, start_date
+from ..utils.config import catalog_formdata, hashes, start_date
 
 
 class LotOnlineBaseSpider(BaseSpider):
@@ -25,8 +25,8 @@ class LotOnlineBaseSpider(BaseSpider):
     def start_requests(self) -> Iterable[Request]:
         start_timestamp = int(datetime.strptime(start_date, '%d.%m.%Y').timestamp())
         end_timestamp = int(datetime.strptime(format_parse_date(-1), '%d.%m.%Y').timestamp()) - 1
-        formdata['features_hash'] = f'112-{start_timestamp}-{end_timestamp}_{hashes[self.domain]}'
-        yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='POST')
+        catalog_formdata['features_hash'] = f'112-{start_timestamp}-{end_timestamp}_{hashes[self.domain]}'
+        yield FormRequest(self.start_urls[0], self.parse_serp, formdata=catalog_formdata, method='POST')
 
     def parse_serp(self, response):
         html = json.loads(response.text)['html']['pagination_contents']
@@ -36,8 +36,8 @@ class LotOnlineBaseSpider(BaseSpider):
                 yield Request(lot[0], self.parse_lot, cb_kwargs={'lot': lot})
 
         if combo.next_page(html):
-            formdata['page'] = str(int(formdata['page']) + 1)
-            yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='POST')
+            catalog_formdata['page'] = str(int(catalog_formdata['page']) + 1)
+            yield FormRequest(self.start_urls[0], self.parse_serp, formdata=catalog_formdata, method='POST')
 
     def parse_lot(self, response, lot):
         combo = Combo(response)

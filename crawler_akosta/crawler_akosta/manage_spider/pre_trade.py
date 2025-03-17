@@ -58,7 +58,7 @@ class PreTradePage:
         """:return total page return tuple"""
         try:
             span = self.soup.find('span', class_='ui-paginator-current').get_text()
-            print('THIS IS SPAN "PRE_TRADE"', span)
+            logger.info('THIS IS SPAN "PRE_TRADE"', span)
             pattern = re.compile(r'\d+\/\d+')
             p = pattern.findall(span)
             current_page = ''.join(p).split('/')[0]
@@ -66,7 +66,8 @@ class PreTradePage:
             return int(current_page), int(total_page)
         except Exception as e:
             logger.error(
-                f'{self.response.url} ::{e}::\n page download with error -> error file name "pagination_error.txt" ')
+                f'{self.response.url} ::{e}::\n page download with error -> error file name "pagination_error.txt" '
+            )
             with open('pagination_error.html', 'w') as f:
                 f.write(self.response.text)
             return None
