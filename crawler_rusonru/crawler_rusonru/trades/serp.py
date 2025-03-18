@@ -14,7 +14,7 @@ class SerpParse:
 
     def __init__(self, response_):
         self.response = response_
-        self.soup = BeautifulSoup(self.response)
+        self.soup = BeautifulSoup(self.response.text, 'lxml')
 
     def get_current_page(self):
         """ return current page of pagination """
@@ -61,8 +61,9 @@ class SerpParse:
             if tr_list:
                 for tr in tr_list:
                     td = tr.find_all('td')[0].get_text()
-                    link = re.findall(r'/trade_view.php\?trade_nid=\d+', str(tr))[0]
-                    set_links.add((link.lstrip('/'), td))
+                    link = re.findall(r'/trade_view.php\?trade_nid=\d+', str(tr))
+                    if link:
+                        set_links.add((link[0].lstrip('/'), td))
                 return list(set_links)
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA DURING GETTING LINKS TO TRADE {e}')

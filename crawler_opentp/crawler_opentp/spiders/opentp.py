@@ -46,7 +46,7 @@ class OpentpSpider(BaseSpider):
         arbit_manager_org = combo.arbitr_manager_org
         start_date_requests = combo.start_date_requests
         end_date_requests = combo.end_date_requests
-        general_files = combo.download()
+        general_files = combo.download_general()
         for lot_link, lot_number, short_name, status, address, start_price in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value('data_origin', data_origin_url)
@@ -83,6 +83,6 @@ class OpentpSpider(BaseSpider):
         loader.add_value('lot_info', combo.lot_info)
         if loader.get_collected_values('trading_type')[0] == 'auction':
             loader.add_value('step_price', combo.step_price)
-        loader.add_value('files', {'general': general_files, 'lot': combo.download()})
+        loader.add_value('files', {'general': general_files, 'lot': combo.download_lot()})
         loader.add_value('categories', None)
         yield loader.load_item()

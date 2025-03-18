@@ -2,11 +2,12 @@ from scrapy import Request
 
 from general_utils import EtpItemLoader, EtpItem
 from general_utils.config import write_log_to_file
-from .base_catalog import LotOnlineBaseSpider
+from .base_catalog import LotOnlineCatalogBaseSpider
 from ..catalog_app import Combo
+from ..config import main_data_origin
 
 
-class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
+class LotOnlineBankruptcySpider(LotOnlineCatalogBaseSpider):
     name = "lot_online_bankruptcy"
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
@@ -15,7 +16,7 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
     def parse_lot(self, response, lot):
         combo = Combo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
-        loader.add_value('data_origin', self.data_origin)
+        loader.add_value('data_origin', main_data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)
         loader.add_value('trading_number', lot[1])
@@ -39,7 +40,7 @@ class LotOnlineBankruptcySpider(LotOnlineBaseSpider):
         loader.add_value('property_information', combo.property_information)
         loader.add_value(
             'files',
-            {'general': combo.download_general(self.domain), 'lot': combo.download_lot(self.domain)}
+            {'general': combo.download_general(), 'lot': combo.download_lot()}
         )
         loader.add_value('start_price', combo.start_price)
         if combo.trading_type == 'offer':

@@ -3,7 +3,7 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from crawler_opentp.crawler_opentp.config import data_origin_url
+from .config import data_origin_url
 from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time
 from general_utils.models import DownloadData
 
@@ -32,16 +32,24 @@ class Combo:
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH NEXT PAGE\n{e}', exc_info=True)
 
-    def download(self):
+    def download(self, docs):
         files = list()
-        if not (docs := self.get_trade_table().find('table', class_='docs-table')):
+        if not docs:
             return files
         for file in docs.find_all('tr')[1:]:
             link_ = file.find('a', target="_blank")
             link = link_.get('href')
             name = link_.get_text()
-            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
+            files.append(
+                DownloadData(url=UrlConfig.url_join(data_origin_url, link), file_name=name, referer=self.response.url)
+            )
         return files
+
+    def download_lot(self):
+        return self.download(self.get_lot_table().find('table', class_='docs-table'))
+
+    def download_general(self):
+        return self.download(self.get_trade_table().find('table', class_='docs-table'))
 
     def get_trade_table(self):
         return self.soup.find('table', id='tender-info-table')
@@ -201,8 +209,9 @@ class Combo:
 
     def get_sud_address(self):
         try:
-            address = self.get_debtor().find('b',
-                                             text=re.compile('Наименование арбитражного суда')).next_sibling.get_text()
+            address = (
+                self.get_debtor().find('b', text=re.compile('Наименование арбитражного суда')).next_sibling.get_text()
+            )
             return dedent_func(address)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH SUD ADDRESS\n{e}', exc_info=True)
@@ -218,8 +227,10 @@ class Combo:
     @property
     def arbitr_manager_org(self):
         try:
-            org = self.get_debtor().find('b', text=re.compile(
-                'Наименование организации арбитражных управляющих')).next_sibling.get_text()
+            org = (
+                self.get_debtor().find('b', text=re.compile('Наименование организации арбитражных управляющих'))
+                .next_sibling.get_text()
+            )
             return dedent_func(org)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH ARBITR MANAGER ORG\n{e}', exc_info=True)
@@ -227,8 +238,11 @@ class Combo:
     @property
     def start_date_requests(self):
         try:
-            date = self.get_trade_table().find('b', text=re.compile(
-                'Дата и время начала представления заявок на участие')).next_sibling.get_text()
+            date = (
+                self.get_trade_table()
+                .find('b', text=re.compile('Дата и время начала представления заявок на участие'))
+                .next_sibling.get_text()
+            )
             return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH START DATE REQUESTS\n{e}', exc_info=True)
@@ -236,8 +250,11 @@ class Combo:
     @property
     def end_date_requests(self):
         try:
-            date = self.get_trade_table().find('b', text=re.compile(
-                'Дата и время окончания представления заявок на участие')).next_sibling.get_text()
+            date = (
+                self.get_trade_table()
+                .find('b', text=re.compile('Дата и время окончания представления заявок на участие'))
+                .next_sibling.get_text()
+            )
             return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE REQUESTS\n{e}', exc_info=True)
@@ -286,8 +303,10 @@ class Combo:
     @property
     def end_date_trading(self):
         try:
-            date = self.get_trade_table().find('b', text=re.compile(
-                'Дата и время подведения итогов торгов')).next_sibling.get_text()
+            date = (
+                self.get_trade_table().find('b', text=re.compile('Дата и время подведения итогов торгов'))
+                .next_sibling.get_text()
+            )
             return format_time(date)
         except Exception as e:
             logger.error(f'{self.response.url} :: SOMETHING WENT WRONG WITH END DATE TRADING\n{e}', exc_info=True)

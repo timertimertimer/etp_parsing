@@ -3,11 +3,12 @@ from datetime import datetime
 
 from scrapy import FormRequest, Request
 
+from general_utils import dedent_func
 from general_utils.base_spider import BaseSpider
 from general_utils.config import write_log_to_file
 from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
-from ..config import form_data, domain, main_data_origin
+from ..config import form_data, main_data_origin, data_origin
 
 
 class LotOnlineSpider(BaseSpider):
@@ -28,7 +29,7 @@ class LotOnlineSpider(BaseSpider):
             'lease': '7001',
             'privatization': '4001',
             'arrested': '8001'
-        }[domain]
+        }[self.domain]
         form_data['nd'] = str(int(datetime.now().timestamp() * 1000))
         yield FormRequest(
             self.start_urls[0].format(self.domain), self.parse_serp, formdata=form_data, method='POST',
@@ -39,7 +40,7 @@ class LotOnlineSpider(BaseSpider):
         data = json.loads(response.text)
         for trade in data['rows']:
             trading_id = trade["id"]
-            if str(trading_id) not in self.previous_lots:
+            if str(trading_id) not in self.previous_trades:
                 yield FormRequest(
                     f'https://{self.domain}.lot-online.ru/tender/{trading_id}/lots.html', self.parse_trade, formdata={
                         '_search': 'false',
@@ -89,12 +90,12 @@ class LotOnlineSpider(BaseSpider):
             )
 
     def parse_lot(self, response, loader):
-        combo = Combo(response, self.domain)
+        combo = Combo(response)
         loader.add_value('trading_type', combo.trading_type)
         loader.add_value('trading_form', 'open')
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('status', combo.status)
-        loader.add_value('categories', combo.category)  # FIXME
+        loader.add_value('categories', combo.category)
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
         loader.add_value('periods', combo.periods)
@@ -104,8 +105,7 @@ class LotOnlineSpider(BaseSpider):
         loader.add_value('end_date_requests', combo.end_date_requests)
         loader.add_value('start_date_trading', combo.start_date_trading)
         loader.add_value('end_date_trading', combo.end_date_trading)
-        loader.add_value('files', {"general": combo.download_general(), "lot": combo.download_lot(
-            str(loader.get_collected_values('trading_id')[0]), str(loader.get_collected_values('lot_number')[0]),
-            data_origin[self.domain], self.domain
-        )})
+        loader.add_value('files', {
+            "general": combo.download_general(), "lot": combo.download_lot(data_origin[self.domain])
+        })
         yield loader.load_item()

@@ -10,15 +10,15 @@ from ..catalog_app import Combo
 from ..config import catalog_formdata, hashes, start_date, main_data_origin
 
 
-class LotOnlineBaseSpider(BaseSpider):
-    name = 'lot_online_base'
+class LotOnlineCatalogBaseSpider(BaseSpider):
+    name = 'lot_online_catalog'
     start_urls = ['https://catalog.lot-online.ru/index.php']
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
     def __init__(self, domain):
-        super(LotOnlineBaseSpider, self).__init__(main_data_origin)
+        super(LotOnlineCatalogBaseSpider, self).__init__(main_data_origin)
         self.domain = domain
 
     def start_requests(self) -> Iterable[Request]:

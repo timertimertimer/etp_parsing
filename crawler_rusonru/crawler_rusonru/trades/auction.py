@@ -13,7 +13,7 @@ class Auction:
 
     def __init__(self, response_):
         self.response = response_
-        self.soup = BeautifulSoup(self.response)
+        self.soup = BeautifulSoup(self.response.text, 'lxml')
         self.loc_auc = LocatorAuction
 
     def get_trading_type(self):

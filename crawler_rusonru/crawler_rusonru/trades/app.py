@@ -467,19 +467,18 @@ class Combo:
 
     def get_start_price_auc(self, table: str):
         try:
-            # bs4 object
             block = self.get_lot_block(table=table)
             if block:
                 price = block.find_all('td', string=re.compile('Начальная цена', re.IGNORECASE))
                 if len(price) == 1:
                     price = price[0]
                     price = dedent_func(price.findNext('td').get_text().strip())
-                    return self.clean_price(price)
+                    return make_float(price)
                 elif len(price) >= 2:
                     for p in price:
                         if len(p.get_text().strip()) < 15:
                             price = p.findNext('td').get_text()
-                            return self.clean_price(price)
+                            return make_float(price)
                 else:
                     logger.error(f'{self.response.url} :: INVALID DATA START PRICE')
         except Exception as ex:
@@ -511,12 +510,12 @@ class Combo:
                 if len(step) == 1:
                     step = step[0]
                     step = dedent_func(step.findNext('td').get_text().strip())
-                    return self.clean_price(step)
+                    return make_float(step)
                 elif len(step) >= 2:
                     for p in step:
                         if len(p.get_text().strip()) < 15:
                             price = p.findNext('td').get_text()
-                            return self.clean_price(step)
+                            return make_float(price)
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR step price {ex}')
 

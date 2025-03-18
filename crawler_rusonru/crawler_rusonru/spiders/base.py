@@ -16,11 +16,9 @@ class RusonBaseSpider(BaseSpider):
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
-    all_links = list()
-    unique_links = set()
 
     def __init__(self):
-        super(BaseSpider, self).__init__(data_origin[self.name])
+        super().__init__(data_origin[self.name])
 
     def start_requests(self):
         yield FormRequest(
@@ -31,7 +29,7 @@ class RusonBaseSpider(BaseSpider):
     def parse_serp(self, response, all_links: set = None):
         combo = Combo(response)
         current_page = combo.serp.get_current_page()
-        next_page = combo.serp.next_page()
+        next_page = combo.serp.get_next_page()
         links = combo.serp.links_to_trade()
         all_links = (all_links or set()).union(links)
         if next_page and current_page < next_page:

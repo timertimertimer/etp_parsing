@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 from general_utils.models import DownloadData
 from .config import host, data_origin
-from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
+from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo, make_float
 
 logger = logging.getLogger(__name__)
 
@@ -34,19 +34,26 @@ class Combo:
         for doc in docs.find_all('a'):
             link = UrlConfig.url_join(data_origin, doc.get('href'))
             name = doc.get_text(strip=True)
+            file_type = doc.get('class')[-1].split('--')[-1]
+            if not name.endswith(file_type):
+                name = f'{name}.{file_type}'
             files.append(DownloadData(url=link, file_name=name, referer=self.trading_link, host=host))
         return files
 
     def download_lot(self, lot: BeautifulSoup):
         files = list()
-        docs = lot.find("label", text='Дополнительная информация')
-        if not docs:
+        additional_informations = lot.find_all("label", text='Дополнительная информация')
+        if not additional_informations:
             return files
-        docs = docs.find_next("div", {'class': 'info__title'})
-        for file in docs.find_all('a'):
-            link = UrlConfig.url_join(data_origin, file.get('href'))
-            name = file.get_text(strip=True)
-            files.append(DownloadData(url=link, file_name=name, referer=self.trading_link, host=host))
+        for info in additional_informations:
+            info_block = info.find_parent("div", {'class': 'info'})
+            for doc in info_block.find_all('a'):
+                link = UrlConfig.url_join(data_origin, doc.get('href'))
+                name = doc.get_text(strip=True)
+                file_type = doc.get('class')[-1].split('--')[-1]
+                if not name.endswith(file_type):
+                    name = f'{name}.{file_type}'
+                files.append(DownloadData(url=link, file_name=name, referer=self.trading_link, host=host))
         return files
 
     @property
@@ -65,7 +72,7 @@ class Combo:
     def trading_type(self):
         d = {
             'offer': ['Публичное предложение'],
-            'auction': ['Открытый аукцион', 'Торги на повышение']
+            'auction': ['Открытый аукцион', 'Торги на повышение', 'Аукцион']
         }
         trading_type = self.get_table_value_by(
             'Основные сведения',
@@ -135,8 +142,7 @@ class Combo:
     @property
     def msg_number(self):
         msg_number = self.get_table_value_by(
-            'Основные сведения',
-            'Номер сообщения «Объявление о проведении торгов» опубликованного в ЕФРСБ'
+            'Основные сведения', 'Номер сообщения «Объявление о проведении торгов» в ЕФРСБ'
         )
         if str.isdigit(msg_number):
             msg_number = msg_number
@@ -292,8 +298,8 @@ class Combo:
             return format_time(date)
 
     def start_price(self, lot: BeautifulSoup):
-        if self.periods(lot):
-            return self.periods(lot)[0]['current_price']
+        if periods := self.periods(lot):
+            return periods[0]['current_price']
         start_price = self.get_value_by(lot, 'Начальная цена продажи имущества (предприятия) должника, руб.')
         if not start_price:
             return
@@ -319,6 +325,11 @@ class Combo:
         except ValueError as e:
             logger.error(f'{self.response.url} :: INVALID DATA STEP PRICE\n{e}')
 
+    def categories(self, lot: BeautifulSoup):
+        categories = lot.find('div', class_='info__name', text='Классификатор имущества должников:')
+        if categories:
+            return categories.find_next('div', class_='info__title').get_text(strip=True)
+
     def periods(self, lot: BeautifulSoup):
         periods = []
         for table in lot.find_all('table'):
@@ -330,7 +341,6 @@ class Combo:
                 "end_date_trading": format_time(
                     table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[0]
                 ),
-                "current_price": format_time(
-                    table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[1])
+                "current_price": make_float(table.select('td')[0].get_text(strip=True).split(' по ')[1].split(' - ')[1])
             })
         return periods

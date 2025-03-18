@@ -2,6 +2,7 @@ import logging
 from bs4 import BeautifulSoup as BS
 
 from general_utils import dedent_func
+from general_utils.config import allowable_formats
 from general_utils.models import DownloadData
 from ..locators.locators_doc import LocatorDoc
 
@@ -42,7 +43,7 @@ class DocumentGeneral:
         files = list()
         for d in self.get_name_links_doc_gen():
             name, link = d
-            files.append(DownloadData(url=link, file_name=name, refere=self.response.url))
+            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
         return files
 
 
@@ -62,7 +63,7 @@ class DocumentLot:
                 if len(files) > 0:
                     lst_links = list()
                     for f in files:
-                        lst_links.append((f.get_text(),f.get('href')))
+                        lst_links.append((f.get_text(), f.get('href')))
                     return lst_links
                 else:
                     return list()
@@ -74,6 +75,8 @@ class DocumentLot:
         files = list()
         for d in self.get_lot_files(table):
             name, link = d
-            files.append(DownloadData(url=link, file_name=name, refere=self.response.url))
+            file_type = link.split(".")[-1]
+            if f'.{file_type}' in allowable_formats:
+                name = f'{name}.{file_type}' if f'.{file_type}' not in name else name
+            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
         return files
-

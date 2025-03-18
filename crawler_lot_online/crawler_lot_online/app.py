@@ -2,7 +2,7 @@ import re
 import logging
 from bs4 import BeautifulSoup
 
-from general_utils import UrlConfig, contains, dedent_func, format_time
+from general_utils import UrlConfig, contains, dedent_func, format_time, parse_datetime, return_parse_date
 from general_utils.models import DownloadData
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class Combo:
                 if category == 'Рубрикатор':
                     continue
                 categories_.append(category)
-            return {'classification': categories_}
+            return categories_
 
     @property
     def address(self):
@@ -118,9 +118,10 @@ class Combo:
     def get_dates_from_interval(self, label):
         date_requests = self.soup.find('strong', text=contains('Прием заявок'))
         if date_requests:
-            date_requests = date_requests.find_next('span').text.strip()
+            date_requests = date_requests.find_next('span').text.strip().replace(' ', ' ')
             start, end = date_requests.split(' - ')
-            return format_time(start), format_time(end)
+            format = '%d/%m/%Y %H:%M (MCK)'
+            return return_parse_date(start, format), return_parse_date(end, format)
 
     @property
     def start_price(self):

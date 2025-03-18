@@ -5,7 +5,7 @@ from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from general_utils.base_spider import BaseSpider
 from general_utils.config import start_date
 from ..config import data_origin_url
-from ..trades.app import Combo
+from ..app import Combo
 
 
 class MoiTenderSpider(BaseSpider):
@@ -71,10 +71,10 @@ class MoiTenderSpider(BaseSpider):
         loader.add_value('trading_org_contacts', self.orgs_contacts[lot['org']]['contacts'])
         loader.add_value('status', lot['status'])
         loader.add_value('address', lot['address'])
-        loader.add_value('region', lot['region'])
         loader.add_value('short_name', lot['short_name'])
         loader.add_value('start_price', lot['start_price'])
         loader.add_value('lot_info', combo.lot_info)
+        loader.add_value('lot_number', combo.lot_number)
         loader.add_value('start_date_requests', combo.start_date_requests)
         loader.add_value('end_date_requests', combo.end_date_requests)
         loader.add_value('files', {'general': combo.download_trade(), 'lot': combo.download_lot()})

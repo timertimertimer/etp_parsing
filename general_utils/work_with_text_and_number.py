@@ -1,4 +1,5 @@
 import functools
+import logging
 import re
 import string
 
@@ -15,6 +16,7 @@ columns = ['Code', 'Name']
 classifiers_df = pd.DataFrame(lot_classifiers_code_to_name.items(), columns=columns)
 valid_codes = set(classifiers_df[columns[0]])
 name_to_code = dict(zip(classifiers_df[columns[1]], classifiers_df[columns[0]].astype(str)))
+logger = logging.getLogger(__name__)
 
 
 def normalize_string(string_):
@@ -133,16 +135,14 @@ def make_float(price):
     try:
         if price:
             price = ''.join(price).replace(',', '.')
-            price = ''.join(filter(lambda x: x.isdigit()
-                                             or x == '.', price))
-            price = ''.join(
-                map(str, (re.findall(r'^\d+?\.\d{1,2}', str(price)))))
+            price = ''.join(filter(lambda x: x.isdigit() or x == '.', price))
+            price = ''.join(map(str, (re.findall(r'^\d+?\.\d{1,2}', str(price)))))
             if price is None:
-                price = ''.join(
-                    map(str, (re.findall(r'^\d+?', str(price)))))
+                price = ''.join(map(str, (re.findall(r'^\d+?', str(price)))))
             price = round(float(price), 2)
             return price
     except Exception as e:
+        logger.error(f'Cant convert {price} to float: {e}')
         return e
 
 

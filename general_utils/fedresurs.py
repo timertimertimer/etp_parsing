@@ -398,15 +398,14 @@ def parse_counterparties():
 
 def parse_trading_floors():
     from general_utils.db import DBHelper
-    trading_floors = DBHelper.get_all(TradingFloor)
-    for trading_floor in trading_floors:
-        fed_client = TradingFloorFedresurs(name=trading_floor.file_name)
-        trading_floor_counterparty_data = fed_client.parse()
-        if trading_floor_counterparty_data:
-            trading_floor_counterparty_data, _ = trading_floor_counterparty_data
-            counterparty = DBHelper.store_counterparty_from_dict(trading_floor_counterparty_data, Counterparty)
-            trading_floor.counterparty_id = counterparty.id
-            DBHelper.store_model(trading_floor)
+    with DBHelper.transaction_scope() as session:
+        trading_floors = session.query(TradingFloor).filter_by(id=54).all()
+        for trading_floor in trading_floors:
+            fed_client = TradingFloorFedresurs(name=trading_floor.name)
+            trading_floor_counterparty_data = fed_client.parse()
+            if trading_floor_counterparty_data:
+                counterparty = DBHelper.store_counterparty_from_dict(trading_floor_counterparty_data, session)
+                trading_floor.counterparty_id = counterparty.id
 
 
 def parse_legal_cases():
@@ -437,9 +436,9 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    # test()
     # parse_legal_cases()
     # parse_counterparties()
     # parse_auctions()
-    # parse_trading_floors()
+    parse_trading_floors()
     # parse_counterparty('1656057203')

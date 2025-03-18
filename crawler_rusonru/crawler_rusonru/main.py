@@ -18,4 +18,4 @@ def promkonsalt():
 
 
 if __name__ == '__main__':
-    eltorg()
+    nistp()

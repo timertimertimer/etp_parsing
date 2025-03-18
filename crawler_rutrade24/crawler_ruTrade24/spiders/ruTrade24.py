@@ -42,12 +42,8 @@ class Rutrade24Spider(BaseSpider):
             for trade_container in trade_containers:
                 trade_link = 'https://ru-trade24.ru' + trade_container.css('a::attr(href)').get()
                 status = trade_container.css('.trade-card__status::text').get()
-                if (trade_link,) not in self.previous_trades:
-                    yield scrapy.Request(
-                        url=trade_link,
-                        callback=self.parse_trade,
-                        cb_kwargs=dict(status=status)
-                    )
+                if trade_link not in self.previous_trades:
+                    yield scrapy.Request(url=trade_link, callback=self.parse_trade, cb_kwargs=dict(status=status))
 
         if nextPage_url is not None and current_page <= page_limits['page_stop']:
             formdata['page'] = str(current_page + 1)
@@ -101,6 +97,7 @@ class Rutrade24Spider(BaseSpider):
                 'periods': combo.periods(lot),
                 'start_price': combo.start_price(lot),
                 'step_price': combo.step_price(lot),
+                'categories': combo.categories(lot),
                 'files': {
                     'general': general_files,
                     'lot': combo.download_lot(lot)

@@ -36,10 +36,8 @@ def format_time_period(strtime):
             date = str(strtime).strip(
                 '\n, -').replace('- ', '').replace('&nbsp;', '')
             return datetime.strptime(date, '%d.%m.%Y %H:%M:%S')
-        else:
-            return None
     except:
-        return None
+        return
 
 
 def parse_datetime(string: str, format: str) -> datetime:
@@ -68,7 +66,7 @@ def parse_datetime(string: str, format: str) -> datetime:
 def return_parse_date(string: str = None, format: str = None, adjust_to_moscow_time_zone: bool = False) -> datetime:
     if string:
         utc_time = parse_datetime(string, format)
-        return utc_time.astimezone(moscow_tz if adjust_to_moscow_time_zone else pytz.utc)
+        return utc_time.astimezone(moscow_tz if not adjust_to_moscow_time_zone else pytz.utc)
     return datetime.now(moscow_tz if adjust_to_moscow_time_zone else pytz.utc)
 
 
@@ -101,3 +99,4 @@ def increase_time_days(time_from, days):
 
 if __name__ == '__main__':
     print(f"{return_parse_date('2025-01-16T12:58:27.577')=}")
+    print(f"{return_parse_date('23/04/2025 23:59 (MCK)', '%d/%m/%Y %H:%M (MCK)')=}")

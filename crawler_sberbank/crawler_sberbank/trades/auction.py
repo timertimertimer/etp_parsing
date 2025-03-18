@@ -1,7 +1,7 @@
 import logging
 import re
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, get_region, format_time_auction
+from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
 from ..utils.manage_spider import deep_get_dict, sort_trading_type, get_trading_form
 from bs4 import BeautifulSoup as BS
 
@@ -195,28 +195,28 @@ class AuctionParse:
     @property
     def get_start_date_requests(self):
         try:
-            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStartDate'))
+            return format_time(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStartDate'))
         except:
             logger.error(f'{self.url} :: INVALID DATA START DATE REQUEST AUCTION')
 
     @property
     def get_end_date_requests(self):
         try:
-            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStopDate'))
+            return format_time(deep_get_dict(self.data, 'Purchase.Step6.RequestInfo.RequestStopDate'))
         except:
             logger.error(f'{self.url} :: INVALID DATA END DATE REQUEST AUCTION')
 
     @property
     def get_start_date_trading(self):
         try:
-            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.Terms.PurchaseAuctionStartDate'))
+            return format_time(deep_get_dict(self.data, 'Purchase.Step6.Terms.PurchaseAuctionStartDate'))
         except:
             logger.error(f'{self.url} :: INVALID START DATE TRADING AUCTION')
 
     @property
     def get_end_date_trading(self):
         try:
-            return format_time_auction(deep_get_dict(self.data, 'Purchase.Step6.ResultInfo.AuctionResultDate'))
+            return format_time(deep_get_dict(self.data, 'Purchase.Step6.ResultInfo.AuctionResultDate'))
         except:
             logger.error(f'{self.url} :: INVALID END DATE TRADING AUCTION')
 

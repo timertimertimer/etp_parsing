@@ -2,7 +2,7 @@ from pathlib import Path
 
 from general_utils.config import format_parse_date, absolute_download_path, relative_download_path
 
-data_origin_url = 'https://utp.sberbank-ast.ru'
+data_origin_url = 'https://utp.sberbank-ast.ru/'
 main_url_start = 'https://utp.sberbank-ast.ru/Bankruptcy/List/BidList'
 part_path_to_trade = r'PurchaseView'
 part_path_to_lot = r'BidView'

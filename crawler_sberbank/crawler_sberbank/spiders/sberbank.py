@@ -20,7 +20,7 @@ class SberbankSpider(BaseSpider):
     start_urls = ['https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList']
 
     def __init__(self):
-        super(SberbankSpider).__init__(data_origin_url)
+        super().__init__(data_origin_url)
 
     def start_requests(self):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
@@ -101,7 +101,7 @@ class SberbankSpider(BaseSpider):
             url = _link
             if url not in self.previous_trades:
                 files_general = combo.offer.download(
-                    combo.auc.trading_id, data['Purchase']['PurchaseinfoPanel']['ContractInfo']['contractdoc']['file']
+                    data['Purchase']['PurchaseinfoPanel']['ContractInfo']['contractdoc']['file']
                 )
                 path = url.removeprefix('https://utp.sberbank-ast.ru')
                 yield FormRequest(
@@ -140,6 +140,6 @@ class SberbankSpider(BaseSpider):
         photos = data['BidView']['Bids']['BidDebtorInfo'].get('BidPicture', [])
         if photos:
             photos = [photos['file']] if isinstance(photos['file'], dict) else photos['file']
-        files_lot = combo.offer.download(combo.auc.get_lot_id, docs + photos)
+        files_lot = combo.offer.download(docs + photos)
         loader.add_value('files', {'general': files, 'lot': files_lot})
         yield loader.load_item()
