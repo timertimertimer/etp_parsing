@@ -1,8 +1,10 @@
-import logging
-import requests
-
 import sys
 import os
+import logging
+import time
+
+import requests
+from pymysql.err import OperationalError, ProgrammingError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -440,16 +442,34 @@ def test():
 
 
 def fix_debtor_messages():
-    from general_utils.db import DBHelper
-    with DBHelper.transaction_scope() as session:
-        debtor_messages = session.query(DebtorMessage).all()
-        for message in debtor_messages:
-            fed_client = BankrotMessageFedresurs(message.fedresurs_url.split('/')[-1])
-            fed_client.parse()
-            if fed_client.data['published_at'] != message.published_at.strftime('%Y-%m-%d %H:%M:%S'):
-                message.published_at = fed_client.data['published_at']
-                session.commit()
-            print(message.id)
+    from general_utils.db import get_db
+    session = get_db()
+    debtor_messages = session.query(DebtorMessage).all()
+    for message in debtor_messages:
+        fed_client = BankrotMessageFedresurs(message.fedresurs_url.split('/')[-1])
+        fed_client.parse()
+        if fed_client.data['published_at'] != message.published_at.strftime('%Y-%m-%d %H:%M:%S'):
+            message.published_at = fed_client.data['published_at']
+            for i in range(5):
+                try:
+                    session.commit()
+                    print(message.id)
+                    break
+                except (ProgrammingError, OperationalError) as e:
+                    error_msg = str(e)
+                    if any([
+                        "MySQL Connection not available" in error_msg or
+                        "Lost connection to MySQL server" in error_msg
+                    ]):
+                        print(f"MySQL connection lost. Retrying... (Attempt {i + 1}/5)")
+                        session.close()
+                        session = get_db()
+                        time.sleep(1)
+                        continue
+                    else:
+                        print(f"Database error: {e}")
+                        session.rollback()
+                        break
 
 
 if __name__ == '__main__':

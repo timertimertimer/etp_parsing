@@ -1,7 +1,6 @@
 import logging
 import time
 
-import sqlalchemy.exc
 from pymysql.err import OperationalError, ProgrammingError
 from sqlalchemy.exc import SQLAlchemyError
 

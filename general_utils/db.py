@@ -121,6 +121,8 @@ class DBHelper:
                     duration=duration,
                     status=StatusType.active if status_active else StatusType.disabled
                 ))
+                trading_floor = session.query(TradingFloor).filter_by(id=trading_floor_id).first()
+                trading_floor.status = StatusType.active if status_active else StatusType.disabled
                 logger.info(
                     f"save_counter_and_duration :: "
                     f"Updated counter and duration for '{spider_name}' to {counter}, {duration}."

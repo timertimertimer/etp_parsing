@@ -2,41 +2,28 @@ import logging
 from itertools import chain
 
 from scrapy import Request, FormRequest
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from general_utils import EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
+from .base import RusonBaseSpider
 from general_utils.config import write_log_to_file
-from ..config import data_origin, trade_link, stop_page, formdata
+from ..config import trade_link, data_origin, stop_page, formdata
 from ..trades.app import Combo
 
 logger = logging.getLogger(__name__)
 
 
-class RusonSpider(BaseSpider):  # FIXME
+class RusonSpider(RusonBaseSpider):
     name = 'ruson'
-    allowed_domains = ['rus-on.ru']
-    start_url = data_origin
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
     }
 
-    def __init__(self):
-        super(RusonSpider, self).__init__(data_origin[self.name])
-
-    def start_requests(self):
-        yield Request(self.start_url, self.parse_main)
-
     def parse_main(self, response):
-        """ parse main page and make request to serp with  """
-        yield Request(trade_link, callback=self.parse_serp, errback=self.errback_httpbin)
+        yield Request(trade_link[self.name], callback=self.parse_serp, errback=self.errback_httpbin)
 
-    def parse_serp(self, response):
-        """ parse pagination pages with short lot data (serp) """
+    def parse_serp(self, response, **kwargs):
         combo = Combo(response=response)
         for lot_data in combo.serp.get_lots_data():
-            # [0] - trading page; [1] - lot_link; [2] - organizer; [3] - trading type and form; [4] - status
             type_and_form = combo.serp.get_trading_type_and_form(lot_data[3])
             trading_number = combo.serp.get_trading_number(lot_data[3])
             trading_type = type_and_form[0]
@@ -46,11 +33,13 @@ class RusonSpider(BaseSpider):  # FIXME
             if data_check_with_db not in self.previous_trades:
                 if status == 'active' or status == 'pending':
                     if trading_type == 'auction':
-                        yield Request(url=lot_data[0], callback=self.parse_auction,
-                                      cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
-                                                 'status': status, 'trading_form': trading_form,
-                                                 'trading_number': trading_number, 'lot_link': lot_data[1]},
-                                      errback=self.errback_httpbin, dont_filter=True)
+                        yield Request(
+                            url=lot_data[0], callback=self.parse_auction,
+                            cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
+                                       'status': status, 'trading_form': trading_form,
+                                       'trading_number': trading_number, 'lot_link': lot_data[1]},
+                            errback=self.errback_httpbin, dont_filter=True
+                        )
                     elif trading_type == 'offer':
                         yield Request(url=lot_data[0], callback=self.parse_offer,
                                       cb_kwargs={'trading_type': trading_type, 'organizer': lot_data[2],
@@ -70,15 +59,14 @@ class RusonSpider(BaseSpider):  # FIXME
         next_page = current_page + 1
         if 0 < next_page < stop_page:
             formdata['pagenum'] = str(next_page)
-            yield FormRequest(trade_link, callback=self.parse_serp,
+            yield FormRequest(trade_link[self.name], callback=self.parse_serp,
                               formdata=formdata, method='GET',
                               errback=self.errback_httpbin)
 
     def parse_auction(self, response, trading_type, organizer, status, trading_form, trading_number, lot_link):
-        """ page auction and competition page """
         combo = Combo(response=response)
         transfer = EtpItem()
-        transfer['data_origin'] = data_origin
+        transfer['data_origin'] = data_origin[self.name]
         transfer['trading_id'] = combo.serp.get_trading_id()
         transfer['trading_link'] = response.url,
         transfer['trading_number'] = trading_number
@@ -98,7 +86,7 @@ class RusonSpider(BaseSpider):  # FIXME
         transfer['start_date_requests'] = combo.start_date_requests_auc
         transfer['end_date_requests'] = combo.end_date_requests_auc
         transfer['start_date_trading'] = combo.start_date_trading_auc
-        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.gen.download_general()
         yield Request(url=lot_link, callback=self.parse_auction_lot,
                       cb_kwargs={'general_files': general_files, 'transfer': transfer},
                       errback=self.errback_httpbin)
@@ -137,7 +125,7 @@ class RusonSpider(BaseSpider):  # FIXME
         loader.add_value('end_date_trading', None)
         loader.add_value('start_price', combo.offer.start_price())
         loader.add_value('step_price', combo.offer.get_step_price())
-        lot_files = combo.lot.download_files_lot(_id=''.join(transfer['trading_id']),
+        lot_files = combo.lot.download_lot_files(_id=''.join(transfer['trading_id']),
                                                  lot_number=''.join(loader.get_collected_values('lot_number')))
         total_files = dict(chain(general_files.items(),
                                  lot_files.items()))
@@ -160,11 +148,11 @@ class RusonSpider(BaseSpider):  # FIXME
         transfer['msg_number'] = combo.serp.get_msg_number()
         transfer['case_number'] = combo.serp.get_case_number()
         transfer['debtor_inn'] = combo.serp.get_debtor_inn()
-        transfer['address'], transfer['region'] = combo.serp.a() or (None, None)
+        transfer['address'] = combo.serp.address
         transfer['arbit_manager'] = combo.serp.get_arbitrator_name()
         transfer['arbit_manager_inn'] = combo.serp.get_arbitr_inn()
         transfer['arbit_manager_org'] = combo.serp.get_arbitr_company()
-        general_files = combo.gen.download_files_general(_id=''.join(transfer['trading_id']))
+        general_files = combo.gen.download_general()
         yield Request(url=lot_link, callback=self.parse_offer_lot,
                       cb_kwargs={'general_files': general_files, 'transfer': transfer},
                       errback=self.errback_httpbin)
@@ -197,8 +185,6 @@ class RusonSpider(BaseSpider):  # FIXME
         loader.add_value('short_name', combo.offer.get_short_name())
         loader.add_value('lot_info', combo.offer.get_lot_info())
         loader.add_value('property_information', combo.offer.property_info())
-
-        # START: if period table doesn't exist, take value of dates from trading info section
         loader.add_value('start_date_requests', combo.offer.start_date_requests())
         loader.add_value('end_date_requests', combo.offer.end_date_requests())
         loader.add_value('start_date_trading', combo.offer.start_date_trading())
@@ -208,8 +194,6 @@ class RusonSpider(BaseSpider):  # FIXME
             loader.add_value('end_date_requests', combo.auc.end_date_requests())
             loader.add_value('start_date_trading', combo.auc.start_date_requests())
             loader.add_value('end_date_trading', combo.auc.end_date_requests())
-        # END
-
         loader.add_value('start_price', combo.offer.start_price())
         loader.add_value('periods', combo.offer.get_periods())
         lot_files = combo.lot.download_files_lot(_id=''.join(transfer['trading_id']),
@@ -218,20 +202,3 @@ class RusonSpider(BaseSpider):  # FIXME
                                  lot_files.items()))
         loader.add_value('files', total_files)
         yield loader.load_item()
-
-    def errback_httpbin(self, failure):
-        # logs failures
-
-        self.logger.error(repr(failure))
-
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url, )
-
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

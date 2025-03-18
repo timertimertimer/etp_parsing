@@ -24,5 +24,3 @@ class ParserStatus(Base):
     counter: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     duration: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    trading_floor = relationship('TradingFloor', back_populates="status")

@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class SerpParse:
-    addresses = dict()
 
     def __init__(self, response_):
         self.response = response_
@@ -289,9 +288,10 @@ class SerpParse:
     def get_arbitrator_name(self):
         """ return arbitrator full name """
         if table := self.table_arbitrator_info():
-            text = 'Фамилия'
-            arb_name = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
-            return dedent_func(arb_name)
+            arb_last_name = table.find('td', string=re.compile('Фамилия', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
+            arb_first_name = table.find('td', string=re.compile('Имя', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
+            arb_dad_name = table.find('td', string=re.compile('Отчество', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
+            return ' '.join([arb_last_name, arb_first_name, arb_dad_name])
 
     def get_arbitr_inn(self):
         """ return arbitr INN """
