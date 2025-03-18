@@ -3,18 +3,20 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: my-mysql
-    restart: always
+    container_name: etp_parsing_mysql
+    restart: unless-stopped
     env_file: 
       - .env
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - etp_parsing_network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: my-phpmyadmin
+    container_name: etp_parsing_phpmyadmin
     restart: always
     ports:
       - "${PHPMYADMIN_PORT:-8081}:80"
@@ -24,6 +26,22 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
       - mysql
+    networks:
+      - etp_parsing_network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8082:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./files:/usr/share/nginx/html/files
+    restart: unless-stopped
+    networks:
+      - etp_parsing_network
 volumes:
   mysql_data:
 
+networks:
+  etp_parsing_network:
+    driver: bridge
