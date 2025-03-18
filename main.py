@@ -35,16 +35,33 @@ itender = [
 ]
 altimeta = ['atctrade', 'aukcioncenter', 'ausib', 'etp_profit', 'ptp_center', 'regtorg', 'seltim']
 electro_torgi = ['electro_torgi', 'uralbidin', 'vetp']
+lot_online = ['']
+ruson = ['eltorg', 'nistp', 'promkonsalt', 'ruson', 'sistematorg']
+tenderstandartru = ['au_pro', 'tenderstandar', 'torggroup', 'viomitra']
 
 projects = {
     'crawler_akosta': 'akosta',
-    'crawler_bankrot_cdtrf': 'bankrot_cdtrf',
     'crawler_altimeta': altimeta,
+    'crawler_bankrot_cdtrf': 'bankrot_cdtrf',
     'crawler_electro_torig': electro_torgi,
     'crawler_eurtp': 'eurtp',
     'crawler_fabricant': 'crawler_fabricant',
     'crawler_itender': itender,
-    'crawler_karoteka': 'kartoteka'
+    'crawler_karoteka': 'kartoteka',
+    # 'crawler_lot_online': ...,
+    'crawler_mets': 'mets',
+    'crawler_moi_tender': ...,
+    'crawler_opentp': 'opentp',
+    # 'crawler_roseltorg': ...,
+    'crawler_rusonru': ruson,
+    'crawler_rutrade24': 'rutrade24',
+    'crawler_sberbank': 'sberbank',
+    'crawler_sibtoptrade': 'sibtoptrade',
+    'crawler_tenderstandartru': tenderstandartru,
+    'crawler_torgidv': 'torgidv',
+    # 'crawler_torgigov': 'torgigov',
+    'crawler_vertrades': 'vertrades',
+    # 'crawler_zalog_lot_online': 'zalog_lot_online',
 }
 
 processes = []
@@ -59,6 +76,7 @@ for project, spider in projects.items():
         p.start()
         processes.append((p, project, spider))
 
+logger.info(f'Total processes: {len(processes)}')
 for p, project, spider in processes:
     p.join()
 

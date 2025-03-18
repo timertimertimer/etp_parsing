@@ -126,7 +126,6 @@ class SerpParse:
         if len(tradin_number) == 1:
             return dedent_func(''.join(tradin_number))
         logger.error(f'{self.response.url} :: ERROR function {self.get_trading_number.__name__}')
-        return None
 
     def get_status_of_trade(self, status_text, trading_page):
         """ return status of current lot """

@@ -109,11 +109,8 @@ class Auction:
             if email:
                 email = dedent_func(email.get_text().strip())
                 return CheckIfCorrectContactInfo.check_email(email)
-            else:
-                return ''
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA EMAIL ORG {ex}')
-            return ''
 
     def get_phone(self):
         """ :return phone org """
@@ -123,11 +120,8 @@ class Auction:
             if phone:
                 phone = dedent_func(phone.get_text().strip())
                 return CheckIfCorrectContactInfo.check_phone(phone)
-            else:
-                return ''
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA PHONE ORG {ex}')
-            return ''
 
     def get_org_contacts(self):
         email = self.get_email()
@@ -240,7 +234,6 @@ class Auction:
                 return ' '.join([last_name, first_name, middle_name])
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA ARBITR NAME {e}')
-            return None
 
     def get_arbitr_inn(self):
         """ return arbitr INN """
@@ -292,7 +285,6 @@ class Auction:
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     def end_date_request_auc(self):
         """ :return end date request auction """
@@ -306,7 +298,6 @@ class Auction:
                     return end
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     def start_date_trading_auc(self):
         """ :return start date trading auction """
@@ -320,7 +311,6 @@ class Auction:
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     # LOTS (FOR ALL TYPES OF TRADE)
     def count_lots(self) -> list:
@@ -338,7 +328,8 @@ class Auction:
             return table
         else:
             logger.error(
-                f'{self.response.url} :: ERROR function class Auction {self.table_trading_page_trade_info.__name__}')
+                f'{self.response.url} :: ERROR function class Auction {self.table_trading_page_trade_info.__name__}'
+            )
 
     def start_date_requests(self):
         """ return start date requests auction """

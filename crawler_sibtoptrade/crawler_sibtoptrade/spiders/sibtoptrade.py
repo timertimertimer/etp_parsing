@@ -26,7 +26,7 @@ class SibtoptradeSpider(BaseSpider):
                   for n in range(total_iterations)]
 
     def __init__(self):
-        super(SibtoptradeSpider, self).__init__()
+        super(SibtoptradeSpider, self).__init__(data_origin)
 
     def start_requests(self):
         yield SplashRequest(start_urls1, self.iterrate_througth_pages,
@@ -41,12 +41,11 @@ class SibtoptradeSpider(BaseSpider):
         for url in self.start_url_:
             current_page = ''.join(re.findall(r'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=(\d+).*', url))
             if int(last_page) >= int(current_page):
-                yield SplashRequest(url, self.parse,
-                                    endpoint='execute',
-                                    cache_args=['lua_source'],
-                                    args={'lua_source': script_lua},
-                                    slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
-                                    session_id=1, errback=self.errback_httpbin, dont_filter=True)
+                yield SplashRequest(
+                    url, self.parse, endpoint='execute', cache_args=['lua_source'], args={'lua_source': script_lua},
+                    slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN, session_id=1, errback=self.errback_httpbin,
+                    dont_filter=True
+                )
 
     def parse(self, response):
         soup = BS(str(response.body.decode('utf-8')), 'lxml')
@@ -58,10 +57,11 @@ class SibtoptradeSpider(BaseSpider):
             trading_number = ''.join(link.get_text()).strip()
             status = trade.find('td', class_='center').find_next_sibling().get_text().strip().lower()
             link = link.get("href")
-            if (link,) not in self.previous_trades:
-                yield Request(url=link, callback=self.parse_lots,
-                              errback=self.errback_httpbin,
-                              meta={'trading_number': trading_number, 'status': status})
+            if link not in self.previous_trades:
+                yield Request(
+                    url=link, callback=self.parse_lots, errback=self.errback_httpbin,
+                    meta={'trading_number': trading_number, 'status': status}
+                )
 
     def parse_lots(self, response):
         loader = EtpItemLoader(EtpItem(), response=response)
@@ -96,21 +96,6 @@ class SibtoptradeSpider(BaseSpider):
         loader.add_value('periods', combo.periods)
         loader.add_value('start_price', combo.start_price)
         loader.add_value('step_price', combo.step_price)
+        loader.add_value('categories', None)
         loader.add_value('files', {'general': combo.download_general(), 'lot': combo.download_lot()})
         return loader.load_item()
-
-    def errback_httpbin(self, failure):
-        # logs failures
-        self.logger.error(repr(failure))
-
-        if failure.check(HttpError):
-            response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url)
-
-        elif failure.check(DNSLookupError):
-            request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
-
-        elif failure.check(TimeoutError, TCPTimedOutError):
-            request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)

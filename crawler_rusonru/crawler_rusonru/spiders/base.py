@@ -102,7 +102,7 @@ class RusonBaseSpider(BaseSpider):
             loader.add_value('lot_number', combo.get_lot_number(lots_table[i]))
             loader.add_value('property_information', transfer['property_information'])
             check_data = (''.join(transfer['trading_link']), ''.join(loader.get_collected_values('lot_number')))
-            if check_data not in self.previous_trades:
+            if check_data[0] not in self.previous_trades:
                 loader.add_value('short_name', combo.get_short_name(lots_table[i]))
                 loader.add_value('lot_info', combo.get_lot_info(lots_table[i]))
                 loader.add_value('start_date_requests', transfer['start_date_requests'])
@@ -142,7 +142,7 @@ class RusonBaseSpider(BaseSpider):
             loader.add_value('lot_number', combo.get_lot_number(lots_table[i]))
             loader.add_value('property_information', transfer['property_information'])
             check_data = (''.join(transfer['trading_link']), ''.join(loader.get_collected_values('lot_number')))
-            if check_data not in self.previous_trades:
+            if check_data[0] not in self.previous_trades:
                 loader.add_value('short_name', combo.get_short_name(lots_table[i]))
                 loader.add_value('lot_info', combo.get_lot_info(lots_table[i]))
                 loader.add_value('start_date_requests', combo.get_start_date_requests_offer(lots_table[i]))

@@ -50,8 +50,7 @@ def parse_datetime(string: str, format: str) -> datetime:
 
     for date_format in formats:
         try:
-            dt = datetime.strptime(string, date_format)
-            return dt.replace(tzinfo=pytz.utc)
+            return datetime.strptime(string, date_format)
         except ValueError:
             continue
     if format:
@@ -100,3 +99,4 @@ def increase_time_days(time_from, days):
 if __name__ == '__main__':
     print(f"{return_parse_date('2025-01-16T12:58:27.577')=}")
     print(f"{return_parse_date('23/04/2025 23:59 (MCK)', '%d/%m/%Y %H:%M (MCK)')=}")
+    print(f'{return_parse_date("2025-03-13T15:11:02.853")=}')

@@ -5,12 +5,9 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, format_time, make_float
+from general_utils import dedent_func, format_time, make_float, CheckIfCorrectContactInfo
 from general_utils.config import image_formats
-from general_utils.download import DownloadFiles
 from general_utils.models import DownloadData
-from ..utils.check_inn_email_etc import CheckIfCorrectContactInfo
-from ..utils.config import path_absolute, path_relative
 
 logger = logging.getLogger(__name__)
 
@@ -19,25 +16,22 @@ class LotPage:
 
     def __init__(self, resposne_):
         self.response = resposne_
-        self.soup = BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'),
-                       features='lxml')
+        self.soup = (
+            BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        )
 
     def get_short_name(self):
-        """ :return short name """
         short_name = self.soup.find('div', class_='object-info__title')
         if short_name:
             return dedent_func(short_name.get_text().strip())
         else:
             logger.error(f'{self.response.url} :: ERROR SHORT NAME NOT FOUND')
-            return None
 
     def return_all_scripts(self):
-        """ return list with all scripts """
         phone_script = self.soup.find_all('script')
         return phone_script
 
     def get_phone(self):
-        """ return phone number """
         try:
             phone_script = self.return_all_scripts()
             for s in phone_script:
@@ -49,14 +43,11 @@ class LotPage:
             return ''
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR WITH PHONE NUMBER\n{e}', exc_info=True)
-            return None
 
     def get_trading_org_contact(self):
-        """ email is '' phone - get from func get_phone """
         return {'email': '', 'phone': self.get_phone()}
 
     def get_trading_id(self):
-        """ return trading id and trading number """
         try:
             trading_id = self.return_all_scripts()
             for s in trading_id:
@@ -77,7 +68,6 @@ class LotPage:
                 return dedent_func(' '.join(addr.findNext('td').get_text(strip=True).split()))
         except Exception as e:
             logger.error(f'{self.response.url} :: ERROR ADDRESS\n{e}')
-            return None
 
     def get_encumbrance(self):
         """ return description_encumbrance """
@@ -105,7 +95,7 @@ class LotPage:
                 text = parent_div.get_text().strip()
                 text_cat = re.split(':', text, maxsplit=1)[-1]
                 text_cat = re.sub(r'\s+', ' ', text_cat.replace('\n', ' '))
-                return {'classification': [text_cat.strip()]}
+                return [text_cat.strip()]
         except Exception as ex:
             logger.error(f'{self.response.url} :{ex}: ERROR CATEGORY', exc_info=True)
 
@@ -231,8 +221,9 @@ class LotPage:
     def property_info(self):
         """ return property information """
         try:
-            span_property = self.soup.find('span',
-                                           string=re.compile(r'\s?Ознакомление с имуществом:\s?', re.IGNORECASE))
+            span_property = self.soup.find(
+                'span', string=re.compile(r'\s?Ознакомление с имуществом:\s?', re.IGNORECASE)
+            )
             if span_property:
                 return span_property.findNext().get_text().strip()
         except Exception as e:

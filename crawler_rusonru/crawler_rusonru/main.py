@@ -17,5 +17,9 @@ def promkonsalt():
     execute(['scrapy', 'crawl', 'promkonsalt'])
 
 
+def sistematorg():
+    execute(['scrapy', 'crawl', 'sistematorg'])
+
+
 if __name__ == '__main__':
-    nistp()
+    sistematorg()

@@ -40,7 +40,10 @@ class LotOnlineSpider(BaseSpider):
         data = json.loads(response.text)
         for trade in data['rows']:
             trading_id = trade["id"]
-            if str(trading_id) not in self.previous_trades:
+            if (
+                    f'https://{self.domain}.lot-online.ru/tender/details.html?tenderId={trading_id}'
+                    not in self.previous_trades
+            ):
                 yield FormRequest(
                     f'https://{self.domain}.lot-online.ru/tender/{trading_id}/lots.html', self.parse_trade, formdata={
                         '_search': 'false',

@@ -1,2 +1,0 @@
-docker stop splash_fabricant
-docker rm splash_fabricant

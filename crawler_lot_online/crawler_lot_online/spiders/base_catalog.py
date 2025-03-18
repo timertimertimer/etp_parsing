@@ -5,7 +5,7 @@ from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
 from general_utils.config import format_parse_date, write_log_to_file
-from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils.items import EtpItem, EtpItemLoader
 from ..catalog_app import Combo
 from ..config import catalog_formdata, hashes, start_date, main_data_origin
 
@@ -31,7 +31,7 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
         html = json.loads(response.text)['html']['pagination_contents']
         combo = Combo(response)
         for lot in combo.get_lots(html):
-            if (lot[0],) not in self.previous_trades:
+            if lot[0] not in self.previous_trades:
                 yield Request(lot[0], self.parse_lot, cb_kwargs={'lot': lot})
 
         if combo.next_page(html):
@@ -40,7 +40,7 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
 
     def parse_lot(self, response, lot):
         combo = Combo(response)
-        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', main_data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)
@@ -49,8 +49,16 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
         loader.add_value('trading_form', combo.trading_form)
         loader.add_value('trading_org', combo.trading_org)
         loader.add_value('trading_org_contacts', combo.trading_org_contacts)
+        loader.add_value('msg_number', combo.msg_number)
+        loader.add_value('case_number', combo.case_number)
+        loader.add_value('debtor_inn', combo.debtor_inn)
+        loader.add_value('address', combo.address or combo.sud)
+        loader.add_value('arbit_manager', combo.arbit_manager)
+        loader.add_value('arbit_manager_inn', combo.arbit_manager_inn)
+        loader.add_value('arbit_manager_org', combo.arbit_manager_org)
         loader.add_value('status', lot[3])
-        loader.add_value('address', combo.address)
+        loader.add_value('lot_id', combo.lot_id)
+        loader.add_value('lot_link', combo.lot_link)
         loader.add_value('lot_number', combo.get_lot_number(lot[2]))
         loader.add_value('short_name', lot[2])
         loader.add_value('lot_info', combo.lot_info)

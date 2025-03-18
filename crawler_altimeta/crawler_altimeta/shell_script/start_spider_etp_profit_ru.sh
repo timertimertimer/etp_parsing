@@ -1,7 +1,0 @@
-#!/bin/bash
-sleep 2
-mydir=$HOME
-cd $mydir/etp_parsing
-source env/bin/activate
-cd $mydir/etp_parsing/crawler_altimeta
-scrapy crawl etp_profit_ru

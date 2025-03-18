@@ -11,7 +11,7 @@ class LotPeriod(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     request_start_at: Mapped[datetime] = mapped_column(DateTime)
-    request_end_at: Mapped[datetime] = mapped_column(DateTime)
+    request_end_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     trading_start_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     trading_end_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     price: Mapped[float] = mapped_column(Float)

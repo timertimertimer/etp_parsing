@@ -130,11 +130,8 @@ class Combo:
             if email:
                 email = dedent_func(email.get_text().strip())
                 return CheckIfCorrectContactInfo.check_email(email)
-            else:
-                return ''
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA EMAIL ORG {ex}')
-            return ''
 
     def get_phone(self):
         try:
@@ -143,11 +140,8 @@ class Combo:
             if phone:
                 phone = dedent_func(phone.get_text().strip())
                 return CheckIfCorrectContactInfo.check_phone(phone)
-            else:
-                return ''
         except Exception as ex:
             logger.error(f'{self.response.url} :: INVALID DATA PHONE ORG {ex}')
-            return ''
 
     @property
     def msg_number(self):
@@ -252,7 +246,6 @@ class Combo:
                 return ' '.join([last_name, first_name, middle_name])
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA ARBITR NAME {e}')
-            return None
 
     @property
     def arbit_manager_inn(self):
@@ -303,7 +296,6 @@ class Combo:
                 return table_html
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR TABLE LOT INFO {ex}', exc_info=True)
-            return None
 
     def get_status(self, table: str):
         active = ('прием заявок', 'приём заявок')
@@ -382,7 +374,6 @@ class Combo:
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     @property
     def end_date_requests_auc(self):
@@ -396,7 +387,6 @@ class Combo:
                     return end
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     @property
     def start_date_trading_auc(self):
@@ -410,7 +400,6 @@ class Combo:
                     return start
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start date request auction {ex}')
-            return None
 
     def get_period_table(self, table: str):
         try:
@@ -483,7 +472,6 @@ class Combo:
                     logger.error(f'{self.response.url} :: INVALID DATA START PRICE')
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start price auction {ex}')
-            return None
 
     def get_start_price_offer(self, table_):
         """ :return start price offer from period table """
@@ -547,9 +535,10 @@ class Combo:
                     periods.append(period)
                     if check_value < current_price_:
                         logger.critical(
-                            f'{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS', df)
+                            f'{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS',
+                            df
+                        )
                     check_value = current_price_
             return periods
         except Exception as e:
             logger.error(f'{self.response.url} :: PERIODS ERROR {e}\n{df}', exc_info=True)
-            return None

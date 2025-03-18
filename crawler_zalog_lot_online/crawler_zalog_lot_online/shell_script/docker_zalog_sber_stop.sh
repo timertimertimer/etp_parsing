@@ -1,2 +1,0 @@
-docker stop splash_zalog_sber
-docker rm splash_zalog_sber

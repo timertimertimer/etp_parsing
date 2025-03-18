@@ -30,4 +30,4 @@ def private_property():
 
 
 if __name__ == '__main__':
-    privatization()
+    private_property()

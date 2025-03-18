@@ -43,7 +43,7 @@ class Combo:
             'ended': [
                 'завершена', 'рассмотрение предложений/подведение итогов', 'отменена', 'процедура отменена',
                 'процедура по лоту проведена', 'подведение итогов по окончании периода', 'процедура не состоялась',
-                'прием заявок завершен'
+                'прием заявок завершен', 'прием заявок приостановлен'
             ]
         }
         for key, value in d.items():
@@ -149,10 +149,9 @@ class Combo:
     def msg_number(self):
         debtor = self.get_debtor()
         if debtor and debtor.has_attr('data-ca-accordion-is-active-scroll-to-elm'):
-            return CheckIfCorrectContactInfo.check_msg_number(
-                debtor.find('td', class_='key', text=contains('Номер объявления о проведении торгов в ЕФРСБ'))
-                .find_next('td').get_text(strip=True)
-            )
+            number = debtor.find('td', class_='key', text=contains('Номер объявления о проведении торгов в ЕФРСБ'))
+            if number:
+                return CheckIfCorrectContactInfo.check_msg_number(number.find_next('td').get_text(strip=True))
 
     @property
     def case_number(self):

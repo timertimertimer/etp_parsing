@@ -24,7 +24,6 @@ class OfferParse:
                 return table_html
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR TABLE LOT INFO {ex}', exc_info=True)
-            return None
 
     def get_lot_status(self, table: str):
         """ :return status of lot """
@@ -124,7 +123,6 @@ class OfferParse:
                     logger.error(f'{self.response.url} :: INVALID DATA START PRICE')
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR start price auction {ex}')
-            return None
 
     def step_price_AUCTION(self, table: str) -> float or None:
         """ :return step price !!!! auction"""
@@ -148,7 +146,6 @@ class OfferParse:
                             return round(float(price), 2)
         except Exception as ex:
             logger.error(f'{self.response.url} :: ERROR step price {ex}')
-            return None
 
     def get_period_table(self, table: str):
         """ :arg table -> parent table of lot
@@ -234,7 +231,6 @@ class OfferParse:
             return periods
         except Exception as e:
             logger.error(f'{self.response.url} :: PERIODS ERROR {e}\n{df}', exc_info=True)
-            return None
 
     def start_price_offer(self, table_):
         """ :return start price offer from period table """
@@ -260,7 +256,8 @@ class OfferParse:
             return table
         else:
             logger.error(
-                f'{self.response.url} :: ERROR function class Offer {self.table_lot_page_lot_info.__name__}')
+                f'{self.response.url} :: ERROR function class Offer {self.table_lot_page_lot_info.__name__}'
+            )
 
     def start_price(self):
         """ return start price """

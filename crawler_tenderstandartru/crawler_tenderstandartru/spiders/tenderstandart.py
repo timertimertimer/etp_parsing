@@ -29,16 +29,18 @@ class TenderstandartSpider(TenderstandartBaseSpider):
                 transfer['lot_link'] = lot_data[1]
                 transfer['start_price'] = lot_data[5]
                 transfer['start_date_trading'] = lot_data[6]
-                data_check_with_db = (lot_data[0], lot_data[1], status)
-                if data_check_with_db not in self.previous_trades:
-                    yield Request(url=lot_data[0], callback=self.parse_trading_page,
-                                  cb_kwargs={'transfer': transfer, 'trading_type': trading_type},
-                                  dont_filter=True,
-                                  errback=self.errback_httpbin)
+                if lot_data[0] not in self.previous_trades:
+                    yield Request(
+                        url=lot_data[0], callback=self.parse_trading_page,
+                        cb_kwargs={'transfer': transfer, 'trading_type': trading_type},
+                        dont_filter=True, errback=self.errback_httpbin
+                    )
         page += 1
         if next_page := combo.serp.get_next_page_link(page, self.data_origin):
-            yield Request(url=next_page, callback=self.parse_serp,
-                          cb_kwargs={'page': page, 'trading_type': trading_type}, errback=self.errback_httpbin)
+            yield Request(
+                url=next_page, callback=self.parse_serp, cb_kwargs={'page': page, 'trading_type': trading_type},
+                errback=self.errback_httpbin
+            )
 
     def parse_trading_page(self, response, transfer, trading_type):
         combo = Combo(response)
@@ -52,12 +54,15 @@ class TenderstandartSpider(TenderstandartBaseSpider):
         transfer['property_information'] = combo.auc.get_property_information()
         general_files = combo.gen.download_files(data_origin=self.data_origin)
         if trading_type == 'offer':
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_periods_offer,
-                          cb_kwargs={'transfer': transfer, 'general_files': general_files,
-                                     'page_offer': 1, 'periods': list()})
+            yield Request(
+                url=''.join(transfer['lot_link']), callback=self.parse_periods_offer,
+                cb_kwargs={'transfer': transfer, 'general_files': general_files, 'page_offer': 1, 'periods': list()}
+            )
         else:
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_auction_lot,
-                          cb_kwargs={'transfer': transfer, 'general_files': general_files})
+            yield Request(
+                url=''.join(transfer['lot_link']), callback=self.parse_auction_lot,
+                cb_kwargs={'transfer': transfer, 'general_files': general_files}
+            )
 
     def parse_periods_offer(self, response, transfer, page_offer, general_files, periods):
         combo = Combo(response)
@@ -66,14 +71,14 @@ class TenderstandartSpider(TenderstandartBaseSpider):
         period = combo.offer.return_periods()
         periods.extend(period)
         if next_page:
-            yield Request(url=next_page, callback=self.parse_periods_offer,
-                          cb_kwargs={'transfer': transfer, 'general_files': general_files, 'page_offer': page_offer,
-                                     'periods': periods},
-                          errback=self.errback_httpbin)
+            yield Request(url=next_page, callback=self.parse_periods_offer, cb_kwargs={
+                'transfer': transfer, 'general_files': general_files, 'page_offer': page_offer, 'periods': periods
+            }, errback=self.errback_httpbin)
         else:
-            yield Request(url=''.join(transfer['lot_link']), callback=self.parse_offer_lot,
-                          cb_kwargs={'transfer': transfer, 'general_files': general_files, 'periods': periods},
-                          dont_filter=True)
+            yield Request(
+                url=''.join(transfer['lot_link']), callback=self.parse_offer_lot, dont_filter=True,
+                cb_kwargs={'transfer': transfer, 'general_files': general_files, 'periods': periods},
+            )
 
     def parse_auction_lot(self, response, transfer, general_files):
         combo = Combo(response)

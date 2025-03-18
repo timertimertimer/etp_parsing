@@ -2,7 +2,7 @@ import logging
 import requests
 
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
-from general_utils.models import Counterparty, TradingFloor, LegalCase
+from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
 from general_utils.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
@@ -283,13 +283,12 @@ class BankrotMessageFedresurs(Fedresurs):
         data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
         self.data['number'] = data['number']
         self.data['type'] = data['messageType']
-        try:
+        if data.get('content'):
             self.data['content'] = data['content']['messageInfo']['messageContent'].get('text')
-        except Exception as e:
-            pass
         legal_case_number = data['bankrupt'].get('legalCaseNumber')
-        self.data['legal_case_number'] = CheckIfCorrectContactInfo.check_case_number(
-            legal_case_number.strip()) if legal_case_number else None
+        self.data['legal_case_number'] = (
+            CheckIfCorrectContactInfo.check_case_number(legal_case_number.strip()) if legal_case_number else None
+        )
         self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
         self.data['published_at'] = return_parse_date(data['datePublish'])
         files = list()
@@ -343,9 +342,9 @@ class AuctionFedresurs(Fedresurs):
         if self.data.get('guid'):
             return self.data['guid']
         for search_string in {
-                self.data['trading_id'],
-                self.data['trading_number'],
-                self.data['case_number']
+            self.data['trading_id'],
+            self.data['trading_number'],
+            self.data['case_number']
         }:
             if not search_string:
                 continue
@@ -435,10 +434,23 @@ def test():
     auction_client.get_guid()
 
 
+def fix_debtor_messages():
+    from general_utils.db import DBHelper
+    with DBHelper.transaction_scope() as session:
+        debtor_messages = session.query(DebtorMessage).all()
+        for message in debtor_messages:
+            fed_client = BankrotMessageFedresurs(message.fedresurs_url.split('/')[-1])
+            fed_client.parse()
+            if fed_client.data['published_at'] != message.published_at.strftime('%Y-%m-%d %H:%M:%S'):
+                message.published_at = fed_client.data['published_at']
+                session.commit()
+            print(message.id)
+
+
 if __name__ == '__main__':
     # test()
     # parse_legal_cases()
     # parse_counterparties()
     # parse_auctions()
-    parse_trading_floors()
+    fix_debtor_messages()
     # parse_counterparty('1656057203')

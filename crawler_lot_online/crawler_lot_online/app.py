@@ -63,7 +63,7 @@ class Combo:
                 return 'active'
             elif status in ('рассмотрение заявок', 'ожидает рассмотрения заявок', 'ожидает начала подачи предложений'):
                 return 'pending'
-            elif status in ('завершена', 'рассмотрение предложений/подведение итогов', 'отменена'):
+            elif status in ('завершена', 'рассмотрение предложений/подведение итогов', 'отменена', 'приостановлено'):
                 return 'ended'
             else:
                 pass
@@ -120,8 +120,10 @@ class Combo:
         if date_requests:
             date_requests = date_requests.find_next('span').text.strip().replace(' ', ' ')
             start, end = date_requests.split(' - ')
-            format = '%d/%m/%Y %H:%M (MCK)'
-            return return_parse_date(start, format), return_parse_date(end, format)
+            format = '%d/%m/%Y %H:%M'
+            cleaned_start = re.sub(r'\*?\s*\(.*\)', '', start)
+            cleaned_end = re.sub(r'\*?\s*\(.*\)', '', end)
+            return return_parse_date(cleaned_start, format), return_parse_date(cleaned_end, format)
 
     @property
     def start_price(self):

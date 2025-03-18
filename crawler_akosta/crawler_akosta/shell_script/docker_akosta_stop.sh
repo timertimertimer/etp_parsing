@@ -1,2 +1,0 @@
-docker stop splash_akosta
-docker rm splash_akosta
