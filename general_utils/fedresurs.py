@@ -445,7 +445,8 @@ def fix_debtor_messages():
     from general_utils.db import get_db
     session = get_db()
     debtor_messages = session.query(DebtorMessage).all()
-    for message in debtor_messages:
+    for i, message in enumerate(debtor_messages):
+        print(f'{i + 1}/{len(debtor_messages)}')
         fed_client = BankrotMessageFedresurs(message.fedresurs_url.split('/')[-1])
         fed_client.parse()
         if fed_client.data['published_at'] != message.published_at.strftime('%Y-%m-%d %H:%M:%S'):
@@ -453,7 +454,6 @@ def fix_debtor_messages():
             for i in range(5):
                 try:
                     session.commit()
-                    print(message.id)
                     break
                 except (ProgrammingError, OperationalError) as e:
                     error_msg = str(e)

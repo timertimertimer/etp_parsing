@@ -40,7 +40,9 @@ class RusonBaseSpider(BaseSpider):
             )
         else:
             for link in all_links:
-                yield Request(url=UrlConfig.url_join(trade_link[self.name], link[0]), callback=self.parse_trade)
+                link = UrlConfig.url_join(trade_link[self.name], link[0])
+                if link not in self.previous_trades:
+                    yield Request(url=link, callback=self.parse_trade)
 
     def parse_trade(self, response):
         combo = Combo(response)

@@ -51,11 +51,11 @@ class SerpParse:
         except Exception as e:
             logger.error(f'{self.response.url} :: INVALID DATA NEXT PAGE {e}')
 
-    def links_to_trade(self) -> list:
+    def links_to_trade(self, table_class: str = 'data') -> list:
         """ return list with trading list """
         set_links = set()
         try:
-            tbody = self.soup.find('table', class_='data').find('tbody')
+            tbody = self.soup.find('table', class_=table_class).find('tbody')
             tr_list = tbody.find_all('tr')
             if tr_list:
                 for tr in tr_list:

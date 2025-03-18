@@ -114,15 +114,17 @@ class DBHelper:
     ):
         if status_active is not None:
             with DBHelper.transaction_scope() as session:
+                status = StatusType.active if status_active else StatusType.disabled
                 session.add(ParserStatus(
                     name=spider_name,
                     trading_floor_id=trading_floor_id,
                     counter=counter,
                     duration=duration,
-                    status=StatusType.active if status_active else StatusType.disabled
+                    status=status
                 ))
                 trading_floor = session.query(TradingFloor).filter_by(id=trading_floor_id).first()
-                trading_floor.status = StatusType.active if status_active else StatusType.disabled
+                if trading_floor.status != status:
+                    trading_floor.status = StatusType.active if status_active else StatusType.disabled
                 logger.info(
                     f"save_counter_and_duration :: "
                     f"Updated counter and duration for '{spider_name}' to {counter}, {duration}."
