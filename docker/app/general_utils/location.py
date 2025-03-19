@@ -1,5 +1,7 @@
 import json
 import logging
+from pathlib import Path
+
 import pymorphy3
 import requests
 import re
@@ -11,11 +13,14 @@ from general_utils.db import DBHelper
 
 logger = logging.getLogger(__name__)
 
-with open(api_key_path) as f:
-    api_keys = json.load(f)
+if Path(api_key_path).exists():
+    with open(api_key_path) as f:
+        api_keys = json.load(f)
+else:
+    api_keys = dict()
 
-yandex_key = api_keys['yandex']
-dadata_key = api_keys['dadata']
+yandex_key = api_keys.get('yandex')
+dadata_key = api_keys.get('dadata')
 
 punctuation = r"""!"#$%&'()*+,./:;<=>?@[\]^_`{|}~"""
 
@@ -159,6 +164,8 @@ class RegionIdentifier:
     @staticmethod
     def get_yandex_region(address: str):
         api_key = yandex_key
+        if not api_key:
+            logger.warning('Provide api key for yandex in api_keys.json')
         params = {
             'apikey': api_key,
             'geocode': address,
