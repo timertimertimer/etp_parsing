@@ -1,0 +1,15 @@
+.git
+.gitignore
+.venv/
+env/
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+.env
+docker-compose.yml
+Dockerfile
+README.md
+general_utils/alembic/
+general_utils/alembic.ini
+files/
