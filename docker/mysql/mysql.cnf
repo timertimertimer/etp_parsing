@@ -1,0 +1,25 @@
+[mysqld]
+# port=3306
+
+max_connections=150
+
+innodb_buffer_pool_size=1G
+innodb_log_file_size=512M
+
+tmp_table_size=64M
+max_heap_table_size=64M
+
+wait_timeout=28800
+interactive_timeout=28800
+
+transaction-isolation=REPEATABLE-READ
+
+# log_error=/var/lib/mysql/mysql_error.log
+# slow_query_log=1
+# slow_query_log_file=/var/lib/mysql/mysql_slow_queries.log
+# long_query_time=2
+
+# server-id=1
+# log_bin=mysql-bin
+
+
