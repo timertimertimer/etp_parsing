@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime, timedelta
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from random import choice
 
 project_main_dir = PurePath(__file__).parent.parent
@@ -28,13 +28,19 @@ socks5_proxy_path = data_path / socks_file_name
 user_agent_path = data_path / user_agent_file_name
 api_key_path = data_path / api_keys_file_name
 lot_classifiers_path = data_path / lot_classifiers_file_name
-with open(f'{user_agent_path}', 'r') as f:
-    lines = f.readlines()
-user_agents = [i.replace('\\n', '').strip() for i in lines]
+if Path(user_agent_path).exists():
+    with open(f'{user_agent_path}', 'r') as f:
+        lines = f.readlines()
+    user_agents = [i.replace('\\n', '').strip() for i in lines]
+else:
+    user_agents = []
 
-with open(f'{socks5_proxy_path}', 'r') as f:
-    lines = f.readlines()
-socks5_proxies = [i.replace('\\n', '').strip() for i in lines]
+if Path(socks5_proxy_path).exists():
+    with open(f'{socks5_proxy_path}', 'r') as f:
+        lines = f.readlines()
+    socks5_proxies = [i.replace('\\n', '').strip() for i in lines]
+else:
+    socks5_proxies = []
 
 lot_classifiers_name_to_code = dict()
 lot_classifiers_code_to_name = dict()
