@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
 from general_utils.models import DownloadData
-from locators.trade_locator import TradeLocator
+from .locators.trade_locator import TradeLocator
 
 logger = logging.getLogger(__name__)
 

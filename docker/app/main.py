@@ -59,7 +59,7 @@ itender = [
 altimeta = ['atctrade', 'aukcioncenter', 'ausib', 'etp_profit', 'ptp_center', 'regtorg', 'seltim']
 electro_torgi = ['electro_torgi', 'uralbidin', 'vetp']
 ruson = ['eltorg', 'nistp', 'promkonsalt', 'ruson', 'sistematorg']
-tenderstandartru = ['au_pro', 'tenderstandar', 'torggroup', 'viomitra']
+tenderstandartru = ['au_pro', 'tenderstandart', 'torggroup', 'viomitra']
 lot_online = ['rad', 'confiscate', 'lease', 'privatization', 'arrested']
 zalog = ['rshb', 'sbrf', 'rad']
 
@@ -69,7 +69,7 @@ projects = {
     'crawler_bankrot_cdtrf': 'bankrot_cdtrf',
     'crawler_electro_torgi': electro_torgi,
     'crawler_eurtp': 'eurtp',
-    'crawler_fabricant': 'crawler_fabricant',
+    'crawler_fabricant': 'fabrikant',
     'crawler_itender': itender,
     'crawler_kartoteka': 'kartoteka',
     'crawler_lot_online_old': lot_online,
