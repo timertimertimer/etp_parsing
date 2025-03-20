@@ -31,7 +31,7 @@ LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'general_utils.middlewares.CookiesMiddleware': 120,
+    'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 120,
     'general_utils.middlewares.UserAgentMiddleware': 150,
     'general_utils.middlewares.ETPDownloaderMiddleware': 160,
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
