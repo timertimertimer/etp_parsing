@@ -94,5 +94,5 @@ allowable_formats = image_and_doc_formats + archive_formats
 trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'eventsource', 'websocket', 'media', 'ping']
 
 download_files_from_get_url = True
-write_log_to_file = False
+write_log_to_file = True
 post_main_service = False
