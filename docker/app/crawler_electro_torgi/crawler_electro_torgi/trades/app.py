@@ -79,9 +79,9 @@ class Combo:
         type_and_form = self.response.xpath(self.loc.trading_type_and_form_loc).get().strip()
         offer = ['ОТПП', 'ЗТПП']
         auction = ['ОАОФ', 'ОАЗФ', 'ЗАОФ', 'ЗАОЗ']
-        competition = ['ОКОФ', 'ОКЗФ', 'ЗКОФ', 'ЗКОЗ']
+        competition = ['ОКОФ', 'ОКЗФ', 'ЗКОФ', 'ЗКОЗ', 'ЗКЗФ']
         open_form = ['ОТПП', 'ОАОФ', 'ОАЗФ', 'ОКОФ', 'ОКЗФ']
-        close_form = ['ЗТПП', 'ЗАОФ', 'ЗАОЗ', 'ЗКОФ', 'ЗКОЗ']
+        close_form = ['ЗТПП', 'ЗАОФ', 'ЗАОЗ', 'ЗКОФ', 'ЗКОЗ', 'ЗКЗФ']
         trading_type = re.findall(r'\d+–[А-ЯA-Z]+', type_and_form)
         if len(trading_type) == 1:
             trading_type = re.findall(r'[А-ЯA-Z]+', trading_type[0].replace('-', '').strip())
@@ -98,7 +98,7 @@ class Combo:
                 return 'competition', 'open'
             if trading_type in competition and trading_type in close_form:
                 return 'competition', 'closed'
-        logger.error(f'{self.response.url} :: ERROR function {self.trading_type_and_form.__name__}')
+        logger.error(f'{self.response.url} :: ERROR function self.trading_type_and_form')
         return None
 
     @property
