@@ -5,7 +5,8 @@ import time
 
 import requests
 from pymysql.err import OperationalError as PyMysqlOperationalError, ProgrammingError as PyMysqlProgrammingError
-from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError, ProgrammingError as SqlAlchemyProgrammingError
+from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError, \
+    ProgrammingError as SqlAlchemyProgrammingError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -432,16 +433,6 @@ def parse_counterparty(inn: str):
     fed_client.parse()
 
 
-def test():
-    auction_client = AuctionFedresurs(
-        case_number='А73-7136/2024',
-        trading_id='104258896',
-        trading_number='13592-ОТПП',
-        trading_floor_name='"Аукционы Сибири"'
-    )
-    auction_client.get_guid()
-
-
 def fix_debtor_messages():
     from general_utils.db import get_db
     session = get_db()
@@ -477,9 +468,4 @@ def fix_debtor_messages():
 
 
 if __name__ == '__main__':
-    # test()
-    # parse_legal_cases()
-    # parse_counterparties()
-    # parse_auctions()
-    fix_debtor_messages()
-    # parse_counterparty('1656057203')
+    parse_trading_floors()

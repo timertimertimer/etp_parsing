@@ -726,4 +726,7 @@ class DBHelper:
 
 
 if __name__ == '__main__':
+    DBHelper.add_regions()
+    DBHelper.add_cities()
+    DBHelper.add_addresses()
     DBHelper.add_trading_floors()
