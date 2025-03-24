@@ -165,8 +165,6 @@ config.ini
 socks_5.txt
 api_keys.json
 proxy*
-docker/app/general_utils/alembic/
-alembic.ini
 *.html
 files/
 set_main_path_to_download
