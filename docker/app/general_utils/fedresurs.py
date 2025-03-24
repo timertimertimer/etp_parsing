@@ -408,7 +408,7 @@ def parse_counterparties():
 def parse_trading_floors():
     from general_utils.db import DBHelper
     with DBHelper.transaction_scope() as session:
-        trading_floors = session.query(TradingFloor).filter_by(id=54).all()
+        trading_floors = session.query(TradingFloor).all()
         for trading_floor in trading_floors:
             fed_client = TradingFloorFedresurs(name=trading_floor.name)
             trading_floor_counterparty_data = fed_client.parse()
