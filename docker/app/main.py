@@ -113,6 +113,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Test log to stdout", file=sys.stdout, flush=True)
-    print("Test log to stderr", file=sys.stderr, flush=True)
     main()
