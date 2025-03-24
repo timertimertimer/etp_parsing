@@ -93,4 +93,4 @@ trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'even
 
 download_files_from_get_url = True
 write_log_to_file = True
-post_main_service = False
+post_main_service = True
