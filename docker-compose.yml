@@ -1,5 +1,11 @@
 version: '3.8'
 
+x-logging: &logging-default
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   mysql:
     image: mysql:8.0
@@ -15,6 +21,7 @@ services:
       - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
     volumes:
       - mysql_data:/var/lib/mysql
+    logging: *logging-default
     networks:
       - etp_parsing_network
 
@@ -30,6 +37,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     depends_on:
       - mysql
+    logging: *logging-default
     networks:
       - etp_parsing_network
 
@@ -43,6 +51,7 @@ services:
       - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./files:/usr/share/nginx/html/files
     restart: unless-stopped
+    logging: *logging-default
     networks:
       - etp_parsing_network
 
@@ -58,6 +67,7 @@ services:
         limits:
           cpus: "1"
           memory: 1g
+    logging: *logging-default
     networks:
       - etp_parsing_network
 
@@ -77,6 +87,7 @@ services:
     depends_on:
       - mysql
       - splash
+    logging: *logging-default
     networks:
       - etp_parsing_network
 
