@@ -1,7 +1,11 @@
 import csv
+import os
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 from random import choice
+from dotenv import load_dotenv
+
+load_dotenv()
 
 project_main_dir = PurePath(__file__).parent.parent
 
@@ -47,6 +51,10 @@ with open(f'{lot_classifiers_path}', 'r', encoding='utf-8-sig') as f:
     for row in reader:
         lot_classifiers_code_to_name[row['Код']] = row['Наименование']
         lot_classifiers_name_to_code[row['Наименование']] = row['Код']
+
+YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
+DADATA_API_TOKEN = os.getenv('DADATA_API_TOKEN')
+DADATA_API_SECRET = os.getenv('DADATA_API_SECRET')
 
 
 def format_parse_date(days_: int, time_format=None):
