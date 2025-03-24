@@ -5,16 +5,17 @@ import time
 
 import requests
 from pymysql.err import OperationalError as PyMysqlOperationalError, ProgrammingError as PyMysqlProgrammingError
-from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError, \
-    ProgrammingError as SqlAlchemyProgrammingError
+from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
 from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
 from general_utils.models.counterparty import CounterpartyType
+from general_utils.work_with_text_and_number import set_logger
 
 logger = logging.getLogger(__name__)
+set_logger(logger)
 retry_count = 5
 
 
