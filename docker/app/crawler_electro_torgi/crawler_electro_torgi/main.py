@@ -15,5 +15,5 @@ def vetp():
 
 if __name__ == '__main__':
     # electro_torgi()
-    # uralbidin()
-    vetp()
+    uralbidin()
+    # vetp()

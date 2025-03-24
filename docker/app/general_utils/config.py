@@ -17,7 +17,6 @@ config_file_name = 'config.ini'
 proxy_file_name = 'proxy.txt'
 socks_file_name = 'socks_5.txt'
 user_agent_file_name = 'user-agent.txt'
-api_keys_file_name = 'api_keys.json'
 indexes_file_name = 'index.json'
 lot_classifiers_file_name = 'lot_classifiers.csv'
 data_path = project_main_dir / 'data'
@@ -26,7 +25,6 @@ indexes_path = data_path / indexes_file_name
 proxy_path = data_path / proxy_file_name
 socks5_proxy_path = data_path / socks_file_name
 user_agent_path = data_path / user_agent_file_name
-api_key_path = data_path / api_keys_file_name
 lot_classifiers_path = data_path / lot_classifiers_file_name
 if Path(user_agent_path).exists():
     with open(f'{user_agent_path}', 'r') as f:

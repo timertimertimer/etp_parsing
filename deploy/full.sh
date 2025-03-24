@@ -4,7 +4,7 @@ set -e
 
 echo "Deploying..."
 
-deploy/rights.sh
+#deploy/rights.sh
 
 deploy/app.sh
 

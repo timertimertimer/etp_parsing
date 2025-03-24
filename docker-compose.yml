@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: etp_parsing_mysql
+    container_name: mysql
     restart: unless-stopped
     env_file: 
       - .env
@@ -16,7 +16,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: etp_parsing_phpmyadmin
+    container_name: phpmyadmin
     restart: always
     ports:
       - "${PHPMYADMIN_PORT:-8081}:80"
@@ -31,6 +31,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    container_name: nginx
     ports:
       - "8082:80"
     volumes:
@@ -39,6 +40,41 @@ services:
     restart: unless-stopped
     networks:
       - etp_parsing_network
+
+  splash:
+    image: scrapinghub/splash
+    container_name: splash
+    restart: always
+    ports:
+      - "8050:8050"
+    command: [ "--maxrss", "1024", "--max-timeout", "3600" ]
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1g
+    networks:
+      - etp_parsing_network
+
+  app:
+    image: etp_parsing:latest
+    container_name: app
+    build:
+      args:
+        USER: ${USER}
+        UID: ${UID:-1000}
+      context: ./docker/app
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/app
+      - ./docker/app/supervisord.conf:/etc/supervisor/supervisord.conf
+    depends_on:
+      - mysql
+      - splash
+    networks:
+      - etp_parsing_network
+
 volumes:
   mysql_data:
 

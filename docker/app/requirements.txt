@@ -11,7 +11,8 @@ py7zr
 pydantic
 requests[socks]
 scrapy-splash
-scrapy-playwright
+playwright==1.51.0
+scrapy-playwright==0.0.43
 xmltodict
 aiofiles
 aiohttp

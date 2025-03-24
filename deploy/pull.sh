@@ -2,7 +2,7 @@
 
 set -e
 
-source .env
+. .env
 
 git pull origin main
 

@@ -4,6 +4,7 @@ import os
 import time
 import logging
 import requests
+import sys
 from random import choices
 from string import ascii_letters, digits
 from multiprocessing import Process
@@ -14,22 +15,18 @@ from general_utils.config import post_main_service
 load_dotenv()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-if not logger.hasHandlers():
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+formatter = logging.Formatter('%(asctime)s [%(name)-12s] %(levelname)-8s %(message)s')
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+console_handler.setLevel(logging.DEBUG)
+logger.addHandler(console_handler)
 
 
 def run_spider(project: str, spider: str) -> None:
     logger.info(f"Started {project}/{spider}")
     start_spider_time = time.time()
 
-    os.system(f"cd {project} && scrapy crawl {spider}")
+    os.system(f"cd {project} && /usr/local/bin/scrapy crawl {spider}")
 
     spider_duration = time.time() - start_spider_time
     logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
@@ -116,4 +113,6 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Test log to stdout", file=sys.stdout, flush=True)
+    print("Test log to stderr", file=sys.stderr, flush=True)
     main()
