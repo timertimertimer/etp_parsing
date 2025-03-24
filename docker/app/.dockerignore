@@ -10,6 +10,4 @@ __pycache__
 docker-compose.yml
 Dockerfile
 README.md
-general_utils/alembic/
-general_utils/alembic.ini
 files/
