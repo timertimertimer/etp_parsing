@@ -8,19 +8,10 @@ import re
 
 from natasha import MorphVocab, AddrExtractor
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from general_utils.config import api_key_path, indexes_path
+from general_utils.config import YANDEX_API_KEY, DADATA_API_TOKEN, DADATA_API_SECRET
 from general_utils.db import DBHelper
 
 logger = logging.getLogger(__name__)
-
-if Path(api_key_path).exists():
-    with open(api_key_path) as f:
-        api_keys = json.load(f)
-else:
-    api_keys = dict()
-
-yandex_key = api_keys.get('yandex')
-dadata_key = api_keys.get('dadata')
 
 punctuation = r"""!"#$%&'()*+,./:;<=>?@[\]^_`{|}~"""
 
@@ -163,11 +154,11 @@ class RegionIdentifier:
 
     @staticmethod
     def get_yandex_region(address: str):
-        api_key = yandex_key
-        if not api_key:
-            logger.warning('Provide api key for yandex in api_keys.json')
+        if not YANDEX_API_KEY:
+            logger.warning('No api key for yandex in api_keys.json')
+            return
         params = {
-            'apikey': api_key,
+            'apikey': YANDEX_API_KEY,
             'geocode': address,
             'lang': 'ru_RU',
             'format': 'json'
@@ -235,25 +226,12 @@ class RegionIdentifier:
     @staticmethod
     def _get_region_from_text(address: str):
         normalized_address = normalize_phrase(address)
-        if not (
-                region :=
+        return (
                 RegionIdentifier.get_storage().get(address) or
                 RegionIdentifier.get_cities().get(address) or
                 RegionIdentifier.get_storage().get(normalized_address) or
                 RegionIdentifier.get_cities().get(normalized_address)
-        ):
-            # cities = Region.get_cities()
-            # address_lower = address.lower()
-            #
-            # for city, region in cities.items():
-            #     if (
-            #             re.search(r'\b' + re.escape(city) + r'\b', address_lower) or
-            #             re.search(r'\b' + re.escape(city) + r'\b', normalized_address)
-            #     ):
-            #         logger.info(f'Found city "{city}" in address "{address}", region: "{region}"')
-            #         return region
-            pass
-        return region
+        )
 
     @staticmethod
     def _get_region_from_natasha(address: str):
@@ -264,7 +242,8 @@ class RegionIdentifier:
             if type_ in region_keywords:
                 if type_ == 'город':
                     normalized_address = normalize_phrase(value)
-                    return RegionIdentifier.get_cities().get(normalized_address) or RegionIdentifier.get_cities().get(value)
+                    return RegionIdentifier.get_cities().get(normalized_address) or RegionIdentifier.get_cities().get(
+                        value)
                 normalized_address = normalize_phrase(f'{value} {type_}')
                 normalized_address2 = normalize_phrase(f'{type_} {value}')
                 if not (
@@ -308,4 +287,5 @@ def test_region_from_addresses_table():
 
 
 if __name__ == '__main__':
-    print(RegionIdentifier.get_region('республика северная осетия - алания, ст. луковская моздокского р-на, ул. моздокская дом 124'))
+    print(RegionIdentifier.get_region(
+        'республика северная осетия - алания, ст. луковская моздокского р-на, ул. моздокская дом 124'))
