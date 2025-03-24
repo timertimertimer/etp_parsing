@@ -8,7 +8,7 @@ import re
 
 from natasha import MorphVocab, AddrExtractor
 from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from general_utils.config import YANDEX_API_KEY, DADATA_API_TOKEN, DADATA_API_SECRET
+from general_utils.config import YANDEX_API_KEY, DADATA_API_TOKEN, DADATA_API_SECRET, indexes_path
 from general_utils.db import DBHelper
 
 logger = logging.getLogger(__name__)
