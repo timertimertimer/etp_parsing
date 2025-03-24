@@ -5,8 +5,11 @@ services:
     image: mysql:8.0
     container_name: mysql
     restart: unless-stopped
-    env_file: 
-      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - '127.0.0.1:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
       - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
