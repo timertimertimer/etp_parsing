@@ -19,11 +19,11 @@ def read_db_config(filename=config_path, section='mysql'):
         else:
             raise Exception('{0} not found in the {1} file'.format(section, filename))
     else:
-        db['host'] = os.getenv('MYSQL_HOST')
-        db['database'] = os.getenv('MYSQL_DATABASE')
-        db['user'] = os.getenv('MYSQL_USERNAME')
-        db['password'] = os.getenv('MYSQL_PASSWORD')
-        db['port'] = os.getenv('MYSQL_PORT')
+        db['host'] = os.getenv('DB_HOST')
+        db['database'] = os.getenv('DB_DATABASE')
+        db['user'] = os.getenv('DB_USERNAME')
+        db['password'] = os.getenv('DB_PASSWORD')
+        db['port'] = os.getenv('DB_PORT')
     return db
 
 
