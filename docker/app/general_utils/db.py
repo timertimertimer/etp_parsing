@@ -132,57 +132,54 @@ class DBHelper:
                 )
 
     @staticmethod
-    def add_regions():
+    def add_regions(source_path: PurePath = data_path / 'regions_with_oktmo.csv'):
         regions = []
         with DBHelper.transaction_scope() as session:
-            existing_oktmos = session.query(Region.oktmo).scalars().all()
-            with open(data_path / 'regions_with_oktmo.csv', newline='', encoding='utf-8') as csvfile:
+            existing_oktmos = [r[0] for r in session.query(Region.oktmo).all()]
+            with open(source_path, newline='', encoding='utf-8') as csvfile:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=':')
                 for row in reader:
                     if int(row['oktmo']) not in existing_oktmos:
                         regions.append(Region(oktmo=int(row['oktmo']), name=row['region']))
-                session.add_all(regions)
+            session.add_all(regions)
 
     @staticmethod
-    def add_addresses(source_path: PurePath = data_path / 'addresses.csv', addresses: list[Address] = None):
-        addresses = addresses or []
-        regions = DBHelper.get_regions_dict()
-        if not addresses:
+    def add_addresses(source_path: PurePath = data_path / 'addresses.csv'):
+        addresses = []
+        with DBHelper.transaction_scope() as session:
+            regions = {region.name: region.id for region in session.query(Region).all()}
+            existing_addresses = [r[0] for r in session.query(Address.name).all()]
             with open(source_path, newline='', encoding='utf-8') as csvfile:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
-                    if id_ := regions.get(row['region']):
+                    if id_ := regions.get(row['region']) and row['address'] not in existing_addresses:
                         addresses.append(Address(region_id=id_, name=row['address']))
-        with DBHelper.transaction_scope() as session:
             session.add_all(addresses)
 
     @staticmethod
-    def add_cities(source_path: PurePath = data_path / 'cities.csv', cities: list[City] = None):
-        cities = cities or []
-        regions = DBHelper.get_regions_dict()
-        if not cities:
+    def add_cities(source_path: PurePath = data_path / 'cities.csv'):
+        cities = []
+        with DBHelper.transaction_scope() as session:
+            regions = {region.name: region.id for region in session.query(Region).all()}
+            existing_cities = [r[0] for r in session.query(City.name).all()]
             with open(source_path, newline='', encoding='utf-8') as csvfile:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
                 for row in reader:
-                    if id_ := regions.get(row['region']):
+                    if id_ := regions.get(row['region']) and row['city'] not in existing_cities:
                         cities.append(City(region_id=id_, name=row['city']))
-        with DBHelper.transaction_scope() as session:
             session.add_all(cities)
 
     @staticmethod
-    def add_trading_floors(
-            source_path: PurePath = data_path / 'trading_floors.csv', trading_floors: list[TradingFloor] = None
-    ):
+    def add_trading_floors(source_path: PurePath = data_path / 'trading_floors.csv'):
+        trading_floors = []
         with DBHelper.transaction_scope() as session:
-            existing_trading_floors = session.query(TradingFloor.name).scalars().all()
-            trading_floors = trading_floors or []
-            if not trading_floors:
-                with open(source_path, newline='', encoding='utf-8') as csvfile:
-                    reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
-                    for row in reader:
-                        if row['name'] not in existing_trading_floors:
-                            trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
-                session.add_all(trading_floors)
+            existing_trading_floors = [r[0] for r in session.query(TradingFloor.name).all()]
+            with open(source_path, newline='', encoding='utf-8') as csvfile:
+                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
+                for row in reader:
+                    if row['name'] not in existing_trading_floors:
+                        trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
+            session.add_all(trading_floors)
 
     @staticmethod
     def get_addresses():
@@ -220,11 +217,6 @@ class DBHelper:
                     joinedload(Auction.legal_case)
                 )
             return query.all()
-
-    @staticmethod
-    def get_regions_dict():
-        with DBHelper.transaction_scope(commit=False) as session:
-            return {region.name: region.id for region in session.query(Region).all()}
 
     @staticmethod
     def get_counterparty(session: SessionLocal = None, inn: str = None, name: str = None, short_name: str = None):
