@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 
-from sqlalchemy import create_engine, text, select, and_, or_, inspect, literal
+from sqlalchemy import create_engine, text, select, and_, inspect, literal
 from sqlalchemy.orm import sessionmaker, joinedload, aliased
 from typing import Type, Union, List
 
@@ -134,13 +134,14 @@ class DBHelper:
     @staticmethod
     def add_regions():
         regions = []
-        with open(data_path / 'regions_with_oktmo.csv', newline='', encoding='utf-8') as csvfile:
-            reader: csv.DictReader = csv.DictReader(csvfile, delimiter=':')
-            for row in reader:
-                regions.append(Region(oktmo=int(row['oktmo']), name=row['region']))
-
         with DBHelper.transaction_scope() as session:
-            session.add_all(regions)
+            existing_oktmos = session.query(Region.oktmo).scalars().all()
+            with open(data_path / 'regions_with_oktmo.csv', newline='', encoding='utf-8') as csvfile:
+                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=':')
+                for row in reader:
+                    if int(row['oktmo']) not in existing_oktmos:
+                        regions.append(Region(oktmo=int(row['oktmo']), name=row['region']))
+                session.add_all(regions)
 
     @staticmethod
     def add_addresses(source_path: PurePath = data_path / 'addresses.csv', addresses: list[Address] = None):
@@ -152,8 +153,6 @@ class DBHelper:
                 for row in reader:
                     if id_ := regions.get(row['region']):
                         addresses.append(Address(region_id=id_, name=row['address']))
-                    else:
-                        pass
         with DBHelper.transaction_scope() as session:
             session.add_all(addresses)
 
@@ -167,8 +166,6 @@ class DBHelper:
                 for row in reader:
                     if id_ := regions.get(row['region']):
                         cities.append(City(region_id=id_, name=row['city']))
-                    else:
-                        pass
         with DBHelper.transaction_scope() as session:
             session.add_all(cities)
 
@@ -176,14 +173,16 @@ class DBHelper:
     def add_trading_floors(
             source_path: PurePath = data_path / 'trading_floors.csv', trading_floors: list[TradingFloor] = None
     ):
-        trading_floors = trading_floors or []
-        if not trading_floors:
-            with open(source_path, newline='', encoding='utf-8') as csvfile:
-                reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
-                for row in reader:
-                    trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
         with DBHelper.transaction_scope() as session:
-            session.add_all(trading_floors)
+            existing_trading_floors = session.query(TradingFloor.name).scalars().all()
+            trading_floors = trading_floors or []
+            if not trading_floors:
+                with open(source_path, newline='', encoding='utf-8') as csvfile:
+                    reader: csv.DictReader = csv.DictReader(csvfile, delimiter=';')
+                    for row in reader:
+                        if row['name'] not in existing_trading_floors:
+                            trading_floors.append(TradingFloor(name=row['name'], url=row['url']))
+                session.add_all(trading_floors)
 
     @staticmethod
     def get_addresses():
@@ -225,7 +224,7 @@ class DBHelper:
     @staticmethod
     def get_regions_dict():
         with DBHelper.transaction_scope(commit=False) as session:
-            return {region.file_name: region.id for region in session.query(Region).all()}
+            return {region.name: region.id for region in session.query(Region).all()}
 
     @staticmethod
     def get_counterparty(session: SessionLocal = None, inn: str = None, name: str = None, short_name: str = None):
