@@ -1,6 +1,8 @@
 import csv
 import logging
 import pathlib
+import sys
+import os
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
@@ -9,25 +11,27 @@ from sqlalchemy import create_engine, text, select, and_, or_, inspect, literal
 from sqlalchemy.orm import sessionmaker, joinedload, aliased
 from typing import Type, Union, List
 
-from . import EtpItem, parse_classifiers
-from .config import (
+from general_utils import EtpItem, parse_classifiers
+from general_utils.config import (
     data_path, absolute_download_path, relative_download_path, download_files_from_get_url, allowable_formats
 )
-from .download import DownloadFiles
-from .models import (
+from general_utils.download import DownloadFiles
+from general_utils.models import (
     Auction, ParserStatus, TradingFloor, Address, Region, City, Counterparty, Lot, LotPeriod, File, LegalCase, Base,
     DebtorMessage, DownloadData
 )
-from .fedresurs import (
+from general_utils.fedresurs import (
     PersonFedresurs, CompanyFedresurs, ArbitrManagerFedresurs, CounterpartyFedresurs, PersonOrganizerFedresurs,
     CompanyOrganizerFedresurs, AuctionFedresurs
 )
-from .models.counterparty import CounterpartySRO
-from .models.file import FileModelType
-from .models.lot import LotCategory
-from .models.parser_status import StatusType
-from .python_mysql_dbconfig import read_db_config
-from .work_with_path_and_dir import sanitize_filename
+from general_utils.models.counterparty import CounterpartySRO
+from general_utils.models.file import FileModelType
+from general_utils.models.lot import LotCategory
+from general_utils.models.parser_status import StatusType
+from general_utils.python_mysql_dbconfig import read_db_config
+from general_utils.work_with_path_and_dir import sanitize_filename
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 logger = logging.getLogger(__name__)
 db_config = read_db_config()
@@ -307,7 +311,7 @@ class DBHelper:
     def get_or_create_address(address_str: str, session: SessionLocal) -> Address | None:
         if not address_str:
             return
-        from .location import RegionIdentifier
+        from general_utils.location import RegionIdentifier
         with DBHelper.transaction_scope(session) as session:
             address = session.query(Address).filter_by(name=address_str).first()
             if not address:
@@ -607,7 +611,7 @@ class DBHelper:
 
     @staticmethod
     def store_legal_case_from_case_number(case_number: str, session: SessionLocal) -> LegalCase:
-        from .fedresurs import LegalCaseFedresurs
+        from general_utils.fedresurs import LegalCaseFedresurs
         legal_case = session.execute(select(LegalCase).where(LegalCase.number.like(f'%{case_number}%'))).scalar()
         if not legal_case:
             fed_client = LegalCaseFedresurs(case_number)
