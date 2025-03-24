@@ -4,22 +4,17 @@ import os
 import time
 import logging
 import requests
-import sys
 from random import choices
 from string import ascii_letters, digits
 from multiprocessing import Process
 from dotenv import load_dotenv
 
+from general_utils.work_with_text_and_number import set_logger
 from general_utils.config import post_main_service
 
 load_dotenv()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s [%(name)-12s] %(levelname)-8s %(message)s')
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
-console_handler.setLevel(logging.DEBUG)
-logger.addHandler(console_handler)
+set_logger(logger)
 
 
 def run_spider(project: str, spider: str) -> None:
