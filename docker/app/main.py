@@ -52,6 +52,7 @@ altimeta = ['atctrade', 'aukcioncenter', 'ausib', 'etp_profit', 'ptp_center', 'r
 electro_torgi = ['electro_torgi', 'uralbidin', 'vetp']
 ruson = ['eltorg', 'nistp', 'promkonsalt', 'ruson', 'sistematorg']
 tenderstandartru = ['au_pro', 'tenderstandart', 'torggroup', 'viomitra']
+lot_online_catalog = ['lot_online_bankruptcy', 'lot_online_private_property']
 lot_online = ['rad', 'confiscate', 'lease', 'privatization', 'arrested']
 zalog = ['rshb', 'sbrf', 'rad']
 
@@ -62,9 +63,12 @@ projects = {
     'crawler_electro_torgi': electro_torgi,
     'crawler_eurtp': 'eurtp',
     'crawler_fabricant': 'fabrikant',
+    'crawler_heveya': 'heveya',
     'crawler_itender': itender,
     'crawler_kartoteka': 'kartoteka',
+    'crawler_lot_online_catalog': lot_online_catalog,
     'crawler_lot_online_old': lot_online,
+    'crawler_lot_online_zalog': zalog,
     'crawler_mets': 'mets',
     # 'crawler_moi_tender': 'moi_tender',
     'crawler_opentp': 'opentp',
@@ -77,7 +81,6 @@ projects = {
     'crawler_torgidv': 'torgidv',
     # 'crawler_torgigov': 'torgigov',
     'crawler_vertrades': 'vertrades',
-    'crawler_lot_online_zalog': zalog,
 }
 
 
