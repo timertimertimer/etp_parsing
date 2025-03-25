@@ -12,10 +12,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
 from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
 from general_utils.models.counterparty import CounterpartyType
-from general_utils.work_with_text_and_number import set_logger
 
 logger = logging.getLogger(__name__)
-set_logger(logger)
 retry_count = 5
 
 
@@ -410,11 +408,12 @@ def parse_trading_floors():
     with DBHelper.transaction_scope() as session:
         trading_floors = session.query(TradingFloor).all()
         for trading_floor in trading_floors:
-            fed_client = TradingFloorFedresurs(name=trading_floor.name)
-            trading_floor_counterparty_data = fed_client.parse()
-            if trading_floor_counterparty_data:
-                counterparty = DBHelper.store_counterparty_from_dict(trading_floor_counterparty_data, session)
-                trading_floor.counterparty_id = counterparty.id
+            if not trading_floor.counterparty_id:
+                fed_client = TradingFloorFedresurs(name=trading_floor.name)
+                trading_floor_counterparty_data = fed_client.parse()
+                if trading_floor_counterparty_data:
+                    counterparty = DBHelper.store_counterparty_from_dict(trading_floor_counterparty_data, session)
+                    trading_floor.counterparty_id = counterparty.id
 
 
 def parse_legal_cases():

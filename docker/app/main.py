@@ -9,12 +9,10 @@ from string import ascii_letters, digits
 from multiprocessing import Process
 from dotenv import load_dotenv
 
-from general_utils.work_with_text_and_number import set_logger
 from general_utils.config import post_main_service
 
 load_dotenv()
 logger = logging.getLogger(__name__)
-set_logger(logger)
 
 
 def run_spider(project: str, spider: str) -> None:
