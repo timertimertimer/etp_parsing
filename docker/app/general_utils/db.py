@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 db_config = read_db_config()
 connection_string = f'mysql+pymysql://{db_config["user"]}:{db_config["password"]}@{db_config["host"]}:{db_config["port"]}/{db_config["database"]}'
 
-engine = create_engine(connection_string, echo=False)
+engine = create_engine(connection_string, echo=False, pool_size=2, max_overflow=0)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
