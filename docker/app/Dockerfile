@@ -7,7 +7,8 @@ WORKDIR /var/www/app
 
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -y \
+RUN echo "deb http://deb.debian.org/debian/ bookworm main contrib non-free" > /etc/apt/sources.list.d/debian.list \
+    && apt-get update && apt-get install -y \
         curl \
         cron \
         sudo \
@@ -16,7 +17,7 @@ RUN apt-get update && apt-get install -y \
         git \
         zip \
         p7zip-full \
-        unrar-free \
+        unrar \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
