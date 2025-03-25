@@ -85,7 +85,7 @@ def main():
     start_time = time.time()
     logger.info(f"~~~~~ Started main ~~~~~")
     processes = []
-    for project, spider in list(projects.items())[:2]:
+    for project, spider in list(projects.items())[:4]:
         if isinstance(spider, list):
             for sp in spider:
                 p = Process(target=run_spider, args=(project, sp))
