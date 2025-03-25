@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class BaseSpider(scrapy.Spider):
     def __init__(self, data_origin, keys=None, *args, **kwargs):
         super(BaseSpider, self).__init__(*args, **kwargs)
+        DBHelper.create_new_connection()
         self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(data_origin, keys)
         if self.previous_trades is None:
             raise CloseSpider(f"Stopping the spider, no previous lots or trading floor found for {self.name}.")
