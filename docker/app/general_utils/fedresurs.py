@@ -2,6 +2,8 @@ import sys
 import os
 import logging
 import time
+from pathlib import Path
+from random import choice
 
 import requests
 from pymysql.err import OperationalError as PyMysqlOperationalError, ProgrammingError as PyMysqlProgrammingError
@@ -10,12 +12,16 @@ from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from general_utils import CheckIfCorrectContactInfo, return_parse_date
+from general_utils.config import proxy_path
 from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
 from general_utils.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
 retry_count = 5
-
+proxies = []
+if Path(proxy_path).exists():
+    with open(proxy_path, 'r') as f:
+        proxies = [row.strip() for row in f.readlines()]
 
 class Fedresurs:
     BACKEND_URL = 'https://fedresurs.ru/backend'
@@ -50,6 +56,19 @@ class Fedresurs:
                     logger.error(f'Connection error: {e}. All attempts failed')
                     raise e
                 logger.warning(f'Connection error: {e}. Trying again. Attempt {i + 1}')
+            except requests.exceptions.HTTPError as e:
+                if i + 1 == retry_count:
+                    logger.error(f'HTTP error: {e}. All attempts failed')
+                    raise e
+                logger.warning(f'HTTP error: {e}. Trying again. Attempt {i + 1}')
+                if response.status_code == 429:
+                    proxy = choice(proxies)
+                    proxy_dict = {
+                        "http": f"http://{proxy}",
+                        "https": f"http://{proxy}"
+                    }
+                    self.session.proxies.update(proxy_dict)
+                    logger.info(f'Proxy changed for fedresurs')
         return response.json()
 
     def search(self, search_string: str, url: str = None, path: str = '', params: dict = None, headers: dict = None):
