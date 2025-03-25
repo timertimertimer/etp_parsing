@@ -252,5 +252,14 @@ def get_org_info(last, first, middle):
         return string.capwords(' '.join(l))
 
 
+def set_logger(logger):
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s [%(name)-12s] %(levelname)-8s %(message)s')
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.DEBUG)
+    logger.addHandler(console_handler)
+
+
 if __name__ == '__main__':
     print(parse_classifiers('0401 Имущественные права: Права долевой собственности'))
