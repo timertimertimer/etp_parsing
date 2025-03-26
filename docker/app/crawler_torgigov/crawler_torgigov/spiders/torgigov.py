@@ -4,9 +4,9 @@ from typing import Iterable
 from scrapy import Request, FormRequest
 
 from general_utils.base_spider import BaseSpider
-from general_utils.items import CrawlerNonBankruptItem, CrawlerNonBankruptItemLoader
+from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
-from ..config import formdata, data_origin, search_link, trade_link
+from ..config import formdata, data_origin, search_link, trade_link, categories
 
 
 class TorgiGovSpider(BaseSpider):
@@ -16,12 +16,14 @@ class TorgiGovSpider(BaseSpider):
         super().__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        yield FormRequest(search_link, self.parse_serp, formdata=formdata, method='GET')
+        for category in categories:
+            formdata['catCode'] = category
+            yield FormRequest(search_link, self.parse_serp, formdata=formdata, method='GET')
 
     def parse_serp(self, response):
         data = json.loads(response.text)
         for trade in data['content']:
-            if trade['id'] not in self.previous_trades:
+            if f'https://torgi.gov.ru/new/public/notices/view/{trade["id"]}' not in self.previous_trades:
                 yield Request(f'{trade_link}/{trade["id"]}', self.parse_trade)
         if (int(data['number']) + 1) * int(data['size']) < int(data['totalElements']):
             formdata['page'] = str(int(formdata['page']) + 1)
@@ -30,7 +32,7 @@ class TorgiGovSpider(BaseSpider):
     def parse_trade(self, response):
         data = json.loads(response.text)
         combo = Combo(data)
-        loader = CrawlerNonBankruptItemLoader(CrawlerNonBankruptItem(), response=response)
+        loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', data_origin)
         loader.add_value('trading_id', combo.trading_id)
         loader.add_value('trading_link', combo.trading_link)
@@ -53,6 +55,5 @@ class TorgiGovSpider(BaseSpider):
             loader.add_value('lot_info', combo.get_lot_info(lot))
             loader.add_value('start_price', combo.get_start_price(lot))
             loader.add_value('step_price', combo.get_step_price(lot))
-            loader.add_value('min_price', combo.get_start_price(lot))
             loader.add_value('files', {'general': general_files, 'lot': combo.download_lot(lot)})
             yield loader.load_item()

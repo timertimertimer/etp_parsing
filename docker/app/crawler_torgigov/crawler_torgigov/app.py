@@ -15,7 +15,8 @@ class Combo:
 
     def download_general(self):
         files = list()
-        for file in self.data['attachments']:
+        attachments = self.data.get('attachments', [])
+        for file in attachments:
             link = f'https://torgi.gov.ru/new/file-store/v1/{file["fileId"]}'
             name = file['fileName']
             files.append(DownloadData(url=link, file_name=name))
@@ -23,7 +24,8 @@ class Combo:
 
     def download_lot(self, lot):
         files = list()
-        for file in lot['attachments']:
+        attachments = lot.get('attachments', [])
+        for file in attachments:
             link = f'https://torgi.gov.ru/new/file-store/v1/{file["fileId"]}'
             name = file['fileName']
             files.append(DownloadData(url=link, file_name=name))
@@ -44,13 +46,17 @@ class Combo:
     @property
     def trading_type(self):
         type_value = self.data['biddForm']['name']
+        if type_value == 'Сообщение о предоставлении (реализации)':
+            return
         d = {
-            'auction': ['Электронный аукцион']
+            'auction': ['Электронный аукцион', 'Аукцион'],
+            'offer': ['Публичное предложение', 'Публичное предложение (цессия)'],
+            'competition': ['Электронный конкурс', 'Конкурс']
         }
         for key in d:
             if type_value in d[key]:
                 return key
-        logger.error(f'{self.trading_link} :: Unknown trading type')
+        logger.error(f'{self.trading_link} :: Unknown trading type {type_value}')
 
     @property
     def trading_form(self):
@@ -76,7 +82,7 @@ class Combo:
         return
 
     def get_address(self, lot):
-        return lot['estateAddress']
+        return lot.get('estateAddress') or lot.get('rightHolderOrg', {}).get('legalAddress')
 
     @property
     def arbit_manager(self):
@@ -86,12 +92,14 @@ class Combo:
     def status(self):
         form_value = self.data['noticeStatus']
         d = {
-            'active': ['APPLICATIONS_SUBMISSION']
+            'active': ['APPLICATIONS_SUBMISSION', 'PUBLISHED'],
+            'pending': ['DETERMINING_WINNER'],
+            'ended': ['CANCELED', 'COMPLETED']
         }
         for key in d:
             if form_value in d[key]:
                 return key
-        logger.error(f'{self.trading_link} :: Unknown trading form')
+        logger.error(f'{self.trading_link} :: Unknown trading form {form_value}')
 
     def get_category(self, lot):
         return lot['category']['name']
@@ -128,14 +136,15 @@ class Combo:
 
     @property
     def start_date_trading(self):
-        return return_parse_date(self.data['auctionStartDate'])
+        if date := self.data.get('auctionStartDate'):
+            return return_parse_date(date)
 
     @property
     def end_date_trading(self):
         date = None
         if self.trading_type == 'offer':
             date = self.data['auctionStartDate']
-        elif self.trading_type == 'auction':
+        elif self.trading_type in ['auction', 'competition']:
             for el in self.data['attributes']:
                 if el['fullName'] == 'Дата, время подведения результатов торгов':
                     date = el.get('value')
@@ -145,10 +154,10 @@ class Combo:
             return return_parse_date(date)
 
     def get_start_price(self, lot):
-        return lot['priceMin']
+        return lot.get('priceMin')
 
     def get_step_price(self, lot):
-        return lot['priceStep']
+        return lot.get('priceStep')
 
     @property
     def periods(self):
