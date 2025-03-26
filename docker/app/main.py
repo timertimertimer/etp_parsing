@@ -89,7 +89,7 @@ def main():
     start_time = time.time()
     logger.info(f"~~~~~ Started main ~~~~~")
 
-    max_workers = 50
+    max_workers = 30
     futures = []
 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
