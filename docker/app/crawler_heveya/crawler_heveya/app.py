@@ -20,7 +20,7 @@ class Combo:
         for a in self.soup.find('div', class_='mainPhoto').find_all('img'):
             link = a.get("src")
             name = link.split('/')[-1]
-            files.append(DownloadData(link=link, file_name=name, refere=self.response.url))
+            files.append(DownloadData(url=link, file_name=name, refere=self.response.url))
         return files
 
     def download_general(self):
