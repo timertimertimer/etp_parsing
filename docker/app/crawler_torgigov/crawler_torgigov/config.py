@@ -1,6 +1,6 @@
 from general_utils.config import format_parse_date
 
-start_date = format_parse_date(7, '%Y-%m-%d')
+start_date = format_parse_date(1, '%Y-%m-%d')
 categories = {
     '22': 'Транспорт',
     '7': 'Недвижимость',
