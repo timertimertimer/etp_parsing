@@ -58,8 +58,8 @@ class BankrotCDTRFSpider(BaseSpider):
             current_page, format_post_data['ctl00$cph1$tbRequestTimeBegin1']
         )
         total_pages = combo.offer.get_total_pages()
-        current_page += 1
         logger.info(f'Current page: {current_page}/{total_pages}')
+        current_page += 1
         pagination_form = copy.deepcopy(format_post_data)
         pagination_form['ctl00$ToolkitScriptManager1'] = 'ctl00$cph1$upList|ctl00$cph1$pgvTrades$ctl22$lnkNext'
         pagination_form['ctl00$cph1$pgvTrades$ctl22$ddlPager'] = 'Номер страницы'
