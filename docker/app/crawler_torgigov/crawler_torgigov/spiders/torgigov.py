@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Iterable
 
 from scrapy import Request, FormRequest
@@ -8,6 +9,8 @@ from general_utils.items import EtpItemLoader, EtpItem
 from ..app import Combo
 from ..config import formdata, data_origin, search_link, trade_link, categories
 
+logger = logging.getLogger(__name__)
+
 
 class TorgiGovSpider(BaseSpider):
     name = 'torgigov'
@@ -16,18 +19,27 @@ class TorgiGovSpider(BaseSpider):
         super().__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        for category in categories:
-            formdata['catCode'] = category
-            yield FormRequest(search_link, self.parse_serp, formdata=formdata, method='GET')
+        for category_id, category in categories.items():
+            formdata['catCode'] = category_id
+            yield FormRequest(
+                search_link, self.parse_serp, formdata=formdata, method='GET',
+                cb_kwargs={'category': category, 'category_id': category_id}
+            )
 
-    def parse_serp(self, response):
+    def parse_serp(self, response, category, category_id):
         data = json.loads(response.text)
         for trade in data['content']:
             if f'https://torgi.gov.ru/new/public/notices/view/{trade["id"]}' not in self.previous_trades:
                 yield Request(f'{trade_link}/{trade["id"]}', self.parse_trade)
-        if (int(data['number']) + 1) * int(data['size']) < int(data['totalElements']):
+        parsed_elements = (int(data['number']) + 1) * int(data['size'])
+        if parsed_elements < int(data['totalElements']):
+            logger.info(f'Parsed elements ({category}): {parsed_elements}/{data["totalElements"]}')
             formdata['page'] = str(int(formdata['page']) + 1)
-            yield FormRequest(search_link, self.parse_serp, formdata=formdata, method='GET')
+            formdata['catCode'] = category_id
+            yield FormRequest(
+                search_link, self.parse_serp, formdata=formdata, method='GET',
+                cb_kwargs={'category': category, 'category_id': category_id}
+            )
 
     def parse_trade(self, response):
         data = json.loads(response.text)
