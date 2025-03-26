@@ -25,7 +25,7 @@ class Lot(Base):
             value = value.encode('utf-8')[:TEXT_MAX_LENGTH].decode('utf-8', errors='ignore')
         return value
 
-    price_start: Mapped[float] = mapped_column(Float)
+    price_start: Mapped[float] = mapped_column(Float, nullable=True)
     price_step: Mapped[float] = mapped_column(Float, nullable=True)
     auction_id: Mapped[int] = mapped_column(ForeignKey("auctions.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
