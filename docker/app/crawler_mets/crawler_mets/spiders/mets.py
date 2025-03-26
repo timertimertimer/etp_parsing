@@ -75,8 +75,9 @@ class MetsSpider(BaseSpider):
                 meta={"current_page": current_page, "trade_links": trade_links}
             )
         else:
-            for link in trade_links:
+            for i, link in enumerate(trade_links):
                 yield Request(UrlConfig.parse_url(link), callback=self.sort_trades, errback=self.errback_httpbin)
+                logger.info(f'Parsed trades: {i + 1}/{len(trade_links)}')
 
     def sort_trades(self, response):
         comp = ComposeTrades(response=response)
