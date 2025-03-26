@@ -1,9 +1,13 @@
+import logging
+
 from scrapy import Request, FormRequest
 
 from general_utils import EtpItem, EtpItemLoader
 from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import params, data_origin_url
+
+logger = logging.getLogger(__name__)
 
 
 class HeveyaSpider(BaseSpider):
@@ -29,6 +33,9 @@ class HeveyaSpider(BaseSpider):
                     status = 'active'
                 yield Request(link, self.parse_lot, cb_kwargs={'status': status, 'parsed_region': parsed_region})
         next_page = combo.soup.find('a', {'aria-label': 'pagination.next'})
+        current_page = combo.soup.find('li', class_="page-item active").find('span').get_text(strip=True)
+        total_pages = combo.soup.find_all('li', class_="page-item")[-1].find('span').get_text(strip=True)
+        logger.info(f'Current page: {current_page}/{total_pages}')
         if next_page:
             yield FormRequest(next_page['href'], self.parse_serp, method='GET')
 
