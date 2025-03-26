@@ -9,9 +9,9 @@ from scrapy_playwright.page import PageMethod
 
 from general_utils import EtpItem, EtpItemLoader, UrlConfig
 from general_utils.base_spider import BaseSpider
-from general_utils.config import trash_resources, start_date, write_log_to_file
+from general_utils.config import trash_resources, write_log_to_file
 from ..trades.combo import ComposeTrades
-from ..config import data_origin_url
+from ..config import data_origin_url, start_date
 from ..locators.serp_locator import SerpLocator
 
 

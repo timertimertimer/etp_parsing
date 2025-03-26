@@ -1,3 +1,5 @@
+from general_utils.config import format_parse_date
+
 domains = ['bankruptcy', 'private_property']
 data_origin = 'https://www.lot-online.ru/'
 
@@ -19,3 +21,4 @@ form_data = {
     'page': '1',
     'is_ajax': '1'
 }
+start_date = format_parse_date(7)

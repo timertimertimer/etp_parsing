@@ -5,11 +5,10 @@ import re
 from scrapy import Request, FormRequest
 
 from general_utils import EtpItemLoader, EtpItem
-from general_utils.config import start_date
 from ..locators_and_attributes.locators_attributes import Offer
 from ..manage_spiders.app import Compose
 from general_utils.base_spider import BaseSpider
-from ..config import data_origin_url
+from ..config import data_origin_url, start_date
 
 logger = logging.getLogger(__name__)
 
