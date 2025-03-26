@@ -20,7 +20,7 @@ class HeveyaSpider(BaseSpider):
         combo = Combo(response)
         for lot in combo.soup.find_all('div', class_='lot'):
             link = lot.find('a').get('href')
-            if link not in self.previous_lots:
+            if link not in self.previous_trades:
                 parsed_region = lot.find('div', class_='baseLocation').find('span', class_='text').get_text(strip=True)
                 status = combo.soup.find('div', class_='noBids')
                 if status:
