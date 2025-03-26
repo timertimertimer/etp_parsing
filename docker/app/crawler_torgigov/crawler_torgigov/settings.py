@@ -10,4 +10,4 @@ BOT_NAME = 'crawler_torgigov'
 
 SPIDER_MODULES = ['crawler_torgigov.spiders']
 NEWSPIDER_MODULE = 'crawler_torgigov.spiders'
-LOT_FILE = 'torgigov.log' if write_log_to_file else None
+LOG_FILE = 'torgigov.log' if write_log_to_file else None
