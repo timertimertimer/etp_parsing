@@ -64,6 +64,6 @@ class HeveyaSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
-        loader.add_value('categories', )
+        loader.add_value('categories', None)
         loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
         yield loader.load_item()
