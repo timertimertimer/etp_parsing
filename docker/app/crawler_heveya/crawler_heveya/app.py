@@ -173,7 +173,7 @@ class Combo:
 
     @property
     def lot_number(self):
-        return
+        return '1'
 
     @property
     def short_name(self):
