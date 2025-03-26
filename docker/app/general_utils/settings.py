@@ -21,7 +21,7 @@ DEFAULT_REQUEST_HEADERS = headers.copy()
 
 # LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-# LOG_FILE_APPEND = False
+LOG_FILE_APPEND = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
@@ -85,7 +85,7 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 CLOSESPIDER_PAGECOUNT = 5000
 
-SPLASH_URL = 'http://localhost:8050/'
+SPLASH_URL = 'http://splash:8050/'
 SPIDER_MIDDLEWARES = {
     'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
 }

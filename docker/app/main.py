@@ -8,6 +8,7 @@ from random import choices
 from string import ascii_letters, digits
 from multiprocessing import Process
 from dotenv import load_dotenv
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from general_utils.work_with_text_and_number import set_logger
 from general_utils.config import post_main_service
@@ -87,28 +88,30 @@ projects = {
 def main():
     start_time = time.time()
     logger.info(f"~~~~~ Started main ~~~~~")
-    processes = []
-    for project, spider in list(projects.items())[:4]:
-        if isinstance(spider, list):
-            for sp in spider:
-                p = Process(target=run_spider, args=(project, sp))
-                p.start()
-                processes.append((p, project, sp))
-        else:
-            p = Process(target=run_spider, args=(project, spider))
-            p.start()
-            processes.append((p, project, spider))
 
-    logger.info(f'Total processes: {len(processes)}')
-    for p, project, spider in processes:
-        p.join()
+    max_workers = 50
+    futures = []
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        for project, spider in projects.items():
+            if isinstance(spider, list):
+                for sp in spider:
+                    futures.append(executor.submit(run_spider, project, sp))
+            else:
+                futures.append(executor.submit(run_spider, project, spider))
+
+        # Ожидание завершения всех процессов
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                logger.error(f"Ошибка при выполнении парсера: {e}")
 
     duration = time.time() - start_time
     logger.info(f"~~~~~ Finished main in {duration:.2f} seconds ~~~~~")
 
     if post_main_service:
         after_spiders()
-
 
 if __name__ == '__main__':
     main()
