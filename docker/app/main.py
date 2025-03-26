@@ -80,7 +80,7 @@ projects = {
     'crawler_sibtoptrade': 'sibtoptrade',
     'crawler_tenderstandartru': tenderstandartru,
     'crawler_torgidv': 'torgidv',
-    # 'crawler_torgigov': 'torgigov',
+    'crawler_torgigov': 'torgigov',
     'crawler_vertrades': 'vertrades',
 }
 
