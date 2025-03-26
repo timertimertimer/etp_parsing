@@ -70,7 +70,7 @@ projects = {
     'crawler_lot_online_old': lot_online,
     'crawler_lot_online_zalog': zalog,
     'crawler_mets': 'mets',
-    # 'crawler_moi_tender': 'moi_tender',
+    'crawler_moi_tender': 'moi_tender',
     'crawler_opentp': 'opentp',
     # 'crawler_roseltorg': 'roseltorg',
     'crawler_rusonru': ruson,
