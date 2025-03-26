@@ -1,4 +1,4 @@
-from general_utils.config import absolute_download_path, relative_download_path, format_parse_date,
+from general_utils.config import absolute_download_path, relative_download_path, format_parse_date
 
 data_origin_url = 'https://m-ets.ru/'
 url_start = 'https://m-ets.ru/search'
