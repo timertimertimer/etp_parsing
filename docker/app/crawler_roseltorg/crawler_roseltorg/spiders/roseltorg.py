@@ -1,9 +1,14 @@
+import logging
+
 from scrapy import FormRequest, Request
 
+from general_utils import UrlConfig, EtpItemLoader, EtpItem
 from general_utils.base_spider import BaseSpider
+
 from ..app import Combo
 from ..config import formdata, search_link, data_origin
-from general_utils import UrlConfig
+
+logger = logging.getLogger(__name__)
 
 
 class RoseltorgSpider(BaseSpider):
@@ -13,6 +18,8 @@ class RoseltorgSpider(BaseSpider):
 
     def __init__(self):
         super().__init__(data_origin)
+        self.total_trades = 0
+        self.parsed_trades = 0
 
     def start_requests(self):
         yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='GET')
@@ -20,14 +27,54 @@ class RoseltorgSpider(BaseSpider):
     def parse_serp(self, response):
         combo = Combo(response)
         for trading_card in combo.get_trading_cards():
-            link = combo.trading_link(trading_card)
+            link = combo.parse_link(UrlConfig.url_join(data_origin, combo.trading_link(trading_card)))
             if link not in self.previous_trades:
-                self.unique_links.add(link)
+                trading_id = combo.trading_id(trading_card)
+                trading_number = combo.trading_number(trading_card)
+                yield Request(link, self.parse_trade, cb_kwargs={
+                    'trading_id': trading_id, 'trading_number': trading_number
+                })
+                self.previous_trades.append(link)
+                self.total_trades += 1
         if next_page := combo.get_next_page_link():
             yield Request(next_page, self.parse_serp)
-        else:
-            for link in self.unique_links:
-                yield Request(UrlConfig.url_join(data_origin, link), self.parse_trade)
 
-    def parse_trade(self, response):
+    def parse_trade(self, response, trading_id, trading_number):
         combo = Combo(response)
+        loader = EtpItemLoader(EtpItem(), response=response)
+        loader.add_value("data_origin", data_origin)
+        loader.add_value("trading_id", trading_id)
+        loader.add_value("trading_link", response.url)
+        loader.add_value("trading_number", trading_number)
+        loader.add_value("trading_type", combo.trading_type)
+        loader.add_value("trading_form", combo.trading_form)
+        loader.add_value("msg_number", combo.msg_number)
+        loader.add_value("case_number", combo.case_number)
+        loader.add_value("trading_org", combo.trading_org)
+        loader.add_value("trading_org_inn", combo.trading_org_inn)
+        loader.add_value("trading_org_contacts", combo.trading_org_contacts)
+        loader.add_value("arbit_manager", combo.arbit_manager)
+        loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
+        loader.add_value("arbit_manager_org", combo.arbit_manager_org)
+        loader.add_value("debtor_inn", combo.debtor_inn)
+        for i, lot in enumerate(combo.get_lots()):
+            loader.add_value("address", combo.address(lot))
+            loader.add_value("status", combo.status)
+            loader.add_value("categories", combo.categories(lot))
+            loader.add_value("lot_id", combo.lot_id)
+            loader.add_value("lot_link", combo.lot_link)
+            loader.add_value("lot_number", i + 1)
+            loader.add_value("short_name", combo.short_name)
+            loader.add_value("lot_info", combo.lot_info)
+            loader.add_value("property_information", combo.property_information)
+            loader.add_value("start_date_requests", combo.start_date_requests(lot))
+            loader.add_value("end_date_requests", combo.end_date_requests(lot))
+            loader.add_value("start_date_trading", combo.start_date_trading(lot))
+            loader.add_value("end_date_trading", combo.end_date_trading)
+            loader.add_value("start_price", combo.start_price(lot))
+            loader.add_value("step_price", combo.step_price(lot))
+            loader.add_value("periods", combo.periods)
+            loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot(lot)})
+        self.parsed_trades += 1
+        logger.info(f'Parsed {self.parsed_trades}/{self.total_trades} trades')
+        yield loader.load_item()

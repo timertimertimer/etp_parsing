@@ -233,14 +233,14 @@ class DBHelper:
 
     @staticmethod
     def store_item(item, trading_floor_id):
-        with DBHelper.transaction_scope() as session:
+        with DBHelper.transaction_scope():
             arbitrator = DBHelper.store_and_get_arbitrator(item)
             organizer = DBHelper.store_and_get_organizer(item, arbitrator)
             debtor = DBHelper.store_and_get_debtor(item)
             auction = DBHelper.store_and_get_auction(
                 item=item, organizer=organizer, arbitrator=arbitrator, debtor=debtor, trading_floor_id=trading_floor_id
             )
-            if case_number := item['case_number']:
+            if case_number := item.get('case_number'):
                 legal_case = DBHelper.store_legal_case_from_case_number(case_number)
                 auction.legal_case_id = legal_case.id
             lot = DBHelper.store_and_get_lot(item, auction.id)
@@ -252,14 +252,15 @@ class DBHelper:
             item: EtpItem, trading_floor_id: int,
             organizer: Counterparty = None, arbitrator: Counterparty = None, debtor: Counterparty = None
     ):
-        auction = DBHelper.session.query(Auction).filter_by(ext_id=item['trading_id'],
-                                                            trading_floor_id=trading_floor_id).first()
+        auction = DBHelper.session.query(Auction).filter_by(
+            ext_id=item['trading_id'], trading_floor_id=trading_floor_id
+        ).first()
         if not auction:
             if not all([organizer, arbitrator]):
                 trading_floor_name = DBHelper.session.query(TradingFloor.name).filter_by(id=trading_floor_id).scalar()
                 auction_client = AuctionFedresurs(
                     trading_id=item['trading_id'], trading_number=item['trading_number'],
-                    case_number=item['case_number'], trading_floor_name=trading_floor_name
+                    case_number=item.get('case_number'), trading_floor_name=trading_floor_name
                 )
                 if auction_client.get_guid():
                     auction_client.parse_main_info()
@@ -286,7 +287,7 @@ class DBHelper:
         if not address_str:
             return
         from .location import RegionIdentifier
-        with DBHelper.transaction_scope() as session:
+        with DBHelper.transaction_scope():
             address = DBHelper.session.query(Address).filter_by(name=address_str).first()
             if not address:
                 address = Address(name=address_str)
@@ -560,7 +561,8 @@ class DBHelper:
     @staticmethod
     def store_legal_case_from_case_number(case_number: str) -> LegalCase:
         from .fedresurs import LegalCaseFedresurs
-        legal_case = DBHelper.session.execute(select(LegalCase).where(LegalCase.number.like(f'%{case_number}%'))).scalar()
+        legal_case = DBHelper.session.execute(
+            select(LegalCase).where(LegalCase.number.like(f'%{case_number}%'))).scalar()
         if not legal_case:
             fed_client = LegalCaseFedresurs(case_number)
             fed_client.parse()

@@ -33,6 +33,8 @@ class ArchiveFiles:
         with self.archive_class(str(self.absolute_archive_path)) as archive:
             for file_name in archive.namelist():
                 fixed_name = sanitize_filename(fix_encoding(file_name))
+                if len(fixed_name) > 75:
+                    fixed_name = fixed_name[:30] + '_' + fixed_name[-35::1]
                 fixed_absolute_file_path = Path(self.absolute_archive_path.parent / fixed_name)
                 fixed_relative_file_path = Path(self.relative_archive_path.parent / fixed_name)
                 if fixed_name.endswith('/'):

@@ -41,8 +41,8 @@ def after_spiders():
         "X-PARSER-SIGNATURE": signature
     }
     response = requests.post(url, headers=headers)
-    print("Status Code:", response.status_code)
-    print("Response:", response.text)
+    logger.info(f"Status Code: {response.status_code}",)
+    logger.info(f"Response: {response.text}")
 
 
 itender = [
@@ -112,6 +112,7 @@ def main():
 
     if post_main_service:
         after_spiders()
+
 
 if __name__ == '__main__':
     main()
