@@ -21,7 +21,7 @@ DEFAULT_REQUEST_HEADERS = headers.copy()
 
 # LOG_LEVEL = 'INFO'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_FILE_APPEND = False
+# LOG_FILE_APPEND = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html

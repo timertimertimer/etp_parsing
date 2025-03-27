@@ -30,9 +30,9 @@ def run_spider(project: str, spider: str) -> None:
 
 def after_spiders():
     key_secret = os.getenv("PARSER_SECRET")
-    url = os.getenv("MAIN_SERVICE_URL")
+    url = os.getenv("SITE_URL")
     if not key_secret or not url:
-        raise ValueError("PARSER_SECRET или MAIN_SERVICE_URL не заданы в .env")
+        raise ValueError("PARSER_SECRET или SITE_URL не заданы в .env")
     url += "/api/parser/import"
     key = ''.join(choices(ascii_letters + digits, k=32))
     signature = hmac.new(key_secret.encode('utf-8'), key.encode('utf-8'), hashlib.sha256).hexdigest()
