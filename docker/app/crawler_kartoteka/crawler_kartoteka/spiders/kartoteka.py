@@ -16,7 +16,8 @@ class KartotekaSpider(BaseSpider):
     start_urls = ["https://www.kartoteka.ru/bankruptcy2/"]
     custom_settings = {
         'LOG_FILE': f'{name}.log' if write_log_to_file else None,
-        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources,
+        "PLAYWRIGHT_LAUNCH_OPTIONS": {"timeout": 60 * 1000}
     }
 
     def __init__(self):
