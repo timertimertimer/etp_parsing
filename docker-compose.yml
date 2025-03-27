@@ -85,7 +85,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./:/var/www/app
-      #- ./docker/app/supervisord.conf:/etc/supervisor/supervisord.conf
+      - ./docker/app/supervisord.conf:/etc/supervisor/supervisord.conf
     depends_on:
       - mysql
       - splash
