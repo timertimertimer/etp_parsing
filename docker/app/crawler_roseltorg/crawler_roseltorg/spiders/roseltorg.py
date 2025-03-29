@@ -57,6 +57,8 @@ class RoseltorgSpider(BaseSpider):
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)
         loader.add_value("debtor_inn", combo.debtor_inn)
+        if trading_id == '22000010210000006226':
+            pass
         for i, lot in enumerate(combo.get_lots()):
             loader.add_value("address", combo.address(lot))
             loader.add_value("status", combo.status)
@@ -75,6 +77,6 @@ class RoseltorgSpider(BaseSpider):
             loader.add_value("step_price", combo.step_price(lot))
             loader.add_value("periods", combo.periods)
             loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot(lot)})
+            yield loader.load_item()
         self.parsed_trades += 1
         logger.info(f'Parsed {self.parsed_trades}/{self.total_trades} trades')
-        yield loader.load_item()
