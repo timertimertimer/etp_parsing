@@ -178,11 +178,6 @@ class DBHelper:
             return session.query(Address).options(joinedload(Address.region)).all()
 
     @staticmethod
-    def get_region_names():
-        with DBHelper.transaction_scope(commit=False) as session:
-            return session.scalars(select(Region.name)).all()
-
-    @staticmethod
     def get_cities_with_regions():
         with DBHelper.transaction_scope(commit=False) as session:
             return session.query(City).options(joinedload(City.region)).all()

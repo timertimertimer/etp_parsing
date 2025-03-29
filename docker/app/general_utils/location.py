@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 import logging
 import pymorphy3
@@ -20,6 +25,10 @@ morph_vocab = MorphVocab()
 extractor = AddrExtractor(morph_vocab)
 morph = pymorphy3.MorphAnalyzer()
 region_keywords = {"область", "край", "округ", "республика", "город", 'автономный округ'}
+use_api_services = {
+    'yandex': False,
+    'dadata': True
+}
 
 
 def parse_address(address: str):
@@ -101,6 +110,7 @@ class RegionIdentifier:
     storage = None
     regions = None
     cities = None
+    oktmos = None
 
     @classmethod
     def get_storage(cls):
@@ -120,6 +130,12 @@ class RegionIdentifier:
             cls.cities = cls._fetch_cities()
         return cls.cities
 
+    @classmethod
+    def get_oktmos(cls):
+        if cls.oktmos is None:
+            cls.oktmos = cls._fetch_oktmos()
+        return cls.oktmos
+
     @staticmethod
     def _fetch_addresses():
         d = {}
@@ -135,7 +151,7 @@ class RegionIdentifier:
     @staticmethod
     def _fetch_regions():
         try:
-            return DBHelper.get_region_names()
+            return [region.name for region in DBHelper.get_all(Region)]
         except Exception as e:
             logger.error(f'Error in fetching addresses: {e}', exc_info=True)
 
@@ -151,9 +167,18 @@ class RegionIdentifier:
         return c
 
     @staticmethod
+    def _fetch_oktmos():
+        o = {}
+        try:
+            return {region.oktmo: region.name for region in DBHelper.get_all(Region)}
+        except Exception as e:
+            logger.error(f'Error in fetching addresses: {e}', exc_info=True)
+        return o
+
+    @staticmethod
     def get_yandex_region(address: str):
         if not YANDEX_API_KEY:
-            logger.warning('No api key for yandex in api_keys.json')
+            logger.warning('No api key for Yandex API')
             return
         params = {
             'apikey': YANDEX_API_KEY,
@@ -185,6 +210,42 @@ class RegionIdentifier:
         return region
 
     @staticmethod
+    def get_dadata_region(address: str):
+        if not DADATA_API_TOKEN or not DADATA_API_SECRET:
+            logger.warning('No api key for Dadata API')
+            return
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': f'Token {DADATA_API_TOKEN}',
+            'X-Secret': DADATA_API_SECRET
+        }
+        response = requests.post('https://cleaner.dadata.ru/api/v1/clean/address', headers=headers, json=[address])
+        data = response.json()
+        if not data:
+            pass
+        region = data[0]['region']
+        region_type_full = data[0]['region_type_full']
+        region_with_type = data[0]['region_with_type']
+        oktmo = data[0]['oktmo']
+        region_type = data[0]['region_type']
+        postal_code = data[0]['postal_code']
+        if region_type_full == 'город':
+            return RegionIdentifier.get_cities()[region.lower()]
+        elif postal_code:
+            return RegionIdentifier._get_region_from_index(postal_code)
+        elif oktmo:
+            return (
+                    RegionIdentifier.get_oktmos().get(int(oktmo)) or
+                    RegionIdentifier.get_oktmos().get(int(oktmo[:3] + '0' * 5)) or
+                    RegionIdentifier.get_oktmos().get(int(oktmo[:2] + '0' * 6))
+            )
+        elif region:
+            return region
+        else:
+            return
+
+    @staticmethod
     def get_region(address: str):
         address = CheckIfCorrectContactInfo.check_address(address)
         if not address:
@@ -193,27 +254,31 @@ class RegionIdentifier:
 
         if (
                 region :=
-                # Region._get_region_from_storage(address) or
+                # RegionIdentifier._get_region_from_storage(address) or
                 RegionIdentifier._get_region_from_index(address) or
                 RegionIdentifier._get_region_from_natasha(address) or
                 RegionIdentifier._get_region_from_natasha(parsed_address) or
-                RegionIdentifier._get_region_from_text(parsed_address)
-                # or Region._get_region_from_api(parsed_address)
+                RegionIdentifier._get_region_from_text(parsed_address) or
+                RegionIdentifier._get_region_from_api(address)
         ):
-            # Region.storage[address.lower()] = region
-            # Region.storage[parsed_address.lower()] = region
+            # RegionIdentifier.storage[address.lower()] = region
+            # RegionIdentifier.storage[parsed_address.lower()] = region
             return region
         else:
             logger.warning(f'Not found region for address: "{address}"')
 
     @staticmethod
-    def _get_region_from_storage(address: str):
+    def _get_region_from_storage(address: str | None):
+        if not address:
+            return
         if region := RegionIdentifier.get_storage().get(address.lower()):
             logger.info(f'Got from storage. Address: "{address}", Region: "{region}"')
             return region
 
     @staticmethod
-    def _get_region_from_index(address: str):
+    def _get_region_from_index(address: str | None):
+        if not address:
+            return
         index = get_index(address)
         if index:
             if region := indexes.get(index[:3]):
@@ -240,8 +305,10 @@ class RegionIdentifier:
             if type_ in region_keywords:
                 if type_ == 'город':
                     normalized_address = normalize_phrase(value)
-                    return RegionIdentifier.get_cities().get(normalized_address) or RegionIdentifier.get_cities().get(
-                        value)
+                    return (
+                            RegionIdentifier.get_cities().get(normalized_address) or
+                            RegionIdentifier.get_cities().get(value)
+                    )
                 normalized_address = normalize_phrase(f'{value} {type_}')
                 normalized_address2 = normalize_phrase(f'{type_} {value}')
                 if not (
@@ -266,9 +333,14 @@ class RegionIdentifier:
             pass
 
     @staticmethod
-    def _get_region_from_api(address: str):
-        if region := RegionIdentifier.get_yandex_region(address):
-            logger.info(f'Got from API. Address: "{address}", Region: "{region}"')
+    def _get_region_from_api(address: str | None):
+        if not address or len(address) < 3:
+            return
+        if use_api_services['yandex'] and (region := RegionIdentifier.get_yandex_region(address)):
+            logger.info(f'Got from Yandex API. Address: "{address}", Region: "{region}"')
+            return region
+        if use_api_services['dadata'] and (region := RegionIdentifier.get_dadata_region(address)):
+            logger.info(f'Got from Dadata API. Address: "{address}", Region: "{region}"')
             return region
 
 
@@ -285,5 +357,16 @@ def test_region_from_addresses_table():
 
 
 if __name__ == '__main__':
-    print(RegionIdentifier.get_region(
-        'республика северная осетия - алания, ст. луковская моздокского р-на, ул. моздокская дом 124'))
+    from sqlalchemy import select
+    from general_utils.models import Address, Region
+
+    with DBHelper.transaction_scope(commit=False) as session:
+        addresses = session.execute(select(Address).where(Address.region_id.is_(None))).scalars().all()
+        for address in addresses:
+            region_name = RegionIdentifier.get_region(address.name)
+            region = session.execute(select(Region).where(Region.name.like(f'%{region_name}%'))).scalar()
+            if region:
+                address.region_id = region.id
+                session.commit()
+            else:
+                logger.warning(f'No region found for address: {address.name}')
