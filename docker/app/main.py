@@ -73,7 +73,7 @@ projects = {
     'crawler_mets': 'mets',
     'crawler_moi_tender': 'moi_tender',
     'crawler_opentp': 'opentp',
-    # 'crawler_roseltorg': 'roseltorg',
+    'crawler_roseltorg': 'roseltorg',
     'crawler_rusonru': ruson,
     'crawler_rutrade24': 'rutrade24',
     'crawler_sberbank': 'sberbank',
