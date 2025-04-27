@@ -23,3 +23,4 @@ alembic
 pymorphy3
 natasha
 python-dotenv
+patchright

@@ -5,7 +5,9 @@ import time
 from pathlib import Path
 from random import choice
 
+import psutil
 import requests
+from patchright.sync_api import sync_playwright
 from pymysql.err import OperationalError as PyMysqlOperationalError, ProgrammingError as PyMysqlProgrammingError
 from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError
 
@@ -23,6 +25,7 @@ if Path(proxy_path).exists():
     with open(proxy_path, 'r') as f:
         proxies = [row.strip() for row in f.readlines()]
 
+
 class Fedresurs:
     BACKEND_URL = 'https://fedresurs.ru/backend'
     HEADERS = {
@@ -36,10 +39,10 @@ class Fedresurs:
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
     }
 
-    def __init__(self):
+    def __init__(self, session: requests.Session = None):
         self._guid = None
         self.data = dict()
-        self.session = requests.Session()
+        self.session = session or requests.Session()
         self.session.headers.update(self.HEADERS)
 
     def make_request(self, *args, **kwargs):
@@ -69,7 +72,31 @@ class Fedresurs:
                     }
                     self.session.proxies.update(proxy_dict)
                     logger.info(f'Proxy changed for fedresurs')
+                elif response.status_code == 403:
+                    logger.info(f'Updating cookie for fedresurs')
+                    self.update_cookies()
         return response.json()
+
+    def update_cookies(self):
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir="browser_data",
+                channel="chrome",
+                headless=False,
+                no_viewport=True,
+            )
+
+            page = context.pages[0] if context.pages else context.new_page()
+            url = "https://fedresurs.ru"
+            page.goto(url)
+            cookies = context.cookies()
+            for cookie in cookies:
+                self.session.cookies.set(
+                    name=cookie['name'],
+                    value=cookie['value'],
+                    domain=cookie['domain'],
+                    path=cookie['path']
+                )
 
     def search(self, search_string: str, url: str = None, path: str = '', params: dict = None, headers: dict = None):
         data = self.make_request(
@@ -96,8 +123,8 @@ class CounterpartyFedresurs(Fedresurs):
     PATH = ''
     BACKEND_URL = f'https://fedresurs.ru/backend/{PATH}'
 
-    def __init__(self, inn: str = None, name: str = None, guid: str = None, data: dict = None):
-        super().__init__()
+    def __init__(self, inn: str = None, name: str = None, guid: str = None, data: dict = None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.data = self.data or data or dict()
         self.data['inn'] = self.data.get('inn', inn)
         self.data['name'] = self.data.get('name', name)
@@ -156,7 +183,7 @@ class CounterpartyFedresurs(Fedresurs):
         for membership in data:
             sro = CompanyFedresurs(data=dict(
                 guid=membership['sro']['guid'], type=CounterpartyType.legal_entity, short_name=membership['sro']['name']
-            ))
+            ), session=self.session)
             sro.parse_main_info()
             sro.data['message_number'] = membership.get('messageInclude', {}).get('number')
             sro.data['activity_type'] = membership.get('sroActivities', [None])[0]
@@ -487,4 +514,5 @@ def fix_debtor_messages():
 
 
 if __name__ == '__main__':
-    parse_trading_floors()
+    data = TradingFloorFedresurs(name='АО "НИС"').parse()
+    print(data)

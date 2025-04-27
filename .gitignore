@@ -167,3 +167,4 @@ api_keys.json
 proxy*
 *.html
 files/
+browser_data/
