@@ -1,6 +1,6 @@
 import logging
 
-from general_utils.middlewares import ETPDownloaderMiddleware
+from app.crawlers.middlewares import ETPDownloaderMiddleware
 
 logger = logging.getLogger(__name__)
 

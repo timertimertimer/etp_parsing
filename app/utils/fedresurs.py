@@ -1,3 +1,4 @@
+import shutil
 import sys
 import os
 import logging
@@ -5,7 +6,6 @@ import time
 from pathlib import Path
 from random import choice
 
-import psutil
 import requests
 from patchright.sync_api import sync_playwright
 from pymysql.err import OperationalError as PyMysqlOperationalError, ProgrammingError as PyMysqlProgrammingError
@@ -72,7 +72,7 @@ class Fedresurs:
                     }
                     self.session.proxies.update(proxy_dict)
                     logger.info(f'Proxy changed for fedresurs')
-                elif response.status_code == 403:
+                elif response.status_code in [401, 403]:
                     logger.info(f'Updating cookie for fedresurs')
                     self.update_cookies()
         return response.json()
@@ -83,12 +83,12 @@ class Fedresurs:
                 user_data_dir="browser_data",
                 channel="chrome",
                 headless=False,
-                no_viewport=True,
+                # no_viewport=True,
             )
-
-            page = context.pages[0] if context.pages else context.new_page()
-            url = "https://fedresurs.ru"
+            url = "http://fedresurs.ru"
+            page = context.new_page()
             page.goto(url)
+            time.sleep(5)
             cookies = context.cookies()
             for cookie in cookies:
                 self.session.cookies.set(
@@ -97,6 +97,8 @@ class Fedresurs:
                     domain=cookie['domain'],
                     path=cookie['path']
                 )
+            print('ok')
+        shutil.rmtree(Path().cwd() / 'browser_data')
 
     def search(self, search_string: str, url: str = None, path: str = '', params: dict = None, headers: dict = None):
         data = self.make_request(

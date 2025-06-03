@@ -1,7 +1,7 @@
 import urllib.parse
 
 
-class UrlConfig:
+class URL:
 
     @staticmethod
     def parse_url(url):

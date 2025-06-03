@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CheckIfCorrectContactInfo:
+class Contacts:
 
     @staticmethod
     def check_inn(inn):

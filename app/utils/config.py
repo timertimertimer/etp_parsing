@@ -1,14 +1,12 @@
 import csv
-import os
+import enum
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 from random import choice
-from dotenv import load_dotenv
 
-load_dotenv()
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 project_main_dir = PurePath(__file__).parent.parent
-
 absolute_download_path = project_main_dir / 'set_main_path_to_download'
 relative_download_path = project_main_dir / 'set_relative_path_to_download'
 
@@ -52,9 +50,20 @@ with open(f'{lot_classifiers_path}', 'r', encoding='utf-8-sig') as f:
         lot_classifiers_code_to_name[row['Код']] = row['Наименование']
         lot_classifiers_name_to_code[row['Наименование']] = row['Код']
 
-YANDEX_API_KEY = os.getenv('YANDEX_API_KEY')
-DADATA_API_TOKEN = os.getenv('DADATA_API_TOKEN')
-DADATA_API_SECRET = os.getenv('DADATA_API_SECRET')
+env_path = Path(__file__).parent.parent / ".env"
+
+
+class ENV(BaseSettings):
+    model_config = SettingsConfigDict(env_file=env_path, env_file_encoding="utf-8", extra="ignore")
+
+    YANDEX_API_KEY: str
+    DADATA_API_TOKEN: str
+    DADATA_API_SECRET: str
+    PARSER_SECRET: str
+    SITE_URL: str
+
+
+envs = ENV()
 
 
 def format_parse_date(days_: int, time_format=None):
@@ -77,7 +86,6 @@ headers = {
     'Accept-Language': 'ru-RU,ru;q=0.9',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    # 'DNT': '1',
     'Pragma': 'no-cache',
     'Sec-Fetch-Dest': 'document',
     'Sec-Fetch-Mode': 'navigate',
@@ -102,3 +110,19 @@ trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'even
 download_files_from_get_url = True
 write_log_to_file = True
 post_main_service = True
+
+
+class AuctionProperty(str, enum.Enum):
+    bankruptcy = 'bankruptcy'
+
+    arrested = "arrested"
+
+    commercial = "commercial"
+
+    legal_entities = "legal_entities"
+    fz44 = "fz44"
+    capital_repair = "capital_repair"
+
+    fz223 = "fz223"
+
+    rent = "rent"

@@ -20,7 +20,7 @@ RUN echo "deb http://deb.debian.org/debian/ bookworm main contrib non-free" > /e
         unrar \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY ../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN deluser www-data && \
