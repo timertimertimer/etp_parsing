@@ -6,7 +6,7 @@ from scrapy.exceptions import CloseSpider
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from .db import DBHelper
+from app.db import DBHelper
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +15,24 @@ class BaseSpider(scrapy.Spider):
     def __init__(self, data_origin, keys=None, *args, **kwargs):
         super(BaseSpider, self).__init__(*args, **kwargs)
         DBHelper.create_new_connection()
-        self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(data_origin, keys)
+        self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(
+            data_origin, keys
+        )
         if self.previous_trades is None:
-            raise CloseSpider(f"Stopping the spider, no previous lots or trading floor found for {self.name}.")
+            raise CloseSpider(
+                f"Stopping the spider, no previous lots or trading floor found for {self.name}."
+            )
         logger.info(f"Previous trades: {len(self.previous_trades)}")
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super().from_crawler(crawler, *args, **kwargs)
-        crawler.signals.connect(spider.spider_opened, signal=signals.spider_opened)
-        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
+        crawler.signals.connect(
+            spider.spider_opened, signal=signals.spider_opened
+        )
+        crawler.signals.connect(
+            spider.spider_closed, signal=signals.spider_closed
+        )
         return spider
 
     def spider_opened(self):
@@ -39,7 +47,13 @@ class BaseSpider(scrapy.Spider):
             f"Spider {self.name} closed. "
             f"Scraped {self.counter} items in {duration:.2f} seconds with status active {status_active}."
         )
-        DBHelper.save_counter_and_duration(self.counter, duration, status_active, self.name, self.trading_floor_id)
+        DBHelper.save_counter_and_duration(
+            self.counter,
+            duration,
+            status_active,
+            self.name,
+            self.trading_floor_id,
+        )
 
     def errback_httpbin(self, failure):
         self.logger.error(repr(failure))

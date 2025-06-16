@@ -168,3 +168,4 @@ proxy*
 *.html
 files/
 browser_data/
+uv.lock

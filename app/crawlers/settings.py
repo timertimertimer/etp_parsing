@@ -1,6 +1,4 @@
-from pathlib import Path
-
-from general_utils.config import headers, proxy_path
+from general_utils.config import headers
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -16,11 +14,11 @@ CONCURRENT_REQUESTS_PER_IP = 16
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
 # Override the default request headers:
-USER_AGENT = headers['User-Agent']
+USER_AGENT = headers["User-Agent"]
 DEFAULT_REQUEST_HEADERS = headers.copy()
 
 # LOG_LEVEL = 'INFO'
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 # LOG_FILE_APPEND = False
 
 # Enable or disable spider middlewares
@@ -32,12 +30,12 @@ LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 120,
-    'general_utils.middlewares.UserAgentMiddleware': 150,
-    'general_utils.middlewares.ETPDownloaderMiddleware': 160,
-    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
-    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
-    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
+    "scrapy.downloadermiddlewares.cookies.CookiesMiddleware": 120,
+    "general_utils.middlewares.UserAgentMiddleware": 150,
+    "general_utils.middlewares.ETPDownloaderMiddleware": 160,
+    "rotating_proxies.middlewares.RotatingProxyMiddleware": 610,
+    "rotating_proxies.middlewares.BanDetectionMiddleware": 620,
+    "scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware": 810,
 }
 
 # ROTATING_PROXY_LIST_PATH = proxy_path if Path(proxy_path).exists() else None
@@ -52,12 +50,26 @@ ROTATING_PROXY_PAGE_RETRY_TIMES = 7
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'general_utils.pipelines.BasePipeline': 300,
+    "general_utils.pipelines.BasePipeline": 300,
 }
 RETRY_ENABLED = True
 RETRY_TIMES = 7
-RETRY_HTTP_CODES = [500, 502, 503, 504, 522,
-                    524, 408, 429, 407, 403, 404, 400, 401, 498]
+RETRY_HTTP_CODES = [
+    500,
+    502,
+    503,
+    504,
+    522,
+    524,
+    408,
+    429,
+    407,
+    403,
+    404,
+    400,
+    401,
+    498,
+]
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 AUTOTHROTTLE_ENABLED = True
@@ -70,7 +82,7 @@ AUTOTHROTTLE_MAX_DELAY = 120
 AUTOTHROTTLE_TARGET_CONCURRENCY = 2
 # Enable showing throttling stats for every response received:
 AUTOTHROTTLE_DEBUG = False
-DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
+DUPEFILTER_CLASS = "scrapy.dupefilters.BaseDupeFilter"
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
 # HTTPCACHE_ENABLED = True
@@ -85,9 +97,9 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 CLOSESPIDER_PAGECOUNT = 5000
 
-SPLASH_URL = 'http://splash:8050/'
+SPLASH_URL = "http://splash:8050/"
 SPIDER_MIDDLEWARES = {
-    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+    "scrapy_splash.SplashDeduplicateArgsMiddleware": 100,
 }
 
 SPLASH_COOKIES_DEBUG = False

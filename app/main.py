@@ -24,7 +24,9 @@ def run_spider(project: str, spider: str) -> None:
     os.system(f"cd {project} && /usr/local/bin/scrapy crawl {spider}")
 
     spider_duration = time.time() - start_spider_time
-    logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
+    logger.info(
+        f"Finished {project}/{spider} in {spider_duration:.2f} seconds"
+    )
 
 
 def after_spiders():
@@ -33,54 +35,80 @@ def after_spiders():
     if not key_secret or not url:
         raise ValueError("PARSER_SECRET или SITE_URL не заданы в .env")
     url += "/api/parser/import"
-    key = ''.join(choices(ascii_letters + digits, k=32))
-    signature = hmac.new(key_secret.encode('utf-8'), key.encode('utf-8'), hashlib.sha256).hexdigest()
-    headers = {
-        "X-PARSER-KEY": key,
-        "X-PARSER-SIGNATURE": signature
-    }
+    key = "".join(choices(ascii_letters + digits, k=32))
+    signature = hmac.new(
+        key_secret.encode("utf-8"), key.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+    headers = {"X-PARSER-KEY": key, "X-PARSER-SIGNATURE": signature}
     response = requests.post(url, headers=headers)
-    logger.info(f"Status Code: {response.status_code}", )
+    logger.info(
+        f"Status Code: {response.status_code}",
+    )
     logger.info(f"Response: {response.text}")
 
 
 itender = [
-    'alfalot', 'arbbitlot', 'arbitat', 'bepspb', 'centerr', 'etpu', 'etpugra', 'ets24', 'gloriaservice', 'meta_invest',
-    'propertytrade', 'selt_online', 'tender_one', 'tendergarant', 'torgibankrot', 'utender', 'utpl', 'zakazrf'
+    "alfalot",
+    "arbbitlot",
+    "arbitat",
+    "bepspb",
+    "centerr_bankrupt",
+    "centerr_business",
+    "etpu",
+    "etpugra",
+    "ets24",
+    "gloriaservice",
+    "meta_invest",
+    "propertytrade",
+    "selt_online",
+    "tender_one",
+    "tendergarant",
+    "torgibankrot",
+    "utender",
+    "utpl",
+    "zakazrf",
 ]
-altimeta = ['atctrade', 'aukcioncenter', 'ausib', 'etp_profit', 'ptp_center', 'regtorg', 'seltim']
-electro_torgi = ['electro_torgi', 'uralbidin', 'vetp']
-ruson = ['eltorg', 'nistp', 'promkonsalt', 'ruson', 'sistematorg']
-tenderstandartru = ['au_pro', 'tenderstandart', 'torggroup', 'viomitra']
-lot_online_catalog = ['lot_online_bankruptcy', 'lot_online_private_property']
-lot_online = ['rad', 'confiscate', 'lease', 'privatization', 'arrested']
-zalog = ['rshb', 'sbrf', 'rad']
+altimeta = [
+    "atctrade",
+    "aukcioncenter",
+    "ausib",
+    "etp_profit",
+    "ptp_center",
+    "regtorg",
+    "seltim",
+]
+electro_torgi = ["electro_torgi", "uralbidin", "vetp"]
+ruson = ["eltorg", "nistp", "promkonsalt", "ruson", "sistematorg"]
+tenderstandartru = ["au_pro", "tenderstandart", "torggroup", "viomitra"]
+lot_online_catalog = ["lot_online_bankruptcy", "lot_online_private_property"]
+lot_online = ["rad", "confiscate", "lease", "privatization", "arrested"]
+zalog = ["rshb", "sbrf", "rad"]
 
 projects = {
-    'crawler_akosta': 'akosta',
-    'crawler_altimeta': altimeta,
-    'crawler_bankrot_cdtrf': 'bankrot_cdtrf',
-    'crawler_electro_torgi': electro_torgi,
-    'crawler_eurtp': 'eurtp',
-    'crawler_fabricant': 'fabrikant',
-    'crawler_heveya': 'heveya',
-    'crawler_itender': itender,
-    'crawler_kartoteka': 'kartoteka',
-    'crawler_lot_online_catalog': lot_online_catalog,
-    'crawler_lot_online_old': lot_online,
-    'crawler_lot_online_zalog': zalog,
-    'crawler_mets': 'mets',
-    'crawler_moi_tender': 'moi_tender',
-    'crawler_opentp': 'opentp',
-    'crawler_roseltorg': 'roseltorg',
-    'crawler_rusonru': ruson,
-    'crawler_rutrade24': 'rutrade24',
-    'crawler_sberbank': 'sberbank',
-    'crawler_sibtoptrade': 'sibtoptrade',
-    'crawler_tenderstandartru': tenderstandartru,
-    'crawler_torgidv': 'torgidv',
-    'crawler_torgigov': 'torgigov',
-    'crawler_vertrades': 'vertrades',
+    "crawler_akosta": "akosta",
+    "crawler_altimeta": altimeta,
+    "crawler_bankrot_cdtrf": "bankrot_cdtrf",
+    "crawler_electro_torgi": electro_torgi,
+    "crawler_eurtp": "eurtp",
+    "crawler_fabricant": "fabrikant",
+    "crawler_heveya": "heveya",
+    "crawler_itender": itender,
+    "crawler_kartoteka": "kartoteka",
+    "crawler_lot_online_catalog": lot_online_catalog,
+    "crawler_lot_online_old": lot_online,
+    "crawler_lot_online_zalog": zalog,
+    "crawler_mets": "mets",
+    "crawler_moi_tender": "moi_tender",
+    "crawler_opentp": "opentp",
+    "crawler_roseltorg": "roseltorg",
+    "crawler_rusonru": ruson,
+    "crawler_rutrade24": "rutrade24",
+    "crawler_sberbank": "sberbank",
+    "crawler_sibtoptrade": "sibtoptrade",
+    "crawler_tenderstandartru": tenderstandartru,
+    "crawler_torgidv": "torgidv",
+    "crawler_torgigov": "torgigov",
+    "crawler_vertrades": "vertrades",
 }
 
 
@@ -112,5 +140,5 @@ def main():
         after_spiders()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,11 +1,16 @@
 import csv
 import logging
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 
-from sqlalchemy import create_engine, text, select, and_, inspect, literal
-from sqlalchemy.orm import sessionmaker, joinedload, aliased
+from sqlalchemy import text, select, and_, inspect, literal
+from sqlalchemy.orm import joinedload, aliased
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncSession,
+    async_sessionmaker,
+)
 from typing import Type, Union, List
 
 from app.utils.extra import parse_classifiers
@@ -18,7 +23,7 @@ from app.utils.config import (
     allowable_formats,
 )
 from app.utils.download import DownloadFiles
-from .models import (
+from app.db.models import (
     Auction,
     ParserStatus,
     TradingFloor,
@@ -43,48 +48,58 @@ from app.utils.fedresurs import (
     CompanyOrganizerFedresurs,
     AuctionFedresurs,
 )
-from .models.counterparty import CounterpartySRO
-from .models.file import FileModelType
-from .models.lot import LotCategory
-from .models.parser_status import StatusType
+from app.db.models.counterparty import CounterpartySRO
+from app.db.models.file import FileModelType
+from app.db.models.lot import LotCategory
+from app.db.models.parser_status import StatusType
 from app.utils.extra import sanitize_filename
 from app.utils.config import env
 
 logger = logging.getLogger(__name__)
-connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
+connection_string = f"mysql+asyncmy://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
 
-engine = create_engine(
+engine = create_async_engine(
     connection_string, echo=False, pool_size=2, max_overflow=0
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    class_=AsyncSession,
+    autoflush=False,
+    autocommit=False,
+)
 
 
 class DBHelper:
     session = None
 
     @staticmethod
-    def create_new_connection():
+    async def create_new_connection():
         DBHelper.session = SessionLocal()
-        DBHelper.set_wait_timeout(600)
+        await DBHelper.set_wait_timeout(600)
 
     @staticmethod
-    @contextmanager
-    def transaction_scope(commit: bool = True):
-        if not DBHelper.session:
-            DBHelper.create_new_connection()
-        yield DBHelper.session
-        if commit:
-            DBHelper.session.commit()
-        return
+    @asynccontextmanager
+    async def transaction_scope(commit: bool = True):
+        async with SessionLocal() as session:
+            DBHelper.session = session
+            try:
+                yield session
+                if commit:
+                    await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
     @staticmethod
-    def set_wait_timeout(timeout: int = 600):
-        DBHelper.session.execute(
-            text(f"SET SESSION wait_timeout = {timeout};")
-        )
+    async def set_wait_timeout(timeout: int = 600):
+        async with DBHelper.transaction_scope(commit=False) as session:
+            await session.execute(
+                text(f"SET SESSION wait_timeout = {timeout};")
+            )
 
     @staticmethod
-    def get_latest_lot(
+    async def get_latest_lot(
         data_origin_url: str, keys=None, day: int = 30
     ) -> Union[tuple[List, int], None]:
         date_threshold = datetime.utcnow() - timedelta(days=day)
@@ -93,12 +108,13 @@ class DBHelper:
         if not isinstance(keys, list):
             keys = [keys]
 
-        with DBHelper.transaction_scope(commit=False) as session:
-            trading_floor_id = session.scalars(
+        async with DBHelper.transaction_scope(commit=False) as session:
+            result = await session.execute(
                 select(TradingFloor.id).where(
-                    TradingFloor.url == literal(data_origin_url)
+                    TradingFloor.url == data_origin_url
                 )
-            ).first()
+            )
+            trading_floor_id = result.scalar()
             if trading_floor_id is None:
                 return
 
@@ -108,12 +124,13 @@ class DBHelper:
                     Auction.trading_floor_id == trading_floor_id,
                 )
             )
-            lots = session.scalars(stmt).all()
+            lots_result = await session.execute(stmt)
+            lots = lots_result.scalars().all()
             return lots, trading_floor_id
 
     @staticmethod
-    def get_trading_floor_id(crawler_name: str, data_origin_url: str):
-        with DBHelper.transaction_scope() as session:
+    async def get_trading_floor_id(crawler_name: str, data_origin_url: str):
+        async with DBHelper.transaction_scope() as session:
             trading_floor_id = session.scalars(
                 select(TradingFloor.id).where(
                     TradingFloor.url == literal(data_origin_url)
@@ -121,7 +138,7 @@ class DBHelper:
             ).first()
             if trading_floor_id is None:
                 logger.error(
-                    f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping."
+                    f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping..."
                 )
                 return None
 
