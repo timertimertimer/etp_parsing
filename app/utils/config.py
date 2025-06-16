@@ -3,25 +3,30 @@ import enum
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 from random import choice
+from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 project_main_dir = PurePath(__file__).parent.parent
-absolute_download_path = project_main_dir / 'set_main_path_to_download'
-relative_download_path = project_main_dir / 'set_relative_path_to_download'
+absolute_download_path = project_main_dir / "set_main_path_to_download"
+relative_download_path = project_main_dir / "set_relative_path_to_download"
 
-with open(f'{absolute_download_path}', 'r') as f:
-    absolute_download_path = PurePath(''.join(f.readlines()).strip().replace('\n', ''))
-with open(f'{relative_download_path}', 'r') as f:
-    relative_download_path = PurePath(''.join(f.readlines()).strip().replace('\n', ''))
+with open(f"{absolute_download_path}", "r") as f:
+    absolute_download_path = PurePath(
+        "".join(f.readlines()).strip().replace("\n", "")
+    )
+with open(f"{relative_download_path}", "r") as f:
+    relative_download_path = PurePath(
+        "".join(f.readlines()).strip().replace("\n", "")
+    )
 
-config_file_name = 'config.ini'
-proxy_file_name = 'proxy.txt'
-socks_file_name = 'socks_5.txt'
-user_agent_file_name = 'user-agent.txt'
-indexes_file_name = 'index.json'
-lot_classifiers_file_name = 'lot_classifiers.csv'
-data_path = project_main_dir / 'data'
+config_file_name = "config.ini"
+proxy_file_name = "proxy.txt"
+socks_file_name = "socks_5.txt"
+user_agent_file_name = "user-agent.txt"
+indexes_file_name = "index.json"
+lot_classifiers_file_name = "lot_classifiers.csv"
+data_path = project_main_dir / "data"
 config_path = project_main_dir / config_file_name
 indexes_path = data_path / indexes_file_name
 proxy_path = data_path / proxy_file_name
@@ -29,41 +34,49 @@ socks5_proxy_path = data_path / socks_file_name
 user_agent_path = data_path / user_agent_file_name
 lot_classifiers_path = data_path / lot_classifiers_file_name
 if Path(user_agent_path).exists():
-    with open(f'{user_agent_path}', 'r') as f:
+    with open(f"{user_agent_path}", "r") as f:
         lines = f.readlines()
-    user_agents = [i.replace('\\n', '').strip() for i in lines]
+    user_agents = [i.replace("\\n", "").strip() for i in lines]
 else:
     user_agents = []
 
 if Path(socks5_proxy_path).exists():
-    with open(f'{socks5_proxy_path}', 'r') as f:
+    with open(f"{socks5_proxy_path}", "r") as f:
         lines = f.readlines()
-    socks5_proxies = [i.replace('\\n', '').strip() for i in lines]
+    socks5_proxies = [i.replace("\\n", "").strip() for i in lines]
 else:
     socks5_proxies = []
 
 lot_classifiers_name_to_code = dict()
 lot_classifiers_code_to_name = dict()
-with open(f'{lot_classifiers_path}', 'r', encoding='utf-8-sig') as f:
-    reader: csv.DictReader = csv.DictReader(f, delimiter=';')
+with open(f"{lot_classifiers_path}", "r", encoding="utf-8-sig") as f:
+    reader: csv.DictReader = csv.DictReader(f, delimiter=";")
     for row in reader:
-        lot_classifiers_code_to_name[row['Код']] = row['Наименование']
-        lot_classifiers_name_to_code[row['Наименование']] = row['Код']
+        lot_classifiers_code_to_name[row["Код"]] = row["Наименование"]
+        lot_classifiers_name_to_code[row["Наименование"]] = row["Код"]
 
-env_path = Path(__file__).parent.parent / ".env"
+env_path = Path(__file__).parent.parent.parent / ".env"
 
 
 class ENV(BaseSettings):
-    model_config = SettingsConfigDict(env_file=env_path, env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=env_path, env_file_encoding="utf-8", extra="allow"
+    )
 
-    YANDEX_API_KEY: str
-    DADATA_API_TOKEN: str
-    DADATA_API_SECRET: str
-    PARSER_SECRET: str
-    SITE_URL: str
+    yandex_api_key: Optional[str] = None
+    dadata_api_token: Optional[str] = None
+    dadata_api_secret: Optional[str] = None
+    parser_secret: Optional[str] = None
+    site_url: Optional[str] = None
+
+    db_user: str = "root"
+    db_password: str = "strong_password"
+    db_host: str = "localhost"
+    db_port: int = 3306
+    db_database: str = "etp_parsing"
 
 
-envs = ENV()
+env = ENV()
 
 
 def format_parse_date(days_: int, time_format=None):
@@ -81,31 +94,66 @@ days = 30
 start_date = format_parse_date(days)
 
 headers = {
-    'Accept': '*/*',
-    'Accept-Encoding': 'gzip, deflate, br, zstd',
-    'Accept-Language': 'ru-RU,ru;q=0.9',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'Pragma': 'no-cache',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-User': '?1',
-    'Upgrade-Insecure-Request': '1',
-    'User-Agent': choice(user_agents)
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Accept-Language": "ru-RU,ru;q=0.9",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Pragma": "no-cache",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Request": "1",
+    "User-Agent": choice(user_agents),
 }
 
 image_formats = [
-    '.jpeg', '.png', '.jpg', '.bmp',
-    '.JPG', '.JPEG', 'jpg', 'jpeg', 'JPG', 'JPEG', '.PNG'
+    ".jpeg",
+    ".png",
+    ".jpg",
+    ".bmp",
+    ".JPG",
+    ".JPEG",
+    "jpg",
+    "jpeg",
+    "JPG",
+    "JPEG",
+    ".PNG",
 ]
 image_and_doc_formats = image_formats + [
-    '.docx', '.doc', '.pdf', '.rtf',
-    '.PDF', '.DOC', '.DOCX', '.RTF'
+    ".docx",
+    ".doc",
+    ".pdf",
+    ".rtf",
+    ".PDF",
+    ".DOC",
+    ".DOCX",
+    ".RTF",
 ]
-archive_formats = ['.rar', '.zip', '.7z', '.RAR', '.ZIP', '.7Z', '.Rar', '.Zip']
+archive_formats = [
+    ".rar",
+    ".zip",
+    ".7z",
+    ".RAR",
+    ".ZIP",
+    ".7Z",
+    ".Rar",
+    ".Zip",
+]
 allowable_formats = image_and_doc_formats + archive_formats
-trash_resources = ["image", 'stylesheet', 'audio', 'font', 'xhr', 'fetch', 'eventsource', 'websocket', 'media', 'ping']
+trash_resources = [
+    "image",
+    "stylesheet",
+    "audio",
+    "font",
+    "xhr",
+    "fetch",
+    "eventsource",
+    "websocket",
+    "media",
+    "ping",
+]
 
 download_files_from_get_url = True
 write_log_to_file = True
@@ -113,7 +161,7 @@ post_main_service = True
 
 
 class AuctionProperty(str, enum.Enum):
-    bankruptcy = 'bankruptcy'
+    bankruptcy = "bankruptcy"
 
     arrested = "arrested"
 

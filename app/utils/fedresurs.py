@@ -13,10 +13,11 @@ from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from general_utils import CheckIfCorrectContactInfo, return_parse_date
-from general_utils.config import proxy_path
-from general_utils.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
-from general_utils.models.counterparty import CounterpartyType
+from app.utils.contacts import Contacts
+from app.utils.time_format import return_parse_date
+from app.utils.config import proxy_path
+from app.db.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
+from app.db.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
 retry_count = 5
@@ -163,8 +164,8 @@ class CounterpartyFedresurs(Fedresurs):
         self.data['okopf'] = data.get('okopf', {}).get('code')
         self.data['snils'] = data.get('snils')
         self.data['name'] = data.get('fullName')
-        self.data['email'] = CheckIfCorrectContactInfo.check_email(data.get('contacts', {}).get('email'))
-        self.data['phone'] = CheckIfCorrectContactInfo.check_phone(data.get('contacts', {}).get('phone'))
+        self.data['email'] = Contacts.check_email(data.get('contacts', {}).get('email'))
+        self.data['phone'] = Contacts.check_phone(data.get('contacts', {}).get('phone'))
         self.data['url'] = data.get('tradePlace', {}).get('site') or data.get('contacts', {}).get('site')
         self.data['fedresurs_url'] = f'https://fedresurs.ru/{self.PATH}/{self.data["guid"]}'
         self.data['address'] = data.get('address') or data.get('addressEgrul')
@@ -343,7 +344,7 @@ class BankrotMessageFedresurs(Fedresurs):
             self.data['content'] = data['content']['messageInfo']['messageContent'].get('text')
         legal_case_number = data['bankrupt'].get('legalCaseNumber')
         self.data['legal_case_number'] = (
-            CheckIfCorrectContactInfo.check_case_number(legal_case_number.strip()) if legal_case_number else None
+            Contacts.check_case_number(legal_case_number.strip()) if legal_case_number else None
         )
         self.data['fedresurs_url'] = f'https://fedresurs.ru/bankruptmessages/{self.data["guid"]}'
         self.data['published_at'] = return_parse_date(data['datePublish'])
@@ -378,7 +379,7 @@ class LegalCaseFedresurs(Fedresurs):
             return
         data = self.make_request(f'{self.BACKEND_URL}/{self.data["guid"]}')
         self.data['status'] = data.get('status', {}).get('code')
-        self.data['number'] = CheckIfCorrectContactInfo.check_case_number(data.get('number'))
+        self.data['number'] = Contacts.check_case_number(data.get('number'))
         self.data['court_name'] = data.get('courtName').strip()
         self.data['fedresurs_url'] = f'https://fedresurs.ru/legalcases/{self.data["guid"]}'
         self.data['debtor_category'] = data.get('bankruptCategory', {}).get('code')
@@ -440,7 +441,7 @@ class AuctionFedresurs(Fedresurs):
 
 
 def parse_counterparties():
-    from general_utils.db import DBHelper
+    from app.db.db_helper import DBHelper
     counterparties = DBHelper.get_all(Counterparty)
     for counterparty in counterparties:
         if counterparty.inn:
@@ -452,7 +453,7 @@ def parse_counterparties():
 
 
 def parse_trading_floors():
-    from general_utils.db import DBHelper
+    from app.db.db_helper import DBHelper
     with DBHelper.transaction_scope() as session:
         trading_floors = session.query(TradingFloor).all()
         for trading_floor in trading_floors:
@@ -465,7 +466,7 @@ def parse_trading_floors():
 
 
 def parse_legal_cases():
-    from general_utils.db import DBHelper
+    from app.db.db_helper import DBHelper
     legal_cases = DBHelper.get_all(LegalCase)
     for legal_case in legal_cases:
         if legal_case.fedresurs_url:
@@ -475,16 +476,15 @@ def parse_legal_cases():
 
 
 def parse_counterparty(inn: str):
-    from general_utils.db import DBHelper
+    from app.db.db_helper import DBHelper
     counterparty = DBHelper.get_counterparty(inn=inn)
     fed_client = CompanyFedresurs(counterparty)
     fed_client.parse()
 
 
-def fix_debtor_messages():
-    from general_utils.db import get_db
-    session = get_db()
-    debtor_messages = session.query(DebtorMessage).all()
+def fix_debtor_messages():  # FIXME
+    from app.db.db_helper import DBHelper
+    debtor_messages = DBHelper.get_all(DebtorMessage)
     for i, message in enumerate(debtor_messages):
         print(f'{i + 1}/{len(debtor_messages)}')
         fed_client = BankrotMessageFedresurs(message.fedresurs_url.split('/')[-1])

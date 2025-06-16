@@ -4,7 +4,7 @@ import time
 from pymysql.err import OperationalError, ProgrammingError
 from sqlalchemy.exc import SQLAlchemyError
 
-from .db import DBHelper
+from app.db import DBHelper
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +19,19 @@ class BasePipeline:
             try:
                 DBHelper.store_item(item, spider.trading_floor_id)
                 spider.counter += 1
-                logger.info(f'Stored {spider.counter} lots')
+                logger.info(f"Stored {spider.counter} lots")
                 return item
             except (ProgrammingError, OperationalError) as e:
                 error_msg = str(e)
-                if any([
-                    "MySQL Connection not available" in error_msg or
-                    "Lost connection to MySQL server" in error_msg
-                ]):
-                    logger.warning(f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)")
+                if any(
+                    [
+                        "MySQL Connection not available" in error_msg
+                        or "Lost connection to MySQL server" in error_msg
+                    ]
+                ):
+                    logger.warning(
+                        f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)"
+                    )
                     DBHelper.session.close()
                     DBHelper.create_new_connection()
                     attempt += 1
@@ -39,11 +43,15 @@ class BasePipeline:
                     break
             except SQLAlchemyError as e:
                 error_msg = str(e.orig)
-                if any([
-                    "MySQL Connection not available" in error_msg or
-                    "Lost connection to MySQL server" in error_msg
-                ]):
-                    logger.warning(f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)")
+                if any(
+                    [
+                        "MySQL Connection not available" in error_msg
+                        or "Lost connection to MySQL server" in error_msg
+                    ]
+                ):
+                    logger.warning(
+                        f"MySQL connection lost. Retrying... (Attempt {attempt + 1}/5)"
+                    )
                     DBHelper.session.close()
                     DBHelper.create_new_connection()
                     attempt += 1

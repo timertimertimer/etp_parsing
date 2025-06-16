@@ -6,12 +6,11 @@ import logging
 import requests
 from random import choices
 from string import ascii_letters, digits
-from multiprocessing import Process
 from dotenv import load_dotenv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-from general_utils.work_with_text_and_number import set_logger
-from general_utils.config import post_main_service
+from utils.extra import set_logger
+from utils.config import post_main_service
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -41,7 +40,7 @@ def after_spiders():
         "X-PARSER-SIGNATURE": signature
     }
     response = requests.post(url, headers=headers)
-    logger.info(f"Status Code: {response.status_code}",)
+    logger.info(f"Status Code: {response.status_code}", )
     logger.info(f"Response: {response.text}")
 
 
@@ -100,7 +99,6 @@ def main():
             else:
                 futures.append(executor.submit(run_spider, project, spider))
 
-        # Ожидание завершения всех процессов
         for future in as_completed(futures):
             try:
                 future.result()

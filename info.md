@@ -14,10 +14,16 @@
 - Размер обеспечения исполнения договора (закупки юр лиц) https://torgi.etpu.ru/app/LotCard/page?LotCard.lotEntity=LT%3Acorebofs002080000nlr6nu3b1jjen38
 
 
-PS:
-Новый auctions.type. Кап ремонт. Тип процедуры: Предварительный отбор в электронной форме. https://utp.sberbank-ast.ru/GKH/NBT/PurchaseView/5/0/0/3071019
+# PS:
+
+Новый auctions.type
+
+Кап ремонт. Тип процедуры: Предварительный отбор в электронной форме. https://utp.sberbank-ast.ru/GKH/NBT/PurchaseView/5/0/0/3071019
 
 (223фз) https://www.fabrikant.ru/v2/trades/procedure/view/KiasuCnK0IGchhE_5WlDAQ
+
 (закупки юр лиц) https://www.fabrikant.ru/v2/trades/procedure/view/QXTFudfnG9FE7e9mQcJHIQ
+
 Обеспечение заявки. Не требуется
+
 Обеспечение исполнения договора. Нет

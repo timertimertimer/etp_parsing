@@ -11,7 +11,7 @@ import unicodedata
 from http.cookies import SimpleCookie
 from chardet import detect
 
-from .time import datetime
+from .time_format import datetime
 from .config import lot_classifiers_code_to_name
 
 

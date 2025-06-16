@@ -6,11 +6,11 @@ from random import randint
 from scrapy import Request, FormRequest
 from scrapy_splash import SplashRequest, SlotPolicy
 
-from general_utils import EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
-from ..manage_spiders.app import Combo
-from ..config import (
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
+from app.crawlers.crawler_itender.crawler_itender.manage_spiders.app import Combo
+from app.crawlers.crawler_itender.crawler_itender.config import (
     return_auction_link, data_origin, return_offer_link, return_compet_link, post_data_auction, post_data_offer,
     post_data_competition, start_date, script_lua_nojs, common_data
 )

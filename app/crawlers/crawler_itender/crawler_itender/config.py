@@ -1,52 +1,54 @@
-from datetime import datetime, timedelta
-
-from general_utils.config import *
+from app.utils.config import *
 
 
 def return_auction_link(_data_origin):
-    auction_link = 'public/auctions-all/'
+    auction_link = "public/auctions-all/"
     return _data_origin + auction_link
 
 
 def return_offer_link(_data_origin):
-    offer_link = 'public/public-offers-all/'
+    offer_link = "public/public-offers-all/"
     return _data_origin + offer_link
 
 
 def return_compet_link(_data_origin):
-    competition_link = 'public/contests-all/'
+    competition_link = "public/contests-all/"
     return _data_origin + competition_link
+
 
 # очень важно иметь дату без нулей в начале дня и месяца, иначе неправильно работает фильтрация
 current_date = datetime.now()
 one_month_ago = current_date - timedelta(days=30)
-start_date = f"{one_month_ago.year}-{one_month_ago.month}-{one_month_ago.day} 0:0:-1"
+start_date = (
+    f"{one_month_ago.year}-{one_month_ago.month}-{one_month_ago.day} 0:0:-1"
+)
 data_origin = {
-    'alfalot': 'https://bankrupt.alfalot.ru/',
-    'arbbitlot': 'https://torgi.arbbitlot.ru/',
-    'arbitat': 'http://arbitat.ru/',
-    'bepspb': 'https://bankruptcy.bepspb.ru/',
-    'centerr': 'https://bankrupt.centerr.ru/',
-    'etpu': 'https://bankrupt.etpu.ru/',
-    'etpugra': 'http://etpugra.ru/',
-    'ets24': 'http://bankrupt.ets24.ru/',
-    'gloriaservice': 'https://gloriaservice.ru/',
-    'meta_invest': 'https://meta-invest.ru/',
-    'propertytrade': 'https://propertytrade.ru/',
-    'selt_online': 'https://selt-online.ru/',
-    'tender_one': 'https://bankrupt.tender.one/',
-    'tendergarant': 'https://tendergarant.com/',
-    'torgibankrot': 'https://torgibankrot.ru/',
-    'utender': 'http://utender.ru/',
-    'utpl': 'https://bankrupt.utpl.ru/',
-    'zakazrf': 'http://bankrot.zakazrf.ru/',
+    "alfalot": "https://bankrupt.alfalot.ru/",
+    "arbbitlot": "https://torgi.arbbitlot.ru/",
+    "arbitat": "http://arbitat.ru/",
+    "bepspb": "https://bankruptcy.bepspb.ru/",
+    "centerr_bankrupt": "https://bankrupt.centerr.ru/",
+    "centerr_business": "https://business.centerr.ru/",
+    "etpu": "https://bankrupt.etpu.ru/",
+    "etpugra": "http://etpugra.ru/",
+    "ets24": "http://bankrupt.ets24.ru/",
+    "gloriaservice": "https://gloriaservice.ru/",
+    "meta_invest": "https://meta-invest.ru/",
+    "propertytrade": "https://propertytrade.ru/",
+    "selt_online": "https://selt-online.ru/",
+    "tender_one": "https://bankrupt.tender.one/",
+    "tendergarant": "https://tendergarant.com/",
+    "torgibankrot": "https://torgibankrot.ru/",
+    "utender": "http://utender.ru/",
+    "utpl": "https://bankrupt.utpl.ru/",
+    "zakazrf": "http://bankrot.zakazrf.ru/",
 }
 
 path_absolute = dict()
 path_relative = dict()
 for name in data_origin.keys():
-    path_absolute[name] = f'{absolute_download_path}/etp_{name}'
-    path_relative[name] = f'{relative_download_path}/etp_{name}'
+    path_absolute[name] = f"{absolute_download_path}/etp_{name}"
+    path_relative[name] = f"{relative_download_path}/etp_{name}"
 
 common_data = {
     "__EVENTTARGET": "",
@@ -80,9 +82,9 @@ common_post_data = {
 
 post_data_auction = {
     **common_post_data,
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput': '0-0-0 -1:-1:-1',
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_аукциона': '',
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеаукциона': '',
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_аукциона": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеаукциона": "",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton": "Искать аукционы",
 }
 
@@ -96,9 +98,9 @@ post_data_offer = {
 
 post_data_competition = {
     **common_post_data,
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput': '0-0-0 -1:-1:-1',
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_конкурса': '',
-    'ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеконкурса': '',
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_конкурса": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеконкурса": "",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton": "Искать конкурсы",
 }
 
