@@ -2,12 +2,12 @@ from scrapy.cmdline import execute
 
 
 def bankruptcy():
-    execute(['scrapy', 'crawl', 'lot_online_bankruptcy'])
+    execute(["scrapy", "crawl", "lot_online_bankruptcy"])
 
 
 def private_property():
-    execute(['scrapy', 'crawl', 'lot_online_private_property'])
+    execute(["scrapy", "crawl", "lot_online_private_property"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     private_property()

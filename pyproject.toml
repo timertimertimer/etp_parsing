@@ -13,6 +13,7 @@ dependencies = [
     "asyncmy>=0.2.10",
     "beautifulsoup4>=4.13.4",
     "chardet>=5.2.0",
+    "loguru>=0.7.3",
     "mysql-connector-python>=9.3.0",
     "natasha>=1.6.0",
     "pandas>=2.2.3",

@@ -24,9 +24,7 @@ def run_spider(project: str, spider: str) -> None:
     os.system(f"cd {project} && /usr/local/bin/scrapy crawl {spider}")
 
     spider_duration = time.time() - start_spider_time
-    logger.info(
-        f"Finished {project}/{spider} in {spider_duration:.2f} seconds"
-    )
+    logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
 
 
 def after_spiders():
@@ -114,7 +112,7 @@ projects = {
 
 def main():
     start_time = time.time()
-    logger.info(f"~~~~~ Started main ~~~~~")
+    logger.info("~~~~~ Started main ~~~~~")
 
     max_workers = 30
     futures = []

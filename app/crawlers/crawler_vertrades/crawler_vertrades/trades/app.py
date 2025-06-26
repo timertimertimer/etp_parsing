@@ -27,26 +27,21 @@ class Combo:
     @property
     def trading_type(self):
         type_ = self.response.xpath(LocatorTrade.trading_type_loc).get()
-        type_ = BeautifulSoup(str(type_), features='lxml').get_text().strip()
+        type_ = BeautifulSoup(str(type_), features="lxml").get_text().strip()
         d = dict(
             offer=[
-                'Открытые торги посредством публичного предложения',
-                'Закрытые торги посредством публичного предложения',
-                'Открытые торги (конкурс) посредством публичного предложения',
-                'Открытые торги (конкурс) посредством публичного предложения'
+                "Открытые торги посредством публичного предложения",
+                "Закрытые торги посредством публичного предложения",
+                "Открытые торги (конкурс) посредством публичного предложения",
+                "Открытые торги (конкурс) посредством публичного предложения",
             ],
             auction=[
-                'Открытый аукцион с открытой формой представления предложений о цене',
-                'Открытый аукцион с закрытой формой представления предложений о цене',
-                'Закрытый аукцион с открытой формой представления предложений о цене',
-                'Закрытый аукцион с закрытой формой представления предложений о цене'
+                "Открытый аукцион с открытой формой представления предложений о цене",
+                "Открытый аукцион с закрытой формой представления предложений о цене",
+                "Закрытый аукцион с открытой формой представления предложений о цене",
+                "Закрытый аукцион с закрытой формой представления предложений о цене",
             ],
-            competition=[
-                'ОКОФ',
-                'ОКЗФ',
-                'ЗКОФ',
-                'ЗКЗФ'
-            ]
+            competition=["ОКОФ", "ОКЗФ", "ЗКОФ", "ЗКЗФ"],
         )
         for k, v in d.items():
             if type_ in v:
@@ -56,24 +51,24 @@ class Combo:
     @property
     def trading_form(self):
         type_ = self.response.xpath(LocatorTrade.trading_type_loc).get()
-        type_ = BeautifulSoup(str(type_), features='lxml').get_text().strip()
+        type_ = BeautifulSoup(str(type_), features="lxml").get_text().strip()
         d = dict(
             open=[
-                'Открытые торги посредством публичного предложения',
-                'Открытые торги (конкурс) посредством публичного предложения',
-                'Открытый аукцион с открытой формой представления предложений о цене',
-                'Открытый аукцион с закрытой формой представления предложений о цене',
-                'ОКОФ',
-                'ОКЗФ'
+                "Открытые торги посредством публичного предложения",
+                "Открытые торги (конкурс) посредством публичного предложения",
+                "Открытый аукцион с открытой формой представления предложений о цене",
+                "Открытый аукцион с закрытой формой представления предложений о цене",
+                "ОКОФ",
+                "ОКЗФ",
             ],
             closed=[
-                'Закрытые торги посредством публичного предложения',
-                'Закрытые торги (конкурс) посредством публичного предложения',
-                'Закрытый аукцион с открытой формой представления предложений о цене',
-                'Закрытый аукцион с закрытой формой представления предложений о цене'
-                'ЗКОФ',
-                'ЗКЗФ'
-            ]
+                "Закрытые торги посредством публичного предложения",
+                "Закрытые торги (конкурс) посредством публичного предложения",
+                "Закрытый аукцион с открытой формой представления предложений о цене",
+                "Закрытый аукцион с закрытой формой представления предложений о цене"
+                "ЗКОФ",
+                "ЗКЗФ",
+            ],
         )
         for k, v in d.items():
             if type_ in v:
@@ -82,19 +77,29 @@ class Combo:
 
     @property
     def status(self):
-        active = ('Торги в стадии приема заявок', 'Прием заявок',)
-        pending = ('Объявленые торги', 'Объявленные торги')
-        ended = ('Прием заявок завершен', 'Проведение аукциона', 'Торги завершены', 'Торги отменены',
-                 'Торги приостановлены', 'Торги по лоту отменены', 'Торги по лоту приостановлены')
+        active = (
+            "Торги в стадии приема заявок",
+            "Прием заявок",
+        )
+        pending = ("Объявленые торги", "Объявленные торги")
+        ended = (
+            "Прием заявок завершен",
+            "Проведение аукциона",
+            "Торги завершены",
+            "Торги отменены",
+            "Торги приостановлены",
+            "Торги по лоту отменены",
+            "Торги по лоту приостановлены",
+        )
         status = self.response.xpath(LocatorTrade.status_loc).get()
-        status = BeautifulSoup(str(status), features='lxml').get_text().strip()
+        status = BeautifulSoup(str(status), features="lxml").get_text().strip()
         try:
             if status in active:
-                return 'active'
+                return "active"
             elif status in pending:
-                return 'pending'
+                return "pending"
             elif status in ended:
-                return 'ended'
+                return "ended"
             else:
                 return None
         except:
@@ -102,8 +107,8 @@ class Combo:
 
     @property
     def trading_id(self):
-        _id = re.findall(r'\d+', str(self.trading_link))
-        return ''.join(_id)
+        _id = re.findall(r"\d+", str(self.trading_link))
+        return "".join(_id)
 
     @property
     def trading_link(self):
@@ -112,10 +117,10 @@ class Combo:
     @property
     def trading_number(self):
         h1 = self.response.xpath(LocatorTrade.trading_number_loc).get()
-        div = BeautifulSoup(str(h1), features='lxml').get_text()
-        match = ''.join(re.findall(r'\d+\-\w+', str(div)))
+        div = BeautifulSoup(str(h1), features="lxml").get_text()
+        match = "".join(re.findall(r"\d+\-\w+", str(div)))
         if len(match) < 0:
-            logger.error(f'{self.response.url} :: INVALID DATA TRADING NUMBER')
+            logger.error(f"{self.response.url} :: INVALID DATA TRADING NUMBER")
         else:
             return match
 
@@ -123,18 +128,25 @@ class Combo:
     def trading_org(self):
         try:
             td_org = self.response.xpath(LocatorTrade.trading_org_loc).get()
-            td_org = dedent_func(BeautifulSoup(str(td_org), features='lxml').get_text()).strip()
-            return ''.join(re.sub(r'\s+', ' ', td_org))
+            td_org = dedent_func(
+                BeautifulSoup(str(td_org), features="lxml").get_text()
+            ).strip()
+            return "".join(re.sub(r"\s+", " ", td_org))
         except:
             logger.warning(
-                f'{self.response.url} :: INVALID DATA ORGANIZER', exc_info=True)
+                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+            )
             return None
 
     def get_phone_number(self):
         """get phone number of organizer"""
         try:
             phone = self.response.xpath(LocatorTrade.phone_org_loc).get()
-            phone = dedent_func(BeautifulSoup(str(phone), features='lxml').get_text()).replace(';', '').strip()
+            phone = (
+                dedent_func(BeautifulSoup(str(phone), features="lxml").get_text())
+                .replace(";", "")
+                .strip()
+            )
             return CheckIfCorrectContactInfo.check_phone(phone)
         except:
             return None
@@ -143,7 +155,11 @@ class Combo:
         """get email of organizer"""
         try:
             email = self.response.xpath(LocatorTrade.email_org_loc).get()
-            email = dedent_func(BeautifulSoup(str(email), features='lxml').get_text()).replace(';', '').strip()
+            email = (
+                dedent_func(BeautifulSoup(str(email), features="lxml").get_text())
+                .replace(";", "")
+                .strip()
+            )
             return CheckIfCorrectContactInfo.check_email(email)
         except:
             return None
@@ -158,29 +174,33 @@ class Combo:
             email = self.get_email()
         else:
             email = None
-        return {'email': email, 'phone': phone}
+        return {"email": email, "phone": phone}
 
     @property
     def msg_number(self):
         msg = self.response.xpath(LocatorTrade.msg_number_loc).get()
         if msg:
-            msg = BeautifulSoup(str(msg), features='lxml').get_text()
-            return ' '.join(re.findall(r'\d{6,8}', dedent_func(msg)))
+            msg = BeautifulSoup(str(msg), features="lxml").get_text()
+            return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
 
     @property
     def case_number(self):
-        case = BeautifulSoup(str(self.response.xpath(LocatorTrade.case_number_loc).get()), 'lxml').get_text()
+        case = BeautifulSoup(
+            str(self.response.xpath(LocatorTrade.case_number_loc).get()), "lxml"
+        ).get_text()
         return CheckIfCorrectContactInfo.check_case_number(dedent_func(case))
 
     @property
     def debitor_inn(self):
         try:
-            inn = self.response.xpath(LocatorTrade.debitor_inn_loc).get() or self.response.xpath(
-                LocatorTrade.debitor_inn_loc_2).get()
-            trade_inn = dedent_func(BeautifulSoup(inn, features='lxml').get_text())
-            pattern = re.compile(r'\d{10,12}')
+            inn = (
+                self.response.xpath(LocatorTrade.debitor_inn_loc).get()
+                or self.response.xpath(LocatorTrade.debitor_inn_loc_2).get()
+            )
+            trade_inn = dedent_func(BeautifulSoup(inn, features="lxml").get_text())
+            pattern = re.compile(r"\d{10,12}")
             if pattern:
-                return ''.join(pattern.findall(trade_inn))
+                return "".join(pattern.findall(trade_inn))
         except:
             return None
 
@@ -190,10 +210,10 @@ class Combo:
             address = self.response.xpath(LocatorTrade.address_loc).get()
             if not address:
                 address = self.response.xpath(LocatorTrade.sud_loc).get()
-            address = dedent_func(BeautifulSoup(address, features='lxml').get_text())
+            address = dedent_func(BeautifulSoup(address, features="lxml").get_text())
             return address
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA ADDRESS\n{e}')
+            logger.error(f"{self.response.url} :: INVALID DATA ADDRESS\n{e}")
 
     @property
     def arbitr_manager(self):
@@ -201,11 +221,13 @@ class Combo:
             td_org = self.response.xpath(LocatorTrade.arbitr_manag_loc).get()
             if td_org is None:
                 td_org = self.response.xpath(LocatorTrade.finance_manag_loc).get()
-            td_org = dedent_func(BeautifulSoup(str(td_org), features='lxml').get_text()).strip()
-            if td_org != 'None':
-                return ''.join(re.sub(r'\s+', ' ', td_org))
+            td_org = dedent_func(
+                BeautifulSoup(str(td_org), features="lxml").get_text()
+            ).strip()
+            if td_org != "None":
+                return "".join(re.sub(r"\s+", " ", td_org))
         except:
-            logger.warning(f'{self.response.url} :: INVALID DATA ARBITR NAME')
+            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
 
     @property
     def arbitr_inn(self):
@@ -213,10 +235,12 @@ class Combo:
             arbitr_inn = self.response.xpath(LocatorTrade.arbitr_inn_loc).get()
             if arbitr_inn is None:
                 arbitr_inn = self.response.xpath(LocatorTrade.finance_inn_loc).get()
-            arbitr_inn = dedent_func(BeautifulSoup(str(arbitr_inn), features='lxml').get_text())
-            pattern = re.compile(r'\d{10,12}')
+            arbitr_inn = dedent_func(
+                BeautifulSoup(str(arbitr_inn), features="lxml").get_text()
+            )
+            pattern = re.compile(r"\d{10,12}")
             if pattern:
-                return ''.join(pattern.findall(arbitr_inn))
+                return "".join(pattern.findall(arbitr_inn))
         except:
             return None
 
@@ -226,24 +250,30 @@ class Combo:
             td_company = self.response.xpath(LocatorTrade.arbitr_org_loc).get()
             if td_company is None:
                 td_company = self.response.xpath(LocatorTrade.finance_org_loc).get()
-            td_company = dedent_func(BeautifulSoup(str(td_company), features='lxml').get_text())
-            if td_company != 'None':
-                if '(' in td_company:
-                    td_company = ''.join(
-                        [x if len(td_company) > 0 else None for x in re.split(r'\(', td_company, maxsplit=1)[0]])
-                return ''.join(dedent_func(td_company))
+            td_company = dedent_func(
+                BeautifulSoup(str(td_company), features="lxml").get_text()
+            )
+            if td_company != "None":
+                if "(" in td_company:
+                    td_company = "".join(
+                        [
+                            x if len(td_company) > 0 else None
+                            for x in re.split(r"\(", td_company, maxsplit=1)[0]
+                        ]
+                    )
+                return "".join(dedent_func(td_company))
         except:
-            logger.warning(f'{self.response.url} :: INVALID DATA ARBITR COMPANY')
+            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
 
     @property
     def start_date_requests(self):
         date = self.response.xpath(LocatorTrade.start_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features='lxml').get_text())
+        return format_time(BeautifulSoup(str(date), features="lxml").get_text())
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(LocatorTrade.end_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features='lxml').get_text())
+        return format_time(BeautifulSoup(str(date), features="lxml").get_text())
 
     def get_lots(self):
         return self.response.xpath(LocatorTrade.lots_loc).getall()
@@ -251,73 +281,102 @@ class Combo:
     def download_general(self):
         files = list()
         for file in self.response.xpath(LocatorTrade.general_files_loc).getall():
-            a = BeautifulSoup(str(file), features='lxml').find('a')
-            link = UrlConfig.url_join(data_origin, a.get('href'))
+            a = BeautifulSoup(str(file), features="lxml").find("a")
+            link = UrlConfig.url_join(data_origin, a.get("href"))
             name = a.get_text(strip=True)
-            files.append(DownloadData(url=UrlConfig.url_join(data_origin, link), file_name=name, referer=self.response.url))
+            files.append(
+                DownloadData(
+                    url=UrlConfig.url_join(data_origin, link),
+                    file_name=name,
+                    referer=self.response.url,
+                )
+            )
         return files
 
     def download_lot(self, lot):
         files = list()
-        if not (lot_files := BeautifulSoup(str(lot), 'lxml').find_all('a', attrs={'target': '_blank'})):
+        if not (
+            lot_files := BeautifulSoup(str(lot), "lxml").find_all(
+                "a", attrs={"target": "_blank"}
+            )
+        ):
             return []
         for a in lot_files:
             name = a.get_text()
-            link = UrlConfig.url_join(data_origin, a.get('href'))
-            files.append(DownloadData(url=link, file_name=name, referer=self.response.url))
+            link = UrlConfig.url_join(data_origin, a.get("href"))
+            files.append(
+                DownloadData(url=link, file_name=name, referer=self.response.url)
+            )
         return files
 
     def lot_number(self, lot):
-        title = BeautifulSoup(lot, 'lxml').find('th').get_text().strip()
-        match = re.findall(r'\d+$', title)
+        title = BeautifulSoup(lot, "lxml").find("th").get_text().strip()
+        match = re.findall(r"\d+$", title)
         try:
-            return ''.join(match)
+            return "".join(match)
         except:
-            logger.warning(f'{self.response.url} :: LOT WITHOUT NUMBER')
+            logger.warning(f"{self.response.url} :: LOT WITHOUT NUMBER")
             return None
 
     def short_name(self, lot):
         try:
             short_name = dedent_func(
-                BeautifulSoup(lot, 'lxml').find('td', text=contains("Наименование лота")).find_next_sibling(
-                    'td').get_text())
-            if short_name != 'None':
+                BeautifulSoup(lot, "lxml")
+                .find("td", text=contains("Наименование лота"))
+                .find_next_sibling("td")
+                .get_text()
+            )
+            if short_name != "None":
                 return short_name
         except:
-            logger.warning(f'{self.response.url} :: LOT INVALID DATA - SHORT NAME')
+            logger.warning(f"{self.response.url} :: LOT INVALID DATA - SHORT NAME")
             return None
 
     def lot_info(self, lot):
         try:
-            lot_info = BeautifulSoup(str(lot), 'lxml').find('td', text=contains('Cведения об имуществе должника'))
+            lot_info = BeautifulSoup(str(lot), "lxml").find(
+                "td", text=contains("Cведения об имуществе должника")
+            )
             if not lot_info:
                 return
-            return dedent_func(lot_info.find_next_sibling('td').get_text())
+            return dedent_func(lot_info.find_next_sibling("td").get_text())
         except:
-            logger.warning(f'{self.response.url} :: LOT INVALID DATA - LOT INFO')
+            logger.warning(f"{self.response.url} :: LOT INVALID DATA - LOT INFO")
 
     def property_information(self, lot):
         try:
-            property_info = dedent_func(BeautifulSoup(str(lot), 'lxml').find(
-                'td', text=contains('Порядок ознакомления')).find_next_sibling('td').get_text())
-            if property_info != 'None':
+            property_info = dedent_func(
+                BeautifulSoup(str(lot), "lxml")
+                .find("td", text=contains("Порядок ознакомления"))
+                .find_next_sibling("td")
+                .get_text()
+            )
+            if property_info != "None":
                 return property_info
         except:
-            logger.warning(f'{self.response.url} :: INVALID DATA - PROPERTY INFO')
+            logger.warning(f"{self.response.url} :: INVALID DATA - PROPERTY INFO")
 
     def start_price(self, lot):
         try:
-            p = BeautifulSoup(str(lot), 'lxml').find('td', text=contains('Начальная цена')).find_next_sibling('td')
+            p = (
+                BeautifulSoup(str(lot), "lxml")
+                .find("td", text=contains("Начальная цена"))
+                .find_next_sibling("td")
+            )
             if p:
-                p = re.sub(r'\s', '', dedent_func(p.get_text().strip()).replace(',', '.'))
-                p = ''.join([x for x in p if x.isdigit() or x == '.'])
+                p = re.sub(
+                    r"\s", "", dedent_func(p.get_text().strip()).replace(",", ".")
+                )
+                p = "".join([x for x in p if x.isdigit() or x == "."])
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA START PRICE\n{e}')
+            logger.error(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
 
     def categories(self, lot):
-        categories = BeautifulSoup(str(lot), 'lxml').find('td', text=contains('Классификатор ЕФРСБ'))
+        categories = BeautifulSoup(str(lot), "lxml").find(
+            "td", text=contains("Классификатор ЕФРСБ")
+        )
         if categories:
-            categories = categories.find_next_sibling('td')
+            categories = categories.find_next_sibling("td")
             return categories.get_text(strip=True)

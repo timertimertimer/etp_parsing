@@ -10,299 +10,372 @@ logger = logging.getLogger(__name__)
 
 
 class SerpParse:
-
     def __init__(self, response_):
         self.response = response_
-        self.soup = BeautifulSoup(self.response.text, 'lxml')
+        self.soup = BeautifulSoup(self.response.text, "lxml")
 
     def get_current_page(self):
-        """ return current page of pagination """
+        """return current page of pagination"""
         try:
             pag_ul = self.soup.find("ul", class_="pagination")
             if pag_ul:
                 active_page = pag_ul.find("li", class_="active").get_text()
-                if re.match(r'\d+', active_page):
+                if re.match(r"\d+", active_page):
                     return int(active_page)
                 else:
-                    logger.error(f'{self.response.url} :: ACTIVE PAGE NOT AN INTEGER')
+                    logger.error(f"{self.response.url} :: ACTIVE PAGE NOT AN INTEGER")
                     return 0
             else:
-                logger.error(f'{self.response.url} :: PAGINATION TAG NOT FOUND')
+                logger.error(f"{self.response.url} :: PAGINATION TAG NOT FOUND")
                 return 0
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA CURRENT PAGE {e}')
+            logger.error(f"{self.response.url} :: INVALID DATA CURRENT PAGE {e}")
             return 1
 
     def get_next_page(self):
-        """ return next page """
+        """return next page"""
         try:
             pag_ul = self.soup.find("ul", class_="pagination")
             if pag_ul:
                 active_page = pag_ul.find("li", class_="active")
-                next_page = active_page.findNext('li')
+                next_page = active_page.findNext("li")
                 if next_page:
                     next_page = next_page.get_text()
-                    if re.match(r'\d+', next_page):
+                    if re.match(r"\d+", next_page):
                         return int(next_page)
                     else:
                         return 0
             else:
                 return 0
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA NEXT PAGE {e}')
+            logger.error(f"{self.response.url} :: INVALID DATA NEXT PAGE {e}")
 
-    def links_to_trade(self, table_class: str = 'data') -> list:
-        """ return list with trading list """
+    def links_to_trade(self, table_class: str = "data") -> list:
+        """return list with trading list"""
         set_links = set()
         try:
-            tbody = self.soup.find('table', class_=table_class).find('tbody')
-            tr_list = tbody.find_all('tr')
+            tbody = self.soup.find("table", class_=table_class).find("tbody")
+            tr_list = tbody.find_all("tr")
             if tr_list:
                 for tr in tr_list:
-                    td = tr.find_all('td')[0].get_text()
-                    link = re.findall(r'/trade_view.php\?trade_nid=\d+', str(tr))
+                    td = tr.find_all("td")[0].get_text()
+                    link = re.findall(r"/trade_view.php\?trade_nid=\d+", str(tr))
                     if link:
-                        set_links.add((link[0].lstrip('/'), td))
+                        set_links.add((link[0].lstrip("/"), td))
                 return list(set_links)
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA DURING GETTING LINKS TO TRADE {e}')
+            logger.error(
+                f"{self.response.url} :: INVALID DATA DURING GETTING LINKS TO TRADE {e}"
+            )
             return list()
 
     def get_table_with_lots(self):
-        """ return table with lots links """
-        table = self.soup.find('table', class_='views-table')
+        """return table with lots links"""
+        table = self.soup.find("table", class_="views-table")
         if table is None:
-            table = self.soup.find('th', string=re.compile('Предмет торгов')).find_parent('table')
+            table = self.soup.find(
+                "th", string=re.compile("Предмет торгов")
+            ).find_parent("table")
         if table:
             tag_thead = table.thead
             tag_thead.decompose()
             return table
 
     def get_lots_data(self):
-        """ get data(general_link, lot_link, organizer from table if exists) """
+        """get data(general_link, lot_link, organizer from table if exists)"""
         if table := self.get_table_with_lots():
             short_lot_data = list()
-            for tr in table.find_all('tr'):
-                trade_link = tr.find_all('td')[0].find('a').get('href')
-                trading_type = dedent_func(tr.find_all('td')[0].get_text())
-                lot_link = tr.find_all('td')[1].find('a').get('href')
-                organizer = dedent_func(tr.find_all('td')[2].get_text())
-                status = dedent_func(tr.find_all('td')[6].get_text())
-                short_lot_data.append((trade_link, lot_link, organizer, trading_type, status))
+            for tr in table.find_all("tr"):
+                trade_link = tr.find_all("td")[0].find("a").get("href")
+                trading_type = dedent_func(tr.find_all("td")[0].get_text())
+                lot_link = tr.find_all("td")[1].find("a").get("href")
+                organizer = dedent_func(tr.find_all("td")[2].get_text())
+                status = dedent_func(tr.find_all("td")[6].get_text())
+                short_lot_data.append(
+                    (trade_link, lot_link, organizer, trading_type, status)
+                )
             return deque(short_lot_data)
         else:
             return list()
 
     def get_trading_type_and_form(self, trading_type_text):
-        """ return trading type """
-        offer = ['ОТПП', 'ЗТПП']
-        auction = ['ОАОФ', 'ОАЗФ', 'ЗАОФ', 'ЗАОЗ']
-        competition = ['ОКОФ', 'ОКЗФ', 'ЗКОФ', 'ЗКОЗ']
-        open_form = ['ОТПП', 'ОАОФ', 'ОАЗФ', 'ОКОФ', 'ОКЗФ']
-        close_form = ['ЗТПП', 'ЗАОФ', 'ЗАОЗ', 'ЗКОФ', 'ЗКОЗ']
-        trading_type = re.findall(r'\d{4,}.?-.?\D{4}', trading_type_text)
+        """return trading type"""
+        offer = ["ОТПП", "ЗТПП"]
+        auction = ["ОАОФ", "ОАЗФ", "ЗАОФ", "ЗАОЗ"]
+        competition = ["ОКОФ", "ОКЗФ", "ЗКОФ", "ЗКОЗ"]
+        open_form = ["ОТПП", "ОАОФ", "ОАЗФ", "ОКОФ", "ОКЗФ"]
+        close_form = ["ЗТПП", "ЗАОФ", "ЗАОЗ", "ЗКОФ", "ЗКОЗ"]
+        trading_type = re.findall(r"\d{4,}.?-.?\D{4}", trading_type_text)
         if len(trading_type) == 1:
-            trading_type = re.findall(r'\D{4}', trading_type[0].replace('-', '').strip())
+            trading_type = re.findall(
+                r"\D{4}", trading_type[0].replace("-", "").strip()
+            )
             trading_type = trading_type[0].strip()
             if trading_type in offer and trading_type in open_form:
-                return 'offer', 'open'
+                return "offer", "open"
             if trading_type in offer and trading_type in close_form:
-                return 'offer', 'closed'
+                return "offer", "closed"
             if trading_type in auction and trading_type in open_form:
-                return 'auction', 'open'
+                return "auction", "open"
             if trading_type in auction and trading_type in close_form:
-                return 'auction', 'closed'
+                return "auction", "closed"
             if trading_type in competition and trading_type in open_form:
-                return 'competition', 'open'
+                return "competition", "open"
             if trading_type in competition and trading_type in close_form:
-                return 'competition', 'closed'
-        logger.error(f'{self.response.url} :: ERROR function {self.get_trading_type_and_form.__name__}')
+                return "competition", "closed"
+        logger.error(
+            f"{self.response.url} :: ERROR function {self.get_trading_type_and_form.__name__}"
+        )
         return None
 
     def get_trading_number(self, trading_type_text):
-        """ return trading number """
-        tradin_number = re.findall(r'\d{4,}.?-\D{4}', trading_type_text)
+        """return trading number"""
+        tradin_number = re.findall(r"\d{4,}.?-\D{4}", trading_type_text)
         if len(tradin_number) == 1:
-            return dedent_func(''.join(tradin_number))
-        logger.error(f'{self.response.url} :: ERROR function {self.get_trading_number.__name__}')
+            return dedent_func("".join(tradin_number))
+        logger.error(
+            f"{self.response.url} :: ERROR function {self.get_trading_number.__name__}"
+        )
 
     def get_status_of_trade(self, status_text, trading_page):
-        """ return status of current lot """
+        """return status of current lot"""
         status = dedent_func(status_text)
-        active = ('Прием заявок',)
-        pending = ('Торги объявлены', 'Ожидает публикации')
-        ended = ('Прием заявок завершен', 'Идут торги', 'Подведение результатов торгов', 'Подведение итогов',
-                 'Торги отменены', 'Торги завершены', 'Торги не состоялись', 'Торги приостановлены')
+        active = ("Прием заявок",)
+        pending = ("Торги объявлены", "Ожидает публикации")
+        ended = (
+            "Прием заявок завершен",
+            "Идут торги",
+            "Подведение результатов торгов",
+            "Подведение итогов",
+            "Торги отменены",
+            "Торги завершены",
+            "Торги не состоялись",
+            "Торги приостановлены",
+        )
 
         if status in active:
-            return 'active'
+            return "active"
         elif status in pending:
-            return 'pending'
+            return "pending"
         elif status in ended:
-            return 'ended'
+            return "ended"
         else:
-            logger.error(f'{self.response.url} :: ERROR STATUS OF TRADE on page {trading_page}')
+            logger.error(
+                f"{self.response.url} :: ERROR STATUS OF TRADE on page {trading_page}"
+            )
 
     def get_trading_id(self):
-        """ return trading_id """
-        _id = ''.join(re.findall(r'\d+$', self.response.url))
+        """return trading_id"""
+        _id = "".join(re.findall(r"\d+$", self.response.url))
         return _id
 
     def get_curent_page(self):
-        """ retrun current page """
-        current = self.soup.find('ul', class_='pagination').find('li', class_='active')
+        """retrun current page"""
+        current = self.soup.find("ul", class_="pagination").find("li", class_="active")
         if current:
             current = dedent_func(current.get_text())
-            if re.match(r'\d{1,3}', current):
+            if re.match(r"\d{1,3}", current):
                 return int(current)
-        logger.error(f'{self.response.url} :: ERROR GETTING CURRENT PAGE')
+        logger.error(f"{self.response.url} :: ERROR GETTING CURRENT PAGE")
         return -1
 
     # TRADING PAGE
 
     def table_trading_page_trade_info(self):
-        """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Информация о проведении торгов', re.IGNORECASE)).find_parent(
-            'table')
+        """return table with title "Information about trades" """
+        table = self.soup.find(
+            "th", string=re.compile("Информация о проведении торгов", re.IGNORECASE)
+        ).find_parent("table")
         if table:
             return table
         else:
-            logger.error(f'{self.response.url} :: ERROR function {self.table_trading_page_trade_info.__name__}')
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.table_trading_page_trade_info.__name__}"
+            )
 
     def table_organizer_info(self):
-        """ return table with organizer information """
-        table = self.soup.find('th', string=re.compile('Информация об организаторе', re.IGNORECASE)).find_parent(
-            'table')
+        """return table with organizer information"""
+        table = self.soup.find(
+            "th", string=re.compile("Информация об организаторе", re.IGNORECASE)
+        ).find_parent("table")
         if table:
             return table
         else:
-            logger.error(f'{self.response.url} :: ERROR function {self.table_organizer_info.__name__}')
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.table_organizer_info.__name__}"
+            )
 
     def get_organizer_inn(self):
-        """ return organizer INN """
+        """return organizer INN"""
         try:
             if table := self.table_organizer_info():
-                text = 'ИНН'
-                org_inn = table.find('td', string=re.compile(text, re.IGNORECASE))
+                text = "ИНН"
+                org_inn = table.find("td", string=re.compile(text, re.IGNORECASE))
                 if len(org_inn.get_text().strip()) > 3:
-                    text = '^ИНН$'
-                    org_inn = table.find('td', string=re.compile(text, re.IGNORECASE))
-                org_inn = org_inn.findNextSibling('td').get_text()
+                    text = "^ИНН$"
+                    org_inn = table.find("td", string=re.compile(text, re.IGNORECASE))
+                org_inn = org_inn.findNextSibling("td").get_text()
                 return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
         except Exception as e:
             print(e)
-            logger.error(f'{self.response.url} :: ERROR INN')
+            logger.error(f"{self.response.url} :: ERROR INN")
 
     def get_organizer_email(self):
-        """ return organizer email """
+        """return organizer email"""
         if table := self.table_organizer_info():
-            text = 'Адрес электронной почты'
-            org_email = table.find('td', string=re.compile(text, re.IGNORECASE))
+            text = "Адрес электронной почты"
+            org_email = table.find("td", string=re.compile(text, re.IGNORECASE))
             if org_email:
-                org_email = org_email.findNextSibling('td').get_text()
+                org_email = org_email.findNextSibling("td").get_text()
                 return CheckIfCorrectContactInfo.check_email(dedent_func(org_email))
 
     def get_organizer_phone(self):
-        """ return organizer phone """
+        """return organizer phone"""
         if table := self.table_organizer_info():
-            text = 'Телефон'
-            org_phone = table.find('td', string=re.compile(text, re.IGNORECASE))
+            text = "Телефон"
+            org_phone = table.find("td", string=re.compile(text, re.IGNORECASE))
             if org_phone:
-                org_phone = org_phone.findNextSibling('td').get_text()
+                org_phone = org_phone.findNextSibling("td").get_text()
                 return CheckIfCorrectContactInfo.check_phone(dedent_func(org_phone))
 
     def get_organizer_contacts(self):
-        """ return organizer email and phone """
-        return {'email': self.get_organizer_email(), 'phone': self.get_organizer_phone()}
+        """return organizer email and phone"""
+        return {
+            "email": self.get_organizer_email(),
+            "phone": self.get_organizer_phone(),
+        }
 
     def get_msg_number(self):
-        """ return message number  """
+        """return message number"""
         if table := self.table_trading_page_trade_info():
-            text = 'Номер объявления о проведении торгов'
-            td_msg = table.find('td', string=re.compile(text, re.IGNORECASE))
+            text = "Номер объявления о проведении торгов"
+            td_msg = table.find("td", string=re.compile(text, re.IGNORECASE))
             if td_msg:
-                msg = re.findall(r'\d{6,8}', td_msg.findNextSibling('td').get_text())
-                return ' '.join(msg)
+                msg = re.findall(r"\d{6,8}", td_msg.findNextSibling("td").get_text())
+                return " ".join(msg)
 
     def table_trading_page_bankrot_info(self):
-        """ return table with title "Information about trades" """
-        table = self.soup.find('th', string=re.compile('Сведения о банротстве', re.IGNORECASE)).find_parent('table')
+        """return table with title "Information about trades" """
+        table = self.soup.find(
+            "th", string=re.compile("Сведения о банротстве", re.IGNORECASE)
+        ).find_parent("table")
         if table:
             return table
         else:
-            logger.error(f'{self.response.url} :: ERROR function {self.table_trading_page_bankrot_info.__name__}')
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.table_trading_page_bankrot_info.__name__}"
+            )
 
     def get_case_number(self):
-        """ return case number """
+        """return case number"""
         if table := self.table_debtor_info():
-            text = 'Номер дела о банкротстве'
-            td_case_number = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
-            return CheckIfCorrectContactInfo.check_case_number(dedent_func(td_case_number))
+            text = "Номер дела о банкротстве"
+            td_case_number = (
+                table.find("td", string=re.compile(text, re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text()
+            )
+            return CheckIfCorrectContactInfo.check_case_number(
+                dedent_func(td_case_number)
+            )
 
     def table_debtor_info(self):
-        """ return table with title "Information about debtor" """
-        table = self.soup.find('th', string=re.compile('Информация о должнике', re.IGNORECASE)).find_parent('table')
+        """return table with title "Information about debtor" """
+        table = self.soup.find(
+            "th", string=re.compile("Информация о должнике", re.IGNORECASE)
+        ).find_parent("table")
         if table:
             return table
         else:
-            logger.error(f'{self.response.url} :: ERROR function {self.table_debtor_info.__name__}')
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.table_debtor_info.__name__}"
+            )
 
     def get_debtor_inn(self):
-        """ return organizer INN """
+        """return organizer INN"""
         if table := self.table_debtor_info():
-            text = 'ИНН'
-            org_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
+            text = "ИНН"
+            org_inn = (
+                table.find("td", string=re.compile(text, re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text()
+            )
             return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
 
     @property
     def address(self):
         try:
             if table := self.table_debtor_info():
-                address = table.find('td', string='Адрес')
+                address = table.find("td", string="Адрес")
                 if address:
-                    address = address.findNextSibling('td').get_text(strip=True)
-                sud = table.find('td', string='Наименование суда')
+                    address = address.findNextSibling("td").get_text(strip=True)
+                sud = table.find("td", string="Наименование суда")
                 if sud:
-                    sud = sud.findNextSibling('td').get_text(strip=True)
-                region = table.find('td', string='Регион')
+                    sud = sud.findNextSibling("td").get_text(strip=True)
+                region = table.find("td", string="Регион")
                 if region:
-                    region = region.findNextSibling('td').get_text(strip=True)
+                    region = region.findNextSibling("td").get_text(strip=True)
                 if not any([address, sud]):
                     return region
                 if not address:
                     address = sud
                 return address
-        except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR function {self.address.__name__}')
+        except Exception:
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.address.__name__}"
+            )
 
     def table_arbitrator_info(self):
-        """ return table with title "Information about arbitrator" """
-        table = self.soup.find('th',
-                               string=re.compile('Информация об арбитражном управляющем', re.IGNORECASE)).find_parent(
-            'table')
+        """return table with title "Information about arbitrator" """
+        table = self.soup.find(
+            "th",
+            string=re.compile("Информация об арбитражном управляющем", re.IGNORECASE),
+        ).find_parent("table")
         if table:
             return table
         else:
-            logger.error(f'{self.response.url} :: ERROR function {self.table_arbitrator_info.__name__}')
+            logger.error(
+                f"{self.response.url} :: ERROR function {self.table_arbitrator_info.__name__}"
+            )
 
     def get_arbitrator_name(self):
-        """ return arbitrator full name """
+        """return arbitrator full name"""
         if table := self.table_arbitrator_info():
-            arb_last_name = table.find('td', string=re.compile('Фамилия', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
-            arb_first_name = table.find('td', string=re.compile('Имя', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
-            arb_dad_name = table.find('td', string=re.compile('Отчество', re.IGNORECASE)).findNextSibling('td').get_text(strip=True)
-            return ' '.join([arb_last_name, arb_first_name, arb_dad_name])
+            arb_last_name = (
+                table.find("td", string=re.compile("Фамилия", re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text(strip=True)
+            )
+            arb_first_name = (
+                table.find("td", string=re.compile("Имя", re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text(strip=True)
+            )
+            arb_dad_name = (
+                table.find("td", string=re.compile("Отчество", re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text(strip=True)
+            )
+            return " ".join([arb_last_name, arb_first_name, arb_dad_name])
 
     def get_arbitr_inn(self):
-        """ return arbitr INN """
+        """return arbitr INN"""
         if table := self.table_arbitrator_info():
-            text = 'ИНН'
-            arb_inn = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
+            text = "ИНН"
+            arb_inn = (
+                table.find("td", string=re.compile(text, re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text()
+            )
             return CheckIfCorrectContactInfo.check_inn(dedent_func(arb_inn))
 
     def get_arbitr_company(self):
-        """ return arbitrator company """
+        """return arbitrator company"""
         if table := self.table_arbitrator_info():
-            text = 'Наименование СРО'
-            arb_company = table.find('td', string=re.compile(text, re.IGNORECASE)).findNextSibling('td').get_text()
+            text = "Наименование СРО"
+            arb_company = (
+                table.find("td", string=re.compile(text, re.IGNORECASE))
+                .findNextSibling("td")
+                .get_text()
+            )
             return dedent_func(arb_company)

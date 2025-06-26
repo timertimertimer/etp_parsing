@@ -14,29 +14,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - '127.0.0.1:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
-      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
+#      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
     volumes:
-      - mysql_data:/var/lib/mysql
-    logging: *logging-default
-    networks:
-      - etp_parsing_network
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    restart: always
-    ports:
-      - "127.0.0.1:${PHPMYADMIN_EXTERNAL_PORT:-8081}:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-    depends_on:
-      - mysql
+      - etp_parsing_mysql_data:/var/lib/mysql
     logging: *logging-default
     networks:
       - etp_parsing_network
@@ -94,7 +78,7 @@ services:
       - etp_parsing_network
 
 volumes:
-  mysql_data:
+  etp_parsing_mysql_data:
 
 networks:
   etp_parsing_network:

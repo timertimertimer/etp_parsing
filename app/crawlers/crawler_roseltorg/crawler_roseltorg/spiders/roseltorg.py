@@ -22,18 +22,27 @@ class RoseltorgSpider(BaseSpider):
         self.parsed_trades = 0
 
     def start_requests(self):
-        yield FormRequest(self.start_urls[0], self.parse_serp, formdata=formdata, method='GET')
+        yield FormRequest(
+            self.start_urls[0], self.parse_serp, formdata=formdata, method="GET"
+        )
 
     def parse_serp(self, response):
         combo = Combo(response)
         for trading_card in combo.get_trading_cards():
-            link = combo.parse_link(UrlConfig.url_join(data_origin, combo.trading_link(trading_card)))
+            link = combo.parse_link(
+                UrlConfig.url_join(data_origin, combo.trading_link(trading_card))
+            )
             if link not in self.previous_trades:
                 trading_id = combo.trading_id(trading_card)
                 trading_number = combo.trading_number(trading_card)
-                yield Request(link, self.parse_trade, cb_kwargs={
-                    'trading_id': trading_id, 'trading_number': trading_number
-                })
+                yield Request(
+                    link,
+                    self.parse_trade,
+                    cb_kwargs={
+                        "trading_id": trading_id,
+                        "trading_number": trading_number,
+                    },
+                )
                 self.previous_trades.append(link)
                 self.total_trades += 1
         if next_page := combo.get_next_page_link():
@@ -74,7 +83,10 @@ class RoseltorgSpider(BaseSpider):
             loader.add_value("start_price", combo.start_price(lot))
             loader.add_value("step_price", combo.step_price(lot))
             loader.add_value("periods", combo.periods)
-            loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot(lot)})
+            loader.add_value(
+                "files",
+                {"general": combo.download_general(), "lot": combo.download_lot(lot)},
+            )
             yield loader.load_item()
         self.parsed_trades += 1
-        logger.info(f'Parsed {self.parsed_trades}/{self.total_trades} trades')
+        logger.info(f"Parsed {self.parsed_trades}/{self.total_trades} trades")

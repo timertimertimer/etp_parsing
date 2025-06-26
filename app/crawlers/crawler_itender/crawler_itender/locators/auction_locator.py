@@ -1,7 +1,7 @@
 class AuctionLocator:
     pagination_on_page = 'normalize-space(.//td[@class="pager"]//a/text())'
     # if first download not 1st page
-    #extra pagination_on_page
+    # extra pagination_on_page
     pagination_reverse_loc = 'normalize-space(.//td[@class="pager"]//a/text())'
 
     oranizer_name_loc = '//legend[contains(., "Организатор")]/ancestor::fieldset//td[contains(., "Сокращенное наименование:")]/following-sibling::td[1]'
@@ -44,4 +44,3 @@ class AuctionLocator:
 
     status_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Статус")]//following-sibling::td[1]'
     status2_loc = '//legend[contains(., "нформация о лоте №")]/ancestor::fieldset//td[contains(., "Статус")]//following-sibling::td[1]/span'
-

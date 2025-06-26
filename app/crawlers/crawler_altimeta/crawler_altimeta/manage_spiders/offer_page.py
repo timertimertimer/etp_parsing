@@ -14,35 +14,42 @@ class OfferPage:
     def __init__(self, response_):
         self.response = response_
         self.loc_lot = LocatorLotPage
-        self.soup = BS(str(self.response.text).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        self.soup = BS(
+            str(self.response.text).replace("&lt;", "<").replace("&gt;", ">"),
+            features="lxml",
+        )
 
     def get_lot_tables(self):
         tables_all = self.response.xpath(self.loc_lot.get_lot_table_offer).getall()
         return tables_all
 
     def get_table_period(self, table_):
-        table = BS(str(table_), features='lxml')
+        table = BS(str(table_), features="lxml")
         return table
 
     def start_date_request(self, table_):
         try:
             table = self.get_table_period(table_)
-            table = table.find('table', class_='data inner')
+            table = table.find("table", class_="data inner")
             table = pd.read_html(str(table))
             df = table[0]
             return format_time(df.iloc[0][0])
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR start_date_request {e}', exc_info=True)
+            logger.error(
+                f"{self.response.url} :: ERROR start_date_request {e}", exc_info=True
+            )
 
     def end_date_request(self, table_):
         try:
             table = self.get_table_period(table_)
-            table = table.find('table', class_='data inner')
+            table = table.find("table", class_="data inner")
             table = pd.read_html(str(table))
             df = table[0]
             return format_time(df.iloc[-1][1])
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR end_date_request {e}', exc_info=True)
+            logger.error(
+                f"{self.response.url} :: ERROR end_date_request {e}", exc_info=True
+            )
 
     def start_date_trading(self, table_):
         return self.start_date_request(table_)
@@ -53,8 +60,8 @@ class OfferPage:
     def start_price_offer(self, table_):
         try:
             table = self.get_table_period(table_)
-            table = table.find('table', class_='data inner')
-            table = pd.read_html(re.sub(r',', '.', str(table)))
+            table = table.find("table", class_="data inner")
+            table = pd.read_html(re.sub(r",", ".", str(table)))
             df = table[0]
             start_price = df.iloc[0][2]
             if isinstance(start_price, str):
@@ -62,18 +69,20 @@ class OfferPage:
             elif isinstance(start_price, float64):
                 start_price_ = round(float(start_price), 2)
             else:
-                logger.error(f'{self.response.url} :: INVALID TYPE START PRICE PRICE')
+                logger.error(f"{self.response.url} :: INVALID TYPE START PRICE PRICE")
                 start_price_ = None
             return start_price_
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR start_price_offer {e}', exc_info=True)
+            logger.error(
+                f"{self.response.url} :: ERROR start_price_offer {e}", exc_info=True
+            )
 
     def get_period(self, table_):
         check_value = int(10000000000000000000000)
         periods = list()
-        table = BS(str(table_), features='lxml')
-        table = table.find('table', class_='data inner')
-        table = pd.read_html(re.sub(r',', '.', str(table)))
+        table = BS(str(table_), features="lxml")
+        table = table.find("table", class_="data inner")
+        table = pd.read_html(re.sub(r",", ".", str(table)))
         df = table[0]
         try:
             for t in range(len(df)):
@@ -81,28 +90,34 @@ class OfferPage:
                 end_date_request = df.iloc[t][1]
                 end_date_trading = df.iloc[t][1]
                 current_price = df.iloc[t][2]
-                if not re.match(r'nan', str(current_price), re.IGNORECASE):
+                if not re.match(r"nan", str(current_price), re.IGNORECASE):
                     if isinstance(current_price, str):
                         current_price_ = make_float(current_price)
                     elif isinstance(current_price, float64):
                         current_price_ = round(float(current_price), 2)
                     else:
-                        logger.error(f'{self.response.url} :: INVALID TYPE CURRENT PRICE')
+                        logger.error(
+                            f"{self.response.url} :: INVALID TYPE CURRENT PRICE"
+                        )
                         current_price_ = None
                     period = {
-                        'start_date_requests': format_time(start_date_request),
-                        'end_date_requests': format_time(end_date_request),
-                        'end_date_trading': format_time(end_date_trading),
-                        'current_price': current_price_
+                        "start_date_requests": format_time(start_date_request),
+                        "end_date_requests": format_time(end_date_request),
+                        "end_date_trading": format_time(end_date_trading),
+                        "current_price": current_price_,
                     }
                     periods.append(period)
                     if check_value < current_price_:
                         logger.critical(
-                            f'{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS', df)
+                            f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS",
+                            df,
+                        )
                     check_value = current_price_
             return periods
         except Exception as e:
-            logger.error(f'{self.response.url} :: PERIODS ERROR {e}\n{df}', exc_info=True)
+            logger.error(
+                f"{self.response.url} :: PERIODS ERROR {e}\n{df}", exc_info=True
+            )
             return None
 
     def get_next_page_number(self):

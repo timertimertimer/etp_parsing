@@ -1,44 +1,47 @@
-from general_utils.config import absolute_download_path, relative_download_path, start_date
+from general_utils.config import (
+    absolute_download_path,
+    relative_download_path,
+    start_date,
+)
 
 formdata = {
-    'lot_description': '',
-    'trade_number': '',
-    'debtor_info': '',
-    'arbitr_info': '',
-    'app_start_from': start_date,
-    'app_start_to': '',
-    'app_end_from': '',
-    'app_end_to': '',
-    'trade_type': 'Любой',
-    'trade_state': 'Любой',
-    'pagenum': '',
-
+    "lot_description": "",
+    "trade_number": "",
+    "debtor_info": "",
+    "arbitr_info": "",
+    "app_start_from": start_date,
+    "app_start_to": "",
+    "app_end_from": "",
+    "app_end_to": "",
+    "trade_type": "Любой",
+    "trade_state": "Любой",
+    "pagenum": "",
 }
 stop_page = 20
 data_origin = {
-    'ruson': 'https://rus-on.ru/',
-    'eltorg': 'https://el-torg.com/',
-    'nistp': 'https://nistp.ru/',
-    'promkonsalt': 'https://promkonsalt.ru/',
-    'sistematorg': 'https://sistematorg.com/'
+    "ruson": "https://rus-on.ru/",
+    "eltorg": "https://el-torg.com/",
+    "nistp": "https://nistp.ru/",
+    "promkonsalt": "https://promkonsalt.ru/",
+    "sistematorg": "https://sistematorg.com/",
 }
 serp_link = {
-    'ruson': 'https://rus-on.ru/bankrot/trade_list.php',
-    'eltorg': 'https://el-torg.com/bankrot/trade_list.php',
-    'nistp': 'https://nistp.ru/bankrot/trade_list.php',
-    'promkonsalt': 'https://promkonsalt.ru/tradelist.php',
-    'sistematorg': 'https://sistematorg.com/tradelist.php'
+    "ruson": "https://rus-on.ru/bankrot/trade_list.php",
+    "eltorg": "https://el-torg.com/bankrot/trade_list.php",
+    "nistp": "https://nistp.ru/bankrot/trade_list.php",
+    "promkonsalt": "https://promkonsalt.ru/tradelist.php",
+    "sistematorg": "https://sistematorg.com/tradelist.php",
 }
 trade_link = {
-    'ruson': 'https://rus-on.ru/bankrot/trade_view.php',
-    'eltorg': 'https://el-torg.com/bankrot/trade_view.php',
-    'nistp': 'https://nistp.ru/bankrot/trade_view.php',
-    'promkonsalt': 'https://promkonsalt.ru/trade_view.php',
-    'sistematorg': 'https://sistematorg.com/trade_view.php'
+    "ruson": "https://rus-on.ru/bankrot/trade_view.php",
+    "eltorg": "https://el-torg.com/bankrot/trade_view.php",
+    "nistp": "https://nistp.ru/bankrot/trade_view.php",
+    "promkonsalt": "https://promkonsalt.ru/trade_view.php",
+    "sistematorg": "https://sistematorg.com/trade_view.php",
 }
-domains = ['ruson', 'eltorg', 'nistp', 'promkonsalt', 'sistematorg']
+domains = ["ruson", "eltorg", "nistp", "promkonsalt", "sistematorg"]
 path_absolute = {}
 path_relative = {}
 for domain in domains:
-    path_absolute[domain] = f'{absolute_download_path}/etp_lot_online_{domain}'
-    path_relative[domain] = f'{relative_download_path}/etp_lot_online_{domain}'
+    path_absolute[domain] = f"{absolute_download_path}/etp_lot_online_{domain}"
+    path_relative[domain] = f"{relative_download_path}/etp_lot_online_{domain}"

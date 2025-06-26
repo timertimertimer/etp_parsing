@@ -21,12 +21,17 @@ class VertradesSpider(BaseSpider):
 
     def start_requests(self) -> Iterable[Request]:
         params_data["from"] = start_date
-        yield FormRequest(self.start_urls[0], callback=self.parse, formdata=params_data, method="GET")
+        yield FormRequest(
+            self.start_urls[0], callback=self.parse, formdata=params_data, method="GET"
+        )
 
     def parse(self, response):
         combo = Combo(response)
         for link in combo.serp.get_trading_links():
-            if UrlConfig.url_join(data_origin, link.removesuffix('#lot')) not in self.previous_trades:
+            if (
+                UrlConfig.url_join(data_origin, link.removesuffix("#lot"))
+                not in self.previous_trades
+            ):
                 yield response.follow(link, callback=self.parse_trading)
 
     def parse_trading(self, response):
@@ -72,7 +77,7 @@ class VertradesSpider(BaseSpider):
             loader.add_value("lot_info", combo.lot_info(lot))
             loader.add_value("property_information", combo.property_information(lot))
             loader.add_value("start_price", combo.start_price(lot))
-            loader.add_value('categories', combo.categories(lot))
+            loader.add_value("categories", combo.categories(lot))
             loader.add_value("start_date_requests", start_date_requests)
             loader.add_value("end_date_requests", end_date_requests)
             lot_files = combo.download_lot(lot)
@@ -82,7 +87,9 @@ class VertradesSpider(BaseSpider):
                 loader.add_value("end_date_trading", combo.auc.end_date_trading)
                 loader.add_value("step_price", combo.auc.step_price(lot))
             elif trading_type == "offer":
-                loader.add_value("start_date_trading", combo.offer.start_date_trading(lot))
+                loader.add_value(
+                    "start_date_trading", combo.offer.start_date_trading(lot)
+                )
                 loader.add_value("end_date_trading", combo.offer.end_date_trading(lot))
                 loader.add_value("periods", combo.offer.get_periods(lot))
             else:

@@ -10,12 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class SerpPageSearchInfo:
-
     def __init__(self, _response):
         self.response = _response
         self.loc = LocatorSerp
-        self.soup = (
-            BS(str(self.response.body.decode('utf-8')).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        self.soup = BS(
+            str(self.response.body.decode("utf-8"))
+            .replace("&lt;", "<")
+            .replace("&gt;", ">"),
+            features="lxml",
         )
 
     def fetch_pagination_links(self):
@@ -43,67 +45,75 @@ class SerpPageSearchInfo:
             lst_num_page = list()
             lst_href = list()
             for a in self.fetch_pagination_links():
-                a = BS(str(a), features='lxml').find('a')
+                a = BS(str(a), features="lxml").find("a")
                 if a:
-                    a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
+                    a_href = "".join(
+                        re.findall(r"ctl.*\d", UrlConfig.unquote_url(a.get("href")))
+                    )
                     a_text = a.get_text()
                     lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
             return lst_href, lst_num_page
         except:
-            logger.error(f'{self.response.url} :: ')
+            logger.error(f"{self.response.url} :: ")
             return []
 
     def get_href_post_lot_page(self):
-        """ get post data (href) for pagination """
+        """get post data (href) for pagination"""
         try:
             lst_num_page = list()
             lst_href = list()
             for a in self.fetch_pagination_links_lot_page():
-                a = BS(str(a), features='lxml').find('a')
+                a = BS(str(a), features="lxml").find("a")
                 if a:
-                    a_href = ''.join(re.findall(r'ctl.*\d', UrlConfig.unquote_url(a.get('href'))))
+                    a_href = "".join(
+                        re.findall(r"ctl.*\d", UrlConfig.unquote_url(a.get("href")))
+                    )
                     a_text = a.get_text()
                     lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
                     if len(lst_href) > 0:
                         return lst_href, lst_num_page
         except:
-            logger.error(f'{self.response.url} :: ')
+            logger.error(f"{self.response.url} :: ")
             return []
 
     def get_current_page(self):
-        """ get current pge number <span> """
+        """get current pge number <span>"""
         try:
-            number = self.soup.find('td', class_='pager')
+            number = self.soup.find("td", class_="pager")
             if number:
-                number = number.find_all('span', string=re.compile(r'\d'))
+                number = number.find_all("span", string=re.compile(r"\d"))
                 if len(number) == 1:
-                    number = BS(str(number[0]), features='lxml').get_text()
+                    number = BS(str(number[0]), features="lxml").get_text()
                     if number.isdigit():
                         return number
                     else:
-                        logger.error('NOT A NUMBER')
+                        logger.error("NOT A NUMBER")
                         return None
             else:
-                number = '1'
+                number = "1"
                 # logger.error(f'{self.response.url} :: ERROR CURRENT PAGE')
                 return number
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR CURRENT PAGE\n{e}', exc_info=True)
-            with open('error_current_page.txt', 'w') as f:
+            logger.error(
+                f"{self.response.url} :: ERROR CURRENT PAGE\n{e}", exc_info=True
+            )
+            with open("error_current_page.txt", "w") as f:
                 f.write(self.response.text)
 
     def get_next_page(self):
-        """ get next page or sign >> """
+        """get next page or sign >>"""
         try:
-            next_page = self.soup.find('td', class_='pager')
+            next_page = self.soup.find("td", class_="pager")
             if next_page:
-                next_page = next_page.find('span', string=self.get_current_page()).findNext('a')
+                next_page = next_page.find(
+                    "span", string=self.get_current_page()
+                ).findNext("a")
                 if next_page:
                     next_page = next_page.get_text()
-                    if next_page and (next_page.isdigit() or next_page == '>>'):
-                        if next_page == '>>':
+                    if next_page and (next_page.isdigit() or next_page == ">>"):
+                        if next_page == ">>":
                             next_page = int(self.get_current_page()) + 1
                         return next_page
                 else:
@@ -111,16 +121,18 @@ class SerpPageSearchInfo:
             else:
                 return 0
         except Exception as e:
-            logger.error(f'{self.response.url}\n{e} ::: get_next_page', exc_info=True)
-            with open('error_next_page.txt', 'w') as f:
+            logger.error(f"{self.response.url}\n{e} ::: get_next_page", exc_info=True)
+            with open("error_next_page.txt", "w") as f:
                 f.write(self.response.text)
 
     def get_previous_page(self):
-        """ get next page or sign >> """
+        """get next page or sign >>"""
         try:
-            previous = self.soup.find('td', class_='pager')
+            previous = self.soup.find("td", class_="pager")
             if previous:
-                previous = previous.find('span', string=self.get_current_page()).findPrevious('a')
+                previous = previous.find(
+                    "span", string=self.get_current_page()
+                ).findPrevious("a")
                 if previous:
                     previous = previous.get_text()
                     if previous and (previous.isdigit()):
@@ -130,49 +142,57 @@ class SerpPageSearchInfo:
             else:
                 return 0
         except Exception as e:
-            logger.error(f'{self.response.url}\n{e} ::: get_previous_page', exc_info=True)
-            with open('error_previous_page.txt', 'w') as f:
+            logger.error(
+                f"{self.response.url}\n{e} ::: get_previous_page", exc_info=True
+            )
+            with open("error_previous_page.txt", "w") as f:
                 f.write(self.response.text)
 
     def body_scripts(self):
-        """ get href form a for first post param  """
+        """get href form a for first post param"""
         try:
-            next_page = self.soup.find('td', class_='pager')
+            next_page = self.soup.find("td", class_="pager")
             if next_page:
-                next_page = next_page.find('span', string=self.get_current_page()).findNext('a')
+                next_page = next_page.find(
+                    "span", string=self.get_current_page()
+                ).findNext("a")
                 if next_page:
                     next_page = next_page.get_text()
-                a = self.soup.find('td', class_='pager').findChild('a', string=next_page)
+                a = self.soup.find("td", class_="pager").findChild(
+                    "a", string=next_page
+                )
                 if a:
-                    a_href = ''.join(re.findall(r'ctl.*\d', a.get('href')))
+                    a_href = "".join(re.findall(r"ctl.*\d", a.get("href")))
                     return a_href
 
         except Exception as e:
-            logger.error(f'{self.response.url}\n{e} :: body_script', exc_info=True)
-            with open('body_scripts.txt', 'w') as f:
+            logger.error(f"{self.response.url}\n{e} :: body_script", exc_info=True)
+            with open("body_scripts.txt", "w") as f:
                 f.write(self.response.text)
 
     def body_scripts_1st_page(self):
-        """ get href form a for first post param  """
+        """get href form a for first post param"""
         try:
-            td = self.soup.find('td', class_='pager')
+            td = self.soup.find("td", class_="pager")
             if td:
-                first_page = td.find('a')
+                first_page = td.find("a")
                 if first_page:
                     first_page_text = first_page.get_text()
-                    if first_page_text == '1':
-                        a = first_page.get('href')
-                        a_href = ''.join(re.findall(r'ctl.*\d', a))
+                    if first_page_text == "1":
+                        a = first_page.get("href")
+                        a_href = "".join(re.findall(r"ctl.*\d", a))
                         return a_href
         except Exception as e:
-            logger.error(f'{self.response.url}\n{e} :: body_scripts_1st_page', exc_info=True)
-            with open('body_scripts_1st_page.txt', 'w') as f:
+            logger.error(
+                f"{self.response.url}\n{e} :: body_scripts_1st_page", exc_info=True
+            )
+            with open("body_scripts_1st_page.txt", "w") as f:
                 f.write(self.response.text)
 
     def get_tr_lot_data_serp(self):
-        """ get list with rows that contains link and lot number """
+        """get list with rows that contains link and lot number"""
         try:
-            lst_data_links = self.soup.find_all('tr', class_="gridRow")
+            lst_data_links = self.soup.find_all("tr", class_="gridRow")
             if len(lst_data_links) > 0:
                 return lst_data_links
         except Exception as e:
@@ -190,39 +210,43 @@ class SerpPageSearchInfo:
             return None
 
     def get_link_to_lot(self, current_page, data_origin) -> list or None:
-        """ :returns links to lots """
+        """:returns links to lots"""
         try:
             lst_link_lot = list()
             if self.get_tr_lot_data_serp():
                 for tr in self.get_tr_lot_data_serp():
                     # td[0] -> contains part of link to lot page
-                    link = BS(str(tr), features='lxml').find_all('td')[0].find('a')
+                    link = BS(str(tr), features="lxml").find_all("td")[0].find("a")
                     if link:
-                        link = link.get('href')
+                        link = link.get("href")
                         if link:
                             link = UrlConfig.url_join(data_origin, link)
                     # td[2] -> contains lot number
-                    lot_ = BS(str(tr), features='lxml').find_all('td')[2].find('a')
+                    lot_ = BS(str(tr), features="lxml").find_all("td")[2].find("a")
                     if lot_:
                         lot = lot_.get_text()
-                        lot_link = lot_.get('href')
+                        lot_link = lot_.get("href")
                         if lot.isdigit():
                             lot = lot
                         else:
-                            logger.error(f'{link} :: current page {current_page} :: WITHOUT LOT NUMBER')
+                            logger.error(
+                                f"{link} :: current page {current_page} :: WITHOUT LOT NUMBER"
+                            )
                             return list()
-                        lst_link_lot.append((link, lot, UrlConfig.url_join(data_origin, lot_link)))
+                        lst_link_lot.append(
+                            (link, lot, UrlConfig.url_join(data_origin, lot_link))
+                        )
                 return lst_link_lot
             else:
                 return list()
         except Exception as e:
-            logger.error(f'{self.response.url}:: get_link_to_lot:::{e}', exc_info=True)
+            logger.error(f"{self.response.url}:: get_link_to_lot:::{e}", exc_info=True)
             return list()
 
     def find_error_page(self):
-        """ if error text present on page """
-        error_text = 'В приложении произошла ошибка'
+        """if error text present on page"""
+        error_text = "В приложении произошла ошибка"
         if error_text in self.response.text:
-            return f'{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ'
+            return f"{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ"
         else:
             return None

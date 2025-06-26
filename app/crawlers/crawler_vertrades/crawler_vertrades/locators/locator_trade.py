@@ -11,7 +11,9 @@ class LocatorTrade:
 
     msg_number_loc = '//th[normalize-space(text())="Информация для интеграции с ЕФРСБ"]/following::td[contains(text(), "торгов на ЕФРСБ")]/following-sibling::td'
 
-    case_number_loc = '//td[normalize-space(text())="Номер дела о банкротстве"]/following-sibling::td'
+    case_number_loc = (
+        '//td[normalize-space(text())="Номер дела о банкротстве"]/following-sibling::td'
+    )
 
     debitor_inn_loc = '//th[normalize-space(text())="Сведения о должнике"]/following::td[normalize-space(text())="ИНН" and following::th[normalize-space(text())="Финансовый управляющий"]]/following-sibling::td[1]'
     debitor_inn_loc_2 = '//th[normalize-space(text())="Сведения о должнике"]/following::td[normalize-space(text())="ИНН" and following::th[normalize-space(text())="Арбитражный управляющий"]]/following-sibling::td[1]'
@@ -28,4 +30,4 @@ class LocatorTrade:
     general_files_loc = '//th[normalize-space(text())="Электронные документы"]/ancestor::table[@class="main-table col-2"]//a[@target="_blank"]'
 
     lots_loc = '//table[contains(@class, "lottab")]'
-    lot_number_loc = '//th'
+    lot_number_loc = "//th"

@@ -1,6 +1,10 @@
 class LocatorTrade:
-    trading_type_and_form_loc = '//div[normalize-space(text())="Номер торгов"]/following-sibling::div[1]/text()'
-    trading_org_loc = '//div[normalize-space(text())="Наименование"]/following-sibling::div[1]/text()'
+    trading_type_and_form_loc = (
+        '//div[normalize-space(text())="Номер торгов"]/following-sibling::div[1]/text()'
+    )
+    trading_org_loc = (
+        '//div[normalize-space(text())="Наименование"]/following-sibling::div[1]/text()'
+    )
     trading_org_inn_loc = '(//div[.//small[normalize-space(text())="ИНН:"]]/following-sibling::div[1])[1]/text()'
     phone_org_loc = '//div[normalize-space(text())="Номер контактного телефона"]/following-sibling::div[1]/text()'
     email_org_loc = '//div[normalize-space(text())="Адрес электронной почты"]/following-sibling::div[1]/text()'
@@ -11,9 +15,11 @@ class LocatorTrade:
     arbit_manager_loc = '//div[normalize-space(text())="Фамилия, имя, отчество"]/following-sibling::div[1]/text()'
     arbit_manager_inn_loc = '//div[normalize-space(text())="Арбитражный управляющий"]/following::div[contains(text(), "ИНН") and following::div[contains(text(), "Сведения о должнике")]]/following-sibling::div/text()'
     arbit_manager_org_loc = '//div[contains(normalize-space(text()), "Название саморегулируемой организации")]/following-sibling::div/text()'
-    status_loc = '//div[normalize-space(text())="Статус торгов"]/following-sibling::div[1]'
+    status_loc = (
+        '//div[normalize-space(text())="Статус торгов"]/following-sibling::div[1]'
+    )
 
-    files_loc = '//div[@data-file-id]'
+    files_loc = "//div[@data-file-id]"
     lots_loc = '//div[@id="lots"]//div[@class="row"]'
     short_name_loc = '//div[normalize-space(text())="Наименование лота"]/following-sibling::div[1]/text()'
     lot_info_loc = '//div[normalize-space(text())="Сведения об имуществе и порядок ознакомления с имуществом"]/following-sibling::div[1]/text()'

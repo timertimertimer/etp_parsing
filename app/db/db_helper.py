@@ -1,20 +1,18 @@
 import csv
 import logging
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 
-from sqlalchemy import text, select, and_, inspect, literal
-from sqlalchemy.orm import joinedload, aliased
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    AsyncSession,
-    async_sessionmaker,
-)
+from sqlalchemy.engine.create import create_engine
+from sqlalchemy.orm.session import sessionmaker, Session
 from typing import Type, Union, List
 
-from app.utils.extra import parse_classifiers
+from sqlalchemy import text, select, and_, inspect, literal
+from sqlalchemy.orm import joinedload, aliased
+
 from app.crawlers.items import EtpItem
+from app.utils.extra import parse_classifiers, sanitize_filename
 from app.utils.config import (
     data_path,
     absolute_download_path,
@@ -38,6 +36,10 @@ from app.db.models import (
     Base,
     DebtorMessage,
     DownloadData,
+    CounterpartySRO,
+    FileModelType,
+    LotCategory,
+    StatusType,
 )
 from app.utils.fedresurs import (
     PersonFedresurs,
@@ -48,89 +50,67 @@ from app.utils.fedresurs import (
     CompanyOrganizerFedresurs,
     AuctionFedresurs,
 )
-from app.db.models.counterparty import CounterpartySRO
-from app.db.models.file import FileModelType
-from app.db.models.lot import LotCategory
-from app.db.models.parser_status import StatusType
-from app.utils.extra import sanitize_filename
 from app.utils.config import env
 
 logger = logging.getLogger(__name__)
-connection_string = f"mysql+asyncmy://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
 
-engine = create_async_engine(
-    connection_string, echo=False, pool_size=2, max_overflow=0
-)
-SessionLocal = async_sessionmaker(
-    bind=engine,
-    expire_on_commit=False,
-    class_=AsyncSession,
-    autoflush=False,
-    autocommit=False,
-)
+engine = create_engine(env.connection_string, echo=False, pool_size=2, max_overflow=0)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class DBHelper:
-    session = None
+    session: Session | None = None
 
     @staticmethod
-    async def create_new_connection():
+    def create_new_connection():
         DBHelper.session = SessionLocal()
-        await DBHelper.set_wait_timeout(600)
+        DBHelper.set_wait_timeout(600)
 
     @staticmethod
-    @asynccontextmanager
-    async def transaction_scope(commit: bool = True):
-        async with SessionLocal() as session:
-            DBHelper.session = session
-            try:
-                yield session
-                if commit:
-                    await session.commit()
-            except Exception:
-                await session.rollback()
-                raise
+    @contextmanager
+    def transaction_scope(commit: bool = True):
+        if not DBHelper.session:
+            DBHelper.create_new_connection()
+        yield DBHelper.session
+        if commit:
+            DBHelper.session.commit()
+        return
 
     @staticmethod
-    async def set_wait_timeout(timeout: int = 600):
-        async with DBHelper.transaction_scope(commit=False) as session:
-            await session.execute(
-                text(f"SET SESSION wait_timeout = {timeout};")
-            )
+    def set_wait_timeout(timeout: int = 600):
+        DBHelper.session.execute(text(f"SET SESSION wait_timeout = {timeout};"))
 
     @staticmethod
-    async def get_latest_lot(
-        data_origin_url: str, keys=None, day: int = 30
+    def get_latest_lot(
+        data_origin_url: str, filter_keys: str | list[str] = None, day: int = 30
     ) -> Union[tuple[List, int], None]:
         date_threshold = datetime.utcnow() - timedelta(days=day)
-        if keys is None:
-            keys = [Auction.url]
-        if not isinstance(keys, list):
-            keys = [keys]
+        if filter_keys is None:
+            filter_keys = [Auction.url]
+        if not isinstance(filter_keys, list):
+            filter_keys = [filter_keys]
 
-        async with DBHelper.transaction_scope(commit=False) as session:
-            result = await session.execute(
+        with DBHelper.transaction_scope(commit=False) as session:
+            trading_floor_id = session.scalars(
                 select(TradingFloor.id).where(
-                    TradingFloor.url == data_origin_url
+                    TradingFloor.url == literal(data_origin_url)
                 )
-            )
-            trading_floor_id = result.scalar()
+            ).first()
             if trading_floor_id is None:
                 return
 
-            stmt = select(*keys).where(
+            stmt = select(*filter_keys).where(
                 and_(
                     Auction.created_at >= date_threshold,
                     Auction.trading_floor_id == trading_floor_id,
                 )
             )
-            lots_result = await session.execute(stmt)
-            lots = lots_result.scalars().all()
+            lots = session.scalars(stmt).all()
             return lots, trading_floor_id
 
     @staticmethod
-    async def get_trading_floor_id(crawler_name: str, data_origin_url: str):
-        async with DBHelper.transaction_scope() as session:
+    def get_trading_floor_id(crawler_name: str, data_origin_url: str):
+        with DBHelper.transaction_scope() as session:
             trading_floor_id = session.scalars(
                 select(TradingFloor.id).where(
                     TradingFloor.url == literal(data_origin_url)
@@ -138,7 +118,7 @@ class DBHelper:
             ).first()
             if trading_floor_id is None:
                 logger.error(
-                    f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping..."
+                    f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping."
                 )
                 return None
 
@@ -158,9 +138,7 @@ class DBHelper:
     ):
         if status_active is not None:
             with DBHelper.transaction_scope() as session:
-                status = (
-                    StatusType.active if status_active else StatusType.disabled
-                )
+                status = StatusType.active if status_active else StatusType.disabled
                 session.add(
                     ParserStatus(
                         name=spider_name,
@@ -171,15 +149,11 @@ class DBHelper:
                     )
                 )
                 trading_floor = (
-                    session.query(TradingFloor)
-                    .filter_by(id=trading_floor_id)
-                    .first()
+                    session.query(TradingFloor).filter_by(id=trading_floor_id).first()
                 )
                 if trading_floor.status != status:
                     trading_floor.status = (
-                        StatusType.active
-                        if status_active
-                        else StatusType.disabled
+                        StatusType.active if status_active else StatusType.disabled
                     )
                 logger.info(
                     f"save_counter_and_duration :: "
@@ -206,13 +180,8 @@ class DBHelper:
     def add_addresses(source_path: PurePath = data_path / "addresses.csv"):
         addresses = []
         with DBHelper.transaction_scope() as session:
-            regions = {
-                region.name: region.id
-                for region in session.query(Region).all()
-            }
-            existing_addresses = [
-                r[0] for r in session.query(Address.name).all()
-            ]
+            regions = {region.name: region.id for region in session.query(Region).all()}
+            existing_addresses = [r[0] for r in session.query(Address.name).all()]
             with open(source_path, newline="", encoding="utf-8") as csvfile:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=";")
                 for row in reader:
@@ -220,19 +189,14 @@ class DBHelper:
                         id_ := regions.get(row["region"])
                         and row["address"] not in existing_addresses
                     ):
-                        addresses.append(
-                            Address(region_id=id_, name=row["address"])
-                        )
+                        addresses.append(Address(region_id=id_, name=row["address"]))
             session.add_all(addresses)
 
     @staticmethod
     def add_cities(source_path: PurePath = data_path / "cities.csv"):
         cities = []
         with DBHelper.transaction_scope() as session:
-            regions = {
-                region.name: region.id
-                for region in session.query(Region).all()
-            }
+            regions = {region.name: region.id for region in session.query(Region).all()}
             existing_cities = [r[0] for r in session.query(City.name).all()]
             with open(source_path, newline="", encoding="utf-8") as csvfile:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=";")
@@ -270,11 +234,7 @@ class DBHelper:
     @staticmethod
     def get_addresses_with_regions():
         with DBHelper.transaction_scope(commit=False) as session:
-            return (
-                session.query(Address)
-                .options(joinedload(Address.region))
-                .all()
-            )
+            return session.query(Address).options(joinedload(Address.region)).all()
 
     @staticmethod
     def get_cities_with_regions():
@@ -299,14 +259,13 @@ class DBHelper:
                 query = query.options(joinedload(Counterparty.sro_memberships))
             elif model is Auction:
                 query = query.options(
-                    joinedload(Auction.trading_floor),
-                    joinedload(Auction.legal_case),
+                    joinedload(Auction.trading_floor), joinedload(Auction.legal_case)
                 )
             return query.all()
 
     @staticmethod
     def get_counterparty(
-        inn: str = None, name: str = None, short_name: str = None
+        inn: str | None = None, name: str | None = None, short_name: str | None = None
     ):
         with DBHelper.transaction_scope(commit=False) as session:
             query = session.query(Counterparty)
@@ -318,21 +277,14 @@ class DBHelper:
                 query = query.filter(Counterparty.short_name == short_name)
             else:
                 return None
-            return query.options(
-                joinedload(Counterparty.sro_memberships)
-            ).first()
+            return query.options(joinedload(Counterparty.sro_memberships)).first()
 
     @staticmethod
-    def get_counterparty_sro(
-        counterparty_id: int, sro_counterparty_short_name: str
-    ):
+    def get_counterparty_sro(counterparty_id: int, sro_counterparty_short_name: str):
         sro_alias = aliased(Counterparty)
         return (
             DBHelper.session.query(CounterpartySRO)
-            .join(
-                Counterparty,
-                Counterparty.id == CounterpartySRO.counterparty_id,
-            )
+            .join(Counterparty, Counterparty.id == CounterpartySRO.counterparty_id)
             .join(sro_alias, sro_alias.id == CounterpartySRO.sro_id)
             .filter(
                 and_(
@@ -357,9 +309,7 @@ class DBHelper:
                 trading_floor_id=trading_floor_id,
             )
             if case_number := item.get("case_number"):
-                legal_case = DBHelper.store_legal_case_from_case_number(
-                    case_number
-                )
+                legal_case = DBHelper.store_legal_case_from_case_number(case_number)
                 auction.legal_case_id = legal_case.id
             lot = DBHelper.store_and_get_lot(item, auction.id)
             DBHelper.store_lot_period(item, lot.id)
@@ -369,15 +319,13 @@ class DBHelper:
     def store_and_get_auction(
         item: EtpItem,
         trading_floor_id: int,
-        organizer: Counterparty = None,
-        arbitrator: Counterparty = None,
-        debtor: Counterparty = None,
+        organizer: Counterparty | None = None,
+        arbitrator: Counterparty | None = None,
+        debtor: Counterparty | None = None,
     ):
         auction = (
             DBHelper.session.query(Auction)
-            .filter_by(
-                ext_id=item["trading_id"], trading_floor_id=trading_floor_id
-            )
+            .filter_by(ext_id=item["trading_id"], trading_floor_id=trading_floor_id)
             .first()
         )
         if not auction:
@@ -420,14 +368,12 @@ class DBHelper:
     @staticmethod
     def get_or_create_address(address_str: str) -> Address | None:
         if not address_str:
-            return
-        from .location import RegionIdentifier
+            return None
+        from app.utils.location import RegionIdentifier
 
         with DBHelper.transaction_scope():
             address = (
-                DBHelper.session.query(Address)
-                .filter_by(name=address_str)
-                .first()
+                DBHelper.session.query(Address).filter_by(name=address_str).first()
             )
             if not address:
                 address = Address(name=address_str)
@@ -451,25 +397,13 @@ class DBHelper:
         def _store_single_model(model: Base):
             logger.info(f"Storing model {model}")
             if isinstance(model, Counterparty):
-                if (
-                    session.query(Counterparty)
-                    .filter_by(inn=model.inn)
-                    .first()
-                ):
+                if session.query(Counterparty).filter_by(inn=model.inn).first():
                     return session.merge(model)
             elif isinstance(model, LegalCase):
-                if (
-                    session.query(LegalCase)
-                    .filter_by(number=model.number)
-                    .first()
-                ):
+                if session.query(LegalCase).filter_by(number=model.number).first():
                     return session.merge(model)
             elif isinstance(model, DebtorMessage):
-                if (
-                    session.query(DebtorMessage)
-                    .filter_by(number=model.number)
-                    .first()
-                ):
+                if session.query(DebtorMessage).filter_by(number=model.number).first():
                     return session.merge(model)
             elif isinstance(model, File):
                 if session.query(File).filter_by(name=model.name).first():
@@ -496,32 +430,22 @@ class DBHelper:
         arbitrator_counterparty = DBHelper.get_counterparty(
             inn=inn, name=name, short_name=name
         )
-        if (
-            not arbitrator_counterparty
-            or not arbitrator_counterparty.fedresurs_url
-        ):
+        if not arbitrator_counterparty or not arbitrator_counterparty.fedresurs_url:
             if inn := item.get("arbit_manager_inn"):
                 if len(inn) > 10:
-                    arb_client = PersonFedresurs(
-                        inn, item.get("arbit_manager")
-                    )
+                    arb_client = PersonFedresurs(inn, item.get("arbit_manager"))
                 else:
-                    arb_client = CompanyFedresurs(
-                        inn, item.get("arbit_manager")
-                    )
+                    arb_client = CompanyFedresurs(inn, item.get("arbit_manager"))
             else:
                 amf = ArbitrManagerFedresurs(item.get("arbit_manager"))
                 arb_client = amf if amf.data.get("guid") else None
             if not arb_client:
                 pass
             elif not arb_client.data.get("guid"):
-                arbitrator_counterparty = (
-                    arbitrator_counterparty
-                    or Counterparty(
-                        inn=item.get("arbit_manager_inn"),
-                        short_name=item.get("arbit_manager"),
-                        type=arb_client.data.get("type"),
-                    )
+                arbitrator_counterparty = arbitrator_counterparty or Counterparty(
+                    inn=item.get("arbit_manager_inn"),
+                    short_name=item.get("arbit_manager"),
+                    type=arb_client.data.get("type"),
                 )
                 if inspect(arbitrator_counterparty).transient:
                     DBHelper.session.add(arbitrator_counterparty)
@@ -537,21 +461,16 @@ class DBHelper:
                 ):
                     arb_client.parse_sro_membership()
                     arbitrator_counterparty = (
-                        DBHelper.store_counterparty_and_co_from_dict(
-                            arb_client.data
-                        )
+                        DBHelper.store_counterparty_and_co_from_dict(arb_client.data)
                     )
         return arbitrator_counterparty
 
     @staticmethod
-    def store_and_get_organizer(
-        item: EtpItem, arbitrator_counterparty: Counterparty
-    ):
+    def store_and_get_organizer(item: EtpItem, arbitrator_counterparty: Counterparty):
         if (
             (
                 item.get("trading_org_inn")
-                and item.get("trading_org_inn")
-                == item.get("arbit_manager_inn")
+                and item.get("trading_org_inn") == item.get("arbit_manager_inn")
             )
             or (
                 item.get("trading_org")
@@ -560,8 +479,7 @@ class DBHelper:
             or (
                 item.get("trading_org")
                 and arbitrator_counterparty
-                and item.get("trading_org")
-                == arbitrator_counterparty.short_name
+                and item.get("trading_org") == arbitrator_counterparty.short_name
             )
             or (
                 item.get("trading_org")
@@ -575,10 +493,7 @@ class DBHelper:
             name=item.get("trading_org"),
             short_name=item.get("trading_org"),
         )
-        if (
-            not organizer_counterparty
-            or not organizer_counterparty.fedresurs_url
-        ):
+        if not organizer_counterparty or not organizer_counterparty.fedresurs_url:
             if inn := item.get("trading_org_inn"):
                 if len(inn) > 10:
                     org_client = PersonFedresurs(inn, item["trading_org"])
@@ -586,12 +501,10 @@ class DBHelper:
                     org_client = CompanyFedresurs(inn, item["trading_org"])
             else:
                 if guid := (
-                    ArbitrManagerFedresurs(item.get("trading_org")).data.get(
+                    ArbitrManagerFedresurs(item.get("trading_org")).data.get("guid")
+                    or PersonOrganizerFedresurs(item.get("trading_org")).data.get(
                         "guid"
                     )
-                    or PersonOrganizerFedresurs(
-                        item.get("trading_org")
-                    ).data.get("guid")
                 ):
                     org_client = PersonFedresurs(
                         name=item.get("trading_org"), guid=guid
@@ -607,19 +520,12 @@ class DBHelper:
             if not org_client:
                 pass
             elif not org_client.data["guid"]:
-                organizer_counterparty = (
-                    organizer_counterparty
-                    or Counterparty(
-                        inn=item.get("trading_org_inn"),
-                        short_name=item.get("trading_org"),
-                        email=item.get("trading_org_contacts", {}).get(
-                            "email"
-                        ),
-                        phone=item.get("trading_org_contacts", {}).get(
-                            "phone"
-                        ),
-                        type=org_client.data["type"],
-                    )
+                organizer_counterparty = organizer_counterparty or Counterparty(
+                    inn=item.get("trading_org_inn"),
+                    short_name=item.get("trading_org"),
+                    email=item.get("trading_org_contacts", {}).get("email"),
+                    phone=item.get("trading_org_contacts", {}).get("phone"),
+                    type=org_client.data["type"],
                 )
                 if inspect(organizer_counterparty).transient:
                     DBHelper.session.add(organizer_counterparty)
@@ -635,9 +541,7 @@ class DBHelper:
                 ):
                     org_client.parse_sro_membership()
                     organizer_counterparty = (
-                        DBHelper.store_counterparty_and_co_from_dict(
-                            org_client.data
-                        )
+                        DBHelper.store_counterparty_and_co_from_dict(org_client.data)
                     )
         return organizer_counterparty
 
@@ -684,10 +588,8 @@ class DBHelper:
                     debtor_client.data["address"] = (
                         debtor_client.data["address"] or item["address"]
                     )
-                    debtor_counterparty = (
-                        DBHelper.store_counterparty_and_co_from_dict(
-                            debtor_client.data
-                        )
+                    debtor_counterparty = DBHelper.store_counterparty_and_co_from_dict(
+                        debtor_client.data
                     )
         return debtor_counterparty
 
@@ -697,9 +599,7 @@ class DBHelper:
         if not counterparty.sro_memberships:
             for membership in data.get("sro_memberships", []):
                 sro = DBHelper.store_counterparty_from_dict(membership)
-                if not DBHelper.get_counterparty_sro(
-                    counterparty.id, sro.short_name
-                ):
+                if not DBHelper.get_counterparty_sro(counterparty.id, sro.short_name):
                     sro_membership = CounterpartySRO(
                         counterparty_id=counterparty.id,
                         sro_id=sro.id,
@@ -734,9 +634,7 @@ class DBHelper:
             address_id=address.id if address else None,
         )
         existing_counterparty = (
-            DBHelper.session.query(Counterparty)
-            .filter_by(inn=counterparty.inn)
-            .first()
+            DBHelper.session.query(Counterparty).filter_by(inn=counterparty.inn).first()
         )
         if existing_counterparty:
             if not existing_counterparty.fedresurs_url:
@@ -755,11 +653,7 @@ class DBHelper:
                     "type",
                     "address_id",
                 ]:
-                    setattr(
-                        existing_counterparty,
-                        field,
-                        getattr(counterparty, field),
-                    )
+                    setattr(existing_counterparty, field, getattr(counterparty, field))
                 counterparty = existing_counterparty
             else:
                 return existing_counterparty
@@ -829,7 +723,7 @@ class DBHelper:
 
     @staticmethod
     def store_legal_case_from_case_number(case_number: str) -> LegalCase:
-        from .fedresurs import LegalCaseFedresurs
+        from app.utils.fedresurs import LegalCaseFedresurs
 
         legal_case = DBHelper.session.execute(
             select(LegalCase).where(LegalCase.number.like(f"%{case_number}%"))
@@ -883,9 +777,7 @@ class DBHelper:
             )
             DBHelper.session.add(lot_period)
 
-        lot_period = (
-            DBHelper.session.query(LotPeriod).filter_by(lot_id=lot_id).first()
-        )
+        lot_period = DBHelper.session.query(LotPeriod).filter_by(lot_id=lot_id).first()
         if not lot_period:
             if periods := item["periods"]:
                 for period in periods:
@@ -909,9 +801,7 @@ class DBHelper:
             return
         general_files_download_data: list[DownloadData] = files.get("general")
         if general_files_download_data:
-            DBHelper.download_files(
-                auction_id, Auction, general_files_download_data
-            )
+            DBHelper.download_files(auction_id, Auction, general_files_download_data)
 
         if not (lot_files_download_data := files.get("lot")):
             return
@@ -958,32 +848,19 @@ class DBHelper:
             relative_path = relative_download_dir_path / file_name
             if absolute_path.suffix not in allowable_formats:
                 continue
-            if (
-                download_data.method == "GET"
-                and not download_files_from_get_url
-            ):
+            if download_data.method == "GET" and not download_files_from_get_url:
                 paths = [None]
             else:
-                Path(absolute_download_dir_path).mkdir(
-                    parents=True, exist_ok=True
-                )
+                Path(absolute_download_dir_path).mkdir(parents=True, exist_ok=True)
                 paths = DownloadFiles.request_to_download_general(
-                    download_data=download_data,
-                    absolute_path=absolute_path,
-                    relative_path=relative_path,
+                    download_data=download_data, absolute_path=absolute_path, relative_path=relative_path
                 )
             for path in paths:  # type: pathlib.Path
-                file_objs.append(
-                    File(
-                        name=path.name if path else file_name,
-                        path=path.as_posix() if path else None,
-                        url=str(download_data.url)
-                        if download_data.method == "GET"
-                        else None,
-                        model_type=model_type,
-                        model_id=model_id,
-                    )
-                )
+                file_objs.append(File(
+                    name=path.name if path else file_name, path=path.as_posix() if path else None,
+                    url=str(download_data.url) if download_data.method == 'GET' else None,
+                    model_type=model_type, model_id=model_id
+                ))
         DBHelper.session.add_all(file_objs)
 
 

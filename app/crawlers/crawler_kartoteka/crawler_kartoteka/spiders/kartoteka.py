@@ -15,9 +15,10 @@ class KartotekaSpider(BaseSpider):
     name = "kartoteka"
     start_urls = ["https://www.kartoteka.ru/bankruptcy2/"]
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
-        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type in trash_resources,
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {"timeout": 60 * 1000}
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
+        in trash_resources,
+        "PLAYWRIGHT_LAUNCH_OPTIONS": {"timeout": 60 * 1000},
     }
 
     def __init__(self):
@@ -25,7 +26,9 @@ class KartotekaSpider(BaseSpider):
 
     def start_requests(self):
         for url in self.start_urls:
-            yield Request(url, callback=self.get_validate_data, meta=dict(playwright=True))
+            yield Request(
+                url, callback=self.get_validate_data, meta=dict(playwright=True)
+            )
 
     def get_validate_data(self, response) -> Iterable[Request]:
         validate_data = response.xpath('//input[@name="validate"]/@value').get()
@@ -36,7 +39,9 @@ class KartotekaSpider(BaseSpider):
             self.get_hash,
             method="POST",
             formdata=form_data,
-            headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
         )
 
     def get_hash(self, response):
@@ -46,11 +51,17 @@ class KartotekaSpider(BaseSpider):
     def parse_serp(self, response):
         trade_cards = response.xpath(SerpLocator.trade_card_loc)
         for trade in trade_cards:
-            link = UrlConfig.url_join(data_origin_url, trade.xpath(SerpLocator.link_to_trade_loc).get())
+            link = UrlConfig.url_join(
+                data_origin_url, trade.xpath(SerpLocator.link_to_trade_loc).get()
+            )
             if link not in self.previous_trades:
                 status = trade.xpath(SerpLocator.status_loc).get()
                 short_name = dedent_func(trade.xpath(SerpLocator.short_name_loc).get())
-                yield Request(link, self.parse_trade, cb_kwargs={"status": status, "short_name": short_name})
+                yield Request(
+                    link,
+                    self.parse_trade,
+                    cb_kwargs={"status": status, "short_name": short_name},
+                )
         pagination = response.xpath(SerpLocator.pagination_loc).get()
         if pagination:
             next_page = response.xpath(SerpLocator.next_page_loc).get()
@@ -61,7 +72,9 @@ class KartotekaSpider(BaseSpider):
                     self.get_hash,
                     method="POST",
                     formdata=form_data,
-                    headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+                    headers={
+                        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                    },
                 )
 
     def parse_trade(self, response, status, short_name):
@@ -82,7 +95,7 @@ class KartotekaSpider(BaseSpider):
         loader.add_value("msg_number", combo.msg_number)
         loader.add_value("case_number", combo.case_number)
         loader.add_value("debtor_inn", combo.debitor_inn)
-        loader.add_value('address', combo.address)
+        loader.add_value("address", combo.address)
         loader.add_value("arbit_manager", combo.arbit_manager)
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)
@@ -100,6 +113,8 @@ class KartotekaSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
-        loader.add_value('categories', None)
-        loader.add_value("files", {"general": combo.download_general(), "lot": combo.download_lot()})
+        loader.add_value("categories", None)
+        loader.add_value(
+            "files", {"general": combo.download_general(), "lot": combo.download_lot()}
+        )
         yield loader.load_item()

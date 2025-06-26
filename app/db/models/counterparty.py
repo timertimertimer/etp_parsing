@@ -10,7 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.models.base import Base
+from .base import Base
 
 from enum import Enum
 from sqlalchemy import Enum as SAEnum
@@ -24,9 +24,7 @@ class CounterpartyType(str, Enum):
 class Counterparty(Base):
     __tablename__ = "counterparties"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     inn: Mapped[str] = mapped_column(String(12), nullable=True, unique=True)
     kpp: Mapped[str] = mapped_column(String(9), nullable=True)
     snils: Mapped[str] = mapped_column(String(11), nullable=True)
@@ -42,13 +40,9 @@ class Counterparty(Base):
     type: Mapped[CounterpartyType] = mapped_column(
         SAEnum(CounterpartyType, convert_unicode=True), nullable=True
     )
-    address_id: Mapped[int] = mapped_column(
-        ForeignKey("addresses.id"), nullable=True
-    )
+    address_id: Mapped[int] = mapped_column(ForeignKey("addresses.id"), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
@@ -88,9 +82,7 @@ class CounterpartySRO(Base):
     __tablename__ = "counterparty_sro"
     __table_args__ = (PrimaryKeyConstraint("counterparty_id", "sro_id"),)
 
-    counterparty_id: Mapped[int] = mapped_column(
-        ForeignKey("counterparties.id")
-    )
+    counterparty_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"))
     sro_id: Mapped[int] = mapped_column(ForeignKey("counterparties.id"))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
     activity_type: Mapped[str] = mapped_column(Text, nullable=True)

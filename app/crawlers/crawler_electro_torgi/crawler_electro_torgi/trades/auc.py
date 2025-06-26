@@ -14,7 +14,7 @@ class Auc:
             'contains(normalize-space(text()), "Прием ценовых предложений")]/following-sibling::div[1]'
         ).get()
         if date:
-            date = BeautifulSoup(date, 'lxml').get_text().strip()
+            date = BeautifulSoup(date, "lxml").get_text().strip()
             return format_time(date)
 
     @property
@@ -23,5 +23,5 @@ class Auc:
             '//div[contains(normalize-space(text()), "Подведение итогов")]/following-sibling::div[1]'
         ).get()
         if date:
-            date = BeautifulSoup(date, 'lxml').get_text().strip()
+            date = BeautifulSoup(date, "lxml").get_text().strip()
             return format_time(date)

@@ -1,13 +1,17 @@
-from general_utils.config import absolute_download_path, relative_download_path, format_parse_date
+from general_utils.config import (
+    absolute_download_path,
+    relative_download_path,
+    format_parse_date,
+)
 
-data_origin_url = 'https://m-ets.ru/'
-url_start = 'https://m-ets.ru/search'
-absolute_path = f'{absolute_download_path}/etp_mets_ru'
-relative_path = f'{relative_download_path}/etp_mets_ru'
+data_origin_url = "https://m-ets.ru/"
+url_start = "https://m-ets.ru/search"
+absolute_path = f"{absolute_download_path}/etp_mets_ru"
+relative_path = f"{relative_download_path}/etp_mets_ru"
 start_date = format_parse_date(7)
 
-pattern_without_hash = r'https.+m-ets.+generalView.+id=\d+'
-pattern_trade_links = r'https.+mets.+View.+id=\d+.(lot1)$'
+pattern_without_hash = r"https.+m-ets.+generalView.+id=\d+"
+pattern_trade_links = r"https.+mets.+View.+id=\d+.(lot1)$"
 
 script_lua = """
          function main(splash)
@@ -41,42 +45,43 @@ script_lua = """
          end
                  """
 
-data_search = {'submit': '',
-               'lots': '',
-               'lotst': '2',
-               'lotst[]': '2',
-               'displayby': '2',
-               'displayby[]': '2',
-               'isbankr': 'on',
-               'isauk': 'on',
-               'ispub': 'on',
-               'isaukupdown': 'on',
-               'zay': '',
-               'autoyear_ot': '',
-               'autoyear_do': '',
-               'cadastr': '',
-               'iskl': '',
-               'debtor': '',
-               'arb': '',
-               'org': '',
-               'arb_org': '',
-               'arb_org[]': '',
-               'foto': '',
-               'zadat': '',
-               'cena_nach_ot': '',
-               'cena_nach_do': '',
-               'cena_tek_ot': '',
-               'cena_tek_do': '',
-               'cena_min_ot': '',
-               'cena_min_do': '',
-               'proc_snij_ot': '',
-               'proc_snij_do': '',
-               'date_nach_ot': '',
-               'date_nach_do': '',
-               'date_kon_ot': '',
-               'date_kon_do': '',
-               'search_category': ''
-               }
+data_search = {
+    "submit": "",
+    "lots": "",
+    "lotst": "2",
+    "lotst[]": "2",
+    "displayby": "2",
+    "displayby[]": "2",
+    "isbankr": "on",
+    "isauk": "on",
+    "ispub": "on",
+    "isaukupdown": "on",
+    "zay": "",
+    "autoyear_ot": "",
+    "autoyear_do": "",
+    "cadastr": "",
+    "iskl": "",
+    "debtor": "",
+    "arb": "",
+    "org": "",
+    "arb_org": "",
+    "arb_org[]": "",
+    "foto": "",
+    "zadat": "",
+    "cena_nach_ot": "",
+    "cena_nach_do": "",
+    "cena_tek_ot": "",
+    "cena_tek_do": "",
+    "cena_min_ot": "",
+    "cena_min_do": "",
+    "proc_snij_ot": "",
+    "proc_snij_do": "",
+    "date_nach_ot": "",
+    "date_nach_do": "",
+    "date_kon_ot": "",
+    "date_kon_do": "",
+    "search_category": "",
+}
 
 script_lua_lot = """
           function main(splash)

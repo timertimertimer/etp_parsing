@@ -20,7 +20,10 @@ class Combo:
             "Проводится приём заявок",
             "Идут торги",
         )
-        pending = ("Объявлены торги", "Имущество не продано. Определяется дата новых торгов")
+        pending = (
+            "Объявлены торги",
+            "Имущество не продано. Определяется дата новых торгов",
+        )
         ended = (
             "Проведена инвентаризация",
             "Проведена оценка",
@@ -53,8 +56,14 @@ class Combo:
     @property
     def trading_type_and_form(self):
         try:
-            type_, form = self.response.xpath(TradeLocator.trading_type_and_form_loc).get().strip().lower().split("/")
-        except Exception as e:
+            type_, form = (
+                self.response.xpath(TradeLocator.trading_type_and_form_loc)
+                .get()
+                .strip()
+                .lower()
+                .split("/")
+            )
+        except Exception:
             return None, None
         if "закрыт" in form:
             form = "closed"
@@ -75,10 +84,18 @@ class Combo:
     @property
     def trading_org(self):
         try:
-            org = BeautifulSoup(self.response.xpath(TradeLocator.trading_org_loc).get(), "lxml").get_text().strip()
+            org = (
+                BeautifulSoup(
+                    self.response.xpath(TradeLocator.trading_org_loc).get(), "lxml"
+                )
+                .get_text()
+                .strip()
+            )
             return "".join(re.sub(r"\s+", " ", org))
         except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True)
+            logger.warning(
+                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+            )
 
     @property
     def trading_org_inn(self):
@@ -94,7 +111,11 @@ class Combo:
 
     @property
     def case_number(self):
-        case = dedent_func(BeautifulSoup(self.response.xpath(TradeLocator.case_number_loc).get(), "lxml").get_text())
+        case = dedent_func(
+            BeautifulSoup(
+                self.response.xpath(TradeLocator.case_number_loc).get(), "lxml"
+            ).get_text()
+        )
         if case:
             return CheckIfCorrectContactInfo.check_case_number(case)
         else:
@@ -103,8 +124,8 @@ class Combo:
     @property
     def debitor_inn(self):
         inn = (
-                self.response.xpath(TradeLocator.debtor_inn_loc).get() or
-                self.response.xpath(TradeLocator.debtor_inn_loc2).get()
+            self.response.xpath(TradeLocator.debtor_inn_loc).get()
+            or self.response.xpath(TradeLocator.debtor_inn_loc2).get()
         )
         if not inn:
             return
@@ -115,8 +136,8 @@ class Combo:
     @property
     def address(self):
         address = (
-                self.response.xpath(TradeLocator.address_loc).get() or
-                self.response.xpath(TradeLocator.address_loc2).get()
+            self.response.xpath(TradeLocator.address_loc).get()
+            or self.response.xpath(TradeLocator.address_loc2).get()
         )
         return BeautifulSoup(address, "lxml").get_text(strip=True)
 
@@ -124,7 +145,9 @@ class Combo:
     def arbit_manager(self):
         try:
             td_org = dedent_func(
-                BeautifulSoup(self.response.xpath(TradeLocator.arbit_manager_loc).get(), "lxml").get_text()
+                BeautifulSoup(
+                    self.response.xpath(TradeLocator.arbit_manager_loc).get(), "lxml"
+                ).get_text()
             )
             if td_org != "None":
                 return "".join(re.sub(r"\s+", " ", td_org))
@@ -139,12 +162,18 @@ class Combo:
     def arbit_manager_org(self):
         try:
             td_company = dedent_func(
-                BeautifulSoup(self.response.xpath(TradeLocator.arbit_manager_org_loc).get(), "lxml").get_text()
+                BeautifulSoup(
+                    self.response.xpath(TradeLocator.arbit_manager_org_loc).get(),
+                    "lxml",
+                ).get_text()
             )
             if td_company != "None":
                 if "(" in td_company:
                     td_company = "".join(
-                        [x if len(td_company) > 0 else None for x in re.split(r"\(", td_company, maxsplit=1)[0]]
+                        [
+                            x if len(td_company) > 0 else None
+                            for x in re.split(r"\(", td_company, maxsplit=1)[0]
+                        ]
                     )
                 return "".join(dedent_func(td_company))
         except:
@@ -162,11 +191,16 @@ class Combo:
     def lot_number(self):
         match = re.search(
             r"лота №(\d+) ",
-            BeautifulSoup(self.response.xpath(TradeLocator.lot_number_loc).get(), "lxml").get_text().strip().lower(),
+            BeautifulSoup(
+                self.response.xpath(TradeLocator.lot_number_loc).get(), "lxml"
+            )
+            .get_text()
+            .strip()
+            .lower(),
         )
         if match:
             return match.group(1)
-        return '1'
+        return "1"
 
     @property
     def lot_info(self):
@@ -182,15 +216,22 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time(self.response.xpath(TradeLocator.start_date_requests_loc).get())
+        return format_time(
+            self.response.xpath(TradeLocator.start_date_requests_loc).get()
+        )
 
     @property
     def end_date_requests(self):
-        return format_time(self.response.xpath(TradeLocator.end_date_requests_loc).get())
+        return format_time(
+            self.response.xpath(TradeLocator.end_date_requests_loc).get()
+        )
 
     def start_and_end_dates_trading(self):
         date_interval = (
-            BeautifulSoup(self.response.xpath(TradeLocator.start_and_end_dates_trading_loc).get(), "lxml")
+            BeautifulSoup(
+                self.response.xpath(TradeLocator.start_and_end_dates_trading_loc).get(),
+                "lxml",
+            )
             .get_text()
             .strip()
         )
@@ -235,8 +276,14 @@ class Combo:
         for i, image in enumerate(carousel):
             img = BeautifulSoup(image, "lxml").find("img")
             src = img.get("src")
-            images.append(DownloadData(url=src, file_name=f'image_{i}.jpg', referer=self.response.url,
-                                       cookies=self.response.request.headers['Cookie'].decode()))
+            images.append(
+                DownloadData(
+                    url=src,
+                    file_name=f"image_{i}.jpg",
+                    referer=self.response.url,
+                    cookies=self.response.request.headers["Cookie"].decode(),
+                )
+            )
         return images
 
     def download_general(self):
@@ -245,8 +292,14 @@ class Combo:
             a = BeautifulSoup(str(link), features="lxml").find("a")
             name = a.get_text().strip()
             link = a.get("href")
-            files.append(DownloadData(url=link, file_name=name, referer=self.response.url,
-                                      cookies=self.response.request.headers['Cookie'].decode()))
+            files.append(
+                DownloadData(
+                    url=link,
+                    file_name=name,
+                    referer=self.response.url,
+                    cookies=self.response.request.headers["Cookie"].decode(),
+                )
+            )
         return files + self.download_images()
 
     def download_lot(self):

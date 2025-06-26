@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class BepspbSpider(ItenderBaseSpider):
-    name = 'bepspb'
+    name = "bepspb"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
-        'DEFAULT_REQUEST_HEADERS': headers | {'Accept-Encoding': 'gzip, deflate'}
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "DEFAULT_REQUEST_HEADERS": headers | {"Accept-Encoding": "gzip, deflate"},
     }

@@ -10,6 +10,7 @@ class Contacts:
         pattern = re.compile(r"\d{10,12}$")
         if pattern:
             return "".join(pattern.findall(inn))
+        return None
 
     @staticmethod
     def check_number(num):
@@ -33,6 +34,7 @@ class Contacts:
             else:
                 match1 = case_number
             return match1.replace("№", "").strip()
+        return None
 
     @staticmethod
     def check_phone(phone):
@@ -45,6 +47,7 @@ class Contacts:
                     return ""
         except Exception as e:
             logger.error(e)
+        return None
 
     @staticmethod
     def check_email(email):
@@ -55,8 +58,9 @@ class Contacts:
                         r".+\S@\S.+\.\D{2,4}$", email, flags=re.IGNORECASE
                     )
                     return "".join(email).strip()
-        except Exception as e:
+        except Exception:
             pass
+        return None
 
     @staticmethod
     def check_msg_number(value):
@@ -72,13 +76,15 @@ class Contacts:
                     return v.strip()
                 else:
                     return
-        except Exception as e:
+        except Exception:
             pass
+        return None
 
     @staticmethod
     def check_address(value):
         try:
             if value:
                 return " ".join(value.split())
-        except Exception as e:
+        except Exception:
             pass
+        return None

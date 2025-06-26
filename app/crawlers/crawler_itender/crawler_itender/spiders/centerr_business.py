@@ -3,7 +3,7 @@ from .base import ItenderBaseSpider
 
 
 class CenterrBusinessSpider(ItenderBaseSpider):
-    name = 'centerr_business'
+    name = "centerr_business"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

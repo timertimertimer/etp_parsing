@@ -4,13 +4,13 @@ import time
 from pymysql.err import OperationalError, ProgrammingError
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.db import DBHelper
+from app.db.db_helper import DBHelper
 
 logger = logging.getLogger(__name__)
 
 
 class BasePipeline:
-    def process_item(self, item, spider):
+    async def process_item(self, item, spider):
         for field in item.fields:
             item.setdefault(field, None)
 

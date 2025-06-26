@@ -1,18 +1,18 @@
 from general_utils.config import absolute_download_path, relative_download_path
 
-data_origin = 'https://sibtoptrade.ru/'
-url_bankrupty = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1& '
+data_origin = "https://sibtoptrade.ru/"
+url_bankrupty = "https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1& "
 
-start_urls = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page={}&'
-start_urls1 = 'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1&'
+start_urls = "https://sibtoptrade.ru/trade/bankruptcy/#state=1&page={}&"
+start_urls1 = "https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=1&"
 start_page = 1
 finish_page = 10
-Referer = 'https://sibtoptrade.ru/trade/bankruptcy/'
+Referer = "https://sibtoptrade.ru/trade/bankruptcy/"
 
-absolute_path = f'{absolute_download_path}/etp_sibtoptrade'
-relative_path = f'{relative_download_path}/etp_sibtoptrade'
+absolute_path = f"{absolute_download_path}/etp_sibtoptrade"
+relative_path = f"{relative_download_path}/etp_sibtoptrade"
 
-pattern_trade_links = 'sibtoptrade.ru/trade/'
+pattern_trade_links = "sibtoptrade.ru/trade/"
 # splash.js_enabled=false
 script_lua = """
          function main(splash)

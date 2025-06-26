@@ -11,29 +11,32 @@ logger = logging.getLogger(__name__)
 class AucPage:
     def __init__(self, response):
         self.response = response
-        self.soup = BS(str(self.response.text).replace('&lt;', '<').replace('&gt;', '>'), features='lxml')
+        self.soup = BS(
+            str(self.response.text).replace("&lt;", "<").replace("&gt;", ">"),
+            features="lxml",
+        )
 
     def start_date_request_auc(self):
         date = self.response.xpath(LocatorTradePage.start_date_request_loc).get()
-        date = BS(str(date), features='lxml').get_text(strip=True)
+        date = BS(str(date), features="lxml").get_text(strip=True)
         return format_time(date)
 
     def end_date_request_auc(self):
         date = self.response.xpath(LocatorTradePage.end_date_request_loc).get()
-        date = BS(str(date), features='lxml').get_text(strip=True)
+        date = BS(str(date), features="lxml").get_text(strip=True)
         return format_time(date)
 
     def start_date_trading_auc(self):
         date = self.response.xpath(LocatorTradePage.start_date_trading_loc).get()
         if date is None:
             date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
-            date = BS(str(date), features='lxml').get_text(strip=True)
-        date = BS(str(date), features='lxml').get_text(strip=True)
+            date = BS(str(date), features="lxml").get_text(strip=True)
+        date = BS(str(date), features="lxml").get_text(strip=True)
         return format_time(date)
 
     def end_date_trading_auc(self):
         date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
-        date = BS(str(date), features='lxml').get_text(strip=True)
+        date = BS(str(date), features="lxml").get_text(strip=True)
         return format_time(date)
 
     def get_all_lot_tables(self):
@@ -41,94 +44,148 @@ class AucPage:
         return tables_all
 
     def get_status(self, table_):
-        table = BS(str(table_), features='lxml')
-        status = table.find('tbody').find('td', string=re.compile('татус торгов'))
+        table = BS(str(table_), features="lxml")
+        status = table.find("tbody").find("td", string=re.compile("татус торгов"))
         if status is not None:
-            status = dedent_func(status.findNext('td').get_text(strip=True).strip().lower())
+            status = dedent_func(
+                status.findNext("td").get_text(strip=True).strip().lower()
+            )
             active = (
-                'идет прием заявок', 'идет приём заявок', 'идёт приём заявок', 'идёт приём заявок (приостановлены)')
-            pending = ('объявлены', 'объявлены (приостановлены)')
-            ended = ('прием заявок завершен', 'приём заявок завершен (приостановлены)',
-                     'в стадии проведения', 'подводятся итоги', 'подводятся итоги (приостановлены)',
-                     'торги отменены (приостановлены)',
-                     'торги завершены', 'торги отменены', 'приём заявок завершен', 'торги завершены (приостановлены)')
+                "идет прием заявок",
+                "идет приём заявок",
+                "идёт приём заявок",
+                "идёт приём заявок (приостановлены)",
+            )
+            pending = ("объявлены", "объявлены (приостановлены)")
+            ended = (
+                "прием заявок завершен",
+                "приём заявок завершен (приостановлены)",
+                "в стадии проведения",
+                "подводятся итоги",
+                "подводятся итоги (приостановлены)",
+                "торги отменены (приостановлены)",
+                "торги завершены",
+                "торги отменены",
+                "приём заявок завершен",
+                "торги завершены (приостановлены)",
+            )
             if status in active:
-                return 'active'
+                return "active"
             elif status in pending:
-                return 'pending'
+                return "pending"
             elif status in ended:
-                return 'ended'
+                return "ended"
             else:
-                logger.error(f'{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! ERROR WITH TEXT '
-                             f'{self.response.url}')
+                logger.error(
+                    f"{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! ERROR WITH TEXT "
+                    f"{self.response.url}"
+                )
         else:
-            logger.error(f'{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! {self.response.url}')
+            logger.error(
+                f"{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! {self.response.url}"
+            )
 
     def get_th_of_table(self, table_):
-        table = BS(str(table_), features='lxml')
-        th = table.find('th').get_text(strip=True)
+        table = BS(str(table_), features="lxml")
+        th = table.find("th").get_text(strip=True)
         try:
             return th
         except Exception as e:
-            logger.error(f'{self.response.url} :: ERROR LOT TITLE {e}', exc_info=True)
+            logger.error(f"{self.response.url} :: ERROR LOT TITLE {e}", exc_info=True)
 
     @get_lot_number
     def get_lot_number(self, table_):
         return self.get_th_of_table(table_)
 
     def get_short_name(self, table_):
-        table = BS(str(table_), features='lxml')
-        short_name = table.find('tbody').find('td', string=re.compile('редмет торгов'))
+        table = BS(str(table_), features="lxml")
+        short_name = table.find("tbody").find("td", string=re.compile("редмет торгов"))
         if short_name:
-            return short_name.findNext('td').get_text(strip=True).strip().replace("'", "\"")
-        short_name = re.split(r':', self.get_th_of_table(table_), maxsplit=1)
+            return (
+                short_name.findNext("td").get_text(strip=True).strip().replace("'", '"')
+            )
+        short_name = re.split(r":", self.get_th_of_table(table_), maxsplit=1)
         if len(short_name) == 2:
             return dedent_func(short_name[1].strip())
 
     @staticmethod
     def get_lot_info(table_):
-        table = BS(str(table_), features='lxml')
+        table = BS(str(table_), features="lxml")
         if lot_info := (
-                table.find('tbody').find('td', string=re.compile(r'ведения об имуществе \(предприятии\) должника'))
+            table.find("tbody").find(
+                "td",
+                string=re.compile(r"ведения об имуществе \(предприятии\) должника"),
+            )
         ):
-            return lot_info.findNext('td').get_text(strip=True).strip().replace("'", "\"")
+            return (
+                lot_info.findNext("td").get_text(strip=True).strip().replace("'", '"')
+            )
 
     @staticmethod
     def get_property_info(table_):
-        table = BS(str(table_), features='lxml')
+        table = BS(str(table_), features="lxml")
         if property_info := (
-                table.find('tbody').find('td', string=re.compile(r'орядок ознакомления с имуществом \(предприятием\)'))
+            table.find("tbody").find(
+                "td",
+                string=re.compile(r"орядок ознакомления с имуществом \(предприятием\)"),
+            )
         ):
-            return property_info.findNext('td').get_text(strip=True).strip().replace("'", "\"")
+            return (
+                property_info.findNext("td")
+                .get_text(strip=True)
+                .strip()
+                .replace("'", '"')
+            )
 
     def get_start_price(self, table_):
-        table = BS(str(table_), features='lxml')
-        if start_price := table.find('tbody').find('td', string=re.compile('ачальная цена продажи имущес')):
-            start_price = start_price.findNext('td').get_text(strip=True).strip().replace("'", "\"")
-            if len(start_price) < 60 and re.match(r'^\d+', start_price):
+        table = BS(str(table_), features="lxml")
+        if start_price := table.find("tbody").find(
+            "td", string=re.compile("ачальная цена продажи имущес")
+        ):
+            start_price = (
+                start_price.findNext("td")
+                .get_text(strip=True)
+                .strip()
+                .replace("'", '"')
+            )
+            if len(start_price) < 60 and re.match(r"^\d+", start_price):
                 start_price = start_price
             else:
-                start_price = self.response.xpath('//td[contains(., "руб, НДС не облагается")]').get()
-                start_price = BS(str(start_price), features='lxml').get_text(strip=True)
+                start_price = self.response.xpath(
+                    '//td[contains(., "руб, НДС не облагается")]'
+                ).get()
+                start_price = BS(str(start_price), features="lxml").get_text(strip=True)
             try:
                 return make_float(start_price)
             except ValueError as e:
-                logger.error(f'{self.response.url} ::: ERROR {e} ::: START PRICE', exc_info=True)
+                logger.error(
+                    f"{self.response.url} ::: ERROR {e} ::: START PRICE", exc_info=True
+                )
 
     def get_step_price(self, table_):
-        table = BS(str(table_), features='lxml')
-        if step_price := table.find('tbody').find('td', string=re.compile('еличина повышения начальной це')):
-            step_price = step_price.findNext('td').get_text(strip=True).strip()
-            step = re.split(r'\(', step_price, maxsplit=1)[0].replace(',', '.')
-            step = ''.join(re.findall(r'(^\d+)\.?', step))
+        table = BS(str(table_), features="lxml")
+        if step_price := table.find("tbody").find(
+            "td", string=re.compile("еличина повышения начальной це")
+        ):
+            step_price = step_price.findNext("td").get_text(strip=True).strip()
+            step = re.split(r"\(", step_price, maxsplit=1)[0].replace(",", ".")
+            step = "".join(re.findall(r"(^\d+)\.?", step))
             try:
-                step = float(self.get_start_price(table_)) * float(step) / 100 if self.get_start_price(table_) else None
+                step = (
+                    float(self.get_start_price(table_)) * float(step) / 100
+                    if self.get_start_price(table_)
+                    else None
+                )
                 return round(step, 2)
             except ValueError as e:
-                logger.error(f'{self.response.url} ::: ERROR {e} ::: STEP PRICE', exc_info=True)
+                logger.error(
+                    f"{self.response.url} ::: ERROR {e} ::: STEP PRICE", exc_info=True
+                )
 
     def get_categories(self, table):
-        table = BS(str(table), features='lxml')
-        categories = table.find('tbody').find('td', string=re.compile('Классификатор имущества'))
+        table = BS(str(table), features="lxml")
+        categories = table.find("tbody").find(
+            "td", string=re.compile("Классификатор имущества")
+        )
         if categories:
-            return categories.findNext('td').get_text(strip=True).strip()
+            return categories.findNext("td").get_text(strip=True).strip()

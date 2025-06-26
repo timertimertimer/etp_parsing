@@ -34,14 +34,9 @@ def format_time(strtime):
 def format_time_period(strtime):
     try:
         if strtime:
-            date = (
-                str(strtime)
-                .strip("\n, -")
-                .replace("- ", "")
-                .replace("&nbsp;", "")
-            )
+            date = str(strtime).strip("\n, -").replace("- ", "").replace("&nbsp;", "")
             return datetime.strptime(date, "%d.%m.%Y %H:%M:%S")
-    except Exception as e:
+    except Exception:
         return
 
 
@@ -96,9 +91,7 @@ def what_time_bigger(time_string_1, time_string_2, url):
     elif date_var2 > date_var:
         return 2
     else:
-        logger.error(
-            f"{url} :: ERROR WITH CHECK TIME WHAT IS BIGGER", exc_info=True
-        )
+        logger.error(f"{url} :: ERROR WITH CHECK TIME WHAT IS BIGGER", exc_info=True)
     return date_var
 
 
@@ -111,7 +104,5 @@ def increase_time_days(time_from, days):
 
 if __name__ == "__main__":
     print(f"{return_parse_date('2025-01-16T12:58:27.577')=}")
-    print(
-        f"{return_parse_date('23/04/2025 23:59 (MCK)', '%d/%m/%Y %H:%M (MCK)')=}"
-    )
+    print(f"{return_parse_date('23/04/2025 23:59 (MCK)', '%d/%m/%Y %H:%M (MCK)')=}")
     print(f"{return_parse_date("2025-03-13T15:11:02.853")=}")

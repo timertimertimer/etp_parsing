@@ -3,7 +3,7 @@ from .base import ItenderBaseSpider
 
 
 class SeltOnlineSpider(ItenderBaseSpider):
-    name = 'selt_online'
+    name = "selt_online"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

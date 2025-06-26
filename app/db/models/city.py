@@ -1,15 +1,13 @@
 from sqlalchemy import Integer, ForeignKey, String
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
-from app.db.models.base import Base
+from .base import Base
 
 
 class City(Base):
     __tablename__ = "cities"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255))
     region_id: Mapped[int] = mapped_column(Integer, ForeignKey("regions.id"))
 
@@ -18,4 +16,6 @@ class City(Base):
     )
 
     def __repr__(self):
-        return f"<City(id='{self.id}', name='{self.name}', region='{self.region.name}')>"
+        return (
+            f"<City(id='{self.id}', name='{self.name}', region='{self.region.name}')>"
+        )

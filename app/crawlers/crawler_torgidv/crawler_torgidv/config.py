@@ -1,9 +1,9 @@
 from general_utils.config import absolute_download_path, relative_download_path
 
-data_origin_url = 'https://torgidv.ru/'
-main_url = 'https://torgidv.ru/bankrupt/'
-path_absolute = f'{absolute_download_path}/etp_torgidv'
-path_relative = f'{relative_download_path}/etp_torgidv'
+data_origin_url = "https://torgidv.ru/"
+main_url = "https://torgidv.ru/bankrupt/"
+path_absolute = f"{absolute_download_path}/etp_torgidv"
+path_relative = f"{relative_download_path}/etp_torgidv"
 
 form_data = {
     "draw": "1",
@@ -42,5 +42,5 @@ form_data = {
     "search[regex]": "false",
     "signedParameters": "YTozOntzOjEwOiJDQUNIRV9USU1FIjtpOjYwO3M6MTg6IkNPTVBPTkVOVF9URU1QTEFURSI7czowOiIiO3M6MTA6IlRSQURFX1RZUEUiO3M6OToidHJhZGVfMTI3Ijt9.cd08c8086fd96f41a32cc60f57f592b20d785401a3ecb377eda5ea0706c76eaa",
     "filter[lots][IBLOCK_SECTION_ID]": "38",
-    "filter[trades][IBLOCK_SECTION_ID]": "35"
+    "filter[trades][IBLOCK_SECTION_ID]": "35",
 }

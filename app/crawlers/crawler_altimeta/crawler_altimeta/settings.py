@@ -1,11 +1,11 @@
 import sys
 import os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from general_utils.settings import *
+from app.crawlers.settings import *
 
-BOT_NAME = 'crawler_altimeta'
+BOT_NAME = "crawler_altimeta"
 
-SPIDER_MODULES = ['crawler_altimeta.spiders']
-NEWSPIDER_MODULE = 'crawler_altimeta.spiders'
+SPIDER_MODULES = ["crawler_altimeta.spiders"]
+NEWSPIDER_MODULE = "crawler_altimeta.spiders"

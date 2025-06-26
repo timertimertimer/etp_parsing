@@ -1,5 +1,4 @@
 class LocatorTradePage:
-
     # !!!!! locator for aukcioncenter ru
     check_date = '//th[contains(., "нформация о торгах")]/ancestor::table[1]//td[contains(., "ачало предоставления заявок")]/following-sibling::td[1]'
 
@@ -8,7 +7,7 @@ class LocatorTradePage:
     number_of_total_pages_loc = r'//a[@class="paginatorNotSelectedPage"][last()]/text()'
     current_page_loc = '//span[@class="paginatorSelectedPage"]'
 
-    h1_trading_number_loc = '//h1'
+    h1_trading_number_loc = "//h1"
 
     trading_org_name_loc = '//th[contains(., "рганизатор торгов")]/ancestor::table[1]//td[contains(., "Наименование")]//following-sibling::td[1]'
     trading_org_email_loc = '//th[contains(., "рганизатор торгов")]/ancestor::table[1]//td[contains(., "дрес электронной почт")]//following-sibling::td[1]'
@@ -17,7 +16,6 @@ class LocatorTradePage:
     arbitr_name_loc = '//th[contains(., "рбитражный управляющи")]/ancestor::table[1]//td[contains(., "амилия")]//following-sibling::td[1]'
     arbitr_org_loc = '//th[contains(., "рбитражный управляющи")]/ancestor::table[1]//td[contains(., "азвание саморегулируемой организаци")]//following-sibling::td[1]'
     competiton_man = '//th[contains(., "редставитель конкурсного управляюще")]/ancestor::table[1]//td[contains(., "амилия")]//following-sibling::td[1]'
-
 
     msg_number_loc = '//th[contains(., "нформация для интеграции с ЕФРС")]/ancestor::table[1]//td[contains(., "омер торгов на ЕФРСБ")]//following-sibling::td[1]'
     case_number_loc = '//th[contains(., "ведения о банкротств")]/ancestor::table[1]//td[contains(., "омер дела о банкротств")]//following-sibling::td[1]'

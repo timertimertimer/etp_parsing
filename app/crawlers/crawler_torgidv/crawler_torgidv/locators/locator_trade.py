@@ -4,19 +4,27 @@ class LocatorTrade:
     trading_type_loc = '//td[contains(normalize-space(text()), "Тип торгов")]/following-sibling::td/text()'
     trading_form_loc = '//td[contains(normalize-space(text()), "Вид предложения о цене")]/following-sibling::td/text()'
     trading_org_sro_loc = '//td[contains(normalize-space(text()), "Наименование СРО")]/following-sibling::td/text()'
-    trading_org_fio_loc = '//td[contains(normalize-space(text()), "ФИО")]/following-sibling::td/text()'
+    trading_org_fio_loc = (
+        '//td[contains(normalize-space(text()), "ФИО")]/following-sibling::td/text()'
+    )
     trading_org_inn_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "ИНН") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
     phone_org_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "Телефон") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
     email_org_loc = '//h2[normalize-space(text())="Организатор торгов"]/following::td[contains(text(), "E-mail") and following::h2[contains(text(), "Информация о торгах")]]/following-sibling::td/text()'
-    region_loc = '//td[contains(normalize-space(text()), "Регион")]/following-sibling::td/text()'
+    region_loc = (
+        '//td[contains(normalize-space(text()), "Регион")]/following-sibling::td/text()'
+    )
     sud_loc = '//td[contains(normalize-space(text()), "Наименование суда")]/following-sibling::td/text()'
     msg_number_loc = '//td[contains(text(), "ЕФРСБ")]/following-sibling::td/text()'
-    case_number_loc = '//td[contains(text(), "Номер дела")]/following-sibling::td/text()'
+    case_number_loc = (
+        '//td[contains(text(), "Номер дела")]/following-sibling::td/text()'
+    )
     start_date_requests_loc = '//td[contains(normalize-space(text()), "Дата и время начала подачи заявок")]/following-sibling::td/text()'
     end_date_requests_loc = '//td[contains(normalize-space(text()), "Дата и время окончания подачи заявок")]/following-sibling::td/text()'
     start_date_trading_loc = '//td[contains(normalize-space(text()), "Дата и время начала торгов")]/following-sibling::td/text()'
     end_date_trading_loc = '//td[contains(normalize-space(text()), "Дата и время окончания торгов")]/following-sibling::td/text()'
-    files_loc = '//h2[contains(text(), "Документы")]/following::table[1]//a[@download]/@href'
+    files_loc = (
+        '//h2[contains(text(), "Документы")]/following::table[1]//a[@download]/@href'
+    )
 
     lots_loc = '//h2[contains(text(), "Лоты")]/following::table[1]//a/@href'
 

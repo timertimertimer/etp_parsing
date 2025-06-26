@@ -11,11 +11,16 @@ class GeneralInfoLocator:
     status_loc = 'normalize-space(//div[@class="header-block-state"]/text())'
 
     # 23-24
-    date_request_period_auction = '//label[contains(.,"ериод приема заявок")]/ancestor::div[1]'
+    date_request_period_auction = (
+        '//label[contains(.,"ериод приема заявок")]/ancestor::div[1]'
+    )
 
     # 25
-    start_date_trading_auc_loc = '//label[contains(.,"ата и время начала аукцион")]/ancestor::div[1]'
+    start_date_trading_auc_loc = (
+        '//label[contains(.,"ата и время начала аукцион")]/ancestor::div[1]'
+    )
 
     # 26
-    end_date_trading_auc_loc = '//label[contains(.,"ата и время завершени")]/ancestor::div[1]'
-
+    end_date_trading_auc_loc = (
+        '//label[contains(.,"ата и время завершени")]/ancestor::div[1]'
+    )

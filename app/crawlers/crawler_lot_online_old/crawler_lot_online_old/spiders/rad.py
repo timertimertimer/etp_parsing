@@ -3,7 +3,7 @@ from .base import LotOnlineOldBaseSpider
 
 
 class LotOnlineRadSpider(LotOnlineOldBaseSpider):
-    name = 'rad'
+    name = "rad"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

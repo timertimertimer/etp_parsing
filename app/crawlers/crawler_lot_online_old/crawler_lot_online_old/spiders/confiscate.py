@@ -3,7 +3,7 @@ from .base import LotOnlineOldBaseSpider
 
 
 class LotOnlineConfiscateSpider(LotOnlineOldBaseSpider):
-    name = 'confiscate'
+    name = "confiscate"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

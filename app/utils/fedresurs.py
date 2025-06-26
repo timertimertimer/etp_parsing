@@ -7,19 +7,15 @@ from pathlib import Path
 from random import choice
 
 import requests
-from patchright.sync_api import sync_playwright
-from pymysql.err import (
-    OperationalError as PyMysqlOperationalError,
-    ProgrammingError as PyMysqlProgrammingError,
-)
-from sqlalchemy.exc import OperationalError as SqlAlchemyOperationalError
+from playwright.sync_api import sync_playwright
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.utils.contacts import Contacts
 from app.utils.time_format import return_parse_date
 from app.utils.config import proxy_path
-from app.db.models import Counterparty, TradingFloor, LegalCase, DebtorMessage
+from app.db.models import Counterparty, TradingFloor, LegalCase
 from app.db.models.counterparty import CounterpartyType
 
 logger = logging.getLogger(__name__)
@@ -67,16 +63,12 @@ class Fedresurs:
                 if i + 1 == retry_count:
                     logger.error(f"Connection error: {e}. All attempts failed")
                     raise e
-                logger.warning(
-                    f"Connection error: {e}. Trying again. Attempt {i + 1}"
-                )
+                logger.warning(f"Connection error: {e}. Trying again. Attempt {i + 1}")
             except requests.exceptions.HTTPError as e:
                 if i + 1 == retry_count:
                     logger.error(f"HTTP error: {e}. All attempts failed")
                     raise e
-                logger.warning(
-                    f"HTTP error: {e}. Trying again. Attempt {i + 1}"
-                )
+                logger.warning(f"HTTP error: {e}. Trying again. Attempt {i + 1}")
                 if response.status_code == 429:
                     proxy = choice(proxies)
                     proxy_dict = {
@@ -84,9 +76,9 @@ class Fedresurs:
                         "https": f"http://{proxy}",
                     }
                     self.session.proxies.update(proxy_dict)
-                    logger.info(f"Proxy changed for fedresurs")
+                    logger.info("Proxy changed for fedresurs")
                 elif response.status_code in [401, 403]:
-                    logger.info(f"Updating cookie for fedresurs")
+                    logger.info("Updating cookie for fedresurs")
                     self.update_cookies()
         return response.json()
 
@@ -174,17 +166,13 @@ class CounterpartyFedresurs(Fedresurs):
 
     def parse(self) -> None:
         if not self.main():
-            logger.error(
-                f"Not found {self.data.get('name') or self.data.get('inn')}"
-            )
+            logger.error(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
 
     def main(self) -> dict | None:
         if self.data["guid"]:
-            data = self.make_request(
-                f"{self.BACKEND_URL}/{self.data['guid']}/main"
-            )
+            data = self.make_request(f"{self.BACKEND_URL}/{self.data['guid']}/main")
             self.data["short_name"] = data.get("name")
             return data
 
@@ -196,12 +184,8 @@ class CounterpartyFedresurs(Fedresurs):
         self.data["okopf"] = data.get("okopf", {}).get("code")
         self.data["snils"] = data.get("snils")
         self.data["name"] = data.get("fullName")
-        self.data["email"] = Contacts.check_email(
-            data.get("contacts", {}).get("email")
-        )
-        self.data["phone"] = Contacts.check_phone(
-            data.get("contacts", {}).get("phone")
-        )
+        self.data["email"] = Contacts.check_email(data.get("contacts", {}).get("email"))
+        self.data["phone"] = Contacts.check_phone(data.get("contacts", {}).get("phone"))
         self.data["url"] = data.get("tradePlace", {}).get("site") or data.get(
             "contacts", {}
         ).get("site")
@@ -215,9 +199,7 @@ class CounterpartyFedresurs(Fedresurs):
             f"{self.BACKEND_URL}/{self.data['guid']}/sro-membership",
             params={"limit": 15, "offset": 0, "isActive": True},
         )
-        if not (data := data.get("pageData")) and isinstance(
-            self, PersonFedresurs
-        ):
+        if not (data := data.get("pageData")) and isinstance(self, PersonFedresurs):
             data = self.make_request(
                 f"{self.BACKEND_URL}/{self.data['guid']}/sro-membership-au",
                 params={"limit": 15, "offset": 0, "isActive": True},
@@ -235,22 +217,16 @@ class CounterpartyFedresurs(Fedresurs):
                 session=self.session,
             )
             sro.parse_main_info()
-            sro.data["message_number"] = membership.get(
-                "messageInclude", {}
-            ).get("number")
-            sro.data["activity_type"] = membership.get(
-                "sroActivities", [None]
-            )[0]
-            sro.data["entered_at"] = return_parse_date(
-                membership["dateInclude"]
+            sro.data["message_number"] = membership.get("messageInclude", {}).get(
+                "number"
             )
+            sro.data["activity_type"] = membership.get("sroActivities", [None])[0]
+            sro.data["entered_at"] = return_parse_date(membership["dateInclude"])
             memberships.append(sro.data)
         self.data["sro_memberships"] = memberships
 
     def parse_bankruptcy(self) -> list[dict] | None:
-        data = self.make_request(
-            f"{self.BACKEND_URL}/{self.data['guid']}/bankruptcy"
-        )
+        data = self.make_request(f"{self.BACKEND_URL}/{self.data['guid']}/bankruptcy")
         if not (data := data.get("legalCases")):
             return
         legal_cases = list()
@@ -299,9 +275,7 @@ class PersonFedresurs(CounterpartyFedresurs):
 
     def parse(self) -> None:
         if not (data := self.main()):
-            logger.error(
-                f"Not found {self.data.get('name') or self.data.get('inn')}"
-            )
+            logger.error(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
         if "IndividualEntrepreneur" in data["roles"]:
@@ -407,9 +381,9 @@ class BankrotMessageFedresurs(Fedresurs):
         self.data["number"] = data["number"]
         self.data["type"] = data["messageType"]
         if data.get("content"):
-            self.data["content"] = data["content"]["messageInfo"][
-                "messageContent"
-            ].get("text")
+            self.data["content"] = data["content"]["messageInfo"]["messageContent"].get(
+                "text"
+            )
         legal_case_number = data["bankrupt"].get("legalCaseNumber")
         self.data["legal_case_number"] = (
             Contacts.check_case_number(legal_case_number.strip())
@@ -448,9 +422,7 @@ class LegalCaseFedresurs(Fedresurs):
         if not data:
             return
         auction_guid = data[0]["guid"]
-        data = self.make_request(
-            f"{AuctionFedresurs.BACKEND_URL}/{auction_guid}"
-        )
+        data = self.make_request(f"{AuctionFedresurs.BACKEND_URL}/{auction_guid}")
         return data.get("legalCase", {}).get("guid")
 
     def parse(self) -> str | None:
@@ -463,9 +435,7 @@ class LegalCaseFedresurs(Fedresurs):
         self.data["fedresurs_url"] = (
             f"https://fedresurs.ru/legalcases/{self.data['guid']}"
         )
-        self.data["debtor_category"] = data.get("bankruptCategory", {}).get(
-            "code"
-        )
+        self.data["debtor_category"] = data.get("bankruptCategory", {}).get("code")
 
 
 class AuctionFedresurs(Fedresurs):
@@ -476,7 +446,7 @@ class AuctionFedresurs(Fedresurs):
         trading_id: str,
         trading_number: str,
         trading_floor_name: str,
-        case_number: str,
+        case_number: str | None = None,
     ):
         super().__init__()
         self.data["trading_id"] = trading_id
@@ -516,15 +486,11 @@ class AuctionFedresurs(Fedresurs):
     def parse_main_info(self):
         data = self.make_request(f"{self.BACKEND_URL}/{self.data['guid']}")
         self.data["arbit_manager"] = data.get("arbitrManager", {}).get("name")
-        self.data["arbit_manager_inn"] = data.get("arbitrManager", {}).get(
-            "inn"
-        )
+        self.data["arbit_manager_inn"] = data.get("arbitrManager", {}).get("inn")
         self.data["debtor_inn"] = data.get("debtor", {}).get("inn")
 
     def get_messages(self, guid: str = None):
-        data = self.make_request(
-            f"{self.BACKEND_URL}/{guid or self.data['guid']}"
-        )
+        data = self.make_request(f"{self.BACKEND_URL}/{guid or self.data['guid']}")
         main_message_guid = data.get("message", {}).get("guid")
         self.legal_case_guid = data.get("legalCase", {}).get("guid")
         messages = []
@@ -588,51 +554,12 @@ def parse_counterparty(inn: str):
     fed_client = CompanyFedresurs(counterparty)
     fed_client.parse()
 
+from playwright.async_api import async_playwright
 
-def fix_debtor_messages():  # FIXME
-    from app.db.db_helper import DBHelper
-
-    debtor_messages = DBHelper.get_all(DebtorMessage)
-    for i, message in enumerate(debtor_messages):
-        print(f"{i + 1}/{len(debtor_messages)}")
-        fed_client = BankrotMessageFedresurs(
-            message.fedresurs_url.split("/")[-1]
-        )
-        fed_client.parse()
-        if fed_client.data["published_at"] != message.published_at.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ):
-            message.published_at = fed_client.data["published_at"]
-            for i in range(5):
-                try:
-                    session.commit()
-                    break
-                except (
-                    SqlAlchemyOperationalError,
-                    SqlAlchemyOperationalError,
-                    PyMysqlOperationalError,
-                    PyMysqlProgrammingError,
-                ) as e:
-                    error_msg = str(e)
-                    if any(
-                        [
-                            "MySQL Connection not available" in error_msg
-                            or "Lost connection to MySQL server" in error_msg
-                        ]
-                    ):
-                        print(
-                            f"MySQL connection lost. Retrying... (Attempt {i + 1}/5)"
-                        )
-                        session.close()
-                        session = get_db()
-                        time.sleep(1)
-                        continue
-                    else:
-                        print(f"Database error: {e}")
-                        session.rollback()
-                        break
-
-
-if __name__ == "__main__":
-    data = TradingFloorFedresurs(name='АО "НИС"').parse()
-    print(data)
+async def webdriver():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        await page.goto('https://2ip.ru/')
+        await page.screenshot(path='example.png')
+        await browser.close()

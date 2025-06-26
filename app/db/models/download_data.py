@@ -1,5 +1,7 @@
+from typing_extensions import Annotated
+
 from pydantic import BaseModel, Field, HttpUrl, ConfigDict
-from typing import Optional, Dict, Union, Annotated
+from typing import Optional, Dict, Union
 
 
 class DownloadData(BaseModel):

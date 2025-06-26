@@ -27,12 +27,12 @@ class TradeLocator:
     sud_loc = '//div[normalize-space(text())="Сведения о должнике"]/following::div[normalize-space(text())="Наименование арбитражного суда"]/following-sibling::div[1]'
     property_info_loc = '//div[normalize-space(text())="Контакты"]/following::div[normalize-space(text())="Порядок ознакомления с имуществом должника"]/following-sibling::div'
 
-
     start_price_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[normalize-space(text())="Начальная цена продажи имущества, руб."]/following-sibling::div'
     period_table_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[normalize-space(text())="График снижения цены"]//following-sibling::div//table'
 
     file_lot_link_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[@class="sfi-info"]//a'
     general_files_loc = '//div[normalize-space(text())="Информация о торгах"]/following::div[@class="sfi-info"]//a'
+
 
 class LocatorAuction:
     step_price_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Величина повышения начальной цены"]/following-sibling::div'

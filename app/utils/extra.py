@@ -18,8 +18,8 @@ def replace_one_dot(name):
     """replace one dot if before extansion is occured"""
     dot = re.findall(r"\.", name)
     if len(dot) > 1:
-        lenght = len(dot)
-        output = re.sub(r"\.", "_", name, (lenght - 1))
+        length = len(dot)
+        output = re.sub(r"\.", "_", name, (length - 1))
         return output
     else:
         return name
@@ -58,9 +58,7 @@ def sanitize_filename(filename: str) -> str:
 
 
 columns = ["Code", "Name"]
-classifiers_df = pd.DataFrame(
-    lot_classifiers_code_to_name.items(), columns=columns
-)
+classifiers_df = pd.DataFrame(lot_classifiers_code_to_name.items(), columns=columns)
 valid_codes = set(classifiers_df[columns[0]])
 name_to_code = dict(
     zip(classifiers_df[columns[1]], classifiers_df[columns[0]].astype(str))
@@ -85,6 +83,7 @@ def return_main_cookies(cookies: list) -> str:
                     _value = v
     if jsession and _value:
         return f"{jsession}={_value}"
+    return None
 
 
 def cookie_parser(cookies_string):
@@ -133,7 +132,7 @@ pattern_replace1 = ["(", ")", "-", "+", "- ", "null", "\n", "&nbsp;"]
 def check_case_number(case_number: str or None):
     if case_number:
         # find if 4 characters are inline together
-        pattern = re.compile("\D{5,}")
+        pattern = re.compile(r"\D{5,}")
         match = pattern.findall(case_number)
         if match and len("".join(match)) > 0:
             match = "".join(match)
@@ -141,11 +140,10 @@ def check_case_number(case_number: str or None):
         else:
             match1 = case_number
         return match1.replace("№", "").strip()
+    return None
 
 
-cyrillic = (
-    "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШ ЩЪЫЬЭЮЯ"
-)
+cyrillic = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 mac_symbols = ("╨┐", "╨", "MACOS", "╤")
 
 
@@ -179,9 +177,7 @@ def count_cyrillic(text):
                     new_text = text.encode("CP437")
                     new_text = new_text.decode("CP866")
                     new_text = new_text.encode("utf-8")
-                    return unicodedata.normalize(
-                        "NFKC", new_text.decode("utf-8")
-                    )
+                    return unicodedata.normalize("NFKC", new_text.decode("utf-8"))
             except:
                 try:
                     new_text = text.encode("CP866")
@@ -189,6 +185,7 @@ def count_cyrillic(text):
                     return unicodedata.normalize("NFKC", new_text)
                 except:
                     return text
+    return None
 
 
 def make_float(price):
@@ -196,9 +193,7 @@ def make_float(price):
         if price:
             price = "".join(price).replace(",", ".")
             price = "".join(filter(lambda x: x.isdigit() or x == ".", price))
-            price = "".join(
-                map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price))))
-            )
+            price = "".join(map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price)))))
             if price is None:
                 price = "".join(map(str, (re.findall(r"^\d+?", str(price)))))
             price = round(float(price), 2)
@@ -206,6 +201,7 @@ def make_float(price):
     except Exception as e:
         logger.error(f"Cant convert {price} to float: {e}")
         return e
+    return None
 
 
 def contains(text: str):
@@ -284,11 +280,7 @@ def cut_lot_number(func):
         else:
             match = None
         if match:
-            return (
-                result.replace("".join(match[0]), "", 1)
-                .strip()
-                .replace('"', "'")
-            )
+            return result.replace("".join(match[0]), "", 1).strip().replace('"', "'")
         else:
             return result.strip().replace('"', "'")
 
@@ -304,15 +296,13 @@ def delete_extra_symbols(func):
             match = pattern.findall(str(result))
             if match:
                 string_ = (
-                    str(result)
-                    .replace("".join(match), "")
-                    .strip()
-                    .replace('"', "'")
+                    str(result).replace("".join(match), "").strip().replace('"', "'")
                 )
                 return string_[0].upper() + string_[1:]
             else:
                 string_ = str(result).strip().replace('"', "'")
                 return string_[0].upper() + string_[1:]
+        return None
 
     return wrapped
 
@@ -328,6 +318,7 @@ def get_org_info(last, first, middle):
             l.append(middle)
 
         return string.capwords(" ".join(l))
+    return None
 
 
 def set_logger(logger):
@@ -342,8 +333,4 @@ def set_logger(logger):
 
 
 if __name__ == "__main__":
-    print(
-        parse_classifiers(
-            "0401 Имущественные права: Права долевой собственности"
-        )
-    )
+    print(parse_classifiers("0401 Имущественные права: Права долевой собственности"))

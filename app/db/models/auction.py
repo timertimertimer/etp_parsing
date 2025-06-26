@@ -4,9 +4,26 @@ from enum import Enum
 from sqlalchemy import Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.models.base import Base
+from .base import Base
 from sqlalchemy import Enum as SAEnum
 
+class AuctionProperty(str, Enum):
+    bankruptcy = "bankruptcy"
+
+    arrested = "arrested"
+
+    commercial = "commercial"
+
+    legal_entities = "legal_entities"
+    fz44 = "fz44"
+    capital_repair = "capital_repair"
+
+    fz223 = "fz223"
+
+    rent = "rent"
+
+    def __str__(self):
+        return self.value
 
 class AuctionType(str, Enum):
     auction = "auction"
@@ -22,35 +39,27 @@ class FormType(str, Enum):
 class Auction(Base):
     __tablename__ = "auctions"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)
     number: Mapped[str] = mapped_column(String(255), nullable=True)
-    type: Mapped[str] = mapped_column(
-        SAEnum(AuctionType, convert_unicode=True)
-    )
+    type: Mapped[str] = mapped_column(SAEnum(AuctionType, convert_unicode=True))
     form: Mapped[str] = mapped_column(SAEnum(FormType, convert_unicode=True))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
-    organizer_id: Mapped[int] = mapped_column(
+    organizer_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True
     )
-    arbitrator_id: Mapped[int] = mapped_column(
+    arbitrator_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True
     )
-    debtor_id: Mapped[int] = mapped_column(
+    debtor_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True
     )
-    trading_floor_id: Mapped[int] = mapped_column(
-        ForeignKey("trading_floors.id")
-    )
-    legal_case_id: Mapped[int] = mapped_column(
+    trading_floor_id: Mapped[int] = mapped_column(ForeignKey("trading_floors.id"))
+    legal_case_id: Mapped[int | None] = mapped_column(
         ForeignKey("legal_cases.id"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )

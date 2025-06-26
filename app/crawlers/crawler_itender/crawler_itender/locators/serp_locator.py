@@ -8,4 +8,3 @@ class LocatorSerp:
     trading_num_loc = '//legend[contains(., "нформация об аукционе №")]'
 
     trading_form_loc = '//legend[contains(., "нформация об аукционе №")]/ancestor::fieldset//td[contains(., "Форма торга по составу участников:")]/following-sibling::td[1]'
-

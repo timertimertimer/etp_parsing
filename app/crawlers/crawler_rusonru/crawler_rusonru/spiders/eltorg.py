@@ -3,7 +3,7 @@ from .base import RusonBaseSpider
 
 
 class EltorgSpider(RusonBaseSpider):
-    name = 'eltorg'
+    name = "eltorg"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

@@ -1,11 +1,11 @@
 from datetime import datetime
 from enum import Enum
 
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, DateTime, String, Integer, Float
 from sqlalchemy.orm import mapped_column, Mapped
 
-from app.db.models.base import Base
-from sqlalchemy import Enum as SAEnum
+from .base import Base
 
 
 class StatusType(str, Enum):
@@ -17,13 +17,9 @@ class StatusType(str, Enum):
 class ParserStatus(Base):
     __tablename__ = "parsers_status"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255))
-    trading_floor_id: Mapped[int] = mapped_column(
-        ForeignKey("trading_floors.id")
-    )
+    trading_floor_id: Mapped[int] = mapped_column(ForeignKey("trading_floors.id"))
     status: Mapped[StatusType] = mapped_column(
         SAEnum(StatusType, convert_unicode=True), default=StatusType.disabled
     )

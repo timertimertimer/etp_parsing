@@ -10,9 +10,10 @@ import requests
 import re
 from natasha import MorphVocab, AddrExtractor
 
-from app.utils.contacts import CheckIfCorrectContactInfo
+from app.utils.contacts import Contacts
 from app.utils.config import env, indexes_path
-from app.db import DBHelper
+from app.db.db_helper import DBHelper
+from app.db.models import Region
 
 logger = logging.getLogger(__name__)
 
@@ -36,19 +37,17 @@ use_api_services = {"yandex": False, "dadata": True}
 
 
 def parse_address(address: str):
-    if any(
-        ["суд" in address.lower().split(), "суда" in address.lower().split()]
-    ):
+    if any(["суд" in address.lower().split(), "суда" in address.lower().split()]):
         pattern = r"(?i)(?:арбитражн\w*\s+)?суд\w*\s+(.+)"
         try:
             address = re.search(pattern, address).group(1)
-        except AttributeError as e:
+        except AttributeError:
             pass
     elif address.startswith("АС"):
         pattern = r"АС\s*(.+)"
         try:
             address = re.search(pattern, address).group(1)
-        except AttributeError as e:
+        except AttributeError:
             pass
 
     address = re.sub(r"\d+", "", address)
@@ -91,9 +90,7 @@ def parse_address(address: str):
     }
     address = address.split(" и ")[0]
     for replacement in replacements2:
-        address = address.replace(
-            replacement, replacements2[replacement] + " "
-        )
+        address = address.replace(replacement, replacements2[replacement] + " ")
     for replacement in replacements:
         address = address.replace(replacement, "")
     address = "".join(char for char in address if char not in punctuation)
@@ -117,13 +114,9 @@ def normalize_phrase(phrase: str):
             previous_word = morph.parse(normalized_words[i - 1])[0]
             if "ADJF" in previous_word.tag:  # Если слово — прилагательное
                 # Согласовываем прилагательное с существительным (род, число, падеж)
-                gender = morph.parse(word)[
-                    0
-                ].tag.gender  # Род существительного
+                gender = morph.parse(word)[0].tag.gender  # Род существительного
                 case = morph.parse(word)[0].tag.case  # Падеж существительного
-                number = morph.parse(word)[
-                    0
-                ].tag.number  # Число существительного
+                number = morph.parse(word)[0].tag.number  # Число существительного
                 # Склоняем прилагательное
                 normalized_words[i - 1] = previous_word.inflect(
                     {gender, case, number}
@@ -202,10 +195,7 @@ class RegionIdentifier:
     def _fetch_oktmos():
         o = {}
         try:
-            return {
-                region.oktmo: region.name
-                for region in DBHelper.get_all(Region)
-            }
+            return {region.oktmo: region.name for region in DBHelper.get_all(Region)}
         except Exception as e:
             logger.error(f"Error in fetching addresses: {e}", exc_info=True)
         return o
@@ -214,25 +204,19 @@ class RegionIdentifier:
     def get_yandex_region(address: str):
         if not env.yandex_api_key:
             logger.warning("No api key for Yandex API")
-            return
+            return None
         params = {
             "apikey": env.yandex_api_key,
             "geocode": address,
             "lang": "ru_RU",
             "format": "json",
         }
-        response = requests.get(
-            "https://geocode-maps.yandex.ru/1.x", params=params
-        )
+        response = requests.get("https://geocode-maps.yandex.ru/1.x", params=params)
         data = response.json()
         if not data.get("response"):
-            logger.warning(
-                f'Error while parsing address: "{address}" - {data}'
-            )
-            return
-        feature_member = data["response"]["GeoObjectCollection"][
-            "featureMember"
-        ]
+            logger.warning(f'Error while parsing address: "{address}" - {data}')
+            return None
+        feature_member = data["response"]["GeoObjectCollection"]["featureMember"]
         if not feature_member:
             region = None
         else:
@@ -260,7 +244,7 @@ class RegionIdentifier:
     def get_dadata_region(address: str):
         if not env.env.dadata_api_token or not env.dadata_api_secret:
             logger.warning("No api key for Dadata API")
-            return
+            return None
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -294,11 +278,11 @@ class RegionIdentifier:
         elif region:
             return region
         else:
-            return
+            return None
 
     @staticmethod
     def get_region(address: str):
-        address = CheckIfCorrectContactInfo.check_address(address)
+        address = Contacts.check_address(address)
         if not address:
             return
         parsed_address = parse_address(address)
@@ -317,21 +301,21 @@ class RegionIdentifier:
             return region
         else:
             logger.warning(f'Not found region for address: "{address}"')
+        return None
 
     @staticmethod
     def _get_region_from_storage(address: str | None):
         if not address:
-            return
+            return None
         if region := RegionIdentifier.get_storage().get(address.lower()):
-            logger.info(
-                f'Got from storage. Address: "{address}", Region: "{region}"'
-            )
+            logger.info(f'Got from storage. Address: "{address}", Region: "{region}"')
             return region
+        return None
 
     @staticmethod
     def _get_region_from_index(address: str | None):
         if not address:
-            return
+            return None
         index = get_index(address)
         if index:
             if region := indexes.get(index[:3]):
@@ -339,9 +323,8 @@ class RegionIdentifier:
                     f'Got from indexes. Address: "{address}", Region: "{region}"'
                 )
                 return region
-            logger.warning(
-                f'Index "{index}" not found in indexes. Address: {address}'
-            )
+            logger.warning(f'Index "{index}" not found in indexes. Address: {address}')
+        return None
 
     @staticmethod
     def _get_region_from_text(address: str):
@@ -368,9 +351,7 @@ class RegionIdentifier:
                 normalized_address = normalize_phrase(f"{value} {type_}")
                 normalized_address2 = normalize_phrase(f"{type_} {value}")
                 if not (
-                    region := RegionIdentifier.get_storage().get(
-                        normalized_address
-                    )
+                    region := RegionIdentifier.get_storage().get(normalized_address)
                     or RegionIdentifier.get_storage().get(normalized_address2)
                 ):
                     for region in RegionIdentifier.get_regions():
@@ -385,7 +366,7 @@ class RegionIdentifier:
                             )
                             break
                     else:
-                        return
+                        return None
                 return region
             elif type_ not in [
                 "индекс",
@@ -447,7 +428,7 @@ def test_region_from_addresses_table():
 
 if __name__ == "__main__":
     from sqlalchemy import select
-    from general_utils.models import Address, Region
+    from app.db.models import Address, Region
 
     with DBHelper.transaction_scope(commit=False) as session:
         addresses = (

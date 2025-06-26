@@ -9,15 +9,18 @@ from general_utils import format_time
 
 logger = logging.getLogger(__name__)
 
+
 class Offer:
     def __init__(self, response):
         self.response = response
 
     def get_period_table(self):
-        """ find and return table with periods """
-        table = BeautifulSoup(self.response.xpath('//table[@id="stepsTable"]').get(), 'lxml')
+        """find and return table with periods"""
+        table = BeautifulSoup(
+            self.response.xpath('//table[@id="stepsTable"]').get(), "lxml"
+        )
         if table:
-            df = pd.read_html(re.sub(r',', '.', str(table)))
+            df = pd.read_html(re.sub(r",", ".", str(table)))
             return df[0]
 
     @property
@@ -32,23 +35,27 @@ class Offer:
             price_ = "".join(takewhile(lambda x: x != "р" and x != "Р", price_))
             try:
                 if isinstance(price_, str):
-                    price = ''.join(re.sub(r"\s", "", price_)).replace(',', '.')
+                    price = "".join(re.sub(r"\s", "", price_)).replace(",", ".")
                     price = round(float(price), 2)
                 else:
                     price = round(float(price_), 2)
                 if check_value < price:
-                    logger.critical(f'{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS')
+                    logger.critical(
+                        f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
+                    )
                 else:
                     check_value = price
             except:
-                logger.error(f'{self.response.url} Period Price - {price_} typeof - {type(price_)}')
+                logger.error(
+                    f"{self.response.url} Period Price - {price_} typeof - {type(price_)}"
+                )
                 return None
             try:
                 period = {
-                    'start_date_requests': format_time(start),
-                    'end_date_requests': format_time(end),
-                    'end_date_trading': format_time(end),
-                    'current_price': price
+                    "start_date_requests": format_time(start),
+                    "end_date_requests": format_time(end),
+                    "end_date_trading": format_time(end),
+                    "current_price": price,
                 }
                 periods.append(period)
             except:
@@ -61,7 +68,10 @@ class Offer:
             tbody_periods = self.get_period_table()
             return format_time(tbody_periods.iloc[0][1])
         except Exception as e:
-            logger.error(f'{self.response.url} :: INVALID DATA START DATE REQUEST OFFER \n\n\n', e)
+            logger.error(
+                f"{self.response.url} :: INVALID DATA START DATE REQUEST OFFER \n\n\n",
+                e,
+            )
             return None
 
     @property
@@ -70,5 +80,5 @@ class Offer:
             end = self.get_period_table().iloc[-1][2]
             return format_time(end)
         except Exception as ex:
-            logger.error(f'{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}')
+            logger.error(f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}")
             return None

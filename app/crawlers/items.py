@@ -49,24 +49,14 @@ class EtpItemLoader(ItemLoader):
     trading_type_out = TakeFirst()
     trading_form_out = TakeFirst()
     status_out = TakeFirst()
-    msg_number_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
-    case_number_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
-    debtor_inn_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
+    msg_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    case_number_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
+    debtor_inn_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     address_out = TakeFirst()
-    trading_org_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
+    trading_org_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     trading_org_inn_out = TakeFirst()
     trading_org_contacts_out = TakeFirst()
-    arbit_manager_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
+    arbit_manager_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     arbit_manager_inn_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', "'"), str
     )
@@ -77,9 +67,7 @@ class EtpItemLoader(ItemLoader):
     lot_link_out = TakeFirst()
     lot_number_out = TakeFirst()
     short_name_out = TakeFirst()
-    lot_info_out = Compose(
-        TakeFirst(), lambda x: x.strip().replace('"', "'"), str
-    )
+    lot_info_out = Compose(TakeFirst(), lambda x: x.strip().replace('"', "'"), str)
     categories_out = TakeFirst()
     property_information_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', "'"), str

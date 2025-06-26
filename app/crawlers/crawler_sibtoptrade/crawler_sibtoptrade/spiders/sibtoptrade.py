@@ -5,9 +5,6 @@ from general_utils.base_spider import BaseSpider
 from ..app import Combo
 from ..config import *
 from scrapy_splash import SplashRequest
-from scrapy.spidermiddlewares.httperror import HttpError
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError, TCPTimedOutError
 import scrapy_splash
 
 from scrapy import Request
@@ -18,84 +15,112 @@ logger = logging.getLogger(__name__)
 
 
 class SibtoptradeSpider(BaseSpider):
-    name = 'sibtoptrade'
+    name = "sibtoptrade"
     total_iterations = int(finish_page) - int(start_page)
     addresses = dict()
 
-    start_url_ = [start_urls.format(n + int(start_page))
-                  for n in range(total_iterations)]
+    start_url_ = [
+        start_urls.format(n + int(start_page)) for n in range(total_iterations)
+    ]
 
     def __init__(self):
         super(SibtoptradeSpider, self).__init__(data_origin)
 
     def start_requests(self):
-        yield SplashRequest(start_urls1, self.iterrate_througth_pages,
-                            endpoint='execute',
-                            cache_args=['lua_source'],
-                            args={'lua_source': script_lua},
-                            slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
-                            session_id=1, errback=self.errback_httpbin)
+        yield SplashRequest(
+            start_urls1,
+            self.iterrate_througth_pages,
+            endpoint="execute",
+            cache_args=["lua_source"],
+            args={"lua_source": script_lua},
+            slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
+            session_id=1,
+            errback=self.errback_httpbin,
+        )
 
     def iterrate_througth_pages(self, response):
-        last_page = response.xpath('//nav[@class="pagination"]//li[last()]/a/text()').get()
+        last_page = response.xpath(
+            '//nav[@class="pagination"]//li[last()]/a/text()'
+        ).get()
         for url in self.start_url_:
-            current_page = ''.join(re.findall(r'https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=(\d+).*', url))
+            current_page = "".join(
+                re.findall(
+                    r"https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=(\d+).*",
+                    url,
+                )
+            )
             if int(last_page) >= int(current_page):
                 yield SplashRequest(
-                    url, self.parse, endpoint='execute', cache_args=['lua_source'], args={'lua_source': script_lua},
-                    slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN, session_id=1, errback=self.errback_httpbin,
-                    dont_filter=True
+                    url,
+                    self.parse,
+                    endpoint="execute",
+                    cache_args=["lua_source"],
+                    args={"lua_source": script_lua},
+                    slot_policy=scrapy_splash.SlotPolicy.PER_DOMAIN,
+                    session_id=1,
+                    errback=self.errback_httpbin,
+                    dont_filter=True,
                 )
 
     def parse(self, response):
-        soup = BS(str(response.body.decode('utf-8')), 'lxml')
-        trades = soup.find('tbody').find_all('tr')
+        soup = BS(str(response.body.decode("utf-8")), "lxml")
+        trades = soup.find("tbody").find_all("tr")
         for trade in trades:
-            if trade.find('td', class_='td-divider'):
+            if trade.find("td", class_="td-divider"):
                 continue
-            link = trade.find('a')
-            trading_number = ''.join(link.get_text()).strip()
-            status = trade.find('td', class_='center').find_next_sibling().get_text().strip().lower()
+            link = trade.find("a")
+            trading_number = "".join(link.get_text()).strip()
+            status = (
+                trade.find("td", class_="center")
+                .find_next_sibling()
+                .get_text()
+                .strip()
+                .lower()
+            )
             link = link.get("href")
             if link not in self.previous_trades:
                 yield Request(
-                    url=link, callback=self.parse_lots, errback=self.errback_httpbin,
-                    meta={'trading_number': trading_number, 'status': status}
+                    url=link,
+                    callback=self.parse_lots,
+                    errback=self.errback_httpbin,
+                    meta={"trading_number": trading_number, "status": status},
                 )
 
     def parse_lots(self, response):
         loader = EtpItemLoader(EtpItem(), response=response)
         combo = Combo(response)
-        loader.add_value('data_origin', data_origin)
-        loader.add_value('trading_id', combo.trading_id)
-        loader.add_value('trading_link', combo.trading_link)
-        loader.add_value('trading_number', response.meta['trading_number'])
-        loader.add_value('trading_type', combo.trading_type)
-        loader.add_value('trading_form', combo.trading_form)
-        loader.add_value('msg_number', combo.msg_number)
-        loader.add_value('case_number', combo.case_number)
-        loader.add_value('debtor_inn', combo.debtor_inn)
-        loader.add_value('address', combo.address)
-        loader.add_value('trading_org', combo.trading_org)
-        loader.add_value('trading_org_inn', combo.trading_org_inn)
-        loader.add_value('trading_org_contacts', combo.trading_org_contacts)
-        loader.add_value('arbit_manager', combo.arbit_manager)
-        loader.add_value('arbit_manager_inn', combo.arbit_manager_inn)
-        loader.add_value('arbit_manager_org', combo.arbit_manager_org)
-        loader.add_value('status', response.meta['status'])
-        loader.add_value('lot_id', None)
-        loader.add_value('lot_link', None)
-        loader.add_value('lot_info', None)
-        loader.add_value('lot_number', combo.lot_number)
-        loader.add_value('short_name', combo.short_name)
-        loader.add_value('property_information', combo.property_information)
-        loader.add_value('start_date_requests', combo.start_date_requests)
-        loader.add_value('end_date_requests', combo.end_date_requests)
-        loader.add_value('start_date_trading', combo.start_date_trading)
-        loader.add_value('end_date_trading', combo.end_date_trading)
-        loader.add_value('periods', combo.periods)
-        loader.add_value('start_price', combo.start_price)
-        loader.add_value('step_price', combo.step_price)
-        loader.add_value('categories', None)
-        loader.add_value('files', {'general': combo.download_general(), 'lot': combo.download_lot()})
+        loader.add_value("data_origin", data_origin)
+        loader.add_value("trading_id", combo.trading_id)
+        loader.add_value("trading_link", combo.trading_link)
+        loader.add_value("trading_number", response.meta["trading_number"])
+        loader.add_value("trading_type", combo.trading_type)
+        loader.add_value("trading_form", combo.trading_form)
+        loader.add_value("msg_number", combo.msg_number)
+        loader.add_value("case_number", combo.case_number)
+        loader.add_value("debtor_inn", combo.debtor_inn)
+        loader.add_value("address", combo.address)
+        loader.add_value("trading_org", combo.trading_org)
+        loader.add_value("trading_org_inn", combo.trading_org_inn)
+        loader.add_value("trading_org_contacts", combo.trading_org_contacts)
+        loader.add_value("arbit_manager", combo.arbit_manager)
+        loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
+        loader.add_value("arbit_manager_org", combo.arbit_manager_org)
+        loader.add_value("status", response.meta["status"])
+        loader.add_value("lot_id", None)
+        loader.add_value("lot_link", None)
+        loader.add_value("lot_info", None)
+        loader.add_value("lot_number", combo.lot_number)
+        loader.add_value("short_name", combo.short_name)
+        loader.add_value("property_information", combo.property_information)
+        loader.add_value("start_date_requests", combo.start_date_requests)
+        loader.add_value("end_date_requests", combo.end_date_requests)
+        loader.add_value("start_date_trading", combo.start_date_trading)
+        loader.add_value("end_date_trading", combo.end_date_trading)
+        loader.add_value("periods", combo.periods)
+        loader.add_value("start_price", combo.start_price)
+        loader.add_value("step_price", combo.step_price)
+        loader.add_value("categories", None)
+        loader.add_value(
+            "files", {"general": combo.download_general(), "lot": combo.download_lot()}
+        )
         return loader.load_item()

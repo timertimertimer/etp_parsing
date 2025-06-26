@@ -6,14 +6,14 @@ from scrapy.exceptions import CloseSpider
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
-from app.db import DBHelper
+from app.db.db_helper import DBHelper
 
 logger = logging.getLogger(__name__)
 
 
 class BaseSpider(scrapy.Spider):
     def __init__(self, data_origin, keys=None, *args, **kwargs):
-        super(BaseSpider, self).__init__(*args, **kwargs)
+        super(BaseSpider, self).__init__(*args)
         DBHelper.create_new_connection()
         self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(
             data_origin, keys
@@ -27,12 +27,8 @@ class BaseSpider(scrapy.Spider):
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super().from_crawler(crawler, *args, **kwargs)
-        crawler.signals.connect(
-            spider.spider_opened, signal=signals.spider_opened
-        )
-        crawler.signals.connect(
-            spider.spider_closed, signal=signals.spider_closed
-        )
+        crawler.signals.connect(spider.spider_opened, signal=signals.spider_opened)
+        crawler.signals.connect(spider.spider_closed, signal=signals.spider_closed)
         return spider
 
     def spider_opened(self):

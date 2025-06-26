@@ -14,9 +14,7 @@ class URL:
                 + f"?{url.query}"
             )
         else:
-            url = (
-                url.scheme + "://" + url.netloc + urllib.parse.quote(url.path)
-            )
+            url = url.scheme + "://" + url.netloc + urllib.parse.quote(url.path)
         return url
 
     @staticmethod
@@ -68,12 +66,7 @@ class URL:
             )
             return url
         elif url.path:
-            return (
-                url.scheme
-                + "://"
-                + urllib.parse.unquote(url.netloc)
-                + url.path
-            )
+            return url.scheme + "://" + urllib.parse.unquote(url.netloc) + url.path
         else:
             return url.scheme + "://" + urllib.parse.unquote(url.netloc)
 

@@ -4,8 +4,8 @@ from ..spiders.base import ItenderBaseSpider
 
 
 class TendergarantSpider(ItenderBaseSpider):
-    name = 'tendergarant'
+    name = "tendergarant"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
-        'DEFAULT_REQUEST_HEADERS': headers | {'Accept-Encoding': 'gzip, deflate'}
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "DEFAULT_REQUEST_HEADERS": headers | {"Accept-Encoding": "gzip, deflate"},
     }

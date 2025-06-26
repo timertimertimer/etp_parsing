@@ -1,3 +1,3 @@
 from scrapy.cmdline import execute
 
-execute(['scrapy', 'crawl', 'akosta'])
+execute(["scrapy", "crawl", "akosta_bankrupt"])

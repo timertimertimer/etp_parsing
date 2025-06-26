@@ -1,4 +1,13 @@
-from general_utils.config import headers
+import sys
+import logging
+import warnings
+
+import scrapy.utils.log
+
+from app.utils.config import headers
+from app.utils.logger import logger
+from bs4 import XMLParsedAsHTMLWarning
+
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -17,10 +26,6 @@ CONCURRENT_REQUESTS_PER_IP = 16
 USER_AGENT = headers["User-Agent"]
 DEFAULT_REQUEST_HEADERS = headers.copy()
 
-# LOG_LEVEL = 'INFO'
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-# LOG_FILE_APPEND = False
-
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 # SPIDER_MIDDLEWARES = {
@@ -31,8 +36,8 @@ LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.cookies.CookiesMiddleware": 120,
-    "general_utils.middlewares.UserAgentMiddleware": 150,
-    "general_utils.middlewares.ETPDownloaderMiddleware": 160,
+    "crawlers.middlewares.UserAgentMiddleware": 150,
+    "crawlers.middlewares.ETPDownloaderMiddleware": 160,
     "rotating_proxies.middlewares.RotatingProxyMiddleware": 610,
     "rotating_proxies.middlewares.BanDetectionMiddleware": 620,
     "scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware": 810,
@@ -50,7 +55,7 @@ ROTATING_PROXY_PAGE_RETRY_TIMES = 7
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "general_utils.pipelines.BasePipeline": 300,
+    "crawlers.pipelines.BasePipeline": 300,
 }
 RETRY_ENABLED = True
 RETRY_TIMES = 7
@@ -104,3 +109,42 @@ SPIDER_MIDDLEWARES = {
 
 SPLASH_COOKIES_DEBUG = False
 SPLASH_LOG_400 = True
+
+
+class InterceptHandler(logging.Handler):
+    """
+    Redirects standard logs to loguru.
+    """
+
+    def emit(self, record):
+        level = (
+            record.levelname
+            if record.levelname in logger._core.levels
+            else record.levelno
+        )
+        frame = sys._getframe(1)
+        depth = 1
+        while frame and frame.f_globals["__name__"].startswith("logging"):
+            frame = frame.f_back
+            depth += 1
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
+
+
+def setup_logger():
+    warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    for name, log_instance in logging.root.manager.loggerDict.items():
+        if isinstance(log_instance, logging.Logger):
+            log_instance.handlers.clear()
+
+    scrapy.utils.log.configure_logging = lambda settings: None
+    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO, force=True)
+
+setup_logger()
+LOG_ENABLED = False

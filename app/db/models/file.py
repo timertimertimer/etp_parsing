@@ -3,7 +3,8 @@ from enum import Enum
 
 from sqlalchemy import Integer, String, DateTime, Enum as SAEnum, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.models.base import Base
+
+from .base import Base
 
 
 class FileModelType(str, Enum):
@@ -15,13 +16,9 @@ class FileModelType(str, Enum):
 
 class File(Base):
     __tablename__ = "files"
-    __table_args__ = (
-        Index("ix_model_type_model_id", "model_type", "model_id"),
-    )
+    __table_args__ = (Index("ix_model_type_model_id", "model_type", "model_id"),)
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255))
     path: Mapped[str] = mapped_column(String(255), nullable=True)
     url: Mapped[str] = mapped_column(Text, nullable=True)
@@ -30,9 +27,7 @@ class File(Base):
     )
     model_id: Mapped[int] = mapped_column(Integer)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )

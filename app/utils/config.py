@@ -1,5 +1,4 @@
 import csv
-import enum
 from datetime import datetime, timedelta
 from pathlib import PurePath, Path
 from random import choice
@@ -12,13 +11,9 @@ absolute_download_path = project_main_dir / "set_main_path_to_download"
 relative_download_path = project_main_dir / "set_relative_path_to_download"
 
 with open(f"{absolute_download_path}", "r") as f:
-    absolute_download_path = PurePath(
-        "".join(f.readlines()).strip().replace("\n", "")
-    )
+    absolute_download_path = PurePath("".join(f.readlines()).strip().replace("\n", ""))
 with open(f"{relative_download_path}", "r") as f:
-    relative_download_path = PurePath(
-        "".join(f.readlines()).strip().replace("\n", "")
-    )
+    relative_download_path = PurePath("".join(f.readlines()).strip().replace("\n", ""))
 
 config_file_name = "config.ini"
 proxy_file_name = "proxy.txt"
@@ -69,11 +64,13 @@ class ENV(BaseSettings):
     parser_secret: Optional[str] = None
     site_url: Optional[str] = None
 
-    db_user: str = "root"
+    db_user: str = "etp_parsing"
     db_password: str = "strong_password"
     db_host: str = "localhost"
     db_port: int = 3306
     db_database: str = "etp_parsing"
+
+    connection_string: str = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
 
 
 env = ENV()
@@ -156,21 +153,5 @@ trash_resources = [
 ]
 
 download_files_from_get_url = True
-write_log_to_file = True
+write_log_to_file = False
 post_main_service = True
-
-
-class AuctionProperty(str, enum.Enum):
-    bankruptcy = "bankruptcy"
-
-    arrested = "arrested"
-
-    commercial = "commercial"
-
-    legal_entities = "legal_entities"
-    fz44 = "fz44"
-    capital_repair = "capital_repair"
-
-    fz223 = "fz223"
-
-    rent = "rent"

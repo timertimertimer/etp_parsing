@@ -14,53 +14,77 @@ class AuctionParse:
         self.response = response
 
     def step_price(self, trading_number, lot_num: str):
-        trading_number = ''.join(trading_number)
-        step_price = self.response.xpath(LocatorAuction.step_price_loc.format(lot_num)).get()
+        trading_number = "".join(trading_number)
+        step_price = self.response.xpath(
+            LocatorAuction.step_price_loc.format(lot_num)
+        ).get()
         try:
-            step_price = dedent_func(BS(str(step_price), features='lxml').get_text(strip=True))
-            pattern = r'^\d+\.\d{1,2}'
-            if 'руб' in step_price:
-                step_price = ''.join(re.split(r'руб', step_price, maxsplit=1)[0])
-            clean_price = ''.join(filter(lambda x: x.isdigit() or x == ',', step_price)).replace(',', '.')
-            match = ''.join(re.findall(pattern, clean_price))
+            step_price = dedent_func(
+                BS(str(step_price), features="lxml").get_text(strip=True)
+            )
+            pattern = r"^\d+\.\d{1,2}"
+            if "руб" in step_price:
+                step_price = "".join(re.split(r"руб", step_price, maxsplit=1)[0])
+            clean_price = "".join(
+                filter(lambda x: x.isdigit() or x == ",", step_price)
+            ).replace(",", ".")
+            match = "".join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)
         except:
-            if not re.match(r'\d{3,}-ОАЗФ', trading_number):
-                logger.error(f'{self.response.url} :: LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}')
+            if not re.match(r"\d{3,}-ОАЗФ", trading_number):
+                logger.error(
+                    f"{self.response.url} :: LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}"
+                )
 
     @property
     def start_date_request(self):
         try:
             td_date = self.response.xpath(LocatorAuction.start_date_request_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text(strip=True))
+            td_date = dedent_func(
+                BS(str(td_date), features="lxml").get_text(strip=True)
+            )
             return format_time(td_date.strip())
         except:
-            logger.error(f'{self.response.url} :: INVALID DATA START DATE REQUEST AUCTION/COMPETITION')
+            logger.error(
+                f"{self.response.url} :: INVALID DATA START DATE REQUEST AUCTION/COMPETITION"
+            )
 
     @property
     def end_date_request(self):
         try:
             td_date = self.response.xpath(LocatorAuction.end_date_request_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text(strip=True))
+            td_date = dedent_func(
+                BS(str(td_date), features="lxml").get_text(strip=True)
+            )
             return format_time(td_date.strip())
         except:
-            logger.error(f'{self.response.url} :: INVALID DATA END DATE REQUEST AUCTION/COMPETITION')
+            logger.error(
+                f"{self.response.url} :: INVALID DATA END DATE REQUEST AUCTION/COMPETITION"
+            )
 
     @property
     def start_date_trading(self):
         try:
             td_date = self.response.xpath(LocatorAuction.start_date_trading_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text(strip=True))
+            td_date = dedent_func(
+                BS(str(td_date), features="lxml").get_text(strip=True)
+            )
             return format_time(td_date.strip())
         except:
-            logger.warning(f'{self.response.url} :: INVALID DATA START DATE TRADING AUCTION/COMPETITION')
+            logger.warning(
+                f"{self.response.url} :: INVALID DATA START DATE TRADING AUCTION/COMPETITION"
+            )
 
     @property
     def end_date_trading(self):
         try:
             td_date = self.response.xpath(LocatorAuction.end_date_trading_loc).get()
-            td_date = dedent_func(BS(str(td_date), features='lxml').get_text(strip=True))
+            td_date = dedent_func(
+                BS(str(td_date), features="lxml").get_text(strip=True)
+            )
             return format_time(td_date.strip())
         except:
-            logger.warning(f'{self.response.url} :: INVALID DATA END DATE TRADING AUCTION/COMPETITION')
+            logger.warning(
+                f"{self.response.url} :: INVALID DATA END DATE TRADING AUCTION/COMPETITION"
+            )

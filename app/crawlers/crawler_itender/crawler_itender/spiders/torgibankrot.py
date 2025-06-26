@@ -3,7 +3,7 @@ from ..spiders.base import ItenderBaseSpider
 
 
 class TorgibankrotSpider(ItenderBaseSpider):
-    name = 'torgibankrot'
+    name = "torgibankrot"
     custom_settings = {
-        'LOG_FILE': f'{name}.log' if write_log_to_file else None,
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
