@@ -1,4 +1,3 @@
-import logging
 import time
 import scrapy
 from scrapy import signals
@@ -7,16 +6,18 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError, TCPTimedOutError
 
 from app.db.db_helper import DBHelper
-
-logger = logging.getLogger(__name__)
+from app.db.models import AuctionPropertyType
+from app.utils import logger
 
 
 class BaseSpider(scrapy.Spider):
-    def __init__(self, data_origin, keys=None, *args, **kwargs):
+    name: str = None
+    property_type: AuctionPropertyType = None
+    def __init__(self, data_origin_url: str, select_keys: set[str] = None, *args, **kwargs):
         super(BaseSpider, self).__init__(*args)
         DBHelper.create_new_connection()
         self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(
-            data_origin, keys
+            data_origin_url, select_keys, property_type=self.property_type
         )
         if self.previous_trades is None:
             raise CloseSpider(
@@ -52,13 +53,13 @@ class BaseSpider(scrapy.Spider):
         )
 
     def errback_httpbin(self, failure):
-        self.logger.error(repr(failure))
+        self.logger.warning(repr(failure))
         if failure.check(HttpError):
             response = failure.value.response
-            self.logger.error("HttpError occurred on %s", response.url)
+            self.logger.warning("HttpError occurred on %s", response.url)
         elif failure.check(DNSLookupError):
             request = failure.request
-            self.logger.error("DNSLookupError occurred on %s", request.url)
+            self.logger.warning("DNSLookupError occurred on %s", request.url)
         elif failure.check(TimeoutError, TCPTimedOutError):
             request = failure.request
-            self.logger.error("TimeoutError occurred on %s", request.url)
+            self.logger.warning("TimeoutError occurred on %s", request.url)

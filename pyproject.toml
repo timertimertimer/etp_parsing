@@ -35,3 +35,8 @@ dependencies = [
     "tqdm>=4.67.1",
     "xmltodict>=0.14.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.1",
+]

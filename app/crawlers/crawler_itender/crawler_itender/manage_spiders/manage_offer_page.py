@@ -2,14 +2,11 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, UrlConfig, format_time
-from general_utils.models import DownloadData
+from app.utils import dedent_func, URL, format_time, logger
+from app.db.models import DownloadData
 from ..config import data_origin
 from ..locators.serp_locator import LocatorSerp
 from ..locators.offer_locator import OfferLocator
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class OfferPage:
@@ -25,7 +22,6 @@ class OfferPage:
         )
 
     def get_trading_number_offer(self):
-        """:return trading number for offer"""
         try:
             legend = self.response.xpath(self.loc_offer.trading_num_loc).get()
             if legend:
@@ -33,12 +29,12 @@ class OfferPage:
                 legend = "".join(re.findall(r"\d+", legend))
                 return legend
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR TRADING NUMBER\n{e}", exc_info=True
             )
+        return None
 
     def get_lot_link(self, lot_number: str, _data_origin) -> str or None:
-        """:return table with lots number and link (str(html))"""
         try:
             legend = self.response.xpath(self.loc_offer.lot_table).get()
             if legend:
@@ -51,32 +47,31 @@ class OfferPage:
                     link = table.find("a", string=lot_number)
                     if link:
                         link = link.get("href")
-                        return UrlConfig.url_join(_data_origin, link)
+                        return URL.url_join(_data_origin, link)
         except Exception as e:
-            logger.critical(
+            logger.warning(
                 f"{self.response.url} :{e}: INVALID DATA LOT TABLE", exc_info=True
             )
-            return None
+        return None
 
     def get_property_info(self):
-        """return short name"""
         property_info = self.response.xpath(self.loc_offer.property_info_loc).get()
         if property_info:
             property_info = dedent_func(
                 BS(str(property_info), features="lxml").get_text()
             )
             return property_info.strip()
+        return None
 
     @property
     def msg_number(self):
-        """:return message number"""
         msg = self.response.xpath(self.loc_offer.msg_number_loc).get()
         if msg:
             msg = BS(str(msg), features="lxml").get_text()
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+        return None
 
     def trading_form(self):
-        """return trading form"""
         try:
             form = self.response.xpath(self.loc_offer.trading_form_loc).get()
             if form:
@@ -86,21 +81,22 @@ class OfferPage:
                 elif "закрытая" == form:
                     return "closed"
                 else:
-                    logger.error(f"{self.response.url} :: ERROR TRADING FORM")
+                    logger.warning(f"{self.response.url} :: ERROR TRADING FORM")
         except Exception:
-            logger.error(f"{self.response.url} :: TRDING TYPE ERROR")
+            logger.warning(f"{self.response.url} :: TRDING TYPE ERROR")
+        return None
 
     def get_period_table(self):
-        """return pandas table"""
         try:
             table = self.response.xpath(self.loc_offer.period_table_loc).get()
             table = BS(str(table), features="lxml")
             table = pd.read_html(str(table).replace(",", "."))
             return table[0]
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: PERIOD TABLE NOT FOUND {e}", exc_info=True
             )
+        return None
 
     def return_periods(self):
         try:
@@ -121,67 +117,62 @@ class OfferPage:
                         "current_price": price,
                     }
                     period_lst.append(period)
-                except:
+                except Exception:
                     continue
             return period_lst
         except Exception as e:
-            logger.critical(
+            logger.warning(
                 f"{self.response.url} :: INVALID DARA PERIOD TABLE\n{e}", exc_info=True
             )
-            return None
+        return None
 
     @property
     def start_date_request_offer(self):
-        """return start date request"""
         try:
             start = format_time(self.get_period_table().iloc[1][1])
             return start
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA start date request offer\n{e}"
             )
-            return None
+        return None
 
     @property
     def end_date_request_offer(self):
-        """:return end date request offer"""
         try:
             end = format_time(self.get_period_table().iloc[-1][2])
             return end
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA start date request offer\n{e}"
             )
-            return None
+        return None
 
     @property
     def start_date_trading_offer(self):
-        """return start date trading (the same as start date request"""
         return self.start_date_request_offer
 
     @property
     def end_date_trading_offer(self):
-        """return end date trading (the same as end date request"""
         return self.end_date_request_offer
 
     @property
     def price_offer(self):
-        """return start price offer"""
         try:
             periods = self.get_period_table()
             col = periods.columns
             price = re.sub(r"\s", "", periods.iloc[1][len(col) - 2])
             return round(float(price), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA START PRICE offer\n{e}")
-            return
+            logger.warning(f"{self.response.url} :: INVALID DATA START PRICE offer\n{e}")
+        return None
 
     def download(self, crawler_name: str):
         files = list()
         for d in self.response.xpath(self.loc_offer.documents).getall():
             d = BS(str(d), features="lxml")
             a = d.find("a")
-            link_etp = UrlConfig.url_join(data_origin[crawler_name], a.get("href")[1:])
+            link_etp = URL.url_join(data_origin[crawler_name], a.get("href")[1:])
             file_name = a.get_text()
             files.append(
                 DownloadData(
@@ -196,6 +187,5 @@ class OfferPage:
     def find_error_page(self):
         error_text = "В приложении произошла ошибка"
         if error_text in self.response.text:
-            logger.error(f"{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ")
-        else:
-            return None
+            logger.warning(f"{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ")
+        return None

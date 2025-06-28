@@ -1,9 +1,6 @@
-import logging
 import re
 
-from app.utils import dedent_func, format_time, Contacts
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, format_time, Contacts, logger
 
 
 class TradePage:
@@ -19,7 +16,7 @@ class TradePage:
             )
             return div_lot
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
         return None
 
     def get_post_lot_data(self):
@@ -29,7 +26,7 @@ class TradePage:
                 lst_a.append(a.get("id"))
             return lst_a
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
         return None
 
     def get_trading_type(self):
@@ -57,7 +54,7 @@ class TradePage:
             elif trading_type in competition:
                 return "competition"
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
         return None
 
     def get_trading_form(self):
@@ -76,7 +73,7 @@ class TradePage:
         )
         if trading_form in _open:
             return "open"
-        logger.error(f"{self.response.url} :: ERROR TRADING FORM")
+        logger.warning(f"{self.response.url} | ERROR TRADING FORM")
         return None
 
     def return_org_text(self):
@@ -86,7 +83,7 @@ class TradePage:
             ).parent
             return div_organizer
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR ORG TEXT - {ex}")
+            logger.warning(f"{self.response.url} | ERROR ORG TEXT - {ex}")
         return None
 
     def get_org_name(self):
@@ -94,7 +91,7 @@ class TradePage:
             _div = self.return_org_text()
             return dedent_func(" ".join(_div.a.get_text().strip().split()))
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR org name {ex}")
+            logger.warning(f"{self.response.url} | ERROR org name {ex}")
         return None
 
     def get_org_email(self):
@@ -107,7 +104,7 @@ class TradePage:
             email = pattern_mail.findall(_div.get_text().strip())
             return Contacts.check_email(email)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR organizer email {ex}")
+            logger.warning(f"{self.response.url} | ERROR organizer email {ex}")
         return None
 
     def get_org_phone(self):
@@ -139,7 +136,7 @@ class TradePage:
             phone = self.get_org_phone()
             return {"email": email, "phone": phone}
         except Exception as e:
-            logger.error(f"{self.response.url} :: func get_org_contacts {e}")
+            logger.warning(f"{self.response.url} | func get_org_contacts {e}")
         return None
 
     def get_lot_number(self, _id):
@@ -151,7 +148,7 @@ class TradePage:
                     tr = tr.find("td").get_text()
                     return tr
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
         return None
 
     def start_date_trading_auc(self):
@@ -172,11 +169,11 @@ class TradePage:
                 if start:
                     return format_time(start)
                 else:
-                    logger.error(f"{self.response.url} :: START DATE WAS NOT FOUND (2)")
+                    logger.warning(f"{self.response.url} | START DATE WAS NOT FOUND (2)")
             else:
-                logger.error(f"{self.response.url} :: START DATE WAS NOT FOUND (1)")
+                logger.warning(f"{self.response.url} | START DATE WAS NOT FOUND (1)")
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR start date request auction {e}")
+            logger.warning(f"{self.response.url} | ERROR start date request auction {e}")
         return None
 
     def end_date_end_auc(self):
@@ -197,11 +194,11 @@ class TradePage:
                 if end:
                     return format_time(end)
                 else:
-                    logger.error(f"{self.response.url} :: END DATE WAS NOT FOUND (2)")
+                    logger.warning(f"{self.response.url} | END DATE WAS NOT FOUND (2)")
             else:
-                logger.error(f"{self.response.url} :: END DATE WAS NOT FOUND (1)")
+                logger.warning(f"{self.response.url} | END DATE WAS NOT FOUND (1)")
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR end date request auction {e}")
+            logger.warning(f"{self.response.url} | ERROR end date request auction {e}")
         return None
 
     def return_period_trading_auc(self) -> list or None:
@@ -219,8 +216,8 @@ class TradePage:
             lst_start_trading = pattern_perio_auc.findall(period_auc)
             return lst_start_trading
         except Exception as e:
-            logger.error(
-                f"{self.response.url} :: ERROR during return periods of trading auction {e}"
+            logger.warning(
+                f"{self.response.url} | ERROR during return periods of trading auction {e}"
             )
         return None
 
@@ -231,11 +228,11 @@ class TradePage:
                 _date = format_time(lst[0])
                 return _date
             else:
-                logger.error(
-                    f"{self.response.url} :: check data for start date trading auction "
+                logger.warning(
+                    f"{self.response.url} | check data for start date trading auction "
                 )
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR START DATE TRADING AUCTION {e}")
+            logger.warning(f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}")
         return None
 
     def end_date_request_auc(self):
@@ -245,9 +242,9 @@ class TradePage:
                 _date = format_time(lst[1])
                 return _date
             else:
-                logger.error(
-                    f"{self.response.url} :: check data for END date trading auction "
+                logger.warning(
+                    f"{self.response.url} | check data for END date trading auction "
                 )
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR START DATE TRADING AUCTION {e}")
+            logger.warning(f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}")
         return None

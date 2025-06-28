@@ -6,7 +6,7 @@ from itemloaders.processors import TakeFirst, Compose, Identity
 
 class EtpItem(scrapy.Item):
     data_origin = scrapy.Field()
-    auction_property = Field()
+    property_type = Field()
     trading_id = scrapy.Field()
     trading_link = scrapy.Field()
     trading_number = scrapy.Field()
@@ -42,7 +42,7 @@ class EtpItem(scrapy.Item):
 
 class EtpItemLoader(ItemLoader):
     data_origin_out = TakeFirst()
-    auction_property_out = TakeFirst()
+    property_type_out = TakeFirst()
     trading_id_out = TakeFirst()
     trading_link_out = TakeFirst()
     trading_number_out = TakeFirst()

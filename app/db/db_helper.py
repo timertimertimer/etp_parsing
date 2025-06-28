@@ -1,7 +1,7 @@
 import csv
 import logging
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from pathlib import PurePath, Path
 
 from sqlalchemy.engine.create import create_engine
@@ -40,6 +40,7 @@ from app.db.models import (
     FileModelType,
     LotCategory,
     StatusType,
+    AuctionPropertyType,
 )
 from app.utils.fedresurs import (
     PersonFedresurs,
@@ -82,14 +83,14 @@ class DBHelper:
 
     @staticmethod
     def get_latest_lot(
-        data_origin_url: str, filter_keys: str | list[str] = None, day: int = 30
+        data_origin_url: str,
+        select_keys: set[str] = None,
+        day: int = 30,
+        property_type: AuctionPropertyType = None,
     ) -> Union[tuple[List, int], None]:
-        date_threshold = datetime.utcnow() - timedelta(days=day)
-        if filter_keys is None:
-            filter_keys = [Auction.url]
-        if not isinstance(filter_keys, list):
-            filter_keys = [filter_keys]
-
+        date_threshold = datetime.now(UTC) - timedelta(days=day)
+        if not select_keys:
+            select_keys = {Auction.url}  # select only auctions.url
         with DBHelper.transaction_scope(commit=False) as session:
             trading_floor_id = session.scalars(
                 select(TradingFloor.id).where(
@@ -97,12 +98,14 @@ class DBHelper:
                 )
             ).first()
             if trading_floor_id is None:
-                return
+                logger.warning(f"No such trading floor with url {data_origin_url}")
+                return None
 
-            stmt = select(*filter_keys).where(
+            stmt = select(*select_keys).where(
                 and_(
                     Auction.created_at >= date_threshold,
                     Auction.trading_floor_id == trading_floor_id,
+                    Auction.property_type == property_type,
                 )
             )
             lots = session.scalars(stmt).all()
@@ -118,7 +121,7 @@ class DBHelper:
             ).first()
             if trading_floor_id is None:
                 logger.error(
-                    f"get_latest_lot :: TradingFloor not found for URL {data_origin_url}. Skipping."
+                    f"TradingFloor not found for URL {data_origin_url}. Skipping."
                 )
                 return None
 
@@ -349,8 +352,12 @@ class DBHelper:
                 organizer = organizer or DBHelper.store_and_get_organizer(
                     item, arbitrator
                 )
+            property_type = item.get("property_type", AuctionPropertyType)
+            if isinstance(property_type, AuctionPropertyType):
+                property_type = property_type.value
             auction = Auction(
                 ext_id=item["trading_id"],
+                property_type=property_type,
                 url=item["trading_link"],
                 number=item.get("trading_number"),
                 type=item.get("trading_type"),

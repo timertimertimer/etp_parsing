@@ -1,7 +1,6 @@
-import logging
 from bs4 import BeautifulSoup as BS
 
-logger = logging.getLogger(__name__)
+from app.utils.logger import logger
 
 
 class ManagePost:
@@ -23,5 +22,5 @@ class ManagePost:
             else:
                 return ""
         except Exception as e:
-            logger.error(f" :: Exeption during fetching tag {tag_html} :: {e} ")
+            logger.warning(f" :: Exeption during fetching tag {tag_html} :: {e} ")
             return ""

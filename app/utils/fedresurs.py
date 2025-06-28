@@ -1,7 +1,6 @@
 import shutil
 import sys
 import os
-import logging
 import time
 from pathlib import Path
 from random import choice
@@ -9,16 +8,15 @@ from random import choice
 import requests
 from playwright.sync_api import sync_playwright
 
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.utils.contacts import Contacts
-from app.utils.time_format import return_parse_date
-from app.utils.config import proxy_path
+from .contacts import Contacts
+from .time_format import return_parse_date
+from .config import proxy_path
+from .logger import logger
 from app.db.models import Counterparty, TradingFloor, LegalCase
 from app.db.models.counterparty import CounterpartyType
 
-logger = logging.getLogger(__name__)
 retry_count = 5
 proxies = []
 if Path(proxy_path).exists():
@@ -61,12 +59,12 @@ class Fedresurs:
                 requests.exceptions.ReadTimeout,
             ) as e:
                 if i + 1 == retry_count:
-                    logger.error(f"Connection error: {e}. All attempts failed")
+                    logger.warning(f"Connection error: {e}. All attempts failed")
                     raise e
                 logger.warning(f"Connection error: {e}. Trying again. Attempt {i + 1}")
             except requests.exceptions.HTTPError as e:
                 if i + 1 == retry_count:
-                    logger.error(f"HTTP error: {e}. All attempts failed")
+                    logger.warning(f"HTTP error: {e}. All attempts failed")
                     raise e
                 logger.warning(f"HTTP error: {e}. Trying again. Attempt {i + 1}")
                 if response.status_code == 429:
@@ -166,7 +164,7 @@ class CounterpartyFedresurs(Fedresurs):
 
     def parse(self) -> None:
         if not self.main():
-            logger.error(f"Not found {self.data.get('name') or self.data.get('inn')}")
+            logger.warning(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
 
@@ -275,11 +273,10 @@ class PersonFedresurs(CounterpartyFedresurs):
 
     def parse(self) -> None:
         if not (data := self.main()):
-            logger.error(f"Not found {self.data.get('name') or self.data.get('inn')}")
+            logger.warning(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
-        if "IndividualEntrepreneur" in data["roles"]:
-            self.parse_ogrnip()
+        self.parse_ogrnip()
 
     def parse_ogrnip(self) -> None:
         data = self.make_request(
@@ -287,7 +284,7 @@ class PersonFedresurs(CounterpartyFedresurs):
             params={"limit": 1, "offset": 0},
         )
         if not (data := data.get("pageData")):
-            logger.error(f"Not found ogrnip data for {self.data['name']}")
+            logger.warning(f"Not found ogrnip data for {self.data['name']}")
             return
         data = data[0]
         self.data["ogrnip"] = data["ogrnip"]
@@ -362,7 +359,7 @@ class TradingFloorFedresurs(CompanyFedresurs):
 
     def parse(self) -> dict | None:
         if not self.main():
-            logger.error(f"Not found {self.data['name']}")
+            logger.warning(f"Not found {self.data['name']}")
             return
         self.parse_main_info()
         self.parse_sro_membership()

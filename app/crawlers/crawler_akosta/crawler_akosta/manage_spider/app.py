@@ -1,7 +1,6 @@
-import logging
 import re
 
-from app.utils.url import URL
+from app.utils import URL, logger
 from app.db.models import DownloadData
 from .pre_trade import PreTradePage
 from .general_info_page import MainTradingPage
@@ -12,8 +11,6 @@ from .lot_offer_page import LotOfferPage
 from bs4 import BeautifulSoup as BS
 
 from ..utils.config import data_origin
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -51,7 +48,7 @@ class Combo:
             if len(p) > 0:
                 return round(float(p), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR START PRICE {e}")
+            logger.warning(f"{self.response.url} | Couldn\'t parse start price. Error: {e}")
         return None
 
     @property
@@ -67,7 +64,7 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR STEP PRICE {e}")
+            logger.warning(f"{self.response.url} | Couldn\'t parse step price. Error: {e}")
         return None
 
     @property
@@ -81,7 +78,7 @@ class Combo:
                 category = category.next_sibling.text
                 return [category.split("/")[-1].strip()]
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR CATEGORY {e}")
+            logger.warning(f"{self.response.url} | Couldn\'t parse categories. Error: {e}")
         return None
 
     def get_lot_images(self):

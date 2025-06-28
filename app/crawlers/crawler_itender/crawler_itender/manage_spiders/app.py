@@ -6,8 +6,8 @@ from .manage_competition_page import CompetitionPage
 
 
 class Combo:
-    def __init__(self, _response):
-        self.response = _response
+    def __init__(self, response):
+        self.response = response
         self.mpost = ManagePost(self.response)
         self.serp = SerpPageSearchInfo(self.response)
         self.auc = AuctionPage(self.response)

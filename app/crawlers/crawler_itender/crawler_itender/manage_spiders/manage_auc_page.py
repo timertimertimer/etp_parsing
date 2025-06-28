@@ -2,12 +2,10 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, UrlConfig, format_time
+from app.utils import dedent_func, Contacts, URL, format_time, logger
 from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
-import logging
 
-logger = logging.getLogger(__name__)
 
 
 class AuctionPage:
@@ -31,8 +29,8 @@ class AuctionPage:
             else:
                 p[0] = 0
                 return p
-        except:
-            logger.error(f"{self.response.url} :: INVALID DATA PAGINATION ON PAGE")
+        except Exception:
+            logger.warning(f"{self.response.url} :: INVALID DATA PAGINATION ON PAGE")
             return 0
 
     @property
@@ -44,25 +42,24 @@ class AuctionPage:
             else:
                 p1[0] = 0
                 return p1
-        except:
-            logger.error(f"{self.response.url} :: INVALID DATA PAGINATION ON PAGE")
+        except Exception:
+            logger.warning(f"{self.response.url} :: INVALID DATA PAGINATION ON PAGE")
             return 0
 
     def get_trading_number_auction(self):
-        """:return trading number"""
+        legend = None
         try:
             legend = self.response.xpath(self.loc.trading_num_loc).get()
             if legend:
                 legend = BS(str(legend), features="lxml").get_text()
                 legend = "".join(re.findall(r"\d+", legend))
-                return legend
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR TRADING NUMBER\n{e}", exc_info=True
             )
+        return legend
 
     def trading_form(self):
-        """return trading form"""
         try:
             form = self.response.xpath(self.loc.trading_form_loc).get()
             if form:
@@ -72,86 +69,83 @@ class AuctionPage:
                 elif "закрытая" == form:
                     return "closed"
                 else:
-                    logger.error(f"{self.response.url} :: ERROR TRADING FORM")
+                    logger.warning(f"{self.response.url} :: ERROR TRADING FORM")
         except Exception as e:
-            logger.error(f"{self.response.url} :: TRADING TYPE ERROR\n{e}")
+            logger.warning(f"{self.response.url} :: TRADING TYPE ERROR\n{e}")
+        return None
 
     def get_organizer(self):
-        """return full name of person or  company"""
         try:
             org = self.response.xpath(self.loc_auc.oranizer_name_loc).get()
             if org:
                 org = BS(str(org), features="lxml").get_text()
                 return dedent_func(org)
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR ORGANIZER NAME\n{e}")
+            logger.warning(f"{self.response.url} :: ERROR ORGANIZER NAME\n{e}")
+        return None
 
     def get_org_inn(self):
-        """return org inn"""
         try:
             _inn = self.response.xpath(self.loc_auc.organizer_inn_loc).get()
             if _inn:
                 _inn = BS(str(_inn), features="lxml").get_text()
-                return CheckIfCorrectContactInfo.check_inn(dedent_func(_inn))
+                return Contacts.check_inn(dedent_func(_inn))
         except Exception:
-            logger.error(f"{self.response.url} ::: ERROR INN ORG")
+            logger.warning(f"{self.response.url} ::: ERROR INN ORG")
+        return None
 
     def get_org_phone(self):
-        """return org phone"""
+        phone = None
         try:
             phone = self.response.xpath(self.loc_auc.organizer_phone_loc).get()
             if phone:
                 phone = BS(str(phone), features="lxml").get_text()
-                return CheckIfCorrectContactInfo.check_phone(dedent_func(phone))
-            else:
-                return ""
+                phone = Contacts.check_phone(dedent_func(phone))
         except Exception:
-            logger.error(f"{self.response.url} ::: ERROR INN ORG")
-            return ""
+            logger.warning(f"{self.response.url} ::: ERROR INN ORG")
+        return phone
 
     def get_org_email(self):
-        """return org phone"""
+        email = None
         try:
             email = self.response.xpath(self.loc_auc.organizer_email_loc).get()
             if email:
                 email = BS(str(email), features="lxml").get_text()
-                return CheckIfCorrectContactInfo.check_email(dedent_func(email))
-            else:
-                return ""
+                email = Contacts.check_email(dedent_func(email))
         except Exception as e:
-            logger.error(f"{self.response.url} ::: ERROR INN ORG\n{e}")
+            logger.warning(f"{self.response.url} ::: ERROR INN ORG\n{e}")
+        return email
 
     @property
     def return_org_contacts(self):
-        """:return organizer contacts"""
         return {"email": self.get_org_email(), "phone": self.get_org_phone()}
 
     @property
     def msg_number(self):
-        """:return message number"""
         msg = self.response.xpath(self.loc_auc.msg_number_loc).get()
         if msg:
             msg = BS(str(msg), features="lxml").get_text()
-            return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+            msg = " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+        return msg
 
     @property
     def case_number(self):
-        """:return case number number"""
         number = self.response.xpath(self.loc_auc.case_number_loc).get()
         if number:
             number = BS(str(number), features="lxml").get_text()
             if len(number) > 4:
-                return CheckIfCorrectContactInfo.check_case_number(number)
+                return Contacts.check_case_number(number)
+        return None
 
     def get_debtor_inn(self):
-        """:return debtor inn"""
         try:
             _inn = self.response.xpath(self.loc_auc.debtor_inn_loc).get()
             if _inn:
                 _inn = BS(str(_inn), features="lxml").get_text()
-                return CheckIfCorrectContactInfo.check_inn(dedent_func(_inn))
+                return Contacts.check_inn(dedent_func(_inn))
         except Exception as e:
-            logger.error(f"{self.response.url} ::: ERROR INN DEBTOR\n{e}")
+            logger.warning(f"{self.response.url} ::: ERROR INN DEBTOR\n{e}")
+        return None
 
     def get_address(self):
         try:
@@ -164,20 +158,20 @@ class AuctionPage:
                     ).get_text()
                 return address
         except Exception as e:
-            logger.error(f"{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}")
+            logger.warning(f"{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}")
+        return None
 
     def get_arbitr_name(self):
-        """retur arbitr name"""
         try:
             arbitr = self.response.xpath(self.loc_auc.arbitr_name_loc).get()
             if arbitr:
                 arbitr = BS(str(arbitr), features="lxml").get_text()
                 return dedent_func(" ".join(arbitr.split()))
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR ARBITR NAME\n{e}")
+            logger.warning(f"{self.response.url} :: ERROR ARBITR NAME\n{e}")
+        return None
 
     def get_arbitr_company(self):
-        """:return arbitr company"""
         try:
             company = self.response.xpath(self.loc_auc.arbitr_org_loc).get()
             if company:
@@ -188,15 +182,16 @@ class AuctionPage:
                 else:
                     return company
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR company NAME\n{e}")
+            logger.warning(f"{self.response.url} :: ERROR company NAME\n{e}")
+        return None
 
     def get_arbitr_inn(self):
         if self.get_arbitr_name() == self.get_organizer():
             return self.get_org_inn()
+        return None
 
     # lot
     def get_status_lot(self):
-        """:return status of trade"""
         try:
             active = ("Прием заявок", "Приём заявок")
             pending = ("Извещение опубликовано",)
@@ -235,37 +230,35 @@ class AuctionPage:
                         elif status2 in ended:
                             return "ended"
                         else:
-                            logger.critical(f"{self.response.url} :: INVALID STATUS")
+                            logger.warning(f"{self.response.url} :: INVALID STATUS")
                             return None
                     else:
-                        logger.critical(f"{self.response.url} :: INVALID STATUS")
+                        logger.warning(f"{self.response.url} :: INVALID STATUS")
                         return None
         except Exception as e:
-            logger.critical(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA STATUS {e}", exc_info=True
             )
+        return None
 
     def get_lot_link(self, lot_number: str, data_origin) -> str or None:
-        """:return table with lots number and link (str(html))"""
         try:
             legend = self.response.xpath(self.loc_auc.lot_table).get()
             if legend:
                 legend = BS(str(legend), features="lxml")
                 table = legend.find("legend", string="Лоты аукциона").parent
-                # choose type of trade
                 if table and len(table) > 0:
                     link = table.find("a", string=lot_number.strip())
                     if link:
                         link = link.get("href")
-                        return UrlConfig.url_join(data_origin, link)
+                        return URL.url_join(data_origin, link)
         except Exception as e:
-            logger.critical(
+            logger.warning(
                 f"{self.response.url} :{e}: INVALID DATA LOT TABLE", exc_info=True
             )
-            return None
+        return None
 
     def lot_number_on_lot_page(self, referer=None, lot_number=None):
-        """fetch lot number from lot page for check if right lot was choose"""
         try:
             lot_legend = self.response.xpath(self.loc_auc.lot_number_loc).get()
             if lot_legend:
@@ -274,68 +267,66 @@ class AuctionPage:
                 if number and lot_number:
                     if lot_number == "".join(number):
                         return "".join(number)
-                # else:
-                #     logger.error(f'{referer} :: lot without number {lot_number} - {number}')
         except Exception as e:
-            logger.critical(f"{self.response.url} :: referer {referer} \n{e}")
+            logger.warning(f"{self.response.url} :: referer {referer} \n{e}")
+        return None
 
     def get_short_name(self):
-        """return short name"""
         short = self.response.xpath(self.loc_auc.short_name_loc).get()
         if short:
             short = dedent_func(BS(str(short), features="lxml").get_text())
             return short.strip()
+        return None
 
     def get_lot_info(self):
-        """return short name"""
         lot_info = self.response.xpath(self.loc_auc.lot_info_loc).get()
         if lot_info:
             lot_info = dedent_func(BS(str(lot_info), features="lxml").get_text())
             return lot_info.strip()
+        return None
 
     def get_property_info(self):
-        """return short name"""
         property_info = self.response.xpath(self.loc_auc.property_info_loc).get()
         if property_info:
             property_info = dedent_func(
                 BS(str(property_info), features="lxml").get_text()
             )
             return property_info.strip()
+        return None
 
     def start_date_request(self):
-        """:return start date request auction"""
         try:
             start = self.response.xpath(self.loc_auc.start_date_request_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features="lxml").get_text())
                 return format_time(start.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)::{e}"
             )
+        return None
 
     def end_date_request(self):
-        """:return start date request auction"""
         try:
             end = self.response.xpath(self.loc_auc.end_date_request_loc).get()
             if end:
                 end = dedent_func(BS(str(end), features="lxml").get_text())
                 return format_time(end.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)::{e}"
             )
+        return None
 
     def start_date_trading(self):
-        """:return start date request auction"""
         try:
             start = self.response.xpath(self.loc_auc.start_date_trading_loc).get()
             if start:
@@ -356,17 +347,17 @@ class AuctionPage:
                 )
                 return format_time(start_utender.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: START DATE TRADING ERROR AUCTION(COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: START DATE TRADING ERROR AUCTION(COMPETITION)::{e}"
             )
+        return None
 
     @property
     def start_price(self):
-        """return start price"""
         try:
             price = self.response.xpath(self.loc_auc.start_price_auc_loc).get()
             extra_price = self.response.xpath(
@@ -392,17 +383,17 @@ class AuctionPage:
                 if len(extra_price) > 0:
                     return round(float(extra_price), 2)
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: INVALID DATA START PRICE AUCTION/COMPETITION"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA START PRICE AUCTION/COMPETITION\n{e}"
             )
+        return None
 
     @property
     def step_price(self):
-        """:return step price. get rub or percent multiply"""
         try:
             rub = self.response.xpath(self.loc_auc.step_price_auc_rub).get()
             if rub:
@@ -428,10 +419,10 @@ class AuctionPage:
                         start_price = self.start_price
                         return round(float((start_price * int(price) / 100)), 2)
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA STEP PRICE AUCTION/COMPETITION\n{e}"
             )
-            return None
+        return None
 
     @property
     def categories(self):
@@ -445,3 +436,4 @@ class AuctionPage:
                     )
                 ]
             )
+        return None

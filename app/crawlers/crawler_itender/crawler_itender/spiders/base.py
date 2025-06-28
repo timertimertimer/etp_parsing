@@ -118,7 +118,7 @@ class ItenderBaseSpider(BaseSpider):
         )
 
     def parse_serp_auction(self, response, first_post, trading_type: str):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         eventvalidation = "".join(
             re.findall(
                 r"hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs",
@@ -176,15 +176,12 @@ class ItenderBaseSpider(BaseSpider):
     async def parse_trading_page_auction(
         self, response, lot_number, lot_link, link_trade, attemp
     ):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
         loader.add_value("trading_link", response.url)
-        try:
-            trading_number = combo.auc.get_trading_number_auction()
-        except:
-            trading_number = None
+        trading_number = combo.auc.get_trading_number_auction()
         if trading_number is not None and attemp < 5:
             loader.add_value("trading_number", trading_number)
             loader.add_value("trading_type", "auction")
@@ -243,7 +240,7 @@ class ItenderBaseSpider(BaseSpider):
             )
 
     async def parse_lot_page(self, response, loader, lot_number, general: dict):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         lot_num = combo.auc.lot_number_on_lot_page(response.url, lot_number)
         if lot_number:
             loader.add_value("status", combo.auc.get_status_lot())
@@ -262,7 +259,7 @@ class ItenderBaseSpider(BaseSpider):
             yield loader.load_item()
 
     def parse_serp_offer(self, response, first_post, trading_type: str):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         eventvalidation = "".join(
             re.findall(
                 r"hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs",
@@ -313,8 +310,7 @@ class ItenderBaseSpider(BaseSpider):
                 )
 
     def parse_trade_page_offer(self, response, lot_number, lot_link, attemp):
-        """parse trade page offer"""
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
@@ -358,7 +354,7 @@ class ItenderBaseSpider(BaseSpider):
         self, response, loader, lot_number, general, pdata_lot_page_period
     ):
         """parse lot page"""
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         lot_num = combo.auc.lot_number_on_lot_page(response.url, lot_number)
         pager = combo.serp.get_href_post_lot_page()
         if lot_number and pager is None:
@@ -439,7 +435,7 @@ class ItenderBaseSpider(BaseSpider):
         pages: list,
         period_current_page: list,
     ):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         pages.pop(0)
         if len(pages) > 0:
             cviewstate = combo.mpost.get_post_data_values("input", "__CVIEWSTATE")
@@ -522,7 +518,7 @@ class ItenderBaseSpider(BaseSpider):
                 logger.error(f"TWO PAGE PERIODS ERROR ERROR, {response.url}")
 
     def parse_competiton_serp(self, response, first_post, trading_type: str):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         eventvalidation = "".join(
             re.findall(
                 r"hiddenField\|__EVENTVALIDATION\|(.*)\|.*\|asyncPostBackControlIDs",
@@ -572,7 +568,7 @@ class ItenderBaseSpider(BaseSpider):
                 )
 
     async def parse_trade_page_competition(self, response, lot_number, lot_link):
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
@@ -617,7 +613,7 @@ class ItenderBaseSpider(BaseSpider):
 
     def parse_lot_page_competition(self, response, loader, lot_number, general: dict):
         """parse lot page Competition"""
-        combo = Combo(_response=response)
+        combo = Combo(response=response)
         lot_num = combo.auc.lot_number_on_lot_page(response.url, lot_number)
         if lot_number:
             loader.add_value("status", combo.auc.get_status_lot())

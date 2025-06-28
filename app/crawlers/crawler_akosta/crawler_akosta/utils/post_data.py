@@ -1,6 +1,3 @@
-# post_data_pagination -> change: formMain:lotListTable_first,
-#                                 formMain:inputServerTime,
-#                                 javax.faces.ViewState
 post_data_pagination = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "formMain:lotListTable",
@@ -51,6 +48,7 @@ post_data_date_query = {
     "formMain:sgTablePanel_collapsed": "true",
     "formMain:taTablePanel_collapsed": "true",
     "formMain:stateTablePanel_collapsed": "true",
+    "formMain:sgTable:0:j_idt92_input": "on",
     "formMain:j_idt135_scrollState": "0,0",
     "formMain:selectTreeDlgPanel_collapsed": "true",
     "formMain:selectRegTreeDlgPanel_collapsed": "true",
@@ -78,13 +76,6 @@ post_data_panel_list_query = {
     "formMain:selectTreeDlgTree_scrollState": "0,0",
     "javax.faces.ViewState": "",
 }
-
-
-# data that changing:
-# javax.faces.source
-# formMain:inputServerTime
-# javax.faces.ViewState
-# GENERING FORM javax.faces.source value
 post_data_to_trade = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "",
@@ -175,35 +166,7 @@ post_data_period_offer_page = {
     # neccessary
     "javax.faces.ViewState": "",
 }
-
-post_search_query = {
-    "javax.faces.partial.ajax": "true",
-    "javax.faces.source": "formMain:cbLotFilterFindId",
-    "javax.faces.partial.execute": "@all",
-    "javax.faces.partial.render": "formMain",
-    "formMain:cbLotFilterFindId": "formMain:cbLotFilterFindId",
-    "formMain": "formMain",
-    "formMain:inputServerTime": "",
-    "formMain:commonSearchCriteriaStr": "",
-    "formMain:inputKeyWordId": "",
-    "formMain:orgSubId": "",
-    "formMain:debtSubId": "",
-    "formMain:fromIdPeriod_input": "",
-    "formMain:toIdPeriod_input": "",
-    "formMain:fromIdAcceptancePeriod_input": "",
-    "formMain:toIdAcceptancePeriod_input": "",
-    "formMain:j_idt71": "",
-    "formMain:j_idt73": "",
-    "formMain:sgTable:2:j_idt79_input": "on",
-    "formMain:sgTablePanel_collapsed": "false",
-    "formMain:taTablePanel_collapsed": "true",
-    "formMain:stateTablePanel_collapsed": "true",
-    "formMain:j_idt99_scrollState": "0,0",
-    "formMain:selectTreeDlgPanel_collapsed": "true",
-    "formMain:selectRegTreeDlgPanel_collapsed": "true",
-    "formMain:objFilterPanel_collapsed": "false",
-    "formMain:lotListTable_rppDD": "50",
-    "formMain:selectTreeDlgTree_selection": "",
-    "formMain:selectTreeDlgTree_scrollState": "0,0",
-    "javax.faces.ViewState": "",
+property_type_sgtable_id_map = {
+    'bankruptcy': '2',
+    'arrested': '0'
 }

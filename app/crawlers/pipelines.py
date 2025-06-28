@@ -1,12 +1,10 @@
-import logging
 import time
 
 from pymysql.err import OperationalError, ProgrammingError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.db_helper import DBHelper
-
-logger = logging.getLogger(__name__)
+from app.utils import logger
 
 
 class BasePipeline:

@@ -1,13 +1,10 @@
-import logging
 import re
 from itertools import takewhile
 
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from general_utils import format_time
-
-logger = logging.getLogger(__name__)
+from app.utils import format_time, logger
 
 
 class Offer:
@@ -15,13 +12,13 @@ class Offer:
         self.response = response
 
     def get_period_table(self):
-        """find and return table with periods"""
         table = BeautifulSoup(
             self.response.xpath('//table[@id="stepsTable"]').get(), "lxml"
         )
         if table:
             df = pd.read_html(re.sub(r",", ".", str(table)))
             return df[0]
+        return None
 
     @property
     def periods(self):
@@ -40,13 +37,13 @@ class Offer:
                 else:
                     price = round(float(price_), 2)
                 if check_value < price:
-                    logger.critical(
+                    logger.warning(
                         f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
                     )
                 else:
                     check_value = price
-            except:
-                logger.error(
+            except Exception:
+                logger.warning(
                     f"{self.response.url} Period Price - {price_} typeof - {type(price_)}"
                 )
                 return None
@@ -58,7 +55,7 @@ class Offer:
                     "current_price": price,
                 }
                 periods.append(period)
-            except:
+            except Exception:
                 continue
         return periods
 
@@ -68,7 +65,7 @@ class Offer:
             tbody_periods = self.get_period_table()
             return format_time(tbody_periods.iloc[0][1])
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA START DATE REQUEST OFFER \n\n\n",
                 e,
             )
@@ -80,5 +77,5 @@ class Offer:
             end = self.get_period_table().iloc[-1][2]
             return format_time(end)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}")
+            logger.warning(f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}")
             return None

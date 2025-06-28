@@ -1,23 +1,21 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
 
-from .config import main_url
+from app.utils import URL, dedent_func, Contacts, format_time, logger
+from app.db.models import DownloadData, AuctionPropertyType
+from .config import urls
 from .locators.locator_trade import LocatorTrade
-from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
     def __init__(self, response):
         self.response = response
 
-    def get_trading_link(self):
-        return UrlConfig.url_join(
-            main_url, self.response.xpath(LocatorTrade.trading_link_loc).extract_first()
+    def get_trading_link(self, property_type: AuctionPropertyType):
+        return URL.url_join(
+            urls[property_type],
+            self.response.xpath(LocatorTrade.trading_link_loc).extract_first(),
         )
 
     def get_lots(self):
@@ -66,11 +64,11 @@ class Combo:
                     self.response.xpath(LocatorTrade.trading_org_fio_loc).get()
                 ).strip()
             return "".join(re.sub(r"\s+", " ", td_org))
-        except:
+        except Exception:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+                f"{self.response.url} | INVALID DATA ORGANIZER", exc_info=True
             )
-            return None
+        return None
 
     @property
     def trading_org_inn(self):
@@ -82,11 +80,12 @@ class Combo:
                 .strip()
             )
             if td_org_inn:
-                return CheckIfCorrectContactInfo.check_inn(dedent_func(td_org_inn))
-        except:
+                return Contacts.check_inn(dedent_func(td_org_inn))
+        except Exception:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER INN", exc_info=True
+                f"{self.response.url} | INVALID DATA ORGANIZER INN", exc_info=True
             )
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -101,15 +100,14 @@ class Combo:
         return {"email": email, "phone": phone}
 
     def get_phone_number(self):
-        """get phone number of organizer"""
         try:
             phone = (
                 dedent_func(self.response.xpath(LocatorTrade.phone_org_loc).get())
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_phone(phone)
-        except:
+            return Contacts.check_phone(phone)
+        except Exception:
             return None
 
     def get_email(self):
@@ -120,8 +118,8 @@ class Combo:
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_email(email)
-        except:
+            return Contacts.check_email(email)
+        except Exception:
             return None
 
     @property
@@ -129,10 +127,11 @@ class Combo:
         msg = self.response.xpath(LocatorTrade.msg_number_loc).get()
         if msg:
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+        return None
 
     @property
     def case_number(self):
-        return CheckIfCorrectContactInfo.check_case_number(
+        return Contacts.check_case_number(
             dedent_func(self.response.xpath(LocatorTrade.case_number_loc).get())
         )
 
@@ -141,37 +140,42 @@ class Combo:
         date = self.response.xpath(LocatorTrade.start_date_requests_loc).get()
         if date:
             return format_time(date)
+        return None
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(LocatorTrade.end_date_requests_loc).get()
         if date:
             return format_time(date)
+        return None
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(LocatorTrade.start_date_trading_loc).get()
         if date:
             return format_time(date)
+        return None
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(LocatorTrade.end_date_trading_loc).get()
         if date:
             return format_time(date)
+        return None
 
     @property
     def debtor_inn(self):
         try:
             inn = self.response.xpath(LocatorTrade.debitor_inn_loc).get()
             if not inn:
-                return
+                return None
             trade_inn = dedent_func(inn)
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(trade_inn))
-        except:
-            return None
+        except Exception:
+            pass
+        return None
 
     @property
     def address(self):
@@ -181,7 +185,8 @@ class Combo:
                 address = dedent_func(self.response.xpath(LocatorTrade.sud_loc).get())
             return address
         except Exception:
-            return None
+            pass
+        return None
 
     @property
     def arbit_manager(self):
@@ -190,14 +195,15 @@ class Combo:
             arbit_surname = self.response.xpath(LocatorTrade.arbit_last_name_loc).get()
             arbit_middle = self.response.xpath(LocatorTrade.arbit_middle_name_loc).get()
             if not arbit_name or not arbit_surname or not arbit_middle:
-                return
+                return None
             arbit_manager = (
                 f"{arbit_surname.strip()} {arbit_name.strip()} {arbit_middle.strip()}"
             )
             arbit_manager = dedent_func(arbit_manager).strip()
             return "".join(re.sub(r"\s+", " ", arbit_manager))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
+        except Exception:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME")
+        return None
 
     @property
     def arbit_manager_inn(self):
@@ -208,8 +214,9 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(arbitr_inn))
-        except:
-            return None
+        except Exception:
+            pass
+        return None
 
     @property
     def arbit_manager_org(self):
@@ -226,8 +233,9 @@ class Combo:
                         ]
                     )
                 return "".join(dedent_func(td_company))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
+        except Exception:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR COMPANY")
+        return None
 
     @property
     def status(self):
@@ -236,8 +244,7 @@ class Combo:
             return "active"
         elif status in ["Торги не состоялись", "Завершенные", "Торги отменены"]:
             return "ended"
-        else:
-            return None
+        return None
 
     @property
     def lot_number(self):
@@ -251,16 +258,17 @@ class Combo:
             )
             if short_name != "None":
                 return short_name
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - SHORT NAME")
-            return None
+        except Exception:
+            logger.warning(f"{self.response.url} | LOT INVALID DATA - SHORT NAME")
+        return None
 
     @property
     def lot_info(self):
         try:
             return dedent_func(self.response.xpath(LocatorTrade.lot_info_loc).get())
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - LOT INFO")
+        except Exception:
+            logger.warning(f"{self.response.url} | LOT INVALID DATA - LOT INFO")
+        return None
 
     @property
     def property_information(self):
@@ -270,8 +278,9 @@ class Combo:
             )
             if property_info != "None":
                 return property_info
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA - PROPERTY INFO")
+        except Exception:
+            logger.warning(f"{self.response.url} | INVALID DATA - PROPERTY INFO")
+        return None
 
     @property
     def start_price(self):
@@ -285,7 +294,8 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
+            logger.error(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
+        return None
 
     @property
     def step_price(self):
@@ -299,7 +309,8 @@ class Combo:
                 step = float(step)
                 return round(self.start_price * step / 100, 2)
             except (ValueError, TypeError):
-                return None
+                pass
+        return None
 
     @property
     def periods(self):
@@ -310,3 +321,4 @@ class Combo:
         categories = self.response.xpath(LocatorTrade.categories_loc).get()
         if categories:
             return categories.strip()
+        return None

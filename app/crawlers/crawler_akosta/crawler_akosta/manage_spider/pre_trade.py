@@ -1,6 +1,5 @@
 import re
 import math
-import logging
 
 from bs4 import BeautifulSoup as BS
 
@@ -8,9 +7,7 @@ from app.crawlers.crawler_akosta.crawler_akosta.locators.pre_trade_page_locator 
     SearchLocator,
 )
 from app.crawlers.crawler_akosta.crawler_akosta.utils.config import data_origin
-from app.utils import dedent_func, format_time_period, URL
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, format_time_period, URL, logger
 
 
 class PreTradePage:
@@ -31,8 +28,8 @@ class PreTradePage:
                     link = re.sub(r"^.", "", link.get("href"))
                     return URL.url_join(data_origin[:-1], link)
         except Exception as e:
-            logger.error(
-                f"{self.response.url} :: ERROR GETTING LINK TO TRADING LOTS OF AKOSTA\n{e}"
+            logger.warning(
+                f"{self.response.url} | ERROR GETTING LINK TO TRADING LOTS OF AKOSTA\n{e}"
             )
             with open("main_link_to_trades_ERROR.txt", "w") as f:
                 f.write(self.response.text)
@@ -44,7 +41,7 @@ class PreTradePage:
             if tag_html:
                 return tag_html["value"]
         except Exception as e:
-            logger.error(f" :: Exeption during fetching tag {tag_html} :: {e} ")
+            logger.warning(f"{self.response.url} | Error during fetching tag {tag_html} | {e} ")
         return None
 
     @property
@@ -58,8 +55,8 @@ class PreTradePage:
             total_page = "".join(p).split("/")[1]
             return int(current_page), int(total_page)
         except Exception as e:
-            logger.error(
-                f'{self.response.url} ::{e}::\n page download with error -> error file name "pagination_error.txt" '
+            logger.warning(
+                f'{self.response.url} |{e}|\n page download with error -> error file name "pagination_error.txt" '
             )
             with open("pagination_error.html", "w") as f:
                 f.write(self.response.text)
@@ -67,19 +64,12 @@ class PreTradePage:
 
     def get_trade_links(self):
         try:
-            links = self.soup.find("div", id="formMain:lotListTable")
-            lst_links = links.find_all("tr", attrs={"data-ri": re.compile(r"\d+")})
-            if lst_links and len(lst_links) > 0:
-                return lst_links
-            else:
-                logger.error(
-                    f"{self.response.url} :: DURING GETTING LINKS TO TRADE PAGES OCCURE ERROR"
-                )
-                with open("getting_links_to_trading_page_1.html", "w") as f:
-                    f.write(self.response.text)
+            links_div = self.soup.find("div", id="formMain:lotListTable")
+            links = links_div.find_all("tr", attrs={"data-ri": re.compile(r"\d+")})
+            return links
         except Exception as e:
-            logger.error(
-                f"{self.response.url} ::{e}:: DURING GETTING LINKS TO TRADE PAGES OCCURE ERROR(1)",
+            logger.warning(
+                f"{self.response.url} |{e}| DURING GETTING LINKS TO TRADE PAGES OCCURE ERROR(1)",
                 exc_info=True,
             )
             with open("getting_links_to_trading_page.html", "w") as f:
@@ -96,7 +86,7 @@ class PreTradePage:
                     lst_with_id.append(_id)
             return lst_with_id
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :{e}: ERROR GETTING FORM DATA LIKE A LINK"
             )
             with open("error_form_data_link.html", "w") as f:
@@ -105,15 +95,14 @@ class PreTradePage:
 
     def get_post_id_and_trading_id(self, tr):
         try:
-            lst_with_id = list()
             soup_ = BS(str(tr), features="lxml")
             link_to_trade = soup_.find("a")
             _id = link_to_trade.get("id")
             if _id:
                 return _id, link_to_trade.get_text().strip()
-            logger.error(f"{self.response.url} :: EMPTY  DATA LINK TO TRADE")
+            logger.warning(f"{self.response.url} | EMPTY  DATA LINK TO TRADE")
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :{e}: ERROR GETTING FORM DATA LIKE A LINK"
             )
             with open("error_form_data_link.html", "w") as f:
@@ -149,7 +138,7 @@ class PreTradePage:
                 total = list(zip(_id, num))
             return total
         except Exception as e:
-            logger.error(f"{e}", exc_info=True)
+            logger.warning(f"{e}", exc_info=True)
         return None
 
     def check_start_date_requet(self, text):
@@ -166,7 +155,7 @@ class PreTradePage:
             tra = BS(str(trading), features="lxml").get_text()
             return dedent_func(tra.strip())
         except Exception as ex:
-            logger.critical(f"ON PAGE - {page_number} :: ERROR GETTING TRADING ID {ex}")
+            logger.critical(f"ON PAGE - {page_number} | ERROR GETTING TRADING ID {ex}")
         return None
 
     def get_trading_number_1(self, _id, page_number):
@@ -178,7 +167,7 @@ class PreTradePage:
             tra = BS(str(trading), features="lxml").get_text()
             return dedent_func(tra.strip())
         except Exception as ex:
-            logger.critical(f"ON PAGE - {page_number} :: ERROR GETTING TRADING ID {ex}")
+            logger.critical(f"ON PAGE - {page_number} | ERROR GETTING TRADING ID {ex}")
         return None
 
     def get_view_after_first_page(self, html):
@@ -193,8 +182,8 @@ class PreTradePage:
                     res = str(res).replace("]]><![CDATA[le", "")
                     return res
         except Exception:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA VIEWSTATE (when page >= 2",
+            logger.warning(
+                f"{self.response.url} | INVALID DATA VIEWSTATE (when page >= 2",
                 exc_info=True,
             )
         return None
@@ -216,11 +205,11 @@ class PreTradePage:
                 return number_of_pages
             except Exception:
                 res = None
-                logger.error(f"{self.response.url} :: total pages not int")
+                logger.warning(f"{self.response.url} | total pages not int")
                 return res
         except Exception:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA VIEWSTATE (when page >= 2",
+            logger.warning(
+                f"{self.response.url} | INVALID DATA VIEWSTATE (when page >= 2",
                 exc_info=True,
             )
         return None

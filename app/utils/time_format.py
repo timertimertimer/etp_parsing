@@ -1,11 +1,11 @@
-import logging
 import re
-from datetime import datetime, timedelta
 import time
-from typing import Optional
 import pytz
+from datetime import datetime, timedelta
+from typing import Optional
 
-logger = logging.getLogger(__name__)
+from .logger import logger
+
 moscow_tz = pytz.timezone("Europe/Moscow")
 
 
@@ -14,7 +14,7 @@ def format_time_strftime(func):
         t = func(*args)
         if t:
             return t.strftime("%Y-%m-%d %H:%M:%S")
-
+        return None
     return wrapper
 
 
@@ -22,12 +22,13 @@ def format_time_strftime(func):
 def format_time(strtime):
     pattern = re.compile(r"\d{1,2}\.\d{1,2}\.\d{2,4}(?:.*?\d{1,2}:\d{1,2})?")
     strtime = "".join(pattern.findall(strtime))
-    if strtime:
-        date = strtime
-        try:
-            return datetime.strptime(date, "%d.%m.%Y %H:%M")
-        except ValueError:
-            return datetime.strptime(date, "%d.%m.%Y")
+    if not strtime:
+        return None
+    date = strtime
+    try:
+        return datetime.strptime(date, "%d.%m.%Y %H:%M")
+    except ValueError:
+        return datetime.strptime(date, "%d.%m.%Y")
 
 
 @format_time_strftime
@@ -37,7 +38,8 @@ def format_time_period(strtime):
             date = str(strtime).strip("\n, -").replace("- ", "").replace("&nbsp;", "")
             return datetime.strptime(date, "%d.%m.%Y %H:%M:%S")
     except Exception:
-        return
+        pass
+    return None
 
 
 def parse_datetime(string: str, format: str) -> datetime:
@@ -91,7 +93,7 @@ def what_time_bigger(time_string_1, time_string_2, url):
     elif date_var2 > date_var:
         return 2
     else:
-        logger.error(f"{url} :: ERROR WITH CHECK TIME WHAT IS BIGGER", exc_info=True)
+        logger.warning(f"{url} | ERROR WITH CHECK TIME WHAT IS BIGGER", exc_info=True)
     return date_var
 
 

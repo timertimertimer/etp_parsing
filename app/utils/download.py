@@ -1,4 +1,3 @@
-import logging
 import pathlib
 import shutil
 import time
@@ -9,11 +8,10 @@ from requests import Session
 
 from .config import archive_formats, socks5_proxies, headers
 from .archive import ZipFiles, RarFiles, SevenZipFiles
+from .logger import logger
 from app.db.models.download_data import DownloadData
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-logger = logging.getLogger(__name__)
 
 ARCHIVE_HANDLERS = {".zip": ZipFiles, ".rar": RarFiles, ".7z": SevenZipFiles}
 
@@ -55,7 +53,7 @@ class DownloadFiles:
                 )
             except Exception as ex:
                 if attempt == attempts:
-                    logger.error(
+                    logger.warning(
                         f"Attempt #{attempt} failed with error: {ex} Referer - {download_data.referer}"
                     )
                 time.sleep(2)
@@ -117,6 +115,6 @@ class DownloadFiles:
             )
             return files
         except Exception as e:
-            logger.error(f"Error extracting archive {download_data.url}: {e}")
+            logger.warning(f"Error extracting archive {download_data.url}: {e}")
             archive.delete_archive()
             return []

@@ -23,13 +23,13 @@ class SerpParse:
                 if re.match(r"\d+", active_page):
                     return int(active_page)
                 else:
-                    logger.error(f"{self.response.url} :: ACTIVE PAGE NOT AN INTEGER")
+                    logger.error(f"{self.response.url} | ACTIVE PAGE NOT AN INTEGER")
                     return 0
             else:
-                logger.error(f"{self.response.url} :: PAGINATION TAG NOT FOUND")
+                logger.error(f"{self.response.url} | PAGINATION TAG NOT FOUND")
                 return 0
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA CURRENT PAGE {e}")
+            logger.error(f"{self.response.url} | INVALID DATA CURRENT PAGE {e}")
             return 1
 
     def get_next_page(self):
@@ -48,7 +48,7 @@ class SerpParse:
             else:
                 return 0
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA NEXT PAGE {e}")
+            logger.error(f"{self.response.url} | INVALID DATA NEXT PAGE {e}")
 
     def links_to_trade(self, table_class: str = "data") -> list:
         """return list with trading list"""
@@ -65,7 +65,7 @@ class SerpParse:
                 return list(set_links)
         except Exception as e:
             logger.error(
-                f"{self.response.url} :: INVALID DATA DURING GETTING LINKS TO TRADE {e}"
+                f"{self.response.url} | INVALID DATA DURING GETTING LINKS TO TRADE {e}"
             )
             return list()
 
@@ -99,7 +99,6 @@ class SerpParse:
             return list()
 
     def get_trading_type_and_form(self, trading_type_text):
-        """return trading type"""
         offer = ["ОТПП", "ЗТПП"]
         auction = ["ОАОФ", "ОАЗФ", "ЗАОФ", "ЗАОЗ"]
         competition = ["ОКОФ", "ОКЗФ", "ЗКОФ", "ЗКОЗ"]
@@ -124,7 +123,7 @@ class SerpParse:
             if trading_type in competition and trading_type in close_form:
                 return "competition", "closed"
         logger.error(
-            f"{self.response.url} :: ERROR function {self.get_trading_type_and_form.__name__}"
+            f"{self.response.url} | ERROR function {self.get_trading_type_and_form.__name__}"
         )
         return None
 
@@ -134,7 +133,7 @@ class SerpParse:
         if len(tradin_number) == 1:
             return dedent_func("".join(tradin_number))
         logger.error(
-            f"{self.response.url} :: ERROR function {self.get_trading_number.__name__}"
+            f"{self.response.url} | ERROR function {self.get_trading_number.__name__}"
         )
 
     def get_status_of_trade(self, status_text, trading_page):
@@ -161,7 +160,7 @@ class SerpParse:
             return "ended"
         else:
             logger.error(
-                f"{self.response.url} :: ERROR STATUS OF TRADE on page {trading_page}"
+                f"{self.response.url} | ERROR STATUS OF TRADE on page {trading_page}"
             )
 
     def get_trading_id(self):
@@ -176,7 +175,7 @@ class SerpParse:
             current = dedent_func(current.get_text())
             if re.match(r"\d{1,3}", current):
                 return int(current)
-        logger.error(f"{self.response.url} :: ERROR GETTING CURRENT PAGE")
+        logger.error(f"{self.response.url} | ERROR GETTING CURRENT PAGE")
         return -1
 
     # TRADING PAGE
@@ -190,7 +189,7 @@ class SerpParse:
             return table
         else:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.table_trading_page_trade_info.__name__}"
+                f"{self.response.url} | ERROR function {self.table_trading_page_trade_info.__name__}"
             )
 
     def table_organizer_info(self):
@@ -202,7 +201,7 @@ class SerpParse:
             return table
         else:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.table_organizer_info.__name__}"
+                f"{self.response.url} | ERROR function {self.table_organizer_info.__name__}"
             )
 
     def get_organizer_inn(self):
@@ -218,7 +217,7 @@ class SerpParse:
                 return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
         except Exception as e:
             print(e)
-            logger.error(f"{self.response.url} :: ERROR INN")
+            logger.error(f"{self.response.url} | ERROR INN")
 
     def get_organizer_email(self):
         """return organizer email"""
@@ -263,7 +262,7 @@ class SerpParse:
             return table
         else:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.table_trading_page_bankrot_info.__name__}"
+                f"{self.response.url} | ERROR function {self.table_trading_page_bankrot_info.__name__}"
             )
 
     def get_case_number(self):
@@ -288,7 +287,7 @@ class SerpParse:
             return table
         else:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.table_debtor_info.__name__}"
+                f"{self.response.url} | ERROR function {self.table_debtor_info.__name__}"
             )
 
     def get_debtor_inn(self):
@@ -322,7 +321,7 @@ class SerpParse:
                 return address
         except Exception:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.address.__name__}"
+                f"{self.response.url} | ERROR function {self.address.__name__}"
             )
 
     def table_arbitrator_info(self):
@@ -335,7 +334,7 @@ class SerpParse:
             return table
         else:
             logger.error(
-                f"{self.response.url} :: ERROR function {self.table_arbitrator_info.__name__}"
+                f"{self.response.url} | ERROR function {self.table_arbitrator_info.__name__}"
             )
 
     def get_arbitrator_name(self):

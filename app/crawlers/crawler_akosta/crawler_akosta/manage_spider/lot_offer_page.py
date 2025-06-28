@@ -1,14 +1,11 @@
 import re
-import logging
 import unicodedata
 from io import StringIO
 
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, format_time
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, format_time, logger
 
 
 class LotOfferPage:
@@ -40,8 +37,8 @@ class LotOfferPage:
             ).strip()
             return start_price
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA START PRICE OFFER \n {ex}"
+            logger.warning(
+                f"{self.response.url} | INVALID DATA START PRICE OFFER \n {ex}"
             )
         return None
 
@@ -53,7 +50,7 @@ class LotOfferPage:
             if re.match(r"\d+", n1):
                 return int(n1)
         except Exception as e:
-            logger.error(f"{self.response} :: ERROR RETURN NUMBER OF PAGES  {e}")
+            logger.warning(f"{self.response} | ERROR RETURN NUMBER OF PAGES  {e}")
         return None
 
     def get_period_table(self):
@@ -66,7 +63,7 @@ class LotOfferPage:
                 if table:
                     return table[0]
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA PERIOD TABLE {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA PERIOD TABLE {e}")
         return None
 
     def get_start_date_request(self, lst_period: list):
@@ -74,7 +71,7 @@ class LotOfferPage:
             last_element: dict = lst_period[0]
             return last_element["start_date_requests"]
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR END DATE TRADING {e}")
+            logger.warning(f"{self.response.url} | ERROR END DATE TRADING {e}")
         return None
 
     def get_end_date_request(self, lst_period: list):
@@ -82,7 +79,7 @@ class LotOfferPage:
             last_element: dict = lst_period[-1]
             return last_element["end_date_requests"]
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR END DATE TRADING {e}")
+            logger.warning(f"{self.response.url} | ERROR END DATE TRADING {e}")
         return None
 
     def return_periods(self):
@@ -102,12 +99,12 @@ class LotOfferPage:
                     price = round(float(price_), 2)
                 if check_value < price:
                     logger.critical(
-                        f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
+                        f"{self.response.url} | INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
                     )
                 else:
                     check_value = price
             except Exception:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} Period Price - {price_} typeof - {type(price_)}"
                 )
                 return None
@@ -158,5 +155,5 @@ class LotOfferPage:
             else:
                 return None
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR FORM j_idt55, {ex}")
+            logger.warning(f"{self.response.url} | ERROR FORM j_idt55, {ex}")
         return None

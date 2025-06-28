@@ -3,18 +3,17 @@ import re
 from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
+from app.db.models import AuctionPropertyType
 from ..app import Combo
-from ..config import data_origin_url, form_data, main_url
-from general_utils import UrlConfig, EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
+from ..config import data_origin_url, form_data, urls
+from app.utils import URL
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
 
 
-class TorgidvSpider(BaseSpider):
-    name = "torgidv"
-    start_urls = ["https://torgidv.ru/bankrupt/"]
-
+class TorgidvBaseSpider(BaseSpider):
     def __init__(self):
-        super(TorgidvSpider, self).__init__(data_origin_url)
+        super(TorgidvBaseSpider, self).__init__(data_origin_url)
         self.trades = set()
         self.pending_requests = 0
 
@@ -36,14 +35,16 @@ class TorgidvSpider(BaseSpider):
         for link in [el[0] for el in data["data"]]:
             link = BeautifulSoup(link, "lxml").a["href"]
             self.pending_requests += 1
-            yield Request(UrlConfig.url_join(main_url, link), self.get_trade_links)
+            yield Request(
+                URL.url_join(urls[self.property_type], link), self.get_trade_links
+            )
 
         if self.pending_requests == 0:
             yield from self.process_trades()
 
     def get_trade_links(self, response):
         combo = Combo(response)
-        self.trades.add(combo.get_trading_link())
+        self.trades.add(combo.get_trading_link(self.property_type))
         self.pending_requests -= 1
 
         if self.pending_requests == 0:
@@ -74,6 +75,7 @@ class TorgidvSpider(BaseSpider):
         for lot in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", data_origin_url)
+            loader.add_value("property_type", self.property_type)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", trading_link)
             loader.add_value("trading_number", trading_number)
@@ -90,7 +92,7 @@ class TorgidvSpider(BaseSpider):
             loader.add_value("start_date_trading", start_date_trading)
             loader.add_value("end_date_trading", end_date_trading)
             yield Request(
-                UrlConfig.url_join(main_url, lot),
+                URL.url_join(urls[self.property_type], lot),
                 self.parse_lot,
                 cb_kwargs={"loader": loader, "general_files": files},
             )
@@ -114,3 +116,13 @@ class TorgidvSpider(BaseSpider):
         loader.add_value("categories", combo.categories)
         loader.add_value("files", {"general": general_files, "lot": combo.download()})
         yield loader.load_item()
+
+
+class TorgidvBankruptSpider(TorgidvBaseSpider):
+    name = "torgidv_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+
+
+class TorgidvArrestedSpider(TorgidvBaseSpider):
+    name = 'torgidv_arrested'
+    property_type = AuctionPropertyType.arrested

@@ -1,9 +1,7 @@
 import re
-import logging
 
-from app.utils import dedent_func
+from app.utils import dedent_func, logger
 
-logger = logging.getLogger(__name__)
 
 
 class LotAuctionPage:
@@ -37,7 +35,7 @@ class LotAuctionPage:
                 elif status in ended:
                     return "ended"
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA STATUS {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA STATUS {ex}")
         return None
 
     def get_short_name(self, lot_number):
@@ -50,7 +48,7 @@ class LotAuctionPage:
             )
             return dedent_func(short_name)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA SHORT NAME {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA SHORT NAME {e}")
         return None
 
     def get_lot_info(self):
@@ -65,7 +63,7 @@ class LotAuctionPage:
                 )
                 return dedent_func(lot_info)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA LOT INFO {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA LOT INFO {e}")
         return None
 
     def get_property_info(self):
@@ -81,7 +79,7 @@ class LotAuctionPage:
                 )
                 return dedent_func(property_info)
         except Exception as e:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA PROPERTY INFORMATION {e}"
+            logger.warning(
+                f"{self.response.url} | INVALID DATA PROPERTY INFORMATION {e}"
             )
         return None

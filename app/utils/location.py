@@ -4,18 +4,15 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import json
-import logging
 import pymorphy3
 import requests
 import re
 from natasha import MorphVocab, AddrExtractor
 
-from app.utils.contacts import Contacts
-from app.utils.config import env, indexes_path
+from .contacts import Contacts
+from .config import env, indexes_path
+from .logger import logger
 from app.db.db_helper import DBHelper
-from app.db.models import Region
-
-logger = logging.getLogger(__name__)
 
 punctuation = r"""!"#$%&'()*+,./:;<=>?@[\]^_`{|}~"""
 
@@ -129,6 +126,7 @@ def get_index(address: str):
     match = re.search(r"\b\d{6}\b", address)
     if match:
         return match.group()
+    return None
 
 
 class RegionIdentifier:
@@ -170,7 +168,7 @@ class RegionIdentifier:
                 if address.region:
                     d[address.name] = address.region.name
         except Exception as e:
-            logger.error(f"Error in fetching addresses: {e}", exc_info=True)
+            logger.warning(f"Error in fetching addresses: {e}")
         return d
 
     @staticmethod
@@ -178,7 +176,8 @@ class RegionIdentifier:
         try:
             return [region.name for region in DBHelper.get_all(Region)]
         except Exception as e:
-            logger.error(f"Error in fetching addresses: {e}", exc_info=True)
+            logger.warning(f"Error in fetching addresses: {e}")
+        return None
 
     @staticmethod
     def _fetch_cities():
@@ -188,7 +187,7 @@ class RegionIdentifier:
             for city in cities:
                 c[city.name] = city.region.name
         except Exception as e:
-            logger.error(f"Error in fetching addresses: {e}", exc_info=True)
+            logger.warning(f"Error in fetching addresses: {e}")
         return c
 
     @staticmethod
@@ -197,7 +196,7 @@ class RegionIdentifier:
         try:
             return {region.oktmo: region.name for region in DBHelper.get_all(Region)}
         except Exception as e:
-            logger.error(f"Error in fetching addresses: {e}", exc_info=True)
+            logger.warning(f"Error in fetching addresses: {e}")
         return o
 
     @staticmethod
@@ -277,16 +276,16 @@ class RegionIdentifier:
             )
         elif region:
             return region
-        else:
-            return None
+        return None
 
     @staticmethod
     def get_region(address: str):
         address = Contacts.check_address(address)
         if not address:
-            return
+            return None
         parsed_address = parse_address(address)
 
+        region = None
         if (
             region :=
             # RegionIdentifier._get_region_from_storage(address) or
@@ -338,6 +337,7 @@ class RegionIdentifier:
 
     @staticmethod
     def _get_region_from_natasha(address: str):
+        region = None
         matches = list(extractor(address))
         for match in matches:
             type_ = match.fact.type
@@ -390,14 +390,14 @@ class RegionIdentifier:
                 "тупик",
                 "просек",
             ]:
-                pass
+                return None
         else:
-            pass
+            return None
 
     @staticmethod
     def _get_region_from_api(address: str | None):
         if not address or len(address) < 3:
-            return
+            return None
         if use_api_services["yandex"] and (
             region := RegionIdentifier.get_yandex_region(address)
         ):
@@ -412,6 +412,7 @@ class RegionIdentifier:
                 f'Got from Dadata API. Address: "{address}", Region: "{region}"'
             )
             return region
+        return None
 
 
 def test_region_from_addresses_table():

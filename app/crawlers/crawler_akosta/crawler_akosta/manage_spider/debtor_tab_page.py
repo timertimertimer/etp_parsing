@@ -1,8 +1,5 @@
-import logging
 import re
-from app.utils import check_case_number, dedent_func
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, logger, Contacts
 
 
 class DebrorTab:
@@ -25,8 +22,8 @@ class DebrorTab:
         if match:
             form_number = match.group(1)
             return form_number
-        logger.error(
-            f"{self.response.url} :: Не удалось найти динамический идентификатор"
+        logger.warning(
+            f"{self.response.url} | Не удалось найти динамический идентификатор"
         )
         return None
 
@@ -40,7 +37,7 @@ class DebrorTab:
                 tn = tn.get_text().strip().split(":")[-1].strip()
                 return tn
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR trading number {ex}")
+            logger.warning(f"{self.response.url} | ERROR trading number {ex}")
         return None
 
     def get_msg_number(self):
@@ -56,11 +53,11 @@ class DebrorTab:
                     msg = re.findall(r"\d{7,8}", msg)
                     return " ".join(msg)
                 else:
-                    logger.error(
-                        f"{self.response.url} :: ERROR message number CHECK REAL VALUE!"
+                    logger.warning(
+                        f"{self.response.url} | ERROR message number CHECK REAL VALUE!"
                     )
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR message number {ex}")
+            logger.warning(f"{self.response.url} | ERROR message number {ex}")
         return None
 
     def get_case_number(self):
@@ -71,9 +68,9 @@ class DebrorTab:
             if case_number:
                 case = case_number.parent
                 case = case.get_text().strip().split(":")[-1].strip()
-                return check_case_number(case)
+                return Contacts.check_case_number(case)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR case number {ex}")
+            logger.warning(f"{self.response.url} | ERROR case number {ex}")
         return None
 
     def get_debtor_inn(self):
@@ -91,9 +88,9 @@ class DebrorTab:
                     if re.match(r"\d{10,12}", inn_deb):
                         return inn_deb
             else:
-                logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INN (1)")
+                logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INN (1)")
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INN {ex}")
         return None
 
     def get_debtor_address(self):
@@ -120,7 +117,7 @@ class DebrorTab:
                         address = address.parent.get_text(strip=True).split(":")[-1]
             return dedent_func(address)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR ADDRESS {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR ADDRESS {ex}")
         return None
 
     def return_arbitrator_form(self):
@@ -138,7 +135,7 @@ class DebrorTab:
                 last = last_name.parent
                 last = dedent_func(last.get_text().strip().split(":")[-1].strip())
             else:
-                logger.error(f"{self.response.url} :: CHECK IF LAST NAME")
+                logger.warning(f"{self.response.url} | CHECK IF LAST NAME")
                 last = ""
 
             first_name = arb.find("label", string=re.compile("Имя", re.IGNORECASE))
@@ -146,7 +143,7 @@ class DebrorTab:
                 first = first_name.parent
                 first = dedent_func(first.get_text().strip().split(":")[-1].strip())
             else:
-                logger.error(f"{self.response.url} :: CHECK IF FIRST NAME")
+                logger.warning(f"{self.response.url} | CHECK IF FIRST NAME")
                 first = ""
 
             middle_name = arb.find(
@@ -159,7 +156,7 @@ class DebrorTab:
                 middle = ""
             return " ".join([last, first, middle])
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR ARBITR NAME {e}")
+            logger.warning(f"{self.response.url} | ERROR ARBITR NAME {e}")
         return None
 
     def get_arbitr_inn(self):
@@ -172,9 +169,9 @@ class DebrorTab:
                 if re.match(r"\d{10,12}", _inn):
                     return _inn
                 else:
-                    logger.error(f"{self.response.url} :: CHECK INN ARBITRATOR")
+                    logger.warning(f"{self.response.url} | CHECK INN ARBITRATOR")
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR {ex}")
         return None
 
     def get_arbitr_company(self):

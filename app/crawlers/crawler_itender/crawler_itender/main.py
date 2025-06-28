@@ -76,6 +76,8 @@ def ets24():
 def selt_online():
     execute(["scrapy", "crawl", "selt_online"])
 
+def centerr_business():
+    execute(["scrapy", "crawl", "centerr_business"])
 
 if __name__ == "__main__":
-    utpl()
+    centerr_business()

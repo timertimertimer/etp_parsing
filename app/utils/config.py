@@ -70,10 +70,9 @@ class ENV(BaseSettings):
     db_port: int = 3306
     db_database: str = "etp_parsing"
 
-    connection_string: str = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
-
 
 env = ENV()
+env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
 
 
 def format_parse_date(days_: int, time_format=None):

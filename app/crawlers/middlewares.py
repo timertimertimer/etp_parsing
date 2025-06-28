@@ -1,12 +1,6 @@
-# Define here the models for your spider middleware
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-import logging
-
 from scrapy import signals
 
-logger = logging.getLogger(__name__)
+
 __all__ = [
     "UserAgentMiddleware",
     "ETPDownloaderMiddleware",
@@ -15,8 +9,6 @@ __all__ = [
 
 
 class UserAgentMiddleware:
-    """This middleware allows spiders to override the user_agent"""
-
     def __init__(self, user_agent="Scrapy"):
         self.user_agent = user_agent
 

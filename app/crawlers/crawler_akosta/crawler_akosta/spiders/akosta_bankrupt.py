@@ -1,7 +1,7 @@
-from app.db.models import AuctionProperty
+from app.db.models import AuctionPropertyType
 from .base import AkostaBaseSpider
 
 
 class AkostaBankruptSpider(AkostaBaseSpider):
     name = "akosta_bankrupt"
-    auction_property = AuctionProperty.bankruptcy
+    property_type = AuctionPropertyType.bankruptcy

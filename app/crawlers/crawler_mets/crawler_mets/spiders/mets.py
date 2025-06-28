@@ -136,7 +136,7 @@ class MetsSpider(BaseSpider):
         status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", comp.offer.data_origin)
+            loader.add_value("data_origin", comp.offer.data_origin_urls)
             loader.add_value("trading_id", comp.offer.trading_id)
             loader.add_value("trading_link", comp.offer.trading_link)
             loader.add_value("trading_number", comp.offer.trading_number)
@@ -182,7 +182,7 @@ class MetsSpider(BaseSpider):
         status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", comp.offer.data_origin)
+            loader.add_value("data_origin", comp.offer.data_origin_urls)
             loader.add_value("trading_id", comp.offer.trading_id)
             loader.add_value("trading_link", comp.offer.trading_link)
             loader.add_value("trading_number", comp.offer.trading_number)

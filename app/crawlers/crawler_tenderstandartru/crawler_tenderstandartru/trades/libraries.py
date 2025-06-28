@@ -6,22 +6,23 @@ from collections import deque
 from numpy import float64, integer
 from bs4 import BeautifulSoup as BS
 from ..config import data_origin
-from general_utils import (
+from app.utils import (
     format_time_period,
     make_float,
-    UrlConfig,
+    URL,
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     format_time,
+    logger
 )
 
 __all__ = [
     "BS",
     "re",
     "logging",
-    "CheckIfCorrectContactInfo",
+    "Contacts",
     "soup",
-    "UrlConfig",
+    "URL",
     "data_origin",
     "deque",
     "dedent_func",
@@ -32,6 +33,7 @@ __all__ = [
     "pd",
     "format_time",
     "integer",
+    "logger"
 ]
 
 

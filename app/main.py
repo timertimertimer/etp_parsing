@@ -2,7 +2,6 @@ import hashlib
 import hmac
 import os
 import time
-import logging
 import requests
 from random import choices
 from string import ascii_letters, digits
@@ -13,7 +12,6 @@ from utils.extra import set_logger
 from utils.config import post_main_service
 
 load_dotenv()
-logger = logging.getLogger(__name__)
 set_logger(logger)
 
 

@@ -3,7 +3,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, format_time
+from app.utils import dedent_func, format_time
 from ..locators.trade_locator import LocatorAuction
 
 logger = logging.getLogger(__name__)
@@ -31,11 +31,12 @@ class AuctionParse:
             match = "".join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)
-        except:
+        except Exception:
             if not re.match(r"\d{3,}-ОАЗФ", trading_number):
-                logger.error(
-                    f"{self.response.url} :: LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}"
+                logger.warning(
+                    f"{self.response.url} | LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}"
                 )
+        return None
 
     @property
     def start_date_request(self):
@@ -45,10 +46,11 @@ class AuctionParse:
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
             return format_time(td_date.strip())
-        except:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA START DATE REQUEST AUCTION/COMPETITION"
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | INVALID DATA START DATE REQUEST AUCTION/COMPETITION"
             )
+        return None
 
     @property
     def end_date_request(self):
@@ -58,10 +60,11 @@ class AuctionParse:
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
             return format_time(td_date.strip())
-        except:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA END DATE REQUEST AUCTION/COMPETITION"
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | INVALID DATA END DATE REQUEST AUCTION/COMPETITION"
             )
+        return None
 
     @property
     def start_date_trading(self):
@@ -71,10 +74,11 @@ class AuctionParse:
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
             return format_time(td_date.strip())
-        except:
+        except Exception:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA START DATE TRADING AUCTION/COMPETITION"
+                f"{self.response.url} | INVALID DATA START DATE TRADING AUCTION/COMPETITION"
             )
+        return None
 
     @property
     def end_date_trading(self):
@@ -84,7 +88,8 @@ class AuctionParse:
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
             return format_time(td_date.strip())
-        except:
+        except Exception:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA END DATE TRADING AUCTION/COMPETITION"
+                f"{self.response.url} | INVALID DATA END DATE TRADING AUCTION/COMPETITION"
             )
+        return None

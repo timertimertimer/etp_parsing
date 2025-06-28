@@ -1,6 +1,5 @@
-import pathlib
-import logging
 import re
+import pathlib
 
 from app.utils.config import allowable_formats
 from app.db.models import DownloadData
@@ -9,16 +8,15 @@ from ..utils.config import data_origin, debtor_link, lot_link, host
 from ..utils.post_data import post_data_download
 from app.utils import (
     dedent_func,
-    replaceMultiple,
+    replace_multiple,
     pattern_replace1,
     what_time_bigger,
     return_parse_date,
     URL,
     format_time,
+    logger
 )
 from bs4 import BeautifulSoup as BS
-
-logger = logging.getLogger(__name__)
 
 
 class MainTradingPage:
@@ -102,7 +100,7 @@ class MainTradingPage:
             for i in paragraf_tag:
                 if "@" in i.get_text():
                     email = dedent_func(i.get_text().strip())
-                text = replaceMultiple(i.get_text(), pattern_replace1, "")
+                text = replace_multiple(i.get_text(), pattern_replace1, "")
                 no_space = re.sub(r"\s", "", text)
                 match = re.search(r"\d{6,}", no_space)
                 if match:

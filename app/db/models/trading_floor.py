@@ -1,9 +1,10 @@
-from datetime import datetime
+import datetime
 from enum import Enum
 
 from sqlalchemy import Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import Enum as SAEnum
+from sqlalchemy.sql.functions import func
 
 from .base import Base
 
@@ -27,9 +28,13 @@ class TradingFloor(Base):
         SAEnum(StatusType, convert_unicode=True), default=StatusType.disabled
     )
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime, server_default=func.now()
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        server_onupdate=func.now(),
     )
 
     counterparty = relationship("Counterparty", back_populates="trading_floor")

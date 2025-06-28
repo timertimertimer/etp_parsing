@@ -17,23 +17,9 @@ DOWNLOAD_DELAY = 0
 CONCURRENT_REQUESTS_PER_DOMAIN = 16
 CONCURRENT_REQUESTS_PER_IP = 16
 
-# Disable cookies (enabled by default)
-# COOKIES_ENABLED = False
-
-# Disable Telnet Console (enabled by default)
-# TELNETCONSOLE_ENABLED = False
-# Override the default request headers:
 USER_AGENT = headers["User-Agent"]
 DEFAULT_REQUEST_HEADERS = headers.copy()
 
-# Enable or disable spider middlewares
-# See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-# SPIDER_MIDDLEWARES = {
-#    'crawler_akosta.middlewares.CrawlerAkostaSpiderMiddleware': 543,
-# }
-
-# Enable or disable downloader middlewares
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.cookies.CookiesMiddleware": 120,
     "crawlers.middlewares.UserAgentMiddleware": 150,
@@ -46,14 +32,7 @@ DOWNLOADER_MIDDLEWARES = {
 # ROTATING_PROXY_LIST_PATH = proxy_path if Path(proxy_path).exists() else None
 ROTATING_PROXY_LOGSTATS_INTERVAL = 60
 ROTATING_PROXY_PAGE_RETRY_TIMES = 7
-# Enable or disable extensions
-# See https://docs.scrapy.org/en/latest/topics/extensions.html
-# EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-# }
 
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "crawlers.pipelines.BasePipeline": 300,
 }
@@ -112,10 +91,6 @@ SPLASH_LOG_400 = True
 
 
 class InterceptHandler(logging.Handler):
-    """
-    Redirects standard logs to loguru.
-    """
-
     def emit(self, record):
         level = (
             record.levelname
@@ -134,6 +109,8 @@ class InterceptHandler(logging.Handler):
 
 def setup_logger():
     warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+    warnings.filterwarnings("ignore", category=SyntaxWarning)
+    warnings.filterwarnings("ignore", category=UserWarning)
 
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:

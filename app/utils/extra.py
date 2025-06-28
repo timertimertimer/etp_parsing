@@ -1,8 +1,6 @@
 import re
 import functools
-import logging
 import string
-import sys
 
 import pandas as pd
 import textwrap
@@ -10,12 +8,30 @@ import unicodedata
 from http.cookies import SimpleCookie
 from chardet import detect
 
+from app.utils import logger
 from .time_format import datetime
 from .config import lot_classifiers_code_to_name
 
 
+columns = ["Code", "Name"]
+classifiers_df = pd.DataFrame(lot_classifiers_code_to_name.items(), columns=columns)
+valid_codes = set(classifiers_df[columns[0]])
+name_to_code = dict(
+    zip(classifiers_df[columns[1]], classifiers_df[columns[0]].astype(str))
+)
+pattern_replace = [
+    "(",
+    ")",
+    "-",
+    "+",
+    "- ",
+    " ",
+]
+pattern_replace1 = ["(", ")", "-", "+", "- ", "null", "\n", "&nbsp;"]
+cyrillic = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+mac_symbols = ("╨┐", "╨", "MACOS", "╤")
+
 def replace_one_dot(name):
-    """replace one dot if before extansion is occured"""
     dot = re.findall(r"\.", name)
     if len(dot) > 1:
         length = len(dot)
@@ -57,21 +73,11 @@ def sanitize_filename(filename: str) -> str:
     return sanitized
 
 
-columns = ["Code", "Name"]
-classifiers_df = pd.DataFrame(lot_classifiers_code_to_name.items(), columns=columns)
-valid_codes = set(classifiers_df[columns[0]])
-name_to_code = dict(
-    zip(classifiers_df[columns[1]], classifiers_df[columns[0]].astype(str))
-)
-logger = logging.getLogger(__name__)
-
-
 def normalize_string(string_):
     return unicodedata.normalize("NFKD", string_)
 
 
 def return_main_cookies(cookies: list) -> str:
-    """:arg cookies(list representation) with dictionary inside for itterate across dict for get cookie data"""
     jsession = None
     _value = None
     for _ in cookies:
@@ -96,55 +102,21 @@ def cookie_parser(cookies_string):
     return cookies
 
 
-def dedent_func(string: str):
-    if string:
-        string = textwrap.dedent(string)
-        wrapped = textwrap.fill(string, width=50)
-        string = textwrap.indent(wrapped, "")
-        return string.replace("\n", " ").strip()
-    else:
-        return
+def dedent_func(s: str):
+    if not s:
+        return s
+    s = textwrap.dedent(s)
+    wrapped = textwrap.fill(s, width=50)
+    s = textwrap.indent(wrapped, "")
+    return s.replace("\n", " ").strip()
 
 
-##############__________Multiraplace__________#############
-def replaceMultiple(mainString, toBeReplaces, newString):
-    # Iterate over the sings to be replaced
-    for elem in toBeReplaces:
-        # Check if string is in the main string
-        if elem in mainString:
-            # Replace the string
-            mainString = mainString.replace(elem, newString)
+def replace_multiple(main_string, replaces, new_string):
+    for elem in replaces:
+        if elem in main_string:
+            main_string = main_string.replace(elem, new_string)
 
-    return mainString
-
-
-pattern_replace = [
-    "(",
-    ")",
-    "-",
-    "+",
-    "- ",
-    " ",
-]
-pattern_replace1 = ["(", ")", "-", "+", "- ", "null", "\n", "&nbsp;"]
-
-
-def check_case_number(case_number: str or None):
-    if case_number:
-        # find if 4 characters are inline together
-        pattern = re.compile(r"\D{5,}")
-        match = pattern.findall(case_number)
-        if match and len("".join(match)) > 0:
-            match = "".join(match)
-            match1 = case_number.replace(match, "").strip()
-        else:
-            match1 = case_number
-        return match1.replace("№", "").strip()
-    return None
-
-
-cyrillic = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
-mac_symbols = ("╨┐", "╨", "MACOS", "╤")
+    return main_string
 
 
 def count_cyrillic(text):
@@ -178,12 +150,12 @@ def count_cyrillic(text):
                     new_text = new_text.decode("CP866")
                     new_text = new_text.encode("utf-8")
                     return unicodedata.normalize("NFKC", new_text.decode("utf-8"))
-            except:
+            except Exception:
                 try:
                     new_text = text.encode("CP866")
                     new_text = new_text.decode("utf-8")
                     return unicodedata.normalize("NFKC", new_text)
-                except:
+                except Exception:
                     return text
     return None
 
@@ -199,8 +171,7 @@ def make_float(price):
             price = round(float(price), 2)
             return price
     except Exception as e:
-        logger.error(f"Cant convert {price} to float: {e}")
-        return e
+        logger.warning(f"Cant convert {price} to float: {e}")
     return None
 
 
@@ -319,17 +290,6 @@ def get_org_info(last, first, middle):
 
         return string.capwords(" ".join(l))
     return None
-
-
-def set_logger(logger):
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s [%(name)-12s] %(levelname)-8s %(message)s"
-    )
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
-    console_handler.setLevel(logging.DEBUG)
-    logger.addHandler(console_handler)
 
 
 if __name__ == "__main__":

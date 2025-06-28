@@ -1,5 +1,4 @@
-from general_utils import headers
-from general_utils.config import write_log_to_file
+from app.utils.config import headers, write_log_to_file
 from ..spiders.base import ItenderBaseSpider
 
 

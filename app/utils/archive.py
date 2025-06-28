@@ -1,17 +1,16 @@
-import logging
 import os
 from pathlib import PurePath, Path
 from pydantic import HttpUrl
+from py7zr import SevenZipFile
+from rarfile import RarFile
+from zipfile import ZipFile
 
-from app.utils.extra import sanitize_filename, fix_encoding
+from .extra import sanitize_filename, fix_encoding
 from .config import image_and_doc_formats
-
-logger = logging.getLogger(__name__)
+from .logger import logger
 
 
 class ArchiveFiles:
-    """Родительский класс для работы с архивами"""
-
     def __init__(
         self,
         absolute_path: PurePath,
@@ -69,30 +68,18 @@ class ArchiveFiles:
 
 
 class ZipFiles(ArchiveFiles):
-    """Класс для работы с ZIP-архивами"""
-
-    from zipfile import ZipFile
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.archive_class = self.ZipFile
+        self.archive_class = ZipFile
 
 
 class RarFiles(ArchiveFiles):
-    """Класс для работы с RAR-архивами"""
-
-    from rarfile import RarFile
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.archive_class = self.RarFile
+        self.archive_class = RarFile
 
 
 class SevenZipFiles(ArchiveFiles):
-    """Класс для работы с 7z-архивами"""
-
-    from py7zr import SevenZipFile
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.archive_class = self.SevenZipFile
+        self.archive_class = SevenZipFile

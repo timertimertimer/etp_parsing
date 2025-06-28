@@ -2,26 +2,29 @@ from typing import Iterable
 
 from scrapy import Request, FormRequest
 
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
-from ..config import start_date, end_date, data_origin
+from app.crawlers.base import BaseSpider
+from ..config import start_date, end_date, data_origin_urls, urls
 from ..trades.app import Combo
-from general_utils import UrlConfig, EtpItemLoader, EtpItem
+from app.utils import URL
+from app.utils.config import write_log_to_file
+from app.crawlers.items import EtpItemLoader, EtpItem
 
 
 class ElectroTorgiBaseSpider(BaseSpider):
     name = "base"
+    property_type = None
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
 
     @classmethod
     def set_links(cls):
-        cls.data_origin = data_origin.get(cls.name)
+        cls.data_origin_url = data_origin_urls.get(cls.name)
+        cls.url = urls.get(cls.name)
 
     def __init__(self):
         self.set_links()
-        super().__init__(self.data_origin)
+        super().__init__(self.data_origin_url)
 
     def start_requests(self) -> Iterable[Request]:
         params_data = {
@@ -31,7 +34,7 @@ class ElectroTorgiBaseSpider(BaseSpider):
             "applications_start_date_to": end_date,
         }
         yield FormRequest(
-            data_origin[self.name] + "lots",
+            self.url + "lots",
             self.parse,
             formdata=params_data,
             method="GET",
@@ -40,7 +43,7 @@ class ElectroTorgiBaseSpider(BaseSpider):
     def parse(self, response, **kwargs):
         links = response.xpath('//a[@class="block-lot"]/@href').getall()
         for link in links:
-            link = UrlConfig.url_join(data_origin[self.name], link)
+            link = URL.url_join(self.url, link)
             if link not in self.previous_trades:
                 yield Request(link, self.parse_trade)
 
@@ -70,7 +73,8 @@ class ElectroTorgiBaseSpider(BaseSpider):
         files = combo.download()
         for lot_link, lot_number, status in combo.get_lots():
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", data_origin[self.name])
+            loader.add_value("data_origin", self.url)
+            loader.add_value("property_type", self.property_type)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", trading_link)
             loader.add_value("trading_number", trading_number)

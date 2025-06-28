@@ -1,6 +1,6 @@
 from .base import Base
 from .address import Address
-from .auction import Auction, AuctionProperty
+from .auction import Auction, AuctionPropertyType
 from .city import City
 from .counterparty import Counterparty, CounterpartySRO
 from .debtor_message import DebtorMessage

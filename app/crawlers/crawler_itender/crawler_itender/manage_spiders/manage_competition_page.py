@@ -2,12 +2,9 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, format_time
+from app.utils import dedent_func, format_time, logger
 from ..locators.serp_locator import LocatorSerp
 from ..locators.competition_locator import CompetLocator
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CompetitionPage:
@@ -30,9 +27,10 @@ class CompetitionPage:
                 legend = "".join(re.findall(r"\d+", legend))
                 return legend
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR TRADING NUMBER\n{e}", exc_info=True
             )
+        return None
 
     @property
     def msg_number(self):
@@ -40,6 +38,7 @@ class CompetitionPage:
         if msg:
             msg = BS(str(msg), features="lxml").get_text()
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+        return None
 
     def trading_form(self):
         try:
@@ -51,9 +50,10 @@ class CompetitionPage:
                 elif "закрытая" == form:
                     return "closed"
                 else:
-                    logger.error(f"{self.response.url} :: ERROR TRADING FORM")
+                    logger.warning(f"{self.response.url} :: ERROR TRADING FORM")
         except Exception:
-            logger.error(f"{self.response.url} :: TRDING TYPE ERROR")
+            logger.warning(f"{self.response.url} :: TRDING TYPE ERROR")
+        return None
 
     def start_date_request(self):
         try:
@@ -62,13 +62,14 @@ class CompetitionPage:
                 start = dedent_func(BS(str(start), features="lxml").get_text())
                 return format_time(start.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)::{e}"
             )
+        return None
 
     def end_date_request(self):
         try:
@@ -77,13 +78,14 @@ class CompetitionPage:
                 end = dedent_func(BS(str(end), features="lxml").get_text())
                 return format_time(end.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)::{e}"
             )
+        return None
 
     def start_date_trading(self):
         try:
@@ -106,13 +108,14 @@ class CompetitionPage:
                 )
                 return format_time(start_utender.strip())
             else:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} :: START DATE TRADING ERROR (COMPETITION)"
                 )
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: START DATE TRADING ERROR (COMPETITION)::{e}"
             )
+        return None
 
     def get_property_info(self):
         property_info = self.response.xpath(self.loc_comp.property_info_loc).get()
@@ -121,3 +124,4 @@ class CompetitionPage:
                 BS(str(property_info), features="lxml").get_text()
             )
             return property_info.strip()
+        return None

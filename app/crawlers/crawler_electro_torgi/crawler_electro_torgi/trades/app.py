@@ -1,17 +1,12 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import dedent_func, format_time
-from general_utils.check_inn_email_phone import CheckIfCorrectContactInfo
-from general_utils.models import DownloadData
-from ..config import data_origin, path_absolute, path_relative
+from app.utils import dedent_func, format_time, logger, Contacts
+from app.db.models import DownloadData
 from ..trades.auc import Auc
 from ..trades.offer import Offer
 from ..locators.locator_trade import LocatorTrade
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -29,7 +24,7 @@ class Combo:
         lots_data = []
         for lot in lots:
             soup = BeautifulSoup(lot, "lxml")
-            lot_link = soup.find("a", target="_blank").get("href")
+            lot_link = soup.find("a").get("href")
             status_and_number = soup.find_all("div", class_="light grey-text p5")[:2]
             lot_number = status_and_number[0].find("span").get_text().strip()
             status = status_and_number[1].find("span").get_text().strip().lower()
@@ -37,7 +32,8 @@ class Combo:
             lots_data.append((lot_link, lot_number, status))
         return lots_data
 
-    def get_status(self, status):
+    @classmethod
+    def get_status(cls, status):
         active = ("идёт приём заявок", "идет прием заявок")
         pending = ("объявлены", "объявлен", "на утверждении")
         ended = (
@@ -57,15 +53,7 @@ class Combo:
             return "pending"
         elif status in ended:
             return "ended"
-
-    def get_paths(self, data_origin_url: str):
-        current_path_absolute = None
-        current_path_relative = None
-        for k, v in data_origin.items():
-            if v == data_origin_url:
-                current_path_absolute = path_absolute[k]
-                current_path_relative = path_relative[k]
-        return current_path_relative, current_path_absolute
+        return None
 
     def download(self):
         files = list()
@@ -99,7 +87,7 @@ class Combo:
             trading_type = re.findall(
                 r"[А-ЯA-Z]+", trading_type[0].replace("-", "").strip()
             )
-            trading_type = trading_type[0].strip()
+            trading_type = trading_type[0].strip().removesuffix("АИ")
             if trading_type in offer and trading_type in open_form:
                 return "offer", "open"
             if trading_type in offer and trading_type in close_form:
@@ -112,36 +100,32 @@ class Combo:
                 return "competition", "open"
             if trading_type in competition and trading_type in close_form:
                 return "competition", "closed"
-        logger.error(
-            f"{self.response.url} :: ERROR function self.trading_type_and_form"
-        )
+        logger.warning(f"{self.response.url} | function self.trading_type_and_form")
         return None
 
     @property
     def trading_org(self):
-        try:
-            td_org = dedent_func(
-                self.response.xpath(self.loc.trading_org_loc).get()
-            ).strip()
-            return "".join(re.sub(r"\s+", " ", td_org))
-        except:
-            logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
-            )
+        org = (
+            self.response.xpath(self.loc.trading_org_loc).get()
+            or self.response.xpath(self.loc.trading_org_loc_2).get()
+        )
+        if not org:
+            logger.warning(f"{self.response.url} | Couldn't get trading_org")
             return None
+        td_org = dedent_func(org).strip()
+        return "".join(re.sub(r"\s+", " ", td_org))
 
     @property
     def trading_org_inn(self):
         try:
             td_org_inn = self.response.xpath(self.loc.trading_org_inn_loc).get()
             if td_org_inn:
-                return CheckIfCorrectContactInfo.check_inn(
-                    dedent_func(td_org_inn.strip())
-                )
-        except:
+                return Contacts.check_inn(dedent_func(td_org_inn.strip()))
+        except Exception:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER INN", exc_info=True
+                f"{self.response.url} | INVALID DATA ORGANIZER INN", exc_info=True
             )
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -156,27 +140,25 @@ class Combo:
         return {"email": email, "phone": phone}
 
     def get_phone_number(self):
-        """get phone number of organizer"""
         try:
             phone = (
                 dedent_func(self.response.xpath(self.loc.phone_org_loc).get())
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_phone(phone)
-        except:
+            return Contacts.check_phone(phone)
+        except Exception:
             return None
 
     def get_email(self):
-        """get email of organizer"""
         try:
             email = (
                 dedent_func(self.response.xpath(self.loc.email_org_loc).get())
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_email(email)
-        except:
+            return Contacts.check_email(email)
+        except Exception:
             return None
 
     @property
@@ -184,113 +166,115 @@ class Combo:
         msg = self.response.xpath(self.loc.msg_number_loc).get()
         if msg:
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
+        return None
 
     @property
     def case_number(self):
-        return CheckIfCorrectContactInfo.check_case_number(
-            dedent_func(self.response.xpath(self.loc.case_number_loc).get())
-        )
+        case_number = self.response.xpath(self.loc.case_number_loc).get()
+        if not case_number:
+            logger.warning(f"{self.response.url} | case_number not found")
+            return None
+        return Contacts.check_case_number(case_number.strip())
 
     @property
     def debtor_inn(self):
-        try:
-            inn = self.response.xpath(self.loc.debitor_inn_loc).get()
-            if not inn:
-                return
-            trade_inn = dedent_func(inn)
-            pattern = re.compile(r"\d{10,12}")
-            if pattern:
-                return "".join(pattern.findall(trade_inn))
-        except:
+        inn = (
+            self.response.xpath(self.loc.debitor_inn_loc).get()
+            or self.response.xpath(self.loc.debitor_inn_loc_2).get()
+        )
+        if not inn:
+            logger.warning(f"{self.response.url} | debtor_inn not found")
             return None
+        return Contacts.check_inn(inn.strip())
 
     @property
     def address(self):
-        try:
-            return dedent_func(self.response.xpath(self.loc.region_loc).get())
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA DEBTOR ADDRESS")
+        address = self.response.xpath(self.loc.region_loc).get()
+        if not address:
+            logger.warning(f"{self.response.url} | address not found")
+            return None
+        return dedent_func(address)
 
     @property
     def arbit_manager(self):
-        try:
-            arbit_manager = self.response.xpath(self.loc.arbit_manager_loc).get()
-            if arbit_manager is None:
-                return
-            arbit_manager = dedent_func(arbit_manager).strip()
-            return "".join(re.sub(r"\s+", " ", arbit_manager))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
+        arbit_manager = self.response.xpath(self.loc.arbit_manager_loc).get()
+        if not arbit_manager:
+            logger.warning(f"{self.response.url} | arbit_manager not_found")
+            return None
+        arbit_manager = dedent_func(arbit_manager)
+        return "".join(re.sub(r"\s+", " ", arbit_manager))
 
     @property
     def arbit_manager_inn(self):
-        try:
-            arbitr_inn = dedent_func(
-                self.response.xpath(self.loc.arbit_manager_inn_loc).get()
-            )
-            pattern = re.compile(r"\d{10,12}")
-            if pattern:
-                return "".join(pattern.findall(arbitr_inn))
-        except:
-            pass
+        inn = self.response.xpath(self.loc.arbit_manager_inn_loc).get()
+        if not inn:
+            logger.warning(f"{self.response.url} | arbit_manager_inn not found")
+            return None
+        inn = dedent_func(inn)
+        return Contacts.check_inn(inn.strip())
 
     @property
     def arbit_manager_org(self):
-        try:
-            td_company = dedent_func(
-                self.response.xpath(self.loc.arbit_manager_org_loc).get()
+        org = self.response.xpath(self.loc.arbit_manager_org_loc).get()
+        if not org:
+            logger.warning(f"{self.response.url} | arbit_manager_org not found")
+            return None
+        if "(" in org:
+            org = "".join(
+                [
+                    x if len(org) > 0 else None
+                    for x in re.split(r"\(", org, maxsplit=1)[0]
+                ]
             )
-            if td_company != "None":
-                if "(" in td_company:
-                    td_company = "".join(
-                        [
-                            x if len(td_company) > 0 else None
-                            for x in re.split(r"\(", td_company, maxsplit=1)[0]
-                        ]
-                    )
-                return "".join(dedent_func(td_company))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
+        return "".join(dedent_func(org))
 
     @property
     def short_name(self):
-        try:
-            short_name = dedent_func(self.response.xpath(self.loc.short_name_loc).get())
-            if short_name != "None":
-                return short_name
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - SHORT NAME")
+        short_name = (
+            self.response.xpath(self.loc.short_name_loc).get()
+            or self.response.xpath(self.loc.short_name_loc_2).get()
+        )
+        if not short_name:
+            logger.warning(f"{self.response.url} | short_name not found")
             return None
+        return dedent_func(short_name)
 
     @property
     def lot_info(self):
-        try:
-            return dedent_func(self.response.xpath(self.loc.lot_info_loc).get())
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - LOT INFO")
+        lot_info = (
+            self.response.xpath(self.loc.lot_info_loc).get()
+            or self.response.xpath(self.loc.lot_info_loc_2).get()
+        )
+        if not lot_info:
+            logger.warning(f"{self.response.url} | lot_info not found")
+            return None
+        return dedent_func(lot_info)
 
     @property
     def property_information(self):
-        try:
-            property_info = dedent_func(
-                self.response.xpath(self.loc.property_information_loc).get()
-            )
-            if property_info != "None":
-                return property_info
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA - PROPERTY INFO")
+        property_information = self.response.xpath(
+            self.loc.property_information_loc
+        ).get()
+        if not property_information:
+            logger.warning(f"{self.response.url} | property_information not found")
+            return None
+        return dedent_func(property_information)
 
     @property
     def start_date_requests(self):
         date = self.response.xpath(self.loc.start_date_requests_loc).get()
-        if date:
-            return format_time(date)
+        if not date:
+            logger.warning(f"{self.response.url} | start_date_requests not found")
+            return None
+        return format_time(date)
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(self.loc.end_date_requests_loc).get()
-        if date:
-            return format_time(date)
+        if not date:
+            logger.warning(f"{self.response.url} | end_date_requests not found")
+            return None
+        return format_time(date)
 
     @property
     def start_price(self):
@@ -301,15 +285,15 @@ class Combo:
                     p = re.sub(
                         r"\s", "", dedent_func(p.strip()).replace(",", ".").rstrip(".")
                     )
-                    p = "".join([x for x in p if x.isdigit() or x == "."])
+                    p = "".join([x for x in p if x.isdigit() or x == "."]).rstrip(".")
                     if len(p) > 0:
                         return round(float(p), 2)
             except Exception as e:
-                logger.warning(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
+                logger.warning(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
+        return None
 
     @property
     def step_price(self):
-        """return start price"""
         try:
             p = self.response.xpath(self.loc.step_price_auc_loc).get()
             if p:
@@ -320,8 +304,13 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except ValueError as e:
-            logger.error(f"{self.response.url} :: INVALID DATA STEP PRICE\n{e}")
+            logger.warning(f"{self.response.url} | INVALID DATA STEP PRICE\n{e}")
+        return None
 
     @property
     def categories(self):
-        return self.response.xpath(self.loc.categories_loc).get().strip()
+        categories = self.response.xpath(self.loc.categories_loc).getall()
+        if not categories:
+            logger.warning(f"{self.response.url} | categories not found")
+            return None
+        return dedent_func(categories)

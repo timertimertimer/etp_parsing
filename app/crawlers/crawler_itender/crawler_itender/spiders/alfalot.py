@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable
 from scrapy import Request
-from general_utils.config import trash_resources, write_log_to_file
+from app.utils.config import trash_resources, write_log_to_file
 from .base import ItenderBaseSpider
 
 logger = logging.getLogger(__name__)

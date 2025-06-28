@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from sqlalchemy import Enum as SAEnum
 
-class AuctionProperty(str, Enum):
+class AuctionPropertyType(str, Enum):
     bankruptcy = "bankruptcy"
 
     arrested = "arrested"
@@ -40,6 +40,7 @@ class Auction(Base):
     __tablename__ = "auctions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    property_type: Mapped[str] = mapped_column(SAEnum(AuctionPropertyType), default=AuctionPropertyType.bankruptcy)
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)
     number: Mapped[str] = mapped_column(String(255), nullable=True)

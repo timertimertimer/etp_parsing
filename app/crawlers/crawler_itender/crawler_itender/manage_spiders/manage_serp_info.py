@@ -2,11 +2,8 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import UrlConfig
+from app.utils import URL, logger
 from ..locators.serp_locator import LocatorSerp
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class SerpPageSearchInfo:
@@ -27,7 +24,7 @@ class SerpPageSearchInfo:
             for a in _a:
                 set_link.add(a)
             return sorted(list(set_link))
-        except:
+        except Exception:
             pass
 
     def fetch_pagination_links_lot_page(self):
@@ -37,7 +34,7 @@ class SerpPageSearchInfo:
             for a in _a:
                 set_link.add(a)
             return sorted(list(set_link))
-        except:
+        except Exception:
             pass
 
     def get_href_post(self):
@@ -48,18 +45,17 @@ class SerpPageSearchInfo:
                 a = BS(str(a), features="lxml").find("a")
                 if a:
                     a_href = "".join(
-                        re.findall(r"ctl.*\d", UrlConfig.unquote_url(a.get("href")))
+                        re.findall(r"ctl.*\d", URL.unquote_url(a.get("href")))
                     )
                     a_text = a.get_text()
                     lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
             return lst_href, lst_num_page
-        except:
-            logger.error(f"{self.response.url} :: ")
+        except Exception:
+            logger.warning(f"{self.response.url} :: ")
             return []
 
     def get_href_post_lot_page(self):
-        """get post data (href) for pagination"""
         try:
             lst_num_page = list()
             lst_href = list()
@@ -67,19 +63,19 @@ class SerpPageSearchInfo:
                 a = BS(str(a), features="lxml").find("a")
                 if a:
                     a_href = "".join(
-                        re.findall(r"ctl.*\d", UrlConfig.unquote_url(a.get("href")))
+                        re.findall(r"ctl.*\d", URL.unquote_url(a.get("href")))
                     )
                     a_text = a.get_text()
                     lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
                     if len(lst_href) > 0:
                         return lst_href, lst_num_page
-        except:
-            logger.error(f"{self.response.url} :: ")
+        except Exception:
+            logger.warning(f"{self.response.url} :: ")
             return []
+        return None
 
     def get_current_page(self):
-        """get current pge number <span>"""
         try:
             number = self.soup.find("td", class_="pager")
             if number:
@@ -89,21 +85,20 @@ class SerpPageSearchInfo:
                     if number.isdigit():
                         return number
                     else:
-                        logger.error("NOT A NUMBER")
+                        logger.warning("NOT A NUMBER")
                         return None
             else:
                 number = "1"
-                # logger.error(f'{self.response.url} :: ERROR CURRENT PAGE')
                 return number
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR CURRENT PAGE\n{e}", exc_info=True
             )
             with open("error_current_page.txt", "w") as f:
                 f.write(self.response.text)
+        return None
 
     def get_next_page(self):
-        """get next page or sign >>"""
         try:
             next_page = self.soup.find("td", class_="pager")
             if next_page:
@@ -121,12 +116,12 @@ class SerpPageSearchInfo:
             else:
                 return 0
         except Exception as e:
-            logger.error(f"{self.response.url}\n{e} ::: get_next_page", exc_info=True)
+            logger.warning(f"{self.response.url}\n{e} ::: get_next_page", exc_info=True)
             with open("error_next_page.txt", "w") as f:
                 f.write(self.response.text)
+        return None
 
     def get_previous_page(self):
-        """get next page or sign >>"""
         try:
             previous = self.soup.find("td", class_="pager")
             if previous:
@@ -142,14 +137,14 @@ class SerpPageSearchInfo:
             else:
                 return 0
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url}\n{e} ::: get_previous_page", exc_info=True
             )
             with open("error_previous_page.txt", "w") as f:
                 f.write(self.response.text)
+        return None
 
     def body_scripts(self):
-        """get href form a for first post param"""
         try:
             next_page = self.soup.find("td", class_="pager")
             if next_page:
@@ -164,14 +159,13 @@ class SerpPageSearchInfo:
                 if a:
                     a_href = "".join(re.findall(r"ctl.*\d", a.get("href")))
                     return a_href
-
         except Exception as e:
-            logger.error(f"{self.response.url}\n{e} :: body_script", exc_info=True)
+            logger.warning(f"{self.response.url}\n{e} :: body_script", exc_info=True)
             with open("body_scripts.txt", "w") as f:
                 f.write(self.response.text)
+        return None
 
     def body_scripts_1st_page(self):
-        """get href form a for first post param"""
         try:
             td = self.soup.find("td", class_="pager")
             if td:
@@ -183,45 +177,42 @@ class SerpPageSearchInfo:
                         a_href = "".join(re.findall(r"ctl.*\d", a))
                         return a_href
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url}\n{e} :: body_scripts_1st_page", exc_info=True
             )
             with open("body_scripts_1st_page.txt", "w") as f:
                 f.write(self.response.text)
+        return None
 
     def get_tr_lot_data_serp(self):
-        """get list with rows that contains link and lot number"""
         try:
             lst_data_links = self.soup.find_all("tr", class_="gridRow")
             if len(lst_data_links) > 0:
                 return lst_data_links
         except Exception as e:
-            logger.error(f"{self.response}\n{e}", exc_info=True)
+            logger.warning(f"{self.response}\n{e}", exc_info=True)
+        return None
 
     def get_max_page_pagination(self) -> str or None:
-        """get the last span(text) with number of page(the last page)"""
         try:
             num = self.response.xpath(self.loc.max_page_number_loc).get()
             if num:
                 if len(num) == 1:
                     return num.strip()
             return None
-        except:
+        except Exception:
             return None
 
     def get_link_to_lot(self, current_page, data_origin) -> list or None:
-        """:returns links to lots"""
         try:
             lst_link_lot = list()
             if self.get_tr_lot_data_serp():
                 for tr in self.get_tr_lot_data_serp():
-                    # td[0] -> contains part of link to lot page
                     link = BS(str(tr), features="lxml").find_all("td")[0].find("a")
                     if link:
                         link = link.get("href")
                         if link:
-                            link = UrlConfig.url_join(data_origin, link)
-                    # td[2] -> contains lot number
+                            link = URL.url_join(data_origin, link)
                     lot_ = BS(str(tr), features="lxml").find_all("td")[2].find("a")
                     if lot_:
                         lot = lot_.get_text()
@@ -229,24 +220,22 @@ class SerpPageSearchInfo:
                         if lot.isdigit():
                             lot = lot
                         else:
-                            logger.error(
+                            logger.warning(
                                 f"{link} :: current page {current_page} :: WITHOUT LOT NUMBER"
                             )
                             return list()
                         lst_link_lot.append(
-                            (link, lot, UrlConfig.url_join(data_origin, lot_link))
+                            (link, lot, URL.url_join(data_origin, lot_link))
                         )
                 return lst_link_lot
             else:
                 return list()
         except Exception as e:
-            logger.error(f"{self.response.url}:: get_link_to_lot:::{e}", exc_info=True)
+            logger.warning(f"{self.response.url}:: get_link_to_lot:::{e}", exc_info=True)
             return list()
 
     def find_error_page(self):
-        """if error text present on page"""
         error_text = "В приложении произошла ошибка"
         if error_text in self.response.text:
             return f"{self.response.url} :: НЕВОЗМОЖНО ОТОБРАЗИТЬ СТРАНИЦУ"
-        else:
-            return None
+        return None

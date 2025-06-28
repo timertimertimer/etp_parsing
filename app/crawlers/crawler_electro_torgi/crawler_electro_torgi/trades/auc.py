@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from general_utils import format_time
+from app.utils import format_time
 
 
 class Auc:
@@ -16,6 +16,7 @@ class Auc:
         if date:
             date = BeautifulSoup(date, "lxml").get_text().strip()
             return format_time(date)
+        return None
 
     @property
     def end_date_trading(self):
@@ -25,3 +26,4 @@ class Auc:
         if date:
             date = BeautifulSoup(date, "lxml").get_text().strip()
             return format_time(date)
+        return None

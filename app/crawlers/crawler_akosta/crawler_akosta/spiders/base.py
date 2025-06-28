@@ -13,8 +13,7 @@ from ..utils.config import (
     common_link,
     debtor_link,
     lot_link,
-    _link_post_period,
-    auction_property_type_number_map,
+    _link_post_period, urls
 )
 from ..utils.post_data import (
     post_data_date_query,
@@ -25,20 +24,20 @@ from ..utils.post_data import (
     post_data_lot_tab,
     post_data_unique_lot_page,
     post_data_period_offer_page,
+    property_type_sgtable_id_map,
 )
 
 
 class AkostaBaseSpider(BaseSpider):
     name = "akosta"
-    auction_property = None
-    start_urls = ["https://www.akosta.info/akosta/lots.xhtml"]
+    property_type = None
 
     def __init__(self):
         super(AkostaBaseSpider, self).__init__(data_origin, Auction.ext_id)
 
     def start_requests(self):
         yield Request(
-            f"{self.start_urls[0]}?sgUnid={auction_property_type_number_map[self.auction_property]}",
+            urls[self.property_type],
             self.parse,
         )
 
@@ -50,6 +49,7 @@ class AkostaBaseSpider(BaseSpider):
         post_data_date_query["formMain:inputServerTime"] = return_servertime()
         post_data_date_query["javax.faces.ViewState"] = viewstate
         post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
+        post_data_date_query[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
         yield FormRequest(
             self.start_urls[0],
             callback=self.refresh_from_date,
@@ -68,6 +68,7 @@ class AkostaBaseSpider(BaseSpider):
         post_data_panel_list_query["formMain:inputServerTime"] = return_servertime()
         post_data_panel_list_query["javax.faces.ViewState"] = viewstate
         post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
+        post_data_panel_list_query[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
         yield FormRequest.from_response(
             response,
             callback=self.refresh_panel_list,
@@ -138,6 +139,7 @@ class AkostaBaseSpider(BaseSpider):
                 post_data_pagination["formMain:lotListTable_first"] = str(data_lots)
                 post_data_pagination["formMain:inputServerTime"] = return_servertime()
                 post_data_pagination["javax.faces.ViewState"] = viewstate
+                post_data_pagination[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
                 yield FormRequest(
                     response.url,
                     callback=self.parse_panel_list,
@@ -430,7 +432,7 @@ class AkostaBaseSpider(BaseSpider):
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", transfer["data_origin"])
-        loader.add_value("auction_property", self.auction_property)
+        loader.add_value("property_type", self.property_type)
         loader.add_value("trading_id", transfer["trading_id"])
         loader.add_value("trading_link", transfer["trading_link"])
         loader.add_value("trading_type", transfer["trading_type"])

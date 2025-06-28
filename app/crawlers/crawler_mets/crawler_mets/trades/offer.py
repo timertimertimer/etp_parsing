@@ -1,21 +1,19 @@
-import logging
 import pathlib
 import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils import (
+from app.utils import (
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     normalize_string,
     format_time,
-    UrlConfig,
+    URL,
+    logger,
 )
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 from ..locators.trade_locator import TradeLocator
 from ..config import data_origin_url
-
-logger = logging.getLogger(__name__)
 
 
 class OfferParse:
@@ -41,7 +39,7 @@ class OfferParse:
         div = BS(str(div), features="lxml").get_text()
         match = "".join(re.findall(r"\d+\-\w+", str(div)))
         if len(match) < 0:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING NUMBER")
+            logger.warning(f"{self.response.url} | Couldn\'t parse trading_number")
         else:
             return match
 
@@ -57,10 +55,11 @@ class OfferParse:
             td_org = self.response.xpath(TradeLocator.trading_organ_loc).get()
             td_org = dedent_func(BS(str(td_org), features="lxml").get_text()).strip()
             return "".join(re.sub(r"\s+", " ", td_org))
-        except:
+        except Exception as e:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+                f"{self.response.url} | Couldn\'t parse trading_org. Error: {e}", exc_info=True
             )
+        return None
 
     @property
     def trading_org_inn(self):
@@ -74,7 +73,6 @@ class OfferParse:
         )
 
     def get_phone_number(self):
-        """get phone number of organizer"""
         try:
             phone = self.response.xpath(TradeLocator.phone_organ_loc).get()
             phone = (
@@ -82,9 +80,10 @@ class OfferParse:
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_phone(phone)
-        except:
+            return Contacts.check_phone(phone)
+        except Exception:
             pass
+        return None
 
     def get_email(self):
         try:
@@ -94,9 +93,10 @@ class OfferParse:
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_email(email)
-        except:
+            return Contacts.check_email(email)
+        except Exception:
             pass
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -115,7 +115,7 @@ class OfferParse:
         td_msg = self.response.xpath(TradeLocator.msg_number_loc).get()
         try:
             if not td_msg:
-                return
+                return None
             td_msg = (
                 "".join(BS(str(td_msg), features="lxml").get_text())
                 .replace(",", " ")
@@ -141,8 +141,9 @@ class OfferParse:
                     [n if int(n) or n == " " else "" for n in (re.split(r"\s", msg))]
                 )
                 return msg
-        except:
-            logger.warning(f"{self.response.url}:: INVALID DATA MSG_NUMBER")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | Couldn\'t parse msg_number. Error: {e}")
+        return None
 
     @property
     def case_number(self):
@@ -157,8 +158,9 @@ class OfferParse:
             )
             if len(case_) < 42:
                 return dedent_func(case_)
-        except:
-            logger.warning(f"{self.response.url}:: INVALID CASE_NUMBER")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | Couldn\'t parse case_number. Error: {e}")
+        return None
 
     @property
     def debitor_inn(self):
@@ -172,8 +174,9 @@ class OfferParse:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(trade_inn))
-        except:
+        except Exception:
             pass
+        return None
 
     @property
     def arbitr_manager_org(self):
@@ -184,8 +187,9 @@ class OfferParse:
             td_org = dedent_func(BS(str(td_org), features="lxml").get_text()).strip()
             if td_org != "None":
                 return "".join(re.sub(r"\s+", " ", td_org))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
+        except Exception:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME")
+        return None
 
     @property
     def arbitr_inn(self):
@@ -197,8 +201,9 @@ class OfferParse:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(arbitr_inn))
-        except:
+        except Exception:
             pass
+        return None
 
     @property
     def arbitr_org(self):
@@ -216,8 +221,9 @@ class OfferParse:
                         ]
                     )
                 return "".join(dedent_func(td_company))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
+        except Exception:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR COMPANY")
+        return None
 
     @property
     def count_lots(self):
@@ -256,12 +262,12 @@ class OfferParse:
         for k, v in d.items():
             if status in v:
                 return k
-        return
+        return None
 
     def lot_id(self, lot):
         id_ = BS(lot, features="lxml").find("div", class_="lot-regnumber")
         if not id_:
-            return
+            return None
         return id_.get_text(strip=True).removeprefix("Идентификационный номер: ")
 
     def lot_link(self, lot_num):
@@ -275,13 +281,13 @@ class OfferParse:
             TradeLocator.short_name_loc.format(lot_num)
         ).get()
         if not short_name:
-            return
+            return None
         return dedent_func(BS(str(short_name), features="lxml").get_text())
 
     def lot_info(self, lot_num: str):
         lot_info = self.response.xpath(TradeLocator.lot_info_loc.format(lot_num)).get()
         if not lot_info:
-            return
+            return None
         return dedent_func(BS(str(lot_info), features="lxml").get_text())
 
     @property
@@ -292,12 +298,13 @@ class OfferParse:
         address = BS(str(address), features="lxml").get_text(strip=True)
         if address:
             return address
+        return None
 
     @property
     def property_info(self):
         property_info = self.response.xpath(TradeLocator.property_info_loc).get()
         if not property_info:
-            return
+            return None
         return dedent_func(BS(str(property_info), features="lxml").get_text())
 
     def start_price(self, lot_num: str):
@@ -315,13 +322,14 @@ class OfferParse:
             if match:
                 return round(float(match), 2)
             else:
-                logger.error(
-                    f"{self.response.url} :: INVALID DATA START PRICE - LOT {lot_num}"
+                logger.warning(
+                    f"{self.response.url} | INVALID DATA START PRICE - LOT {lot_num}"
                 )
-        except:
-            logger.error(
-                f"{self.response.url} :: LOT {lot_num} INVALID DATA - START PRICE - LOT {lot_num}"
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | LOT {lot_num} INVALID DATA - START PRICE - LOT {lot_num}"
             )
+        return None
 
     def period_table(self, lot_num: str):
         try:
@@ -334,11 +342,11 @@ class OfferParse:
                 for span in class_shortdate:
                     span.decompose()
             return pd.read_html(str(soup).replace(",", "."), header=None)[0]
-        except:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA PERIOD TABLE - LOT {lot_num}",
-                exc_info=True,
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | INVALID DATA PERIOD TABLE - LOT {lot_num}"
             )
+        return None
 
     def get_period(self, lot_num):
         periods = list()
@@ -358,8 +366,8 @@ class OfferParse:
                     "current_price": price,
                 }
                 periods.append(period)
-            except:
-                logger.error(f"{self.response.url}", exc_info=True)
+            except Exception:
+                logger.warning(f"{self.response.url}", exc_info=True)
                 continue
         return periods
 
@@ -367,26 +375,28 @@ class OfferParse:
         try:
             table = self.period_table(lot_num)
             return format_time(table.iloc[0][1])
-        except:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA START DATE REQUEST LOT {lot_num}"
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | INVALID DATA START DATE REQUEST LOT {lot_num}"
             )
+        return None
 
     def end_date_request(self, lot_num):
         try:
             table = self.period_table(lot_num)
             return format_time(table.iloc[-1][2])
-        except:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA END DATE REQUEST LOT {lot_num}"
+        except Exception:
+            logger.warning(
+                f"{self.response.url} | INVALID DATA END DATE REQUEST LOT {lot_num}"
             )
+        return None
 
     def download(self):
         files = list()
         for file in self.response.xpath(TradeLocator.general_files_loc).getall():
             link = BS(str(file), features="lxml").find("a").get("href")
             name = BS(str(file), features="lxml").find("a").get_text()
-            parse_link = UrlConfig.parse_url(UrlConfig.url_join(data_origin_url, link))
+            parse_link = URL.parse_url(URL.url_join(data_origin_url, link))
             if any(
                 [
                     (len(name) < 3),
