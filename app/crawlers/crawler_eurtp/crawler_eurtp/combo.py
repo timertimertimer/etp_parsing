@@ -1,13 +1,10 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
 
-from .config import data_origin
-from general_utils import format_time, UrlConfig, dedent_func, CheckIfCorrectContactInfo
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from .config import data_origin_url
+from app.utils import format_time, URL, dedent_func, Contacts, logger
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -34,7 +31,8 @@ class Combo:
                         continue
                     return row.select("td")[1].get_text().strip()
                 except Exception:
-                    return
+                    pass
+        return None
 
     def download(self):
         files = list()
@@ -43,7 +41,7 @@ class Combo:
         ).select("tr")[1:]:
             t = row.find_all("td")
             name = t[2].get_text(strip=True)
-            link = UrlConfig.url_join(data_origin, t[5].find("a").get("href"))
+            link = URL.url_join(data_origin_url, t[5].find("a").get("href"))
             files.append(DownloadData(url=link, file_name=name))
         return files
 
@@ -62,29 +60,32 @@ class Combo:
     @property
     def trading_type(self):
         trading_type = self.response.css("h1::text").get()
-        if trading_type.strip() in ["Публичное предложение"]:
+        if not trading_type:
+            return None
+        trading_type = trading_type.strip()
+        if trading_type in ["Публичное предложение"]:
             trading_type = "offer"
-
-        elif trading_type.strip() in [
+        elif trading_type in [
             "Открытый аукцион",
             "Закрытый аукцион",
             "Аукцион с закрытой формой представления цены",
         ]:
             trading_type = "auction"
-
-        elif trading_type.strip() in ["Конкурс"]:
+        elif trading_type in ["Конкурс"]:
             trading_type = "competition"
         else:
-            return
+            return None
         return trading_type
 
     @property
     def trading_form(self):
         trading_form = self.response.css("h1::text").get()
-        if trading_form.strip() in ["Закрытый аукцион"]:
+        if not trading_form:
+            return None
+        trading_form = trading_form.strip()
+        if trading_form in ["Закрытый аукцион"]:
             trading_form = "closed"
-
-        elif trading_form.strip() in [
+        elif trading_form in [
             "Публичное предложение",
             "Открытый аукцион",
             "Конкурс",
@@ -92,7 +93,7 @@ class Combo:
         ]:
             trading_form = "open"
         else:
-            return
+            return None
         return trading_form
 
     @property
@@ -102,13 +103,13 @@ class Combo:
     @property
     def trading_org_contacts(self):
         return {
-            "email": CheckIfCorrectContactInfo.check_email(
+            "email": Contacts.check_email(
                 self.get_table_value(
                     "Контактное лицо",
                     "Адрес электронной почты",
                 )
             ),
-            "phone": CheckIfCorrectContactInfo.check_phone(
+            "phone": Contacts.check_phone(
                 self.get_table_value(
                     "Контактное лицо",
                     "Телефон",
@@ -118,7 +119,7 @@ class Combo:
 
     @property
     def case_number(self):
-        return CheckIfCorrectContactInfo.check_case_number(
+        return Contacts.check_case_number(
             self.get_table_value(
                 "Информация о должнике",
                 "Номер дела о банкротстве",
@@ -142,7 +143,8 @@ class Combo:
             ),
         ]:
             if el:
-                return CheckIfCorrectContactInfo.check_inn(el)
+                return Contacts.check_inn(el)
+        return None
 
     @property
     def address(self):
@@ -150,7 +152,8 @@ class Combo:
             "Информация о должнике", "Наименование арбитражного суда"
         )
         if address:
-            return CheckIfCorrectContactInfo.check_address(address)
+            return Contacts.check_address(address)
+        return None
 
     @property
     def arbit_manager(self):
@@ -179,12 +182,12 @@ class Combo:
                 if part_name == pn:
                     arbit_manager.append(part_name)
         if len(result) == 0:
-            return
+            return None
         return dedent_func(" ".join(arbit_manager))
 
     @property
     def arbit_manager_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.get_table_value(
                 "Информация об арбитражном управляющем",
                 "ИНН",
@@ -306,10 +309,11 @@ class Combo:
     def end_date_trading(self):
         if len(self.periods) != 0:
             return self.periods[-1]["end_date_requests"]
+        return None
 
     def clean_price(self, price):
         if "%" in price:
-            return
+            return None
         return float(price.replace(" ", "").replace("руб.", "").replace(",", "."))
 
     @property
@@ -338,19 +342,19 @@ class Combo:
             ),
         ]
         if all([p is None for p in price]):
-            return
+            return None
         if all([p is not None for p in price[1:]]):
-            return
+            return None
         if price[0] == "Проценты" and price[1] is not None:
             number = re.search(r"\d+", price[1]).group()
             return round(self.start_price * 0.01 * int(number), 2)
         elif price[0] == "Проценты" and price[2] is not None:
             return round(self.start_price * 0.01 * int(price[2]), 2)
-
         if price[0] == "Рубли" and price[1] is not None:
             return self.clean_price(price[1])
         elif price[0] == "Рубли" and price[2] is not None:
             return self.clean_price(price[2])
+        return None
 
     @property
     def periods(self):

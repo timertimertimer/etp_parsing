@@ -13,6 +13,7 @@ from .contacts import Contacts
 from .config import env, indexes_path
 from .logger import logger
 from app.db.db_helper import DBHelper
+from app.db.models import Region
 
 punctuation = r"""!"#$%&'()*+,./:;<=>?@[\]^_`{|}~"""
 

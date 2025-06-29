@@ -59,14 +59,14 @@ class Fedresurs:
                 requests.exceptions.ReadTimeout,
             ) as e:
                 if i + 1 == retry_count:
-                    logger.warning(f"Connection error: {e}. All attempts failed")
+                    logger.warning(f"{url} | Connection error: {e}. All attempts failed")
                     raise e
-                logger.warning(f"Connection error: {e}. Trying again. Attempt {i + 1}")
+                logger.warning(f"{url} | Connection error: {e}. Trying again. Attempt {i + 1}")
             except requests.exceptions.HTTPError as e:
                 if i + 1 == retry_count:
-                    logger.warning(f"HTTP error: {e}. All attempts failed")
+                    logger.warning(f"{url} | HTTP error: {e}. All attempts failed")
                     raise e
-                logger.warning(f"HTTP error: {e}. Trying again. Attempt {i + 1}")
+                logger.warning(f"{url} | HTTP error: {e}. Trying again. Attempt {i + 1}")
                 if response.status_code == 429:
                     proxy = choice(proxies)
                     proxy_dict = {
@@ -111,15 +111,16 @@ class Fedresurs:
         params: dict = None,
         headers: dict = None,
     ):
+        url = f"{url or self.BACKEND_URL}{f'/{path}' if len(path) else ''}"
         data = self.make_request(
-            f"{url or self.BACKEND_URL}{f'/{path}' if len(path) else ''}",
+            url,
             params={"searchString": search_string, "limit": 15, "offset": 0}
             | (params or {}),
             headers=headers or self.HEADERS,
         )
         if not (data := data.get("pageData")):
-            logger.warning(f"Not found guid for {search_string}")
-            return
+            logger.info(f"{url} {params} | Not found guid for {search_string}")
+            return None
         return data
 
 
@@ -164,7 +165,7 @@ class CounterpartyFedresurs(Fedresurs):
 
     def parse(self) -> None:
         if not self.main():
-            logger.warning(f"Not found {self.data.get('name') or self.data.get('inn')}")
+            logger.info(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
 
@@ -173,6 +174,7 @@ class CounterpartyFedresurs(Fedresurs):
             data = self.make_request(f"{self.BACKEND_URL}/{self.data['guid']}/main")
             self.data["short_name"] = data.get("name")
             return data
+        return None
 
     def parse_main_info(self) -> None:
         data = self.make_request(f"{self.BACKEND_URL}/{self.data['guid']}")
@@ -273,18 +275,19 @@ class PersonFedresurs(CounterpartyFedresurs):
 
     def parse(self) -> None:
         if not (data := self.main()):
-            logger.warning(f"Not found {self.data.get('name') or self.data.get('inn')}")
+            logger.info(f"Not found {self.data.get('name') or self.data.get('inn')}")
             return
         self.parse_main_info()
         self.parse_ogrnip()
 
     def parse_ogrnip(self) -> None:
+        url = f"{self.BACKEND_URL}/{self.data['guid']}/individual-entrepreneurs"
         data = self.make_request(
-            f"{self.BACKEND_URL}/{self.data['guid']}/individual-entrepreneurs",
+            url,
             params={"limit": 1, "offset": 0},
         )
         if not (data := data.get("pageData")):
-            logger.warning(f"Not found ogrnip data for {self.data['name']}")
+            logger.info(f"{url} | Not found ogrnip data for {self.data['name']}")
             return
         data = data[0]
         self.data["ogrnip"] = data["ogrnip"]
@@ -310,9 +313,10 @@ class ArbitrManagerFedresurs(PersonFedresurs):
             )
             if data:
                 if len(data) > 1:
-                    return
+                    return None
                 self.data["guid"] = data[0]["guid"]
                 return self.data["guid"]
+        return None
 
 
 class PersonOrganizerFedresurs(PersonFedresurs):
@@ -325,9 +329,10 @@ class PersonOrganizerFedresurs(PersonFedresurs):
         )
         if data:
             if len(data) > 1:
-                return
+                return None
             self.data["guid"] = data[0]["guid"]
             return self.data["guid"]
+        return None
 
 
 class CompanyOrganizerFedresurs(CompanyFedresurs):
@@ -340,9 +345,10 @@ class CompanyOrganizerFedresurs(CompanyFedresurs):
         )
         if data:
             if len(data) > 1:
-                return
+                return None
             self.data["guid"] = data[0]["guid"]
             return self.data["guid"]
+        return None
 
 
 class TradingFloorFedresurs(CompanyFedresurs):
@@ -356,11 +362,12 @@ class TradingFloorFedresurs(CompanyFedresurs):
         if data:
             self.data["guid"] = data[0]["operator"]["guid"]
             return self.data["guid"]
+        return None
 
     def parse(self) -> dict | None:
         if not self.main():
-            logger.warning(f"Not found {self.data['name']}")
-            return
+            logger.info(f"Not found {self.data['name']}")
+            return None
         self.parse_main_info()
         self.parse_sro_membership()
         return self.data
@@ -417,7 +424,7 @@ class LegalCaseFedresurs(Fedresurs):
             params={"onlyAvailableToParticipate": True},
         )
         if not data:
-            return
+            return None
         auction_guid = data[0]["guid"]
         data = self.make_request(f"{AuctionFedresurs.BACKEND_URL}/{auction_guid}")
         return data.get("legalCase", {}).get("guid")
@@ -473,7 +480,7 @@ class AuctionFedresurs(Fedresurs):
                 ):
                     self.data["guid"] = data_["guid"]
                     return data_["guid"]
-        return
+        return None
 
     def parse(self):
         if not self.data["guid"]:
@@ -500,7 +507,7 @@ class AuctionFedresurs(Fedresurs):
         )
         if not (data := data.get("pageData")):
             logger.info(f"Not found messages for {self.data['guid']}")
-            return
+            return None
         return [message["guid"] for message in data]
 
 
@@ -550,13 +557,3 @@ def parse_counterparty(inn: str):
     counterparty = DBHelper.get_counterparty(inn=inn)
     fed_client = CompanyFedresurs(counterparty)
     fed_client.parse()
-
-from playwright.async_api import async_playwright
-
-async def webdriver():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        page = await browser.new_page()
-        await page.goto('https://2ip.ru/')
-        await page.screenshot(path='example.png')
-        await browser.close()

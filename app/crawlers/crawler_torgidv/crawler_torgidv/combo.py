@@ -1,10 +1,11 @@
+import json
 import re
 
 from bs4 import BeautifulSoup
 
 from app.utils import URL, dedent_func, Contacts, format_time, logger
 from app.db.models import DownloadData, AuctionPropertyType
-from .config import urls
+from .config import urls, data_origin_url
 from .locators.locator_trade import LocatorTrade
 
 
@@ -23,12 +24,25 @@ class Combo:
 
     def download(self):
         files = list()
-        for file in self.response.xpath(LocatorTrade.files_loc).getall():
-            link_ = BeautifulSoup(str(file), features="lxml").find("a")
-            link = link_.get("href")
-            name = link_.get_text()
+        script_content = self.response.xpath('//script[contains(text(), "new TradeDetail")]/text()').get()
+        if not script_content:
+            return files
+        match = re.search(
+            r"documents:\s*({.*?})\s*,\s*signedParameters:", script_content, re.DOTALL
+        )
+        if not match:
+            return files
+        documents_json = match.group(1)
+        try:
+            documents = json.loads(documents_json)
+        except json.JSONDecodeError as e:
+            logger.error(f"{self.response.url}: Couldn\'t parse documents {e}")
+            return None
+        for file in documents.get('items', []):
+            link = file['src']
+            name = file['file_name']
             files.append(
-                DownloadData(url=link, referer=self.response.url, file_name=name)
+                DownloadData(url=URL.url_join(data_origin_url, link), referer=self.response.url, file_name=name)
             )
         return files
 
@@ -50,25 +64,19 @@ class Combo:
             return "open"
         elif "Закрытая" in text:
             return "closed"
-        else:
-            return None
+        return None
 
     @property
     def trading_org(self):
-        try:
-            td_org = dedent_func(
-                self.response.xpath(LocatorTrade.trading_org_sro_loc).get()
-            ).strip()
-            if not td_org:
-                td_org = dedent_func(
-                    self.response.xpath(LocatorTrade.trading_org_fio_loc).get()
-                ).strip()
-            return "".join(re.sub(r"\s+", " ", td_org))
-        except Exception:
-            logger.warning(
-                f"{self.response.url} | INVALID DATA ORGANIZER", exc_info=True
-            )
-        return None
+        org = (
+                self.response.xpath(LocatorTrade.trading_org_sro_loc).get() or
+                self.response.xpath(LocatorTrade.trading_org_fio_loc).get() or
+                self.response.xpath(LocatorTrade.trading_org_fio_loc_2).get()
+        )
+        if not org:
+            return None
+        org = dedent_func(org)
+        return "".join(re.sub(r"\s+", " ", org))
 
     @property
     def trading_org_inn(self):
@@ -81,7 +89,7 @@ class Combo:
             )
             if td_org_inn:
                 return Contacts.check_inn(dedent_func(td_org_inn))
-        except Exception:
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA ORGANIZER INN", exc_info=True
             )
@@ -107,11 +115,10 @@ class Combo:
                 .strip()
             )
             return Contacts.check_phone(phone)
-        except Exception:
+        except Exception as e:
             return None
 
     def get_email(self):
-        """get email of organizer"""
         try:
             email = (
                 dedent_func(self.response.xpath(LocatorTrade.email_org_loc).get())
@@ -119,7 +126,7 @@ class Combo:
                 .strip()
             )
             return Contacts.check_email(email)
-        except Exception:
+        except Exception as e:
             return None
 
     @property
@@ -163,19 +170,20 @@ class Combo:
             return format_time(date)
         return None
 
+    def _inn(self, locator: str):
+        inn = self.response.xpath(locator).get()
+        if not inn:
+            return None
+        trade_inn = dedent_func(inn)
+        pattern = re.compile(r"\d{10,12}")
+        match = pattern.findall(trade_inn)
+        if match:
+            return "".join(match)
+        return None
+
     @property
     def debtor_inn(self):
-        try:
-            inn = self.response.xpath(LocatorTrade.debitor_inn_loc).get()
-            if not inn:
-                return None
-            trade_inn = dedent_func(inn)
-            pattern = re.compile(r"\d{10,12}")
-            if pattern:
-                return "".join(pattern.findall(trade_inn))
-        except Exception:
-            pass
-        return None
+        return self._inn(LocatorTrade.debitor_inn_loc)
 
     @property
     def address(self):
@@ -184,7 +192,7 @@ class Combo:
             if not address:
                 address = dedent_func(self.response.xpath(LocatorTrade.sud_loc).get())
             return address
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -201,41 +209,28 @@ class Combo:
             )
             arbit_manager = dedent_func(arbit_manager).strip()
             return "".join(re.sub(r"\s+", " ", arbit_manager))
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME")
         return None
 
     @property
     def arbit_manager_inn(self):
-        try:
-            arbitr_inn = dedent_func(
-                self.response.xpath(LocatorTrade.arbit_manager_inn_loc).get()
-            )
-            pattern = re.compile(r"\d{10,12}")
-            if pattern:
-                return "".join(pattern.findall(arbitr_inn))
-        except Exception:
-            pass
-        return None
+        return self._inn(LocatorTrade.arbit_manager_inn_loc)
 
     @property
     def arbit_manager_org(self):
-        try:
-            td_company = dedent_func(
-                self.response.xpath(LocatorTrade.arbit_manager_org_loc).get()
+        org = self.response.xpath(LocatorTrade.arbit_manager_org_loc).get()
+        if not org:
+            return None
+        ogr = dedent_func(org)
+        if "(" in ogr:
+            ogr = "".join(
+                [
+                    x if len(ogr) > 0 else None
+                    for x in re.split(r"\(", ogr, maxsplit=1)[0]
+                ]
             )
-            if td_company != "None":
-                if "(" in td_company:
-                    td_company = "".join(
-                        [
-                            x if len(td_company) > 0 else None
-                            for x in re.split(r"\(", td_company, maxsplit=1)[0]
-                        ]
-                    )
-                return "".join(dedent_func(td_company))
-        except Exception:
-            logger.warning(f"{self.response.url} | INVALID DATA ARBITR COMPANY")
-        return None
+        return "".join(dedent_func(ogr))
 
     @property
     def status(self):
@@ -258,7 +253,7 @@ class Combo:
             )
             if short_name != "None":
                 return short_name
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} | LOT INVALID DATA - SHORT NAME")
         return None
 
@@ -266,21 +261,16 @@ class Combo:
     def lot_info(self):
         try:
             return dedent_func(self.response.xpath(LocatorTrade.lot_info_loc).get())
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} | LOT INVALID DATA - LOT INFO")
         return None
 
     @property
     def property_information(self):
-        try:
-            property_info = dedent_func(
-                self.response.xpath(LocatorTrade.property_information_loc).get()
-            )
-            if property_info != "None":
-                return property_info
-        except Exception:
-            logger.warning(f"{self.response.url} | INVALID DATA - PROPERTY INFO")
-        return None
+        info = self.response.xpath(LocatorTrade.property_information_loc).get()
+        if not info:
+            return None
+        return dedent_func(info)
 
     @property
     def start_price(self):

@@ -1,13 +1,10 @@
-import logging
 import re
 from itertools import takewhile
 
 from bs4 import BeautifulSoup
 
-from general_utils import contains, CheckIfCorrectContactInfo, dedent_func, format_time
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from app.utils import contains, Contacts, dedent_func, format_time, logger
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -25,7 +22,8 @@ class Combo:
             )
         return files
 
-    def download_general(self):
+    @classmethod
+    def download_general(cls):
         return []
 
     @property
@@ -56,7 +54,7 @@ class Combo:
             soup.find("div", class_="value rouble").get_text()
         )
 
-        step_price = soup.find("span", class_="caption", text="Шаг повышения:")
+        step_price =soup.find("span", class_="caption", string=re.compile(r"Шаг (понижения|повышения):"))
         if step_price:
             type_ = "auction"
             step_price = (
@@ -72,9 +70,9 @@ class Combo:
         org = soup.find("span", text=contains("ОТ")).find_next("a")
         try:
             org = "".join(re.sub(r"\s+", " ", org.get_text().strip()))
-        except:
+        except Exception as e:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+                f"{self.response.url} | INVALID DATA ORGANIZER", exc_info=True
             )
 
         org_contacts = soup.find("div", class_="contacts").find_all("a")
@@ -84,11 +82,11 @@ class Combo:
             href = el.get("href")
             value = el.find("span").get_text()
             if href.startswith("tel:"):
-                phone = CheckIfCorrectContactInfo.check_phone(
+                phone = Contacts.check_phone(
                     dedent_func(value).replace(";", "").strip()
                 )
             if href.startswith("mailto:"):
-                email = CheckIfCorrectContactInfo.check_email(
+                email = Contacts.check_email(
                     dedent_func(value).replace(";", "").strip()
                 )
         return (
@@ -100,28 +98,26 @@ class Combo:
         )
 
     def get_phone_number(self, org_contacts):
-        """get phone number of organizer"""
         try:
             phone = (
                 dedent_func(org_contacts.find_all("a", class_=contains("tel:")))
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_phone(phone)
-        except:
-            return
+            return Contacts.check_phone(phone)
+        except Exception as e:
+            return None
 
     def get_email(self, org_contacts):
-        """get email of organizer"""
         try:
             email = (
                 dedent_func(org_contacts.find("a", class_=contains("mailto:")))
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_email(email)
-        except:
-            return
+            return Contacts.check_email(email)
+        except Exception as e:
+            return None
 
     def parse_price(self, price: str):
         try:
@@ -130,7 +126,8 @@ class Combo:
             if len(price) > 0:
                 return round(float(price), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID START PRICE\n{e}")
+            logger.warning(f"{self.response.url} | INVALID START PRICE\n{e}")
+        return None
 
     @property
     def trading_id(self):
@@ -152,22 +149,24 @@ class Combo:
     def case_number(self):
         case_ = self.soup.find("span", text=contains("Дело о банкротстве"))
         if case_:
-            return CheckIfCorrectContactInfo.check_case_number(
+            return Contacts.check_case_number(
                 dedent_func(case_.find_next("a").get_text())
             )
+        return None
 
     @property
     def debtor_inn(self):
         inn = self.soup.find("span", text=contains("ИНН должника"))
         if inn:
-            return CheckIfCorrectContactInfo.check_inn(
+            return Contacts.check_inn(
                 dedent_func(inn.find_next("span").get_text())
             )
+        return None
 
     def get_address(self):
         address = self.soup.find("span", class_="dataCaption", text=contains("Адрес"))
         if not address:
-            return
+            return None
         address = dedent_func(
             address.find_next("span", class_="item__value value").get_text(strip=True)
         )
@@ -175,6 +174,7 @@ class Combo:
             pass
         if address and "Информация скрыта" not in address:
             return address
+        return None
 
     @property
     def arbit_manager(self):
@@ -182,7 +182,7 @@ class Combo:
             "h2", class_="blockHeader", text=contains("Арбитражный управляющий")
         )
         if not manager:
-            return self.trading_org()
+            return self.trading_org
         return dedent_func(
             manager.find_next("a", class_="personalDataPanel_company").get_text()
         )
@@ -225,6 +225,7 @@ class Combo:
         info = self.soup.find("h2", text="Порядок осмотра")
         if info:
             return dedent_func(info.find_next("p").get_text())
+        return None
 
     @property
     def start_date_requests(self):
@@ -261,8 +262,8 @@ class Combo:
     def periods(self):
         table = self.soup.find("h2", text="Порядок понижения цены")
         if not table:
-            return
-        check_value = 10000000000000000000000
+            return None
+        check_value = 10 ** 22
         table = (
             table.find_next("div", class_="priceDowngrade")
             .find("div", class_="body")
@@ -282,13 +283,13 @@ class Combo:
                 else:
                     price = round(float(price), 2)
                 if check_value < price:
-                    logger.critical(
-                        f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
+                    logger.warning(
+                        f"{self.response.url} | INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
                     )
                 else:
                     check_value = price
-            except:
-                logger.error(
+            except Exception as e:
+                logger.warning(
                     f"{self.response.url} Period Price - {price} typeof - {type(price)}"
                 )
                 return None
@@ -300,6 +301,6 @@ class Combo:
                     "current_price": price,
                 }
                 periods.append(period)
-            except:
+            except Exception as e:
                 continue
         return periods

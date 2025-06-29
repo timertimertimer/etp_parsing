@@ -1,25 +1,24 @@
 import scrapy
-import logging
 
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-from general_utils.base_spider import BaseSpider
-from general_utils.config import start_date
-from ..app import Combo
-from ..config import categories, end_date, page_limit
-from ..config import data_origin
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.db.models import AuctionPropertyType
+from app.utils import URL
+from app.crawlers.base import BaseSpider
+from app.utils.config import start_date
+from ..combo import Combo
+from ..config import bankrupt_categories, arrested_categories, end_date, page_limit
+from ..config import data_origin_url
 
-logger = logging.getLogger(__name__)
 
-
-class EurtpSpider(BaseSpider):
-    name = "eurtp"
+class EurtpBaseSpider(BaseSpider):
     start_urls = ["http://eurtp.ru/"]
+    category_urls = []
 
     def __init__(self):
-        super().__init__(data_origin)
+        super().__init__(data_origin_url)
 
     def parse(self, response, **kwargs):
-        for category in categories:
+        for category in self.category_urls:
             yield scrapy.FormRequest(
                 url=category,
                 method="POST",
@@ -43,13 +42,13 @@ class EurtpSpider(BaseSpider):
                 if next_page_number > current_page:
                     current_page = next_page_number
                     yield scrapy.Request(
-                        url=UrlConfig.url_join(data_origin, next_page_url),
+                        url=URL.url_join(data_origin_url, next_page_url),
                         cb_kwargs=dict(current_page=current_page, all_links=all_links),
                         callback=self.collect_links,
                     )
                     return
         for link in all_links:
-            link = UrlConfig.url_join(data_origin, link)
+            link = URL.url_join(data_origin_url, link)
             if link not in self.previous_trades:
                 yield scrapy.Request(url=link, callback=self.parse_trades)
 
@@ -77,7 +76,8 @@ class EurtpSpider(BaseSpider):
         general_files = combo.download()
         for lot_link in lots_on_page:
             loader = EtpItemLoader(item=EtpItem(), response=response)
-            loader.add_value("data_origin", "http://eurtp.ru/")
+            loader.add_value("data_origin", data_origin_url)
+            loader.add_value("property_type", self.property_type)
             loader.add_value("trading_id", trading_id)
             loader.add_value("trading_link", trading_link)
             loader.add_value("trading_number", trading_number)
@@ -96,7 +96,7 @@ class EurtpSpider(BaseSpider):
             loader.add_value("start_date_trading", combo.start_date_trading)
             loader.add_value("categories", None)
             yield scrapy.Request(
-                url=UrlConfig.url_join(data_origin, lot_link),
+                url=URL.url_join(data_origin_url, lot_link),
                 callback=self.parse_lot,
                 cb_kwargs={"loader": loader, "general_files": general_files},
             )
@@ -120,3 +120,13 @@ class EurtpSpider(BaseSpider):
             loader.add_value("periods", combo.periods)
         loader.add_value("files", {"general": general_files, "lot": combo.download()})
         yield loader.load_item()
+
+class EurtpBankruptcySpider(EurtpBaseSpider):
+    name = "eurtp_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+    category_urls = bankrupt_categories
+
+class EurtpArrestedSpider(EurtpBaseSpider):
+    name = "eurtp_arrested"
+    property_type = AuctionPropertyType.arrested
+    category_urls = arrested_categories

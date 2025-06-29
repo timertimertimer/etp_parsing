@@ -4,8 +4,8 @@ from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
 from app.db.models import AuctionPropertyType
-from ..app import Combo
-from ..config import data_origin_url, form_data, urls
+from ..combo import Combo
+from ..config import data_origin_url, bankrupt_form_data, sales_form_data, urls
 from app.utils import URL
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
@@ -28,7 +28,9 @@ class TorgidvBaseSpider(BaseSpider):
         }
         base_url = "https://torgidv.ru/bitrix/services/main/ajax.php?"
         url = base_url + "&".join(f"{key}={value}" for key, value in url_params.items())
-        yield FormRequest(url, self.parse_serp, method="POST", formdata=form_data)
+        yield FormRequest(
+            url, self.parse_serp, method="POST", formdata=self.form_data
+        )
 
     def parse_serp(self, response):
         data = json.loads(response.text)
@@ -121,8 +123,13 @@ class TorgidvBaseSpider(BaseSpider):
 class TorgidvBankruptSpider(TorgidvBaseSpider):
     name = "torgidv_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
+    start_urls = [urls[property_type]]
+    form_data = bankrupt_form_data
 
 
 class TorgidvArrestedSpider(TorgidvBaseSpider):
-    name = 'torgidv_arrested'
+    name = "torgidv_arrested"
     property_type = AuctionPropertyType.arrested
+    start_urls = [urls[property_type]]
+    form_data = sales_form_data
+    

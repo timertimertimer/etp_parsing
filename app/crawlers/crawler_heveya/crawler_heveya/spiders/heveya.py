@@ -1,25 +1,23 @@
-import logging
-
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
-from ..app import Combo
-from ..config import params, data_origin_url
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils.logger import logger
+from ..combo import Combo
+from ..config import bankruptcy_params, arrested_params, data_origin_url
 
-logger = logging.getLogger(__name__)
-
-
-class HeveyaSpider(BaseSpider):
+class HeveyaBaseSpider(BaseSpider):
     name = "heveya"
     start_urls = ["https://heveya.ru/search"]
+    params = None
 
     def __init__(self):
-        super(HeveyaSpider, self).__init__(data_origin_url)
+        super(HeveyaBaseSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
         yield FormRequest(
-            self.start_urls[0], self.parse_serp, formdata=params, method="GET"
+            self.start_urls[0], self.parse_serp, formdata=self.params, method="GET"
         )
 
     def parse_serp(self, response):
@@ -68,6 +66,7 @@ class HeveyaSpider(BaseSpider):
             combo.get_main_info()
         )
         loader.add_value("data_origin", data_origin_url)
+        loader.add_value("property_type", self.property_type)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", combo.trading_number)
@@ -100,3 +99,13 @@ class HeveyaSpider(BaseSpider):
             "files", {"general": combo.download_general(), "lot": combo.download_lot()}
         )
         yield loader.load_item()
+
+class HeveyaBankruptcySpider(HeveyaBaseSpider):
+    name = "heveya_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+    params = bankruptcy_params
+
+class HeveyaArrestedSpider(HeveyaBaseSpider):
+    name = "heveya_arrested"
+    property_type = AuctionPropertyType.arrested
+    params = arrested_params
