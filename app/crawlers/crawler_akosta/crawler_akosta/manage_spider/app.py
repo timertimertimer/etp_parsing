@@ -48,7 +48,9 @@ class Combo:
             if len(p) > 0:
                 return round(float(p), 2)
         except Exception as e:
-            logger.warning(f"{self.response.url} | Couldn\'t parse start price. Error: {e}")
+            logger.warning(
+                f"{self.response.url} | Couldn't parse start price. Error: {e}"
+            )
         return None
 
     @property
@@ -64,7 +66,9 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.warning(f"{self.response.url} | Couldn\'t parse step price. Error: {e}")
+            logger.warning(
+                f"{self.response.url} | Couldn't parse step price. Error: {e}"
+            )
         return None
 
     @property
@@ -78,7 +82,9 @@ class Combo:
                 category = category.next_sibling.text
                 return [category.split("/")[-1].strip()]
         except Exception as e:
-            logger.warning(f"{self.response.url} | Couldn\'t parse categories. Error: {e}")
+            logger.warning(
+                f"{self.response.url} | Couldn't parse categories. Error: {e}"
+            )
         return None
 
     def get_lot_images(self):

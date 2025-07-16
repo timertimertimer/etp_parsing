@@ -42,11 +42,27 @@ data_origin = {
     "zakazrf": "http://bankrot.zakazrf.ru/",
 }
 
-path_absolute = dict()
-path_relative = dict()
-for name in data_origin.keys():
-    path_absolute[name] = f"{absolute_download_path}/etp_{name}"
-    path_relative[name] = f"{relative_download_path}/etp_{name}"
+urls = {
+    "alfalot": "https://bankrupt.alfalot.ru/",
+    "arbbitlot": "https://torgi.arbbitlot.ru/",
+    "arbitat": "http://arbitat.ru/",
+    "bepspb": "https://bankruptcy.bepspb.ru/",
+    "centerr_bankrupt": "https://bankrupt.centerr.ru/",
+    "centerr_business": "https://business.centerr.ru/",
+    "etpu": "https://etpu.ru/",
+    "etpugra": "http://etpugra.ru/",
+    "ets24": "http://ets24.ru/",
+    "gloriaservice": "https://gloriaservice.ru/",
+    "meta_invest": "https://meta-invest.ru/",
+    "propertytrade": "https://propertytrade.ru/",
+    "selt_online": "https://selt-online.ru/",
+    "tender_one": "https://bankrupt.tender.one/",
+    "tendergarant": "https://tendergarant.com/",
+    "torgibankrot": "https://torgibankrot.ru/",
+    "utender": "http://utender.ru/",
+    "utpl": "https://bankrupt.utpl.ru/",
+    "zakazrf": "http://bankrot.zakazrf.ru/",
+}
 
 common_data = {
     "__EVENTTARGET": "",

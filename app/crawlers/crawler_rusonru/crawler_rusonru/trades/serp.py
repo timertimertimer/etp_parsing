@@ -1,21 +1,17 @@
-import logging
 import re
 from collections import deque
 
 from bs4 import BeautifulSoup
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, Contacts, logger
 
 
 class SerpParse:
-    def __init__(self, response_):
-        self.response = response_
+    def __init__(self, response):
+        self.response = response
         self.soup = BeautifulSoup(self.response.text, "lxml")
 
     def get_current_page(self):
-        """return current page of pagination"""
         try:
             pag_ul = self.soup.find("ul", class_="pagination")
             if pag_ul:
@@ -23,17 +19,16 @@ class SerpParse:
                 if re.match(r"\d+", active_page):
                     return int(active_page)
                 else:
-                    logger.error(f"{self.response.url} | ACTIVE PAGE NOT AN INTEGER")
+                    logger.warning(f"{self.response.url} | ACTIVE PAGE NOT AN INTEGER")
                     return 0
             else:
-                logger.error(f"{self.response.url} | PAGINATION TAG NOT FOUND")
+                logger.warning(f"{self.response.url} | PAGINATION TAG NOT FOUND")
                 return 0
         except Exception as e:
-            logger.error(f"{self.response.url} | INVALID DATA CURRENT PAGE {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA CURRENT PAGE {e}")
             return 1
 
     def get_next_page(self):
-        """return next page"""
         try:
             pag_ul = self.soup.find("ul", class_="pagination")
             if pag_ul:
@@ -48,10 +43,10 @@ class SerpParse:
             else:
                 return 0
         except Exception as e:
-            logger.error(f"{self.response.url} | INVALID DATA NEXT PAGE {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA NEXT PAGE {e}")
+        return None
 
     def links_to_trade(self, table_class: str = "data") -> list:
-        """return list with trading list"""
         set_links = set()
         try:
             tbody = self.soup.find("table", class_=table_class).find("tbody")
@@ -64,13 +59,12 @@ class SerpParse:
                         set_links.add((link[0].lstrip("/"), td))
                 return list(set_links)
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} | INVALID DATA DURING GETTING LINKS TO TRADE {e}"
             )
-            return list()
+        return list()
 
     def get_table_with_lots(self):
-        """return table with lots links"""
         table = self.soup.find("table", class_="views-table")
         if table is None:
             table = self.soup.find(
@@ -80,9 +74,9 @@ class SerpParse:
             tag_thead = table.thead
             tag_thead.decompose()
             return table
+        return None
 
     def get_lots_data(self):
-        """get data(general_link, lot_link, organizer from table if exists)"""
         if table := self.get_table_with_lots():
             short_lot_data = list()
             for tr in table.find_all("tr"):
@@ -95,8 +89,7 @@ class SerpParse:
                     (trade_link, lot_link, organizer, trading_type, status)
                 )
             return deque(short_lot_data)
-        else:
-            return list()
+        return list()
 
     def get_trading_type_and_form(self, trading_type_text):
         offer = ["ОТПП", "ЗТПП"]
@@ -122,22 +115,21 @@ class SerpParse:
                 return "competition", "open"
             if trading_type in competition and trading_type in close_form:
                 return "competition", "closed"
-        logger.error(
+        logger.warning(
             f"{self.response.url} | ERROR function {self.get_trading_type_and_form.__name__}"
         )
         return None
 
     def get_trading_number(self, trading_type_text):
-        """return trading number"""
         tradin_number = re.findall(r"\d{4,}.?-\D{4}", trading_type_text)
         if len(tradin_number) == 1:
             return dedent_func("".join(tradin_number))
-        logger.error(
+        logger.warning(
             f"{self.response.url} | ERROR function {self.get_trading_number.__name__}"
         )
+        return None
 
     def get_status_of_trade(self, status_text, trading_page):
-        """return status of current lot"""
         status = dedent_func(status_text)
         active = ("Прием заявок",)
         pending = ("Торги объявлены", "Ожидает публикации")
@@ -158,54 +150,49 @@ class SerpParse:
             return "pending"
         elif status in ended:
             return "ended"
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR STATUS OF TRADE on page {trading_page}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR STATUS OF TRADE on page {trading_page}"
+        )
+        return None
 
     def get_trading_id(self):
-        """return trading_id"""
         _id = "".join(re.findall(r"\d+$", self.response.url))
         return _id
 
     def get_curent_page(self):
-        """retrun current page"""
         current = self.soup.find("ul", class_="pagination").find("li", class_="active")
         if current:
             current = dedent_func(current.get_text())
             if re.match(r"\d{1,3}", current):
                 return int(current)
-        logger.error(f"{self.response.url} | ERROR GETTING CURRENT PAGE")
+        logger.warning(f"{self.response.url} | ERROR GETTING CURRENT PAGE")
         return -1
 
     # TRADING PAGE
 
     def table_trading_page_trade_info(self):
-        """return table with title "Information about trades" """
         table = self.soup.find(
             "th", string=re.compile("Информация о проведении торгов", re.IGNORECASE)
         ).find_parent("table")
         if table:
             return table
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.table_trading_page_trade_info.__name__}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR function {self.table_trading_page_trade_info.__name__}"
+        )
+        return None
 
     def table_organizer_info(self):
-        """return table with organizer information"""
         table = self.soup.find(
             "th", string=re.compile("Информация об организаторе", re.IGNORECASE)
         ).find_parent("table")
         if table:
             return table
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.table_organizer_info.__name__}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR function {self.table_organizer_info.__name__}"
+        )
+        return None
 
     def get_organizer_inn(self):
-        """return organizer INN"""
         try:
             if table := self.table_organizer_info():
                 text = "ИНН"
@@ -214,59 +201,56 @@ class SerpParse:
                     text = "^ИНН$"
                     org_inn = table.find("td", string=re.compile(text, re.IGNORECASE))
                 org_inn = org_inn.findNextSibling("td").get_text()
-                return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
+                return Contacts.check_inn(dedent_func(org_inn))
         except Exception as e:
-            print(e)
-            logger.error(f"{self.response.url} | ERROR INN")
+            logger.warning(f"{self.response.url} | ERROR INN")
+        return None
 
     def get_organizer_email(self):
-        """return organizer email"""
         if table := self.table_organizer_info():
             text = "Адрес электронной почты"
             org_email = table.find("td", string=re.compile(text, re.IGNORECASE))
             if org_email:
                 org_email = org_email.findNextSibling("td").get_text()
-                return CheckIfCorrectContactInfo.check_email(dedent_func(org_email))
+                return Contacts.check_email(dedent_func(org_email))
+        return None
 
     def get_organizer_phone(self):
-        """return organizer phone"""
         if table := self.table_organizer_info():
             text = "Телефон"
             org_phone = table.find("td", string=re.compile(text, re.IGNORECASE))
             if org_phone:
                 org_phone = org_phone.findNextSibling("td").get_text()
-                return CheckIfCorrectContactInfo.check_phone(dedent_func(org_phone))
+                return Contacts.check_phone(dedent_func(org_phone))
+        return None
 
     def get_organizer_contacts(self):
-        """return organizer email and phone"""
         return {
             "email": self.get_organizer_email(),
             "phone": self.get_organizer_phone(),
         }
 
     def get_msg_number(self):
-        """return message number"""
         if table := self.table_trading_page_trade_info():
             text = "Номер объявления о проведении торгов"
             td_msg = table.find("td", string=re.compile(text, re.IGNORECASE))
             if td_msg:
                 msg = re.findall(r"\d{6,8}", td_msg.findNextSibling("td").get_text())
                 return " ".join(msg)
+        return None
 
     def table_trading_page_bankrot_info(self):
-        """return table with title "Information about trades" """
         table = self.soup.find(
             "th", string=re.compile("Сведения о банротстве", re.IGNORECASE)
         ).find_parent("table")
         if table:
             return table
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.table_trading_page_bankrot_info.__name__}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR function {self.table_trading_page_bankrot_info.__name__}"
+        )
+        return None
 
     def get_case_number(self):
-        """return case number"""
         if table := self.table_debtor_info():
             text = "Номер дела о банкротстве"
             td_case_number = (
@@ -274,24 +258,21 @@ class SerpParse:
                 .findNextSibling("td")
                 .get_text()
             )
-            return CheckIfCorrectContactInfo.check_case_number(
-                dedent_func(td_case_number)
-            )
+            return Contacts.check_case_number(dedent_func(td_case_number))
+        return None
 
     def table_debtor_info(self):
-        """return table with title "Information about debtor" """
         table = self.soup.find(
             "th", string=re.compile("Информация о должнике", re.IGNORECASE)
         ).find_parent("table")
         if table:
             return table
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.table_debtor_info.__name__}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR function {self.table_debtor_info.__name__}"
+        )
+        return None
 
     def get_debtor_inn(self):
-        """return organizer INN"""
         if table := self.table_debtor_info():
             text = "ИНН"
             org_inn = (
@@ -299,7 +280,8 @@ class SerpParse:
                 .findNextSibling("td")
                 .get_text()
             )
-            return CheckIfCorrectContactInfo.check_inn(dedent_func(org_inn))
+            return Contacts.check_inn(dedent_func(org_inn))
+        return None
 
     @property
     def address(self):
@@ -319,26 +301,23 @@ class SerpParse:
                 if not address:
                     address = sud
                 return address
-        except Exception:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.address.__name__}"
-            )
+        except Exception as e:
+            logger.warning(f"{self.response.url} | Error: {e}")
+        return None
 
     def table_arbitrator_info(self):
-        """return table with title "Information about arbitrator" """
         table = self.soup.find(
             "th",
             string=re.compile("Информация об арбитражном управляющем", re.IGNORECASE),
         ).find_parent("table")
         if table:
             return table
-        else:
-            logger.error(
-                f"{self.response.url} | ERROR function {self.table_arbitrator_info.__name__}"
-            )
+        logger.warning(
+            f"{self.response.url} | ERROR function {self.table_arbitrator_info.__name__}"
+        )
+        return None
 
     def get_arbitrator_name(self):
-        """return arbitrator full name"""
         if table := self.table_arbitrator_info():
             arb_last_name = (
                 table.find("td", string=re.compile("Фамилия", re.IGNORECASE))
@@ -356,9 +335,9 @@ class SerpParse:
                 .get_text(strip=True)
             )
             return " ".join([arb_last_name, arb_first_name, arb_dad_name])
+        return None
 
     def get_arbitr_inn(self):
-        """return arbitr INN"""
         if table := self.table_arbitrator_info():
             text = "ИНН"
             arb_inn = (
@@ -366,10 +345,10 @@ class SerpParse:
                 .findNextSibling("td")
                 .get_text()
             )
-            return CheckIfCorrectContactInfo.check_inn(dedent_func(arb_inn))
+            return Contacts.check_inn(dedent_func(arb_inn))
+        return None
 
     def get_arbitr_company(self):
-        """return arbitrator company"""
         if table := self.table_arbitrator_info():
             text = "Наименование СРО"
             arb_company = (
@@ -378,3 +357,4 @@ class SerpParse:
                 .get_text()
             )
             return dedent_func(arb_company)
+        return None

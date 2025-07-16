@@ -31,6 +31,7 @@ pattern_replace1 = ["(", ")", "-", "+", "- ", "null", "\n", "&nbsp;"]
 cyrillic = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 mac_symbols = ("╨┐", "╨", "MACOS", "╤")
 
+
 def replace_one_dot(name):
     dot = re.findall(r"\.", name)
     if len(dot) > 1:

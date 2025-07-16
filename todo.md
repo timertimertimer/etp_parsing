@@ -1,0 +1,27 @@
+- [ ] добавить новые поля в items
+- [ ] добавить новые поля в auctions/lots
+- [ ] отдельная таблица "Информация об объекте закупки/Информация о товаре, работе, услуге"
+- [x] ets24 arrest
+- [ ] centerr arrest/commercial
+- [ ] etp.cdtrf arrest
+- [ ] torgi.etpu arrest/commercial
+- [x] akosta arrest/commercial
+- [x] арест вэтп arrest
+- [x] torgidv arrest
+- [x] eurtp arrest
+- [x] heveya arrest/rent
+- [ ] ei arrest/commercial
+- [ ] torgi.gov gis
+- [x] el-torg commercial
+- [ ] torgi.etpu commercial/legal_entities
+- [ ] etp.alfalot commercial
+- [ ] fabrikant commercial/legal_entites/fz223
+- [ ] sibtoptrade commercial
+- [ ] etp.tender.one commercial
+- [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223)
+- [ ] rutrade commercial
+- [ ] roseltorg legal_entites/capital_repair/fz223
+- [ ] zakupki.gov fz44/capital_repair
+- [ ] tender.lot-online fz223
+- [ ] b2b fz223
+- [ ] catalog.lot-online rent

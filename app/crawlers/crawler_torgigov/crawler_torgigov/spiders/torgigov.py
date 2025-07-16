@@ -1,15 +1,13 @@
 import json
-import logging
 from typing import Iterable
 
 from scrapy import Request, FormRequest
 
-from general_utils.base_spider import BaseSpider
-from general_utils.items import EtpItemLoader, EtpItem
+from app.crawlers.base import BaseSpider
+from app.crawlers.items import EtpItemLoader, EtpItem
+from app.utils.logger import logger
 from ..app import Combo
 from ..config import formdata, data_origin, search_link, trade_link, categories
-
-logger = logging.getLogger(__name__)
 
 
 class TorgiGovSpider(BaseSpider):

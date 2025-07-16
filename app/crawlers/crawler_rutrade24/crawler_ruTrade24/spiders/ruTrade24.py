@@ -3,9 +3,9 @@ import scrapy
 import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
-from general_utils import EtpItemLoader, EtpItem
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
+from app.crawlers.items import EtpItemLoader, EtpItem
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
 from ..app import Combo
 from ..config import page_limits, formdata, data_origin
 

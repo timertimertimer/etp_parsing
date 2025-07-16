@@ -54,7 +54,9 @@ class Combo:
             soup.find("div", class_="value rouble").get_text()
         )
 
-        step_price =soup.find("span", class_="caption", string=re.compile(r"Шаг (понижения|повышения):"))
+        step_price = soup.find(
+            "span", class_="caption", string=re.compile(r"Шаг (понижения|повышения):")
+        )
         if step_price:
             type_ = "auction"
             step_price = (
@@ -158,9 +160,7 @@ class Combo:
     def debtor_inn(self):
         inn = self.soup.find("span", text=contains("ИНН должника"))
         if inn:
-            return Contacts.check_inn(
-                dedent_func(inn.find_next("span").get_text())
-            )
+            return Contacts.check_inn(dedent_func(inn.find_next("span").get_text()))
         return None
 
     def get_address(self):
@@ -263,7 +263,7 @@ class Combo:
         table = self.soup.find("h2", text="Порядок понижения цены")
         if not table:
             return None
-        check_value = 10 ** 22
+        check_value = 10**22
         table = (
             table.find_next("div", class_="priceDowngrade")
             .find("div", class_="body")

@@ -12,8 +12,10 @@ def uralbidin():
 def vetp_bankrupt():
     execute(["scrapy", "crawl", "vetp_bankrupt"])
 
+
 def vetp_arrest():
     execute(["scrapy", "crawl", "vetp_arrest"])
+
 
 if __name__ == "__main__":
     # electro_torgi()

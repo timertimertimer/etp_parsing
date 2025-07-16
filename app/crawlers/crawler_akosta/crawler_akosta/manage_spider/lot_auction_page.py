@@ -3,7 +3,6 @@ import re
 from app.utils import dedent_func, logger
 
 
-
 class LotAuctionPage:
     def __init__(self, _response, soup):
         self.response = _response

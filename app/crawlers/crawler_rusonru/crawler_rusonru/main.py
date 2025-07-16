@@ -5,8 +5,12 @@ def ruson():
     execute(["scrapy", "crawl", "ruson"])
 
 
-def eltorg():
-    execute(["scrapy", "crawl", "eltorg"])
+def eltorg_bankruptcy():
+    execute(["scrapy", "crawl", "eltorg_bankruptcy"])
+
+
+def eltorg_commercial():
+    execute(["scrapy", "crawl", "eltorg_commercial"])
 
 
 def nistp():
@@ -22,4 +26,4 @@ def sistematorg():
 
 
 if __name__ == "__main__":
-    ruson()
+    eltorg_bankruptcy()

@@ -7,7 +7,6 @@ from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
 
 
-
 class AuctionPage:
     def __init__(self, response):
         self.response = response

@@ -11,5 +11,5 @@ bankrupt_categories = [
 ]
 arrested_categories = [
     "http://eurtp.ru/Home/AuctionArrested",
-    "http://eurtp.ru/Home/ArrestedClose"
+    "http://eurtp.ru/Home/ArrestedClose",
 ]

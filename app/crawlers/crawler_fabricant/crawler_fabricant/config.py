@@ -1,13 +1,14 @@
-from general_utils.config import (
-    absolute_download_path,
-    relative_download_path,
-    start_date,
-)
+from app.utils.config import start_date
 
 data_origin_url = "https://www.fabrikant.ru/"
-start_url = "https://www.fabrikant.ru/trades/procedure/search/?filter_id=6"
-absolute_path = f"{absolute_download_path}/etp_fabricant"
-relative_path = f"{relative_download_path}/etp_fabricant"
+start_url = 'https://www.fabrikant.ru/trades/procedure/search/'
+filter_ids = {
+    "bankruptcy": 6,
+    "commercial": 8,
+    "legal_entities": 2,
+    "fz223": 5
+}
+
 formdata = {
     "type": "1",
     "org_type": "org",
@@ -21,17 +22,6 @@ formdata = {
     "active": "",
     "count_on_page": "40",
 }
-
-param_id = "filter_id"
-param_id_value = "6"
-
-lots_on_page = "40"
-
-auction_link_pattern = "/market/view.html?action=view_auction"
-auction_oazf_link_pattern = "/trades/bankruptcy/AuctionHiddenPrice/"
-offer_link_pattern = "/v2/trades/procedure/view/"
-competition_link_pattern = "/market/view.html?action=view_tender"
-
 # splash.js_enabled=false
 script_lua = """
          function main(splash)

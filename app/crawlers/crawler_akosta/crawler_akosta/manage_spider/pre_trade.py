@@ -41,7 +41,9 @@ class PreTradePage:
             if tag_html:
                 return tag_html["value"]
         except Exception as e:
-            logger.warning(f"{self.response.url} | Error during fetching tag {tag_html} | {e} ")
+            logger.warning(
+                f"{self.response.url} | Error during fetching tag {tag_html} | {e} "
+            )
         return None
 
     @property

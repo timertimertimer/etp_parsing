@@ -24,7 +24,9 @@ class Combo:
 
     def download(self):
         files = list()
-        script_content = self.response.xpath('//script[contains(text(), "new TradeDetail")]/text()').get()
+        script_content = self.response.xpath(
+            '//script[contains(text(), "new TradeDetail")]/text()'
+        ).get()
         if not script_content:
             return files
         match = re.search(
@@ -36,13 +38,17 @@ class Combo:
         try:
             documents = json.loads(documents_json)
         except json.JSONDecodeError as e:
-            logger.error(f"{self.response.url}: Couldn\'t parse documents {e}")
+            logger.error(f"{self.response.url}: Couldn't parse documents {e}")
             return None
-        for file in documents.get('items', []):
-            link = file['src']
-            name = file['file_name']
+        for file in documents.get("items", []):
+            link = file["src"]
+            name = file["file_name"]
             files.append(
-                DownloadData(url=URL.url_join(data_origin_url, link), referer=self.response.url, file_name=name)
+                DownloadData(
+                    url=URL.url_join(data_origin_url, link),
+                    referer=self.response.url,
+                    file_name=name,
+                )
             )
         return files
 
@@ -69,9 +75,9 @@ class Combo:
     @property
     def trading_org(self):
         org = (
-                self.response.xpath(LocatorTrade.trading_org_sro_loc).get() or
-                self.response.xpath(LocatorTrade.trading_org_fio_loc).get() or
-                self.response.xpath(LocatorTrade.trading_org_fio_loc_2).get()
+            self.response.xpath(LocatorTrade.trading_org_sro_loc).get()
+            or self.response.xpath(LocatorTrade.trading_org_fio_loc).get()
+            or self.response.xpath(LocatorTrade.trading_org_fio_loc_2).get()
         )
         if not org:
             return None

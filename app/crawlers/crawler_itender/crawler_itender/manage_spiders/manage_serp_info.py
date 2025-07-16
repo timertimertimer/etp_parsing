@@ -231,7 +231,9 @@ class SerpPageSearchInfo:
             else:
                 return list()
         except Exception as e:
-            logger.warning(f"{self.response.url}:: get_link_to_lot:::{e}", exc_info=True)
+            logger.warning(
+                f"{self.response.url}:: get_link_to_lot:::{e}", exc_info=True
+            )
             return list()
 
     def find_error_page(self):

@@ -1,3 +1,12 @@
 from scrapy.cmdline import execute
 
-execute(["scrapy", "crawl", "sibtoptrade"])
+
+def sibtoptrade_bankruptcy():
+    execute(["scrapy", "crawl", "sibtoptrade_bankruptcy"])
+
+
+def sibtoptrade_commercial():
+    execute(["scrapy", "crawl", "sibtoptrade_commercial"])
+
+if __name__ == '__main__':
+    sibtoptrade_commercial()

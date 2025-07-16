@@ -169,11 +169,15 @@ class TradePage:
                 if start:
                     return format_time(start)
                 else:
-                    logger.warning(f"{self.response.url} | START DATE WAS NOT FOUND (2)")
+                    logger.warning(
+                        f"{self.response.url} | START DATE WAS NOT FOUND (2)"
+                    )
             else:
                 logger.warning(f"{self.response.url} | START DATE WAS NOT FOUND (1)")
         except Exception as e:
-            logger.warning(f"{self.response.url} | ERROR start date request auction {e}")
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {e}"
+            )
         return None
 
     def end_date_end_auc(self):
@@ -232,7 +236,9 @@ class TradePage:
                     f"{self.response.url} | check data for start date trading auction "
                 )
         except Exception as e:
-            logger.warning(f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}")
+            logger.warning(
+                f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}"
+            )
         return None
 
     def end_date_request_auc(self):
@@ -246,5 +252,7 @@ class TradePage:
                     f"{self.response.url} | check data for END date trading auction "
                 )
         except Exception as e:
-            logger.warning(f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}")
+            logger.warning(
+                f"{self.response.url} | ERROR START DATE TRADING AUCTION {e}"
+            )
         return None

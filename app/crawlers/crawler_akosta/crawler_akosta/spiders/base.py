@@ -13,7 +13,8 @@ from ..utils.config import (
     common_link,
     debtor_link,
     lot_link,
-    _link_post_period, urls
+    _link_post_period,
+    urls,
 )
 from ..utils.post_data import (
     post_data_date_query,
@@ -33,11 +34,11 @@ class AkostaBaseSpider(BaseSpider):
     property_type = None
 
     def __init__(self):
-        super(AkostaBaseSpider, self).__init__(data_origin, Auction.ext_id)
+        super(AkostaBaseSpider, self).__init__(data_origin, {Auction.ext_id})
 
     def start_requests(self):
         yield Request(
-            urls[self.property_type],
+            urls[self.name],
             self.parse,
         )
 
@@ -49,9 +50,11 @@ class AkostaBaseSpider(BaseSpider):
         post_data_date_query["formMain:inputServerTime"] = return_servertime()
         post_data_date_query["javax.faces.ViewState"] = viewstate
         post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        post_data_date_query[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
+        post_data_date_query[
+            f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
+        ] = "on"
         yield FormRequest(
-            self.start_urls[0],
+            search_link,
             callback=self.refresh_from_date,
             formdata=post_data_date_query,
             dont_filter=True,
@@ -68,7 +71,9 @@ class AkostaBaseSpider(BaseSpider):
         post_data_panel_list_query["formMain:inputServerTime"] = return_servertime()
         post_data_panel_list_query["javax.faces.ViewState"] = viewstate
         post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        post_data_panel_list_query[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
+        post_data_panel_list_query[
+            f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
+        ] = "on"
         yield FormRequest.from_response(
             response,
             callback=self.refresh_panel_list,
@@ -139,7 +144,9 @@ class AkostaBaseSpider(BaseSpider):
                 post_data_pagination["formMain:lotListTable_first"] = str(data_lots)
                 post_data_pagination["formMain:inputServerTime"] = return_servertime()
                 post_data_pagination["javax.faces.ViewState"] = viewstate
-                post_data_pagination[f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"] = "on"
+                post_data_pagination[
+                    f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
+                ] = "on"
                 yield FormRequest(
                     response.url,
                     callback=self.parse_panel_list,

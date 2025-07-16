@@ -1,35 +1,28 @@
 import re
 
-from general_utils import EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
-from ..app import Combo
-from ..config import *
 from scrapy_splash import SplashRequest
 import scrapy_splash
-
 from scrapy import Request
 from bs4 import BeautifulSoup as BS
-import logging
 
-logger = logging.getLogger(__name__)
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from ..combo import Combo
+from ..config import *
 
 
-class SibtoptradeSpider(BaseSpider):
+class SibtoptradeBaseSpider(BaseSpider):
     name = "sibtoptrade"
-    total_iterations = int(finish_page) - int(start_page)
-    addresses = dict()
-
-    start_url_ = [
-        start_urls.format(n + int(start_page)) for n in range(total_iterations)
-    ]
+    start_urls = [data_origin]
 
     def __init__(self):
-        super(SibtoptradeSpider, self).__init__(data_origin)
+        super(SibtoptradeBaseSpider, self).__init__(data_origin)
 
     def start_requests(self):
         yield SplashRequest(
-            start_urls1,
-            self.iterrate_througth_pages,
+            self.start_urls[0],
+            self.iterate_through_pages,
             endpoint="execute",
             cache_args=["lua_source"],
             args={"lua_source": script_lua},
@@ -38,7 +31,7 @@ class SibtoptradeSpider(BaseSpider):
             errback=self.errback_httpbin,
         )
 
-    def iterrate_througth_pages(self, response):
+    def iterate_through_pages(self, response):
         last_page = response.xpath(
             '//nav[@class="pagination"]//li[last()]/a/text()'
         ).get()
@@ -90,6 +83,7 @@ class SibtoptradeSpider(BaseSpider):
         loader = EtpItemLoader(EtpItem(), response=response)
         combo = Combo(response)
         loader.add_value("data_origin", data_origin)
+        loader.add_value("property_type", self.property_type)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
         loader.add_value("trading_number", response.meta["trading_number"])
@@ -124,3 +118,15 @@ class SibtoptradeSpider(BaseSpider):
             "files", {"general": combo.download_general(), "lot": combo.download_lot()}
         )
         return loader.load_item()
+
+
+class SibtoptradeBankruptcySpider(SibtoptradeBaseSpider):
+    name = "sibtoptrade_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+    start_urls = [url_bankruptcy]
+
+
+class SibtoptradeCommercialSpider(SibtoptradeBaseSpider):
+    name = "sibtoptrade_commercial"
+    property_type = AuctionPropertyType.commercial
+    start_urls = [url_commercial]

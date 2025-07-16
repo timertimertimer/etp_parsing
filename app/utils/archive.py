@@ -43,9 +43,7 @@ class ArchiveFiles:
                 if fixed_name.endswith("/"):
                     fixed_absolute_file_path.mkdir(parents=True, exist_ok=True)
                     continue
-                fixed_absolute_file_path.parent.mkdir(
-                    parents=True, exist_ok=True
-                )
+                fixed_absolute_file_path.parent.mkdir(parents=True, exist_ok=True)
                 link = None
                 if fixed_absolute_file_path.exists():
                     link = fixed_relative_file_path

@@ -1,24 +1,23 @@
 import urllib.parse
-import logging
 from scrapy import Request
 from bs4 import BeautifulSoup as BS
 from scrapy_splash import SplashRequest
 from scrapy_splash import SplashFormRequest, SlotPolicy
 
-from general_utils import EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
-from ..app import Combo
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils import URL
+from ..combo import Combo
 from ..config import *
 
-logger = logging.getLogger(__name__)
 
-
-class FabrikantSpider(BaseSpider):
+class FabrikantBaseSpider(BaseSpider):
     name = "fabrikant"
-    start_urls = start_url.split()
+    property_type = None
 
     def __init__(self):
-        super(FabrikantSpider, self).__init__(data_origin_url)
+        super(FabrikantBaseSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
         yield SplashRequest(
@@ -35,6 +34,7 @@ class FabrikantSpider(BaseSpider):
     def start_requests_query(self, response):
         soup = BS(response.text, "lxml")
         formdata["type_hash"] = soup.find(attrs={"id": "type_hash"})["value"]
+        formdata["filter_id"] = str(filter_ids[self.property_type.value])
         yield SplashFormRequest.from_response(
             response=response,
             url=response.url,
@@ -47,14 +47,13 @@ class FabrikantSpider(BaseSpider):
         current_page = response.meta["current_page"]
         links = response.css(".marketplace-unit.ready h4 a::attr(href)").getall()
         all_links = (all_links or set()).union(links)
-        next_page = None
-        parse_link = None
-        link = None
-        if next_page:
-            next_page = BS(str(next_page), features="lxml")
-            link = data_origin_url + "".join(next_page.a["href"])
-            parse_link = urllib.parse.parse_qs(urllib.parse.urlsplit(link).query)
-        if next_page and int(current_page) < int("".join(parse_link["page"])):
+        # next_page = response.xpath(
+        #     '//a[contains(@class, "pagination__nav-btn")]/@href'
+        # ).getall()[-1]
+        next_page = None  # FIXME
+        link = URL.url_join(data_origin_url, next_page)
+        parse_link = urllib.parse.parse_qs(urllib.parse.urlsplit(link).query)
+        if int(current_page) < int(parse_link.get("page", [0])[0]):
             yield SplashRequest(
                 link,
                 self.parse,
@@ -78,6 +77,7 @@ class FabrikantSpider(BaseSpider):
         for lot in combo.count_lots():
             transfer = EtpItem()
             transfer["data_origin"] = data_origin_url
+            transfer["property_type"] = self.property_type.value
             transfer["trading_id"] = combo.trading_id
             transfer["trading_link"] = combo.trading_link
             transfer["trading_number"] = combo.trading_number
@@ -138,6 +138,7 @@ class FabrikantSpider(BaseSpider):
             lot_file = list()
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", transfer["data_origin"])
+        loader.add_value("property_type", transfer["property_type"])
         loader.add_value("trading_id", transfer["trading_id"])
         loader.add_value("trading_link", transfer["trading_link"])
         loader.add_value("trading_number", transfer["trading_number"])
@@ -170,3 +171,22 @@ class FabrikantSpider(BaseSpider):
         loader.add_value("periods", transfer.get("periods"))
         loader.add_value("files", {"general": general, "lot": lot_file})
         yield loader.load_item()
+
+
+class FabrikantBankruptcySpider(FabrikantBaseSpider):
+    name = "fabrikant_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+
+
+class FabrikantCommercialSpider(FabrikantBaseSpider):
+    name = "fabrikant_commercial"
+    property_type = AuctionPropertyType.commercial
+
+
+class FabrikantLegalEntitiesSpider(FabrikantBaseSpider):
+    name = "fabrikant_legal_entities"
+    property_type = AuctionPropertyType.legal_entities
+
+class FabrikantFZ223Spider(FabrikantBaseSpider):
+    name = "fabrikant_fz223"
+    property_type = AuctionPropertyType.fz223

@@ -1,20 +1,18 @@
-import logging
 import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 from .locator import Locator
-from general_utils import (
-    UrlConfig,
+from app.utils import (
+    URL,
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     contains,
     format_time,
+    logger,
 )
 from .config import data_origin_url
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -29,7 +27,7 @@ class Combo:
         for file in table.find_all("tr")[1:]:
             if not (link := file.find("td", class_="action")):
                 continue
-            link = UrlConfig.url_join(
+            link = URL.url_join(
                 data_origin_url, link.find("a", text=contains("Скачать")).get("href")
             )
             name = (
@@ -49,7 +47,7 @@ class Combo:
         for file in table.find("table").find_all("tr")[1:]:
             if not (link := file.find("td", class_="action")):
                 continue
-            link = UrlConfig.url_join(
+            link = URL.url_join(
                 data_origin_url, link.find("a", text=contains("Скачать")).get("href")
             )
             name = (
@@ -71,11 +69,12 @@ class Combo:
                 self.response.css(Locator.doc_link_loc).get(), features="lxml"
             ).a["href"]
             if data_origin_url not in link_to_document:
-                return UrlConfig.url_join(data_origin_url, link_to_document)
+                return URL.url_join(data_origin_url, link_to_document)
             else:
                 return link_to_document
-        except:
+        except Exception as e:
             logger.error(f"{url}:: INVALID DATA REFERENCE TO DOC PAGE")
+        return None
 
     @property
     def trading_id(self):
@@ -99,11 +98,12 @@ class Combo:
     def get_trading_type_text(self):
         check_type = self.soup.find(
             "div", text=re.compile("Способ проведения процедуры")
-        )
+        ) or self.soup.find("div", text=re.compile("Название процедуры на ЭТП"))
         if check_type:
             check_type = check_type.find_next("div")
             if check_type:
                 return check_type.get_text().strip()
+        return None
 
     @property
     def trading_type(self):
@@ -117,6 +117,7 @@ class Combo:
             "Закрытый аукцион с закрытой формой подачи ценовых предложений",
             "Аукцион продавца",
             "Аукцион с закрытой формой подачи предложений о цене",
+            "Аукцион с открытой формой подачи предложений о цене"
         ]
         competition = ["Открытый конкурс", "Закрытый конкурс", "Конкурс продавца"]
         match1 = "".join(
@@ -135,8 +136,7 @@ class Combo:
             return "offer"
         elif match3:
             return "competition"
-        else:
-            return None
+        return None
 
     @property
     def trading_form(self):
@@ -149,6 +149,7 @@ class Combo:
             "Аукцион продавца",
             "Аукцион с закрытой формой подачи предложений о цене",
             "open",
+            "Аукцион с открытой формой подачи предложений о цене",
         ]
         close_form = [
             "Закрытый аукцион с открытой формой подачи ценовых предложений",
@@ -187,8 +188,9 @@ class Combo:
                 return second_loc
             else:
                 return None
-        except:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID DATA TRADING ORG - OFFER ")
+        return None
 
     @property
     def trading_org_inn(self):
@@ -199,8 +201,9 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(trade_inn))
-        except:
-            return None
+        except Exception as e:
+            pass
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -214,9 +217,9 @@ class Combo:
                 .get_text()
                 .strip()
             )
-            org_phone = CheckIfCorrectContactInfo.check_phone(org_phone)
+            org_phone = Contacts.check_phone(org_phone)
             phone = org_phone
-        except:
+        except Exception as e:
             pass
         email = ""
         try:
@@ -228,9 +231,9 @@ class Combo:
                 .get_text()
                 .strip()
             )
-            org_email = CheckIfCorrectContactInfo.check_email(org_email)
+            org_email = Contacts.check_email(org_email)
             email = org_email
-        except:
+        except Exception as e:
             pass
 
         return {"email": email, "phone": phone}
@@ -245,13 +248,12 @@ class Combo:
         try:
             if td_msg:
                 match = re.findall(r"\d{7,9}", td_msg)
-                return CheckIfCorrectContactInfo.check_msg_number(" ".join(match))
-            else:
-                return
-        except:
+                return Contacts.check_msg_number(" ".join(match))
+        except Exception as e:
             logger.error(
                 f"{self.response.url} :: INVALID DATA MSG_NUMBER OFFER", exc_info=True
             )
+        return None
 
     @property
     def case_number(self):
@@ -265,10 +267,10 @@ class Combo:
                 .strip()
             )
             if len(case_) < 42:
-                return CheckIfCorrectContactInfo.check_case_number(case_)
-        except:
+                return Contacts.check_case_number(case_)
+        except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID CASE_NUMBER  OFFER")
-            return None
+        return None
 
     @property
     def debtor_inn(self):
@@ -279,8 +281,9 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(debitor_inn))
-        except:
-            return
+        except Exception as e:
+            pass
+        return None
 
     @property
     def address(self):
@@ -290,8 +293,9 @@ class Combo:
         try:
             address = BS(address, features="lxml").get_text(strip=True)
             return " ".join(address.split())
-        except:
-            return
+        except Exception as e:
+            pass
+        return None
 
     @property
     def arbit_manager(self):
@@ -328,8 +332,9 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(dedent_func(arb_inn)))
-        except:
-            return None
+        except Exception as e:
+            pass
+        return None
 
     @property
     def arbit_manager_org(self):
@@ -347,8 +352,9 @@ class Combo:
                     )
                 return "".join(dedent_func(td_company))
 
-        except:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID DATA TRADING ORG - OFFER ")
+        return None
 
     def create_soup(self, lot):
         return BS(lot, features="lxml")
@@ -376,7 +382,7 @@ class Combo:
         return self.get_lot_link(lot).split("/")[-1]
 
     def get_lot_link(self, lot):
-        return UrlConfig.url_join(
+        return URL.url_join(
             data_origin_url,
             self.create_soup(lot).find("a", text="Просмотр").get("href").strip(),
         )
@@ -511,7 +517,7 @@ class Combo:
                 return float(match.group())
         except (ValueError, TypeError) as e:
             logger.error(e)
-            return None
+        return None
 
     def get_step_price(self, lot):
         _div_step = self.create_soup(lot).find(
@@ -526,8 +532,9 @@ class Combo:
             try:
                 step = float(step)
                 return round(start_price * step / 100, 2)
-            except (ValueError, TypeError):
-                return None
+            except (ValueError, TypeError) as e:
+                pass
+        return None
 
     def get_periods(self, lot):
         tables = (
@@ -536,7 +543,7 @@ class Combo:
             .find_next("div")
         )
         periods = []
-        check_value = 10000000000000000000000
+        check_value = 10 ** 22
         for table in tables.find_all("table"):
             _table = pd.read_html(str(table))
             df = _table[0][1]
@@ -558,7 +565,7 @@ class Combo:
                     )
                 else:
                     check_value = price
-            except:
+            except Exception as e:
                 logger.error(
                     f"{self.response.url} Period Price - {price_} typeof - {type(price_)}"
                 )
@@ -571,6 +578,6 @@ class Combo:
                     "current_price": price,
                 }
                 periods.append(period)
-            except:
+            except Exception as e:
                 continue
         return periods

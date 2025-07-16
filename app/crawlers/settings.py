@@ -81,7 +81,7 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 CLOSESPIDER_PAGECOUNT = 5000
 
-SPLASH_URL = "http://splash:8050/"
+SPLASH_URL = "http://localhost:8050/"
 SPIDER_MIDDLEWARES = {
     "scrapy_splash.SplashDeduplicateArgsMiddleware": 100,
 }
@@ -108,9 +108,8 @@ class InterceptHandler(logging.Handler):
 
 
 def setup_logger():
-    warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
-    warnings.filterwarnings("ignore", category=SyntaxWarning)
-    warnings.filterwarnings("ignore", category=UserWarning)
+    for warning in [XMLParsedAsHTMLWarning, SyntaxWarning, UserWarning, FutureWarning]:
+        warnings.filterwarnings("ignore", category=warning)
 
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
@@ -122,6 +121,7 @@ def setup_logger():
 
     scrapy.utils.log.configure_logging = lambda settings: None
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO, force=True)
+
 
 setup_logger()
 LOG_ENABLED = False

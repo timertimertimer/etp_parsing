@@ -1,18 +1,16 @@
-import logging
-
 from scrapy import Request, FormRequest
 
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
+from app.utils import logger, URL
 from ..trades.app import Combo
 from ..config import trade_link, data_origin, serp_link, formdata
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-
-logger = logging.getLogger(__name__)
+from app.crawlers.items import EtpItem, EtpItemLoader
 
 
 class RusonBaseSpider(BaseSpider):
     name = "base"
+    property_type = None
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
@@ -47,7 +45,7 @@ class RusonBaseSpider(BaseSpider):
             )
         else:
             for link in all_links:
-                link = UrlConfig.url_join(trade_link[self.name], link[0])
+                link = URL.url_join(trade_link[self.name], link[0])
                 if link not in self.previous_trades:
                     yield Request(url=link, callback=self.parse_trade)
 

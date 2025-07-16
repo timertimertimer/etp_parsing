@@ -1,17 +1,14 @@
-import logging
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func
-from general_utils.config import allowable_formats
-from general_utils.models import DownloadData
+from app.utils import dedent_func, logger
+from app.utils.config import allowable_formats
+from app.db.models import DownloadData
 from ..locators.locators_doc import LocatorDoc
-
-logger = logging.getLogger(__name__)
 
 
 class DocumentGeneral:
-    def __init__(self, resposne_):
-        self.response = resposne_
+    def __init__(self, resposne):
+        self.response = resposne
         self.soup = BS(
             str(self.response.body.decode("utf-8"))
             .replace("&lt;", "<")
@@ -26,9 +23,10 @@ class DocumentGeneral:
                 table_doc = BS(str(table_doc), features="lxml")
                 return table_doc
         except Exception as ex:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: DURRING GETTING DOC TABLE ERROR HAD BEEN APEARED {ex}"
             )
+        return None
 
     def get_name_links_doc_gen(self) -> list:
         block = self.get_doc_table()
@@ -76,10 +74,11 @@ class DocumentLot:
                 else:
                     return list()
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA get_lot_files {ex}", exc_info=True
+            logger.warning(
+                f"{self.response.url} | INVALID DATA get_lot_files {ex}", exc_info=True
             )
             return list()
+        return None
 
     def download_lot_files(self, table):
         files = list()

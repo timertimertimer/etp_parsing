@@ -59,14 +59,20 @@ class Fedresurs:
                 requests.exceptions.ReadTimeout,
             ) as e:
                 if i + 1 == retry_count:
-                    logger.warning(f"{url} | Connection error: {e}. All attempts failed")
+                    logger.warning(
+                        f"{url} | Connection error: {e}. All attempts failed"
+                    )
                     raise e
-                logger.warning(f"{url} | Connection error: {e}. Trying again. Attempt {i + 1}")
+                logger.warning(
+                    f"{url} | Connection error: {e}. Trying again. Attempt {i + 1}"
+                )
             except requests.exceptions.HTTPError as e:
                 if i + 1 == retry_count:
                     logger.warning(f"{url} | HTTP error: {e}. All attempts failed")
                     raise e
-                logger.warning(f"{url} | HTTP error: {e}. Trying again. Attempt {i + 1}")
+                logger.warning(
+                    f"{url} | HTTP error: {e}. Trying again. Attempt {i + 1}"
+                )
                 if response.status_code == 429:
                     proxy = choice(proxies)
                     proxy_dict = {

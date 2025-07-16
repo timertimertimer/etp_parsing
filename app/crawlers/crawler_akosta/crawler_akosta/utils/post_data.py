@@ -166,7 +166,4 @@ post_data_period_offer_page = {
     # neccessary
     "javax.faces.ViewState": "",
 }
-property_type_sgtable_id_map = {
-    'bankruptcy': '2',
-    'arrested': '0'
-}
+property_type_sgtable_id_map = {"bankruptcy": "2", "arrested": "0", "commercial": "1"}

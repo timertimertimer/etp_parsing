@@ -164,7 +164,9 @@ class OfferPage:
             price = re.sub(r"\s", "", periods.iloc[1][len(col) - 2])
             return round(float(price), 2)
         except Exception as e:
-            logger.warning(f"{self.response.url} :: INVALID DATA START PRICE offer\n{e}")
+            logger.warning(
+                f"{self.response.url} :: INVALID DATA START PRICE offer\n{e}"
+            )
         return None
 
     def download(self, crawler_name: str):

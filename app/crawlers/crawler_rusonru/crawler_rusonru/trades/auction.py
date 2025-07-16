@@ -2,11 +2,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
+from app.utils import dedent_func, Contacts, format_time, logger
 from ..locators.locator_auction import LocatorAuction
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class Auction:
@@ -16,7 +13,6 @@ class Auction:
         self.loc_auc = LocatorAuction
 
     def get_trading_type(self):
-        """return trading type"""
         try:
             offer = ("публичное предложение", "закрытое публичное предложение")
             auction = (
@@ -43,10 +39,10 @@ class Auction:
             elif text in competition:
                 return "competition"
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING TYPE {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA TRADING TYPE {e}")
+        return None
 
     def get_trading_form(self):
-        """:return trading form"""
         _open = (
             "публичное предложение",
             "аукцион с открытой формой представления цены",
@@ -68,17 +64,17 @@ class Auction:
             return "open"
         elif text in closed:
             return "closed"
+        return None
 
     def get_trading_id(self):
-        """:return trading id"""
         try:
             _id = re.findall(r"\d+$", str(self.response.url))
             return "".join(_id)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA Trading ID {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA Trading ID {ex}")
+        return None
 
     def get_block_org(self):
-        """:return trading organizer block(section with info)"""
         try:
             org_block = self.response.xpath(self.loc_auc.trading_org).get()
             if not org_block:
@@ -86,10 +82,10 @@ class Auction:
             org_block = BeautifulSoup(str(org_block), features="lxml")
             return org_block
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA TRADING ORG {ex}")
+        return None
 
     def get_org_name(self):
-        """:return trading organizer company or person name"""
         try:
             # bs4 object
             block = self.get_block_org()
@@ -99,22 +95,22 @@ class Auction:
             if name:
                 return dedent_func(name.findNext("td").get_text(strip=True))
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA get_org_name {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA get_org_name {ex}")
+        return None
 
     def get_inn_org(self):
-        """return organizer INN"""
         try:
             # bs4 object
             block = self.get_block_org()
             _inn = block.find("td", string=re.compile("ИНН", re.IGNORECASE))
             if _inn:
                 _inn = dedent_func(_inn.findNext("td").get_text().strip())
-                return CheckIfCorrectContactInfo.check_inn(_inn)
+                return Contacts.check_inn(_inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ORG INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ORG INN {ex}")
+        return None
 
     def get_email(self):
-        """:return org email"""
         try:
             block = self.get_block_org()
             email = block.find(
@@ -122,12 +118,12 @@ class Auction:
             ).findNext("td")
             if email:
                 email = dedent_func(email.get_text().strip())
-                return CheckIfCorrectContactInfo.check_email(email)
+                return Contacts.check_email(email)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA EMAIL ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA EMAIL ORG {ex}")
+        return None
 
     def get_phone(self):
-        """:return phone org"""
         try:
             block = self.get_block_org()
             phone = block.find(
@@ -135,9 +131,10 @@ class Auction:
             ).findNext("td")
             if phone:
                 phone = dedent_func(phone.get_text().strip())
-                return CheckIfCorrectContactInfo.check_phone(phone)
+                return Contacts.check_phone(phone)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA PHONE ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA PHONE ORG {ex}")
+        return None
 
     def get_org_contacts(self):
         email = self.get_email()
@@ -145,18 +142,17 @@ class Auction:
         return {"email": email, "phone": phone}
 
     def get_block_trade_info(self):
-        """return block(bs4) that contains msg number"""
         try:
             info_block = self.response.xpath(self.loc_auc.trade_info).get()
             info_block = BeautifulSoup(str(info_block), features="lxml")
             return info_block
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA get_block_trade_info {ex}"
+            logger.warning(
+                f"{self.response.url} | INVALID DATA get_block_trade_info {ex}"
             )
+        return None
 
     def msg_number(self):
-        """retur mesage number"""
         block = self.get_block_trade_info()
         block = BeautifulSoup(str(block), features="lxml")
         msg = block.find(
@@ -167,18 +163,18 @@ class Auction:
             msg = re.findall(r"\d{6,8}", msg.get_text())
             if len(msg) > 0:
                 return " ".join(msg)
+        return None
 
     def get_block_debtor_info(self):
-        """:return block with debtor info"""
         try:
             debtor_block = self.response.xpath(self.loc_auc.debtor_info).get()
             debtor_block = BeautifulSoup(str(debtor_block), features="lxml")
             return debtor_block
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INFO {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INFO {ex}")
+        return None
 
     def case_number(self):
-        """:return case number"""
         block = self.get_block_debtor_info()
         if block:
             case = block.find(
@@ -186,10 +182,10 @@ class Auction:
             ).findNext("td")
             if case:
                 case = dedent_func(case.get_text().strip())
-                return CheckIfCorrectContactInfo.check_case_number(case)
+                return Contacts.check_case_number(case)
+        return None
 
     def get_inn_debtor(self):
-        """return debtor INN"""
         try:
             # bs4 object
             block = self.get_block_debtor_info()
@@ -202,9 +198,10 @@ class Auction:
                     inn = _inn
                 else:
                     inn = self.response.xpath(self.loc_auc.extra_loc_debtor).get()
-                return CheckIfCorrectContactInfo.check_inn(inn)
+                return Contacts.check_inn(inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INN {ex}")
+        return None
 
     @property
     def address(self):
@@ -225,9 +222,10 @@ class Auction:
                     address = sud
                 return address
         except Exception:
-            logger.error(
-                f"{self.response.url} :: ERROR function {self.address.__name__}"
+            logger.warning(
+                f"{self.response.url} | ERROR function {self.address.__name__}"
             )
+        return None
 
     def get_arbitr_block(self):
         """:return block with arbitr info"""
@@ -236,10 +234,10 @@ class Auction:
             arb = BeautifulSoup(str(block_arbitr), features="lxml")
             return arb
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
+        return None
 
     def get_arbitr_full_name(self):
-        """:return full arbitr name"""
         try:
             block = self.get_arbitr_block()
             if block:
@@ -268,10 +266,10 @@ class Auction:
                     middle_name = ""
                 return " ".join([last_name, first_name, middle_name])
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR NAME {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME {e}")
+        return None
 
     def get_arbitr_inn(self):
-        """return arbitr INN"""
         try:
             # bs4 object
             block = self.get_arbitr_block()
@@ -280,12 +278,12 @@ class Auction:
             )
             if _inn:
                 _inn = dedent_func(_inn.get_text().strip())
-                return CheckIfCorrectContactInfo.check_inn(_inn)
+                return Contacts.check_inn(_inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR INN {ex}")
+        return None
 
     def get_arbitr_company(self):
-        """return arbitr company"""
         try:
             # bs4 object
             block = self.get_arbitr_block()
@@ -300,19 +298,19 @@ class Auction:
                     company = re.split(r",", company, maxsplit=1)[0]
                 return company
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR company {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR company {ex}")
+        return None
 
     def date_block_auction(self):
-        """:return block with auction dates of trading"""
         try:
             block = self.response.xpath(self.loc_auc.dates_trading).get()
             date_ = BeautifulSoup(str(block), features="lxml")
             return date_
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
+        return None
 
     def start_date_request_auc(self):
-        """:return start date request auction"""
         try:
             # bs4 object
             block = self.date_block_auction()
@@ -327,12 +325,12 @@ class Auction:
                     start = format_time(dedent_func(start.get_text().strip()))
                     return start
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     def end_date_request_auc(self):
-        """:return end date request auction"""
         try:
             # bs4 object
             block = self.date_block_auction()
@@ -349,12 +347,12 @@ class Auction:
                     )
                     return end
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     def start_date_trading_auc(self):
-        """:return start date trading auction"""
         try:
             # bs4 object
             block = self.date_block_auction()
@@ -368,19 +366,19 @@ class Auction:
                     )
                     return start
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     # LOTS (FOR ALL TYPES OF TRADE)
     def count_lots(self) -> list:
-        """:return list with lots table"""
         lot = self.soup.find_all("table", id=re.compile("table_lot", re.IGNORECASE))
         if len(lot) > 0:
             return lot
+        return []
 
     def table_trading_page_trade_info(self):
-        """return table with title "Information about trades" """
         table = self.soup.find(
             "th", string=re.compile("Информация о ходе торгов", re.IGNORECASE)
         )
@@ -388,12 +386,12 @@ class Auction:
             table = table.find_parent("table")
             return table
         else:
-            logger.error(
-                f"{self.response.url} :: ERROR function class Auction {self.table_trading_page_trade_info.__name__}"
+            logger.warning(
+                f"{self.response.url} | ERROR function class Auction {self.table_trading_page_trade_info.__name__}"
             )
+        return None
 
     def start_date_requests(self):
-        """return start date requests auction"""
         if table := self.table_trading_page_trade_info():
             text = r"Дата начала представления заявок на участие"
             start = table.find("td", string=re.compile(text, re.IGNORECASE))
@@ -403,13 +401,10 @@ class Auction:
                 try:
                     return format_time(start)
                 except Exception as e:
-                    print(e)
-                    logger.error(
-                        f"{self.response.url} :: ERROR function {self.start_date_requests.__name__}"
-                    )
+                    logger.warning(f"{self.response.url} | Error: {e}")
+        return None
 
     def end_date_requests(self):
-        """return end date requests auction"""
         if table := self.table_trading_page_trade_info():
             text = r"Дата окончания представления заявок на участие"
             end = table.find("td", string=re.compile(text, re.IGNORECASE))
@@ -419,13 +414,10 @@ class Auction:
                 try:
                     return format_time(end)
                 except Exception as e:
-                    print(e)
-                    logger.error(
-                        f"{self.response.url} :: ERROR function {self.end_date_requests.__name__}"
-                    )
+                    logger.warning(f"{self.response.url} | Error: {e}")
+        return None
 
     def start_date_trading(self):
-        """return start date trading auction"""
         if table := self.table_trading_page_trade_info():
             text = r"Дата проведения"
             start_trading = table.find_all("td", string=re.compile(text, re.IGNORECASE))
@@ -444,10 +436,7 @@ class Auction:
                             try:
                                 return format_time(start_trading)
                             except Exception as e:
-                                print(e)
-                                logger.error(
-                                    f"{self.response.url} :: ERROR function {self.start_date_requests.__name__}"
-                                )
+                                logger.warning(f"{self.response.url} | Error: {e}")
             elif len(start_trading) == 1:
                 try:
                     start_trading = start_trading[0]
@@ -458,9 +447,7 @@ class Auction:
                     try:
                         return format_time(start_trading)
                     except Exception as e:
-                        print(e)
-                        logger.error(
-                            f"{self.response.url} :: ERROR function {self.start_date_requests.__name__}"
-                        )
+                        logger.warning(f"{self.response.url} | Error: {e}")
                 except Exception as e:
-                    print(e)
+                    logger.warning(f"{self.response.url} | Error: {e}")
+        return None

@@ -1,14 +1,11 @@
-import logging
 import re
 from datetime import datetime
 
 from bs4 import BeautifulSoup as BS
 
+from app.db.models import DownloadData
+from app.utils import dedent_func, Contacts, make_float, logger
 from .locator import Locator
-from general_utils.models import DownloadData
-from general_utils import dedent_func, CheckIfCorrectContactInfo, make_float
-
-logger = logging.getLogger(__name__)
 
 
 def return_time_period(strtime):
@@ -87,6 +84,7 @@ class Combo:
             return "offer"
         elif string_ in competition:
             return "competition"
+        return None
 
     @property
     def trading_form(self):
@@ -107,8 +105,7 @@ class Combo:
             return "open"
         elif string_ in close_form:
             return "close"
-        else:
-            return None
+        return None
 
     @property
     def trading_org(self):
@@ -116,36 +113,36 @@ class Combo:
 
     @property
     def trading_org_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.response.xpath(Locator.inn_org).get()
         )
 
     @property
     def trading_org_contacts(self):
         return {
-            "email": CheckIfCorrectContactInfo.check_email(
+            "email": Contacts.check_email(
                 "".join(self.response.xpath(Locator.email_org_loc).get())
             ),
-            "phone": CheckIfCorrectContactInfo.check_phone(
+            "phone": Contacts.check_phone(
                 "".join(self.response.xpath(Locator.phone_org_loc).get())
             ),
         }
 
     @property
     def msg_number(self):
-        return CheckIfCorrectContactInfo.check_msg_number(
+        return Contacts.check_msg_number(
             self.response.xpath(Locator.msg_num_loc).get()
         )
 
     @property
     def case_number(self):
-        return CheckIfCorrectContactInfo.check_case_number(
+        return Contacts.check_case_number(
             self.response.xpath(Locator.case_num_loc).get()
         )
 
     @property
     def debtor_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.response.xpath(Locator.debitor_inn).get()
         )
 
@@ -156,7 +153,8 @@ class Combo:
             if address:
                 return BS(str(address), features="lxml").get_text(strip=True)
         except Exception as e:
-            logger.error(f"{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}")
+            logger.error(f"{self.response.url} | ERROR ADDRESS DEBTOR\n{e}")
+        return None
 
     @property
     def arbit_manager(self):
@@ -164,7 +162,7 @@ class Combo:
 
     @property
     def arbit_manager_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.response.xpath(Locator.arbitr_inn_loc).get()
         )
 
@@ -177,16 +175,6 @@ class Combo:
     @property
     def lot_number(self):
         return self.response.xpath(Locator.lot_number_loc).get()
-        # pattern = r'^Лот.?\W\d{1,}\:?'
-        # match = ''.join(re.findall(pattern, (''.join(value)).strip()))
-        # match = ''.join(re.findall(r'\d+', match))
-        # try:
-        #     if match:
-        #         return match
-        #     else:
-        #         return '1'
-        # except:
-        #     return '1'
 
     @property
     def short_name(self):
@@ -201,24 +189,28 @@ class Combo:
         date = self.response.xpath(Locator.start_date_request_loc).get()
         if date:
             return return_time_period(date)
+        return None
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(Locator.end_date_request_loc).get()
         if date:
             return return_time_period(date)
+        return None
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(Locator.start_trading_loc).get()
         if date:
             return return_time_period(date)
+        return None
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(Locator.end_trading_loc).get()
         if date:
             return return_time_period(date)
+        return None
 
     @property
     def start_price(self):
@@ -234,6 +226,7 @@ class Combo:
                 start_price = start_price[2]
         if start_price:
             return make_float(start_price)
+        return None
 
     @property
     def step_price(self):
@@ -246,32 +239,34 @@ class Combo:
         ):
             try:
                 return make_float("".join(step_price))
-            except:
+            except Exception as e:
                 logger.error(f"{self.response.url}:: STEP PRICE is INVALID")
+        return None
 
     @property
     def periods(self):
         table_periods = self.response.xpath(Locator.table_period_1)
-        if table_periods:
-            full_period = []
-            for tr in table_periods:
-                try:
-                    start = tr.xpath("td[1]//text()").get()
-                    end = tr.xpath("td[2]//text()").get()
-                    price = tr.xpath("td[3]//text()").get()
-                    start_date_requests = replaceMultiple(
-                        start.strip(), pattern_replace1, " "
-                    )
-                    end_date_requests = replaceMultiple(
-                        end.strip(), pattern_replace1, " "
-                    )
-                    period = {
-                        "start_date_requests": return_time_period(start_date_requests),
-                        "end_date_requests": return_time_period(end_date_requests),
-                        "end_date_trading": return_time_period(end_date_requests),
-                        "current_price": make_float(price),
-                    }
-                except:
-                    continue
-                full_period.append(period)
-            return full_period
+        if not table_periods:
+            return None
+        full_period = []
+        for tr in table_periods:
+            try:
+                start = tr.xpath("td[1]//text()").get()
+                end = tr.xpath("td[2]//text()").get()
+                price = tr.xpath("td[3]//text()").get()
+                start_date_requests = replaceMultiple(
+                    start.strip(), pattern_replace1, " "
+                )
+                end_date_requests = replaceMultiple(
+                    end.strip(), pattern_replace1, " "
+                )
+                period = {
+                    "start_date_requests": return_time_period(start_date_requests),
+                    "end_date_requests": return_time_period(end_date_requests),
+                    "end_date_trading": return_time_period(end_date_requests),
+                    "current_price": make_float(price),
+                }
+            except:
+                continue
+            full_period.append(period)
+        return full_period

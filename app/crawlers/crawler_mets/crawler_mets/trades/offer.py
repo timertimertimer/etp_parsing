@@ -39,7 +39,7 @@ class OfferParse:
         div = BS(str(div), features="lxml").get_text()
         match = "".join(re.findall(r"\d+\-\w+", str(div)))
         if len(match) < 0:
-            logger.warning(f"{self.response.url} | Couldn\'t parse trading_number")
+            logger.warning(f"{self.response.url} | Couldn't parse trading_number")
         else:
             return match
 
@@ -57,7 +57,8 @@ class OfferParse:
             return "".join(re.sub(r"\s+", " ", td_org))
         except Exception as e:
             logger.warning(
-                f"{self.response.url} | Couldn\'t parse trading_org. Error: {e}", exc_info=True
+                f"{self.response.url} | Couldn't parse trading_org. Error: {e}",
+                exc_info=True,
             )
         return None
 
@@ -142,7 +143,9 @@ class OfferParse:
                 )
                 return msg
         except Exception as e:
-            logger.warning(f"{self.response.url} | Couldn\'t parse msg_number. Error: {e}")
+            logger.warning(
+                f"{self.response.url} | Couldn't parse msg_number. Error: {e}"
+            )
         return None
 
     @property
@@ -159,7 +162,9 @@ class OfferParse:
             if len(case_) < 42:
                 return dedent_func(case_)
         except Exception as e:
-            logger.warning(f"{self.response.url} | Couldn\'t parse case_number. Error: {e}")
+            logger.warning(
+                f"{self.response.url} | Couldn't parse case_number. Error: {e}"
+            )
         return None
 
     @property

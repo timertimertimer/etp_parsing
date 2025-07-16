@@ -28,9 +28,7 @@ class TorgidvBaseSpider(BaseSpider):
         }
         base_url = "https://torgidv.ru/bitrix/services/main/ajax.php?"
         url = base_url + "&".join(f"{key}={value}" for key, value in url_params.items())
-        yield FormRequest(
-            url, self.parse_serp, method="POST", formdata=self.form_data
-        )
+        yield FormRequest(url, self.parse_serp, method="POST", formdata=self.form_data)
 
     def parse_serp(self, response):
         data = json.loads(response.text)
@@ -132,4 +130,3 @@ class TorgidvArrestedSpider(TorgidvBaseSpider):
     property_type = AuctionPropertyType.arrested
     start_urls = [urls[property_type]]
     form_data = sales_form_data
-    

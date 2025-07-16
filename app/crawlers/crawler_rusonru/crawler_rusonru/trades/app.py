@@ -1,29 +1,21 @@
-import logging
 import re
 
 import pandas as pd
 from numpy import float64
 
-from general_utils import (
-    dedent_func,
-    CheckIfCorrectContactInfo,
-    make_float,
-    format_time,
-)
+from app.utils import dedent_func, Contacts, make_float, format_time, logger
 from .serp import SerpParse
 from .files import DocumentGeneral, DocumentLot
 from bs4 import BeautifulSoup as BS
 
 from ..locator import Locator
 
-logger = logging.getLogger(__name__)
-
 
 class Combo:
     def __init__(self, response):
         self.response = response
         self.soup = BS(self.response.text, "lxml")
-        self.serp = SerpParse(response_=self.response)
+        self.serp = SerpParse(response=self.response)
         self.gen = DocumentGeneral(self.response)
         self.lot = DocumentLot(self.response)
 
@@ -33,7 +25,8 @@ class Combo:
             _id = re.findall(r"\d+$", str(self.response.url))
             return "".join(_id)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA Trading ID {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA Trading ID {ex}")
+        return None
 
     @property
     def trading_link(self):
@@ -45,7 +38,8 @@ class Combo:
             _number = self.response.xpath(Locator.trading_number).get()
             return dedent_func(_number)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA Trading Number {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA Trading Number {ex}")
+        return None
 
     @property
     def trading_type(self):
@@ -73,7 +67,8 @@ class Combo:
             elif text in competition:
                 return "competition"
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING TYPE {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA TRADING TYPE {e}")
+        return None
 
     @property
     def trading_form(self):
@@ -98,6 +93,7 @@ class Combo:
             return "open"
         elif text in closed:
             return "closed"
+        return None
 
     def get_block_org(self):
         try:
@@ -107,7 +103,8 @@ class Combo:
             org_block = BS(str(org_block), features="lxml")
             return org_block
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA TRADING ORG {ex}")
+        return None
 
     @property
     def trading_org(self):
@@ -119,7 +116,8 @@ class Combo:
             if name:
                 return dedent_func(name.findNext("td").get_text(strip=True))
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA get_org_name {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA get_org_name {ex}")
+        return None
 
     @property
     def trading_org_inn(self):
@@ -128,9 +126,10 @@ class Combo:
             _inn = block.find("td", string=re.compile("ИНН", re.IGNORECASE))
             if _inn:
                 _inn = dedent_func(_inn.findNext("td").get_text().strip())
-                return CheckIfCorrectContactInfo.check_inn(_inn)
+                return Contacts.check_inn(_inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ORG INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ORG INN {ex}")
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -146,9 +145,10 @@ class Combo:
             ).findNext("td")
             if email:
                 email = dedent_func(email.get_text().strip())
-                return CheckIfCorrectContactInfo.check_email(email)
+                return Contacts.check_email(email)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA EMAIL ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA EMAIL ORG {ex}")
+        return None
 
     def get_phone(self):
         try:
@@ -158,9 +158,10 @@ class Combo:
             ).findNext("td")
             if phone:
                 phone = dedent_func(phone.get_text().strip())
-                return CheckIfCorrectContactInfo.check_phone(phone)
+                return Contacts.check_phone(phone)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA PHONE ORG {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA PHONE ORG {ex}")
+        return None
 
     @property
     def msg_number(self):
@@ -174,6 +175,7 @@ class Combo:
             msg = re.findall(r"\d{6,8}", msg.get_text())
             if len(msg) > 0:
                 return " ".join(msg)
+        return None
 
     def get_block_trade_info(self):
         try:
@@ -181,9 +183,10 @@ class Combo:
             info_block = BS(str(info_block), features="lxml")
             return info_block
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA get_block_trade_info {ex}"
+            logger.warning(
+                f"{self.response.url} | INVALID DATA get_block_trade_info {ex}"
             )
+        return None
 
     @property
     def case_number(self):
@@ -194,7 +197,8 @@ class Combo:
             ).findNext("td")
             if case:
                 case = dedent_func(case.get_text().strip())
-                return CheckIfCorrectContactInfo.check_case_number(case)
+                return Contacts.check_case_number(case)
+        return None
 
     def get_block_debtor_info(self):
         try:
@@ -202,7 +206,8 @@ class Combo:
             debtor_block = BS(str(debtor_block), features="lxml")
             return debtor_block
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INFO {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INFO {ex}")
+        return None
 
     @property
     def debtor_inn(self):
@@ -217,9 +222,10 @@ class Combo:
                     inn = _inn
                 else:
                     inn = self.response.xpath(Locator.extra_loc_debtor).get()
-                return CheckIfCorrectContactInfo.check_inn(inn)
+                return Contacts.check_inn(inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA DEBTOR INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INN {ex}")
+        return None
 
     @property
     def address(self):
@@ -240,9 +246,10 @@ class Combo:
                     address = sud
                 return address
         except Exception:
-            logger.error(
-                f"{self.response.url} :: ERROR function {self.address.__name__}"
+            logger.warning(
+                f"{self.response.url} | ERROR function {self.address.__name__}"
             )
+        return None
 
     def get_arbitr_block(self):
         """:return block with arbitr info"""
@@ -251,7 +258,8 @@ class Combo:
             arb = BS(str(block_arbitr), features="lxml")
             return arb
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
+        return None
 
     @property
     def arbit_manager(self):
@@ -283,7 +291,8 @@ class Combo:
                     middle_name = ""
                 return " ".join([last_name, first_name, middle_name])
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR NAME {e}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME {e}")
+        return None
 
     @property
     def arbit_manager_inn(self):
@@ -294,9 +303,10 @@ class Combo:
             )
             if _inn:
                 _inn = dedent_func(_inn.get_text().strip())
-                return CheckIfCorrectContactInfo.check_inn(_inn)
+                return Contacts.check_inn(_inn)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR INN {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR INN {ex}")
+        return None
 
     @property
     def arbit_manager_org(self):
@@ -313,33 +323,34 @@ class Combo:
                     company = re.split(r",", company, maxsplit=1)[0]
                 return company
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA ARBITR company {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR company {ex}")
+        return None
 
     def date_block_auction(self):
-        """:return block with auction dates of trading"""
         try:
             block = self.response.xpath(Locator.dates_trading).get()
             date_ = BS(str(block), features="lxml")
             return date_
         except Exception as ex:
-            logger.error(f"{self.response.url} :: {ex}")
+            logger.warning(f"{self.response.url} | {ex}")
+        return None
 
     def count_lots(self) -> list:
-        """:return list with lots table"""
         lot = self.soup.find_all("table", id=re.compile("table_lot", re.IGNORECASE))
         if len(lot) > 0:
             return lot
+        return None
 
     def get_lot_block(self, table: str):
-        """:return table with lot info"""
         try:
             if table and len(table) > 0:
                 table_html = BS(str(table), features="lxml")
                 return table_html
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR TABLE LOT INFO {ex}", exc_info=True
+            logger.warning(
+                f"{self.response.url} | ERROR TABLE LOT INFO {ex}", exc_info=True
             )
+        return None
 
     def get_status(self, table: str):
         active = ("прием заявок", "приём заявок")
@@ -370,7 +381,8 @@ class Combo:
             elif status in ended:
                 return "ended"
         except Exception as ex:
-            logger.error(f"{self.response.url} :: Invalid data get_lot_status {ex}")
+            logger.warning(f"{self.response.url} | Invalid data get_lot_status {ex}")
+        return None
 
     def get_lot_number(self, table: str):
         try:
@@ -385,9 +397,10 @@ class Combo:
                 if re.match(r"^\d+$", num):
                     return num
                 else:
-                    logger.error(f"{self.response.url} :: INVALID DATA LOT NUMBER")
+                    logger.warning(f"{self.response.url} | INVALID DATA LOT NUMBER")
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR LOT NUMBER {ex}")
+            logger.warning(f"{self.response.url} | ERROR LOT NUMBER {ex}")
+        return None
 
     def get_short_name(self, table: str):
         try:
@@ -400,7 +413,8 @@ class Combo:
                     short = dedent_func(short.findNext("td").get_text().strip())
                     return short
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA SHORT NAME {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA SHORT NAME {ex}")
+        return None
 
     def get_lot_info(self, table: str):
         try:
@@ -416,7 +430,8 @@ class Combo:
                     lot_info = dedent_func(lot_info.findNext("td").get_text().strip())
                     return lot_info
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA LOT INFO {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA LOT INFO {ex}")
+        return None
 
     @property
     def property_information(self):
@@ -427,6 +442,7 @@ class Combo:
         )
         if info:
             return dedent_func(info.findNext("td").get_text(strip=True))
+        return None
 
     @property
     def start_date_requests_auc(self):
@@ -443,14 +459,14 @@ class Combo:
                     start = format_time(dedent_func(start.get_text().strip()))
                     return start
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     @property
     def end_date_requests_auc(self):
         try:
-            # bs4 object
             block = self.date_block_auction()
             if block:
                 end = block.find(
@@ -465,14 +481,14 @@ class Combo:
                     )
                     return end
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     @property
     def start_date_trading_auc(self):
         try:
-            # bs4 object
             block = self.date_block_auction()
             if block:
                 start = block.find(
@@ -484,20 +500,19 @@ class Combo:
                     )
                     return start
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: ERROR start date request auction {ex}"
+            logger.warning(
+                f"{self.response.url} | ERROR start date request auction {ex}"
             )
+        return None
 
     def get_period_table(self, table: str):
         try:
             block = self.get_lot_block(table=table)
             if block:
-                # find period table using class_
                 table_1 = block.find("table", class_="views-table inner discount_int")
                 if table_1:
                     table_1 = table_1
                 else:
-                    # if table not found, used string search
                     table_1 = block.find(
                         "th",
                         string=re.compile("ата начала приема заявок", re.IGNORECASE),
@@ -509,9 +524,10 @@ class Combo:
                     df = _table[0]
                     return df
                 else:
-                    logger.critical(f"{self.response.url} :: TABLE PERIODS NOT FOUND")
+                    logger.warning(f"{self.response.url} | TABLE PERIODS NOT FOUND")
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA PERIODS OFFER {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA PERIODS OFFER {ex}")
+        return None
 
     def get_start_date_requests_offer(self, table: str):
         try:
@@ -519,9 +535,10 @@ class Combo:
             start_date = table_period.iloc[0][0]
             return format_time(start_date)
         except Exception as ex:
-            logger.error(
-                f"{self.response.url} :: INVALID DATA START DATE TRADING OFFER {ex}"
+            logger.warning(
+                f"{self.response.url} | INVALID DATA START DATE TRADING OFFER {ex}"
             )
+        return None
 
     def get_end_date_requests_offer(self, table: str):
         try:
@@ -529,7 +546,8 @@ class Combo:
             end_date = table_period.iloc[-1][1]
             return format_time(end_date)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA END DATE TRADING {ex}")
+        return None
 
     def get_start_date_trading_offer(self, table: str):
         return self.get_start_date_requests_offer(table)
@@ -547,6 +565,7 @@ class Combo:
         match = "".join(re.findall(pattern, clean_price))
         if match:
             return round(float(match), 2)
+        return None
 
     def get_start_price_auc(self, table: str):
         try:
@@ -565,12 +584,12 @@ class Combo:
                             price = p.findNext("td").get_text()
                             return make_float(price)
                 else:
-                    logger.error(f"{self.response.url} :: INVALID DATA START PRICE")
+                    logger.warning(f"{self.response.url} | INVALID DATA START PRICE")
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR start price auction {ex}")
+            logger.warning(f"{self.response.url} | ERROR start price auction {ex}")
+        return None
 
     def get_start_price_offer(self, table_):
-        """:return start price offer from period table"""
         try:
             table_period = self.get_period_table(table_)
             current_price = table_period.iloc[0][2]
@@ -579,11 +598,12 @@ class Combo:
             elif isinstance(current_price, float64):
                 current_price_ = round(float(current_price), 2)
             else:
-                logger.error(f"{self.response.url} :: INVALID TYPE CURRENT PRICE")
+                logger.warning(f"{self.response.url} | INVALID TYPE CURRENT PRICE")
                 current_price_ = None
             return current_price_
         except Exception as ex:
-            logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING {ex}")
+            logger.warning(f"{self.response.url} | INVALID DATA END DATE TRADING {ex}")
+        return None
 
     def get_step_price(self, table: str):
         try:
@@ -601,11 +621,11 @@ class Combo:
                             price = p.findNext("td").get_text()
                             return make_float(price)
         except Exception as ex:
-            logger.error(f"{self.response.url} :: ERROR step price {ex}")
+            logger.warning(f"{self.response.url} | ERROR step price {ex}")
+        return None
 
     def get_periods(self, table):
-        """return periods"""
-        check_value = int(10000000000000000000000)
+        check_value = int(10**22)
         periods = list()
         df = self.get_period_table(table)
         try:
@@ -620,8 +640,8 @@ class Combo:
                     elif isinstance(current_price, float64):
                         current_price_ = round(float(current_price), 2)
                     else:
-                        logger.error(
-                            f"{self.response.url} :: INVALID TYPE CURRENT PRICE"
+                        logger.warning(
+                            f"{self.response.url} | INVALID TYPE CURRENT PRICE"
                         )
                         current_price_ = None
                     period = {
@@ -632,13 +652,14 @@ class Combo:
                     }
                     periods.append(period)
                     if check_value < current_price_:
-                        logger.critical(
-                            f"{self.response.url} :: INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS",
+                        logger.warning(
+                            f"{self.response.url} | INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS",
                             df,
                         )
                     check_value = current_price_
             return periods
         except Exception as e:
-            logger.error(
-                f"{self.response.url} :: PERIODS ERROR {e}\n{df}", exc_info=True
+            logger.warning(
+                f"{self.response.url} | PERIODS ERROR {e}\n{df}", exc_info=True
             )
+        return None

@@ -13,7 +13,7 @@ from app.utils import (
     dedent_func,
     Contacts,
     format_time,
-    logger
+    logger,
 )
 
 __all__ = [
@@ -33,7 +33,7 @@ __all__ = [
     "pd",
     "format_time",
     "integer",
-    "logger"
+    "logger",
 ]
 
 

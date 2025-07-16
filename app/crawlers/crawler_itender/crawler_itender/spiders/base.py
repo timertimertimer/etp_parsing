@@ -20,7 +20,7 @@ from app.crawlers.crawler_itender.crawler_itender.config import (
     post_data_competition,
     start_date,
     script_lua_nojs,
-    common_data,
+    common_data, urls,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class ItenderBaseSpider(BaseSpider):
 
     def __init__(self):
         self.set_links()
-        super(ItenderBaseSpider, self).__init__(self.data_origin)
+        super(ItenderBaseSpider, self).__init__(urls[self.name])
 
     def start_requests(self):
         yield Request(self.data_origin, self.choose_datatype)

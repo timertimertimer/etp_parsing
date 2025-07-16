@@ -6,6 +6,7 @@ from loguru import logger as loguru_logger
 
 project_root_path = Path(__file__).parent.parent
 
+
 class InterceptHandler(logging.Handler):
     def emit(self, record):
         try:
@@ -91,4 +92,4 @@ class Logger:
 
 logger = Logger()
 
-__all__ = ['logger']
+__all__ = ["logger"]

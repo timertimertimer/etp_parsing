@@ -14,7 +14,7 @@ from app.utils import (
     return_parse_date,
     URL,
     format_time,
-    logger
+    logger,
 )
 from bs4 import BeautifulSoup as BS
 

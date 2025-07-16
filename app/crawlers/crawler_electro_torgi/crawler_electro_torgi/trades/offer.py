@@ -77,5 +77,7 @@ class Offer:
             end = self.get_period_table().iloc[-1][2]
             return format_time(end)
         except Exception as ex:
-            logger.warning(f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}")
+            logger.warning(
+                f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}"
+            )
             return None

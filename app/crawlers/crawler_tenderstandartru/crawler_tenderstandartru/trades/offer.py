@@ -56,7 +56,7 @@ class OfferParse:
                     check_value = current_price_
             return periods
         except Exception as e:
-            logger.warning(f'{self.response.url} | ERROR PERIODS  {e}\n{df}')
+            logger.warning(f"{self.response.url} | ERROR PERIODS  {e}\n{df}")
             return None
 
     def get_start_date_request(self, lst_period: list):

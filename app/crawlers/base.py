@@ -13,7 +13,10 @@ from app.utils import logger
 class BaseSpider(scrapy.Spider):
     name: str = None
     property_type: AuctionPropertyType = None
-    def __init__(self, data_origin_url: str, select_keys: set[str] = None, *args, **kwargs):
+
+    def __init__(
+        self, data_origin_url: str, select_keys: set = None, *args, **kwargs
+    ):
         super(BaseSpider, self).__init__(*args)
         DBHelper.create_new_connection()
         self.previous_trades, self.trading_floor_id = DBHelper.get_latest_lot(

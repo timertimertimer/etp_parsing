@@ -154,3 +154,4 @@ trash_resources = [
 download_files_from_get_url = True
 write_log_to_file = False
 post_main_service = True
+parse_fedresurs = False

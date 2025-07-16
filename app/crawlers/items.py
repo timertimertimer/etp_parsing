@@ -15,21 +15,21 @@ class EtpItem(scrapy.Item):
     trading_org = scrapy.Field()
     trading_org_inn = scrapy.Field()
     trading_org_contacts = scrapy.Field()
-    msg_number = scrapy.Field()
-    case_number = scrapy.Field()
+    msg_number = scrapy.Field()  # № сообщения ЕФРСБ
+    case_number = scrapy.Field()  # № судебного дела
     debtor_inn = scrapy.Field()
     address = scrapy.Field()
     arbit_manager = scrapy.Field()
     arbit_manager_inn = scrapy.Field()
     arbit_manager_org = scrapy.Field()
-    status = scrapy.Field()
+    status = scrapy.Field()  # статус торгов (активные/ ожидаются/ завершенные)
     lot_id = scrapy.Field()
     lot_link = scrapy.Field()
     lot_number = scrapy.Field()
-    short_name = scrapy.Field()
-    lot_info = scrapy.Field()
+    short_name = scrapy.Field()  # Краткие сведения об имуществе (предприятии) должника (наименование лота)
+    lot_info = scrapy.Field()  # Cведения об имуществе (предприятии) должника, выставляемом на торги, его составе, характеристиках, описание
     categories = scrapy.Field()
-    property_information = scrapy.Field()
+    property_information = scrapy.Field()  # Порядок ознакомления с имуществом (предприятием) должника
     start_date_requests = scrapy.Field()
     end_date_requests = scrapy.Field()
     start_date_trading = scrapy.Field()
@@ -38,6 +38,12 @@ class EtpItem(scrapy.Item):
     step_price = scrapy.Field()
     periods = scrapy.Field()
     files = scrapy.Field()
+    bid_security = scrapy.Field()  # Обеспечение заявки
+    performance_security = scrapy.Field()  # Обеспечение обязательств по договору
+    operators_fee = scrapy.Field()  # Вознаграждение оператора
+    execution_time = scrapy.Field()  # Информация о сроках исполнения контракта и источниках финансирования
+    subject_info = scrapy.Field()  # Информация об объекте закупки/Информация о товаре, работе, услуге
+    sme = scrapy.Field()  # Только для малого и среднего предпринимательства да/нет/неизвестно ГАЛОЧКА В ФИЛЬТРЕ
 
 
 class EtpItemLoader(ItemLoader):
@@ -80,3 +86,8 @@ class EtpItemLoader(ItemLoader):
     step_price_out = TakeFirst()
     periods_out = Identity()
     files_out = TakeFirst()
+    bid_security_out = TakeFirst()
+    performance_security_out = TakeFirst()
+    operators_fee_out = TakeFirst()
+    subject_info_out = TakeFirst()
+    sme_out = TakeFirst()

@@ -7,6 +7,7 @@ from app.utils.logger import logger
 from ..combo import Combo
 from ..config import bankruptcy_params, arrested_params, data_origin_url
 
+
 class HeveyaBaseSpider(BaseSpider):
     name = "heveya"
     start_urls = ["https://heveya.ru/search"]
@@ -100,10 +101,12 @@ class HeveyaBaseSpider(BaseSpider):
         )
         yield loader.load_item()
 
+
 class HeveyaBankruptcySpider(HeveyaBaseSpider):
     name = "heveya_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
     params = bankruptcy_params
+
 
 class HeveyaArrestedSpider(HeveyaBaseSpider):
     name = "heveya_arrested"

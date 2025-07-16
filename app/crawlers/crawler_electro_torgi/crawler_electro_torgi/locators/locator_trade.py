@@ -24,7 +24,9 @@ class LocatorTrade:
     files_loc = "//div[@data-file-id]"
     lots_loc = '//div[@id="lots"]//div[@class="row"]'
     short_name_loc = '//div[normalize-space(text())="Наименование лота"]/following-sibling::div[1]/text()'
-    short_name_loc_2 = '//div[contains(@class, "grey-grib") and contains(@class, "bold")]/text()'
+    short_name_loc_2 = (
+        '//div[contains(@class, "grey-grib") and contains(@class, "bold")]/text()'
+    )
     lot_info_loc = '//div[normalize-space(text())="порядок ознакомления с имуществом"]/following-sibling::div[1]/text()'
     lot_info_loc_2 = '//div[contains(., "орядок ознакомления с имуществом")]/following-sibling::div[1]/text()'
     property_information_loc = '//div[contains(normalize-space(text()), "Порядок оформления участия в торгах")]/following-sibling::div/text()'

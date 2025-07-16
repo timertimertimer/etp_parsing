@@ -1,4 +1,4 @@
-from general_utils.config import format_parse_date
+from app.utils.config import format_parse_date
 
 start_date = format_parse_date(0, "%Y-%m-%d")
 categories = {

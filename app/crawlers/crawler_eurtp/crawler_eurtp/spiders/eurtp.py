@@ -121,10 +121,12 @@ class EurtpBaseSpider(BaseSpider):
         loader.add_value("files", {"general": general_files, "lot": combo.download()})
         yield loader.load_item()
 
+
 class EurtpBankruptcySpider(EurtpBaseSpider):
     name = "eurtp_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
     category_urls = bankrupt_categories
+
 
 class EurtpArrestedSpider(EurtpBaseSpider):
     name = "eurtp_arrested"
