@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Integer, String, ForeignKey, DateTime
+from sqlalchemy import Integer, String, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -51,6 +51,13 @@ class Auction(Base):
     type: Mapped[str] = mapped_column(SAEnum(AuctionType, convert_unicode=True))
     form: Mapped[str] = mapped_column(SAEnum(FormType, convert_unicode=True))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
+    bid_security: Mapped[float] = mapped_column(Float, nullable=True)
+    performace_security: Mapped[float] = mapped_column(Float, nullable=True)
+    operators_fee: Mapped[float] = mapped_column(Float, nullable=True)
+    execution_time: Mapped[str] = mapped_column(String, nullable=True)
+    subject_info = ...
+    sme: Mapped[bool] = mapped_column(Boolean, nullable=True)
+
     organizer_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True
     )

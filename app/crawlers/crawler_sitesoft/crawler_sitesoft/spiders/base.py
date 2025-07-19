@@ -1,6 +1,6 @@
 import json
 
-from scrapy import FormRequest
+from scrapy import FormRequest, Request
 
 from app.crawlers.base import BaseSpider
 from app.crawlers.crawler_sitesoft.crawler_sitesoft.config import (
@@ -17,6 +17,7 @@ class SitesoftBaseSpider(BaseSpider):
 
     def __init__(self):
         self.start_urls = [URL.url_join(urls[self.name], "/searchServlet")]
+        self.auctions = set()
         super().__init__(data_origin[self.name])
 
     def start_requests(self):
@@ -56,5 +57,17 @@ class SitesoftBaseSpider(BaseSpider):
                 cb_kwargs={"parsed_all": True},
             )
         else:
-            ...
+            links = response.xpath('//a[@class="gwt-Anchor"]/@href').getall()
+            for link in links:
+                yield Request(
+                    link, callback=self.get_auction_from_lot
+                )
+
+    def get_auction_from_lot(self, response):
+        auction_link = response.xpath('//a[@id="ParametrizedPageLink_5"]/@href').get()
+        yield Request(auction_link, callback=self.parse_auction)
         
+    def parse_auction(self, response):
+        combo = Combo(response)
+        
+
