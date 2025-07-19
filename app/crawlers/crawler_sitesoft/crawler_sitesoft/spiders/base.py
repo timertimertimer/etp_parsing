@@ -89,7 +89,8 @@ class SitesoftBaseSpider(BaseSpider):
         loader.add_value("arbit_manager_inn", combo.arbit_manager_inn)
         loader.add_value("arbit_manager_org", combo.arbit_manager_org)
         loader.add_value("property_information", combo.property_information)
-        for
+        for lot_link in combo.get_lots(data_origin[self.name]):
+            yield Request(lot_link, callback=self.parse_lot, cb_kwargs={'loader': loader})
 
     def parse_lot(self, response, loader):
         combo = Combo(response)

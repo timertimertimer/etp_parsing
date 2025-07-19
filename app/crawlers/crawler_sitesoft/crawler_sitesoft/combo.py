@@ -1,13 +1,19 @@
 from bs4 import BeautifulSoup
 
 from app.db.models import DownloadData
-from app.utils import dedent_func, contains, format_time, make_float
+from app.utils import dedent_func, contains, format_time, make_float, URL
 
 
 class Combo:
     def __init__(self, response):
         self.response = response
         self.soup = BeautifulSoup(response)
+
+    def get_lots(self, data_origin: str):
+        return [
+            URL.url_join(data_origin, el.get('href'))
+            for el in self.soup.find('h3', text=contains('Лоты')).find('table').find_all('a')
+        ]
 
     @property
     def trading_id(self):
@@ -27,7 +33,7 @@ class Combo:
         if 'аукцион' in type_.lower():
             return 'auction'
         else:
-            return None # TODO
+            return None  # TODO
 
     @property
     def trading_form(self):
@@ -35,7 +41,7 @@ class Combo:
         if 'открытый' in form.lower():
             return 'open'
         else:
-            return 'closed' # TODO
+            return 'closed'  # TODO
 
     @property
     def trading_org(self):
@@ -63,7 +69,7 @@ class Combo:
 
     @property
     def address(self):
-        ... # TODO
+        ...  # TODO
 
     @property
     def arbit_manager(self):
@@ -81,7 +87,7 @@ class Combo:
     def status(self):
         mapping = {
             'Завершена процедура': 'ended'
-        } # TODO
+        }  # TODO
         return mapping.get(self.soup.find('div', class_=contains('rangeStage')).text)
 
     @property
@@ -102,7 +108,7 @@ class Combo:
 
     @property
     def property_information(self):
-        return None # TODO
+        return None  # TODO
 
     @property
     def lot_info(self):
