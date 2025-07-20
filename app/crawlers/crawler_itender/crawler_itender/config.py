@@ -43,7 +43,7 @@ data_origin = {
 }
 
 urls = {
-    "alfalot": "https://bankrupt.alfalot.ru/",
+    "alfalot": "https://alfalot.ru/",
     "arbbitlot": "https://torgi.arbbitlot.ru/",
     "arbitat": "http://arbitat.ru/",
     "bepspb": "https://bankruptcy.bepspb.ru/",
@@ -56,7 +56,7 @@ urls = {
     "meta_invest": "https://meta-invest.ru/",
     "propertytrade": "https://propertytrade.ru/",
     "selt_online": "https://selt-online.ru/",
-    "tender_one": "https://bankrupt.tender.one/",
+    "tender_one": "https://tender.one/",
     "tendergarant": "https://tendergarant.com/",
     "torgibankrot": "https://torgibankrot.ru/",
     "utender": "http://utender.ru/",
