@@ -11,7 +11,7 @@ from app.crawlers.crawler_sitesoft.crawler_sitesoft.config import (
 )
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
-from app.utils import URL
+from app.utils import URL, logger
 from app.utils.config import start_date
 
 
@@ -28,11 +28,20 @@ class SitesoftBaseSpider(BaseSpider):
             method="GET",
             url=self.start_urls[0],
             formdata={
-                "query": json.dumps({"types": types[self.property_type.value]}),
+                "query": json.dumps(
+                    {
+                        "types": [types[self.property_type.value]],
+                        "placementDate": {"min": start_date},
+                    }
+                ),
                 "filter": json.dumps({"state": ["ALL"]}),
-                "sort": json.dumps({"placementDate": {"min": start_date}}),
+                "sort": json.dumps({"placementDate": False}),
                 "limit": json.dumps(
-                    {"min": "0", "max": "20", "updateTotalCount": "true"}
+                    {
+                        "min": 0,
+                        "max": 20,
+                        "updateTotalCount": True,
+                    }
                 ),
             },
             callback=self.parse,
@@ -40,7 +49,8 @@ class SitesoftBaseSpider(BaseSpider):
 
     def parse(self, response, parsed_all: bool = False):
         data = json.loads(response.text)
-        if data["totalCount"] > 20 and not parsed_all:
+        total = data["totalCount"]
+        if total > 20 and not parsed_all:
             yield FormRequest(
                 method="GET",
                 url=self.start_urls[0],
@@ -65,32 +75,64 @@ class SitesoftBaseSpider(BaseSpider):
                 cb_kwargs={"parsed_all": True},
             )
         else:
-            for offer in data['list']:
+            offers = data["list"]
+            for offer in offers:
+                offer_link = offer["offerLink"]
+                if (
+                    offer_link not in self.auctions
+                    and offer_link not in self.previous_trades
+                ):
+                    self.auctions.add(offer_link)
+                else:
+                    continue
                 trading_type = {
-                    'Аукцион на повышение': 'auction',
+                    "auction": [
+                        "Аукцион в электронной форме",
+                        "Аукцион на повышение",
+                        "Аукцион на понижение",
+                        "Аукцион в электронной форме (продажа)",
+                        "Открытый аукцион в электронной форме",
+                    ],
+                    "offer": ["Публичное предложение"],
                 }
                 status = {
-                    'active': ['Идет прием заявок'],
-                    'pending': ['Заключение договора'],
-                    'ended': ['Приостановлено проведение торгов']
+                    "active": ["Идет прием заявок", "Объявлен"],
+                    "pending": ["Заключение договора", "Работа комиссии"],
+                    "ended": [
+                        "Приостановлено проведение торгов",
+                        "Процедура не состоялась",
+                    ],
                 }
                 loader = EtpItemLoader(EtpItem(), response=response)
                 loader.add_value("data_origin", data_origin[self.name])
                 loader.add_value("property_type", self.property_type)
-                loader.add_value("trading_id", offer['identifier'])
-                loader.add_value("trading_link", offer['offerLink'])
-                loader.add_value("trading_number", offer['identifier'])
-                loader.add_value("trading_type", trading_type[data['placementType']])
-                loader.add_value("trading_org", data['organizer'].get('title'))
-                loader.add_value("trading_org_inn", data['organizer'].get('inn'))
+                loader.add_value("trading_id", offer["identifier"])
+                loader.add_value("trading_link", offer_link)
+                loader.add_value("trading_number", offer["identifier"])
+                for key, value in trading_type.items():
+                    if offer["placementType"] in value:
+                        loader.add_value("trading_type", key)
+                        break
+                else:
+                    logger.warning(
+                        f"{response.url} | Could not parse trading type: {offer['placementType']}"
+                    )
+                loader.add_value("trading_org", offer["organizer"].get("title"))
+                loader.add_value("trading_org_inn", offer["organizer"].get("inn"))
                 for key, value in status.items():
-                    if data['state']['title'] in value:
-                        loader.add_value('status', key)
-                lot_link = data['lotLink']
+                    if offer["state"]["title"] in value:
+                        loader.add_value("status", key)
+                        break
+                else:
+                    logger.warning(
+                        f"{response.url} | Could not parse status: {offer['state']['title']}"
+                    )
+                lot_link = offer["lotLink"]
                 loader.add_value("lot_link", lot_link)
-                loader.add_value("lot_number", data['lot_number'])
-                yield Request(lot_link)
-
+                loader.add_value("lot_number", offer["lotNumber"])
+                yield Request(
+                    lot_link, callback=self.parse_lot, cb_kwargs={"loader": loader}
+                )
 
     def parse_lot(self, response, loader):
         combo = Combo(response)
@@ -98,9 +140,18 @@ class SitesoftBaseSpider(BaseSpider):
         loader.add_value("short_name", combo.short_name)
         loader.add_value("start_date_requests", combo.start_date_requests)
         loader.add_value("end_date_requests", combo.end_date_requests)
-        loader.add_value("start_date_trading", combo.start_date_trading)
-        loader.add_value("end_date_trading", combo.end_date_trading)
-        loader.add_value("start_price", combo.start_price)
+        if loader.get_collected_values("trading_type")[0] == "offer":
+            periods = combo.periods
+            loader.add_value("periods", periods)
+            loader.add_value("start_date_trading", periods[0]["start_date_requests"])
+            loader.add_value("end_date_trading", periods[-1]["end_date_requests"])
+        else:
+            loader.add_value("start_date_trading", combo.start_date_requests)
+            loader.add_value("end_date_trading", combo.end_date_requests)
+            loader.add_value("start_price", combo.start_price)
+            loader.add_value("step_price", combo.step_price)
+        files = combo.download_files()
+        loader.add_value("files", {"general": [], "lot": files})
         yield loader.load_item()
 
 
@@ -122,3 +173,12 @@ class EtpuCommercialSpider(SitesoftBaseSpider):
 class AlfalotCommercialSpider(SitesoftBaseSpider):
     name = "alfalot_commercial"
     property_type = AuctionPropertyType.commercial
+
+
+class TenderOneCommercialSpider(SitesoftBaseSpider):
+    name = "tender_one_commercial"
+    property_type = AuctionPropertyType.commercial
+
+class EtpuLegalEntitiesSpider(SitesoftBaseSpider):
+    name = "etpu_legal_entities"
+    property_type = AuctionPropertyType.legal_entities

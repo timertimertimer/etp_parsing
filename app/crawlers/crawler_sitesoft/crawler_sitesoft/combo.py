@@ -1,23 +1,36 @@
+import re
+
+import pandas as pd
 from bs4 import BeautifulSoup
 
 from app.db.models import DownloadData
-from app.utils import dedent_func, contains, format_time, make_float, URL
+from app.utils import (
+    dedent_func,
+    contains,
+    format_time,
+    make_float,
+    URL,
+    check_value,
+    logger,
+)
 
 
 class Combo:
     def __init__(self, response):
         self.response = response
-        self.soup = BeautifulSoup(response)
+        self.soup = BeautifulSoup(response.text, "lxml")
 
     def get_lots(self, data_origin: str):
         return [
-            URL.url_join(data_origin, el.get('href'))
-            for el in self.soup.find('h3', text=contains('Лоты')).find('table').find_all('a')
+            URL.url_join(data_origin, el.get("href"))
+            for el in self.soup.find("h3", text=contains("Лоты"))
+            .find("table")
+            .find_all("a")
         ]
 
     @property
     def trading_id(self):
-        return self.soup.find('span', class_='identifier').text
+        return self.soup.find("span", class_="identifier").text
 
     @property
     def trading_link(self):
@@ -29,23 +42,25 @@ class Combo:
 
     @property
     def trading_type(self):
-        type_ = self.soup.find('td', text='Способ проведения процедуры').find_next('td').text
-        if 'аукцион' in type_.lower():
-            return 'auction'
+        type_ = (
+            self.soup.find("td", text="Способ проведения процедуры")
+            .find_next("td")
+            .text
+        )
+        if "аукцион" in type_.lower():
+            return "auction"
         else:
             return None  # TODO
 
     @property
     def trading_form(self):
-        form = self.soup('td', text='Форма торгов').find_next('td')
-        if 'открытый' in form.lower():
-            return 'open'
-        else:
-            return 'closed'  # TODO
+        return "open"
 
     @property
     def trading_org(self):
-        return dedent_func(self.soup.find('td', text='Организатор').find_next('td').text)
+        return dedent_func(
+            self.soup.find("td", text="Организатор").find_next("td").text
+        )
 
     @property
     def trading_org_inn(self):
@@ -68,8 +83,7 @@ class Combo:
         return None
 
     @property
-    def address(self):
-        ...  # TODO
+    def address(self): ...  # TODO
 
     @property
     def arbit_manager(self):
@@ -85,14 +99,12 @@ class Combo:
 
     @property
     def status(self):
-        mapping = {
-            'Завершена процедура': 'ended'
-        }  # TODO
-        return mapping.get(self.soup.find('div', class_=contains('rangeStage')).text)
+        mapping = {"Завершена процедура": "ended"}  # TODO
+        return mapping.get(self.soup.find("div", class_=contains("rangeStage")).text)
 
     @property
     def lot_id(self):
-        return self.soup.find('span', class_='identifier').text
+        return self.soup.find("span", class_="identifier").text
 
     @property
     def lot_link(self):
@@ -100,11 +112,11 @@ class Combo:
 
     @property
     def lot_number(self):
-        return self.soup.find('td', text="Номер лота").text
+        return self.soup.find("td", text="Номер лота").text
 
     @property
     def short_name(self):
-        return dedent_func(self.soup.find('div', class_=contains('etpp-small')).text)
+        return dedent_func(self.soup.find("div", class_=contains("etpp-small")).text)
 
     @property
     def property_information(self):
@@ -112,41 +124,119 @@ class Combo:
 
     @property
     def lot_info(self):
-        return dedent_func(self.soup.find('td', text='предмет торгов').text)
+        return dedent_func(self.soup.find("td", text="предмет торгов").text)
+
+    def parse_date(self, date):
+        months = {
+            "янв": "01",
+            "фев": "02",
+            "мар": "03",
+            "апр": "04",
+            "май": "05",
+            "июн": "06",
+            "июл": "07",
+            "авг": "08",
+            "сен": "09",
+            "окт": "10",
+            "ноя": "11",
+            "дек": "12",
+        }
+        parts = date.split()
+        day = parts[0]
+        month = months[parts[1]]
+        year = parts[2]
+        time = parts[3]
+
+        formatted = f"{day}.{month}.{year} {time}"
+        return format_time(formatted)
 
     @property
     def start_date_requests(self):
-        return format_time(self.soup.find('span', text=contains('Начало срока подачи заявок')).text)
+        date = self.soup.find(
+            "span", text=contains("Начало срока подачи заявок")
+        ) or self.soup.find("span", text=contains("Начало подачи заявок"))
+        if not date:
+            return None
+
+        return self.parse_date(
+            date.find_next("td").text.strip().replace("\xa0", " ").replace(" МСК", ""),
+        )
 
     @property
     def end_date_requests(self):
-        return format_time(self.soup.find('span', text=contains('Окончание срока подачи заявок')).text)
+        date = self.soup.find(
+            "span", text=contains("Окончание срока подачи заявок")
+        ) or self.soup.find("span", text=contains("Окончание подачи заявок"))
+        if not date:
+            return None
+        return self.parse_date(
+            date.find_next("td").text.strip().replace("\xa0", " ").replace(" МСК", ""),
+        )
 
     @property
     def start_date_trading(self):
-        return format_time(self.soup.find('span', text=contains('Начало проведение торгов')).text)
+        date = self.soup.find("span", text=contains("Начало проведение торгов"))
+        if not date:
+            return None
+        return self.parse_date(
+            date.find_next("td").text.strip().replace("\xa0", " ").replace(" МСК", ""),
+        )
 
     @property
     def end_date_trading(self):
-        return format_time(self.soup.find('span', text=contains('Окончание проведения торгов')).text)
+        date = self.soup.find("span", text=contains("Окончание проведения торгов"))
+        if not date:
+            return None
+
+        return format_time(
+            date.find_next("td").text.strip().replace("\xa0", " ").replace(" МСК", ""),
+        )
 
     @property
     def start_price(self):
-        return make_float(self.soup.find('td', text='Начальная (минимальная) цена').text)
+        return make_float(
+            (
+                self.soup.find("td", text=contains("Начальная (минимальная) цена"))
+                or self.soup.find("td", text=contains("Начальная цена договора"))
+            )
+            .find_next("td")
+            .text.strip()
+            .replace("\xa0", " ")
+        )
 
     @property
     def step_price(self):
-        return make_float(self.soup.find('td', text='Шаг торгов').text)
+        price = self.soup.find("td", text="Шаг торгов")
+        if not price:
+            return None
+
+        return make_float(price.find_next("td").text.strip().replace("\xa0", " "))
 
     @property
     def periods(self):
-        return None  # TODO
+        periods = []
+        table = self.soup.find("table", id="tablewrapper_0")
+        table = pd.read_html(str(table))
+        df = table[0]
+        for el in list(df.iterrows()):
+            s = el[1]
+            start = s.iloc[1]
+            end = s.iloc[2]
+            price = s.iloc[3]
+            period = {
+                "start_date_requests": self.parse_date(start),
+                "end_date_requests": self.parse_date(end),
+                "end_date_trading": self.parse_date(end),
+                "current_price": make_float(price),
+            }
+            periods.append(period)
+        return periods
 
     def download_files(self):
         download_data = []
-        links = self.soup.find('table', text=contains('Сообщения').find_all('a'))
+        links = self.soup.find("table", text=contains("Сообщения").find_all("a"))
         for link in links:
-            url = link.get('href')
+            url = link.get("href")
             name = link.get('value')
             download_data.append(DownloadData(file_name=name, url=url))
         return download_data

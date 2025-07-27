@@ -5,7 +5,7 @@ from pathlib import PurePath, Path
 
 from sqlalchemy.engine.create import create_engine
 from sqlalchemy.orm.session import sessionmaker, Session
-from typing import Type, Union, List
+from typing import Type, Union, List, Optional
 
 from sqlalchemy import text, select, and_, inspect, literal
 from sqlalchemy.orm import joinedload, aliased
@@ -311,7 +311,7 @@ class DBHelper:
             )
             if case_number := item.get("case_number"):
                 legal_case = DBHelper.store_legal_case_from_case_number(case_number)
-                auction.legal_case_id = legal_case.id
+                auction.legal_case_id = legal_case.id if legal_case else None
             lot = DBHelper.store_and_get_lot(item, auction.id)
             DBHelper.store_lot_period(item, lot.id)
             DBHelper.store_files(item, lot.id, auction.id)
@@ -779,17 +779,27 @@ class DBHelper:
         return debtor_message
 
     @staticmethod
-    def store_legal_case_from_case_number(case_number: str) -> LegalCase:
+    def store_legal_case_from_case_number(case_number: str) -> Optional[LegalCase]:
         from app.utils.fedresurs import LegalCaseFedresurs
+
+        if not case_number:
+            return None
 
         legal_case = DBHelper.session.execute(
             select(LegalCase).where(LegalCase.number.like(f"%{case_number}%"))
         ).scalar()
-        if parse_fedresurs and not legal_case:
-            fed_client = LegalCaseFedresurs(case_number)
-            fed_client.parse()
-            legal_case_data = fed_client.data
-            return DBHelper.store_legal_case_from_dict(legal_case_data)
+        if not legal_case:
+            if parse_fedresurs:
+                fed_client = LegalCaseFedresurs(case_number)
+                fed_client.parse()
+                legal_case_data = fed_client.data
+                legal_case = DBHelper.store_legal_case_from_dict(legal_case_data)
+            else:
+                legal_case = DBHelper.store_model(
+                    LegalCase(
+                        number=case_number,
+                    )
+                )
         return legal_case
 
     @staticmethod

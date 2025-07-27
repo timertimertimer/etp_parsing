@@ -117,7 +117,7 @@ class Combo:
             "Закрытый аукцион с закрытой формой подачи ценовых предложений",
             "Аукцион продавца",
             "Аукцион с закрытой формой подачи предложений о цене",
-            "Аукцион с открытой формой подачи предложений о цене"
+            "Аукцион с открытой формой подачи предложений о цене",
         ]
         competition = ["Открытый конкурс", "Закрытый конкурс", "Конкурс продавца"]
         match1 = "".join(
@@ -208,34 +208,13 @@ class Combo:
     @property
     def trading_org_contacts(self):
         phone = ""
-        try:
-            org_phone = (
-                BS(
-                    self.response.xpath(Locator.offer_org_phone_loc).get(),
-                    features="lxml",
-                )
-                .get_text()
-                .strip()
-            )
-            org_phone = Contacts.check_phone(org_phone)
-            phone = org_phone
-        except Exception as e:
-            pass
+        phone_loc = self.response.xpath(Locator.offer_org_phone_loc).get()
+        if phone_loc:
+            phone = Contacts.check_phone(BS(phone_loc, features="lxml").get_text().strip())
         email = ""
-        try:
-            org_email = (
-                BS(
-                    self.response.xpath(Locator.offer_org_email_loc).get(),
-                    features="lxml",
-                )
-                .get_text()
-                .strip()
-            )
-            org_email = Contacts.check_email(org_email)
-            email = org_email
-        except Exception as e:
-            pass
-
+        email_loc = self.response.xpath(Locator.offer_org_email_loc).get()
+        if email_loc:
+            email = Contacts.check_email(BS(email_loc, features="lxml").get_text().strip())
         return {"email": email, "phone": phone}
 
     @property
@@ -274,15 +253,12 @@ class Combo:
 
     @property
     def debtor_inn(self):
-        try:
-            debitor_inn = BS(
-                self.response.xpath(Locator.deb_inn_loc).get(), features="lxml"
-            ).get_text()
+        inn = self.response.xpath(Locator.deb_inn_loc).get()
+        if inn:
+            inn = BS(inn, features="lxml").get_text()
             pattern = re.compile(r"\d{10,12}")
             if pattern:
-                return "".join(pattern.findall(debitor_inn))
-        except Exception as e:
-            pass
+                return "".join(pattern.findall(inn))
         return None
 
     @property
@@ -290,11 +266,8 @@ class Combo:
         address = self.response.xpath(Locator.address_loc).get()
         if not address:
             address = self.response.xpath(Locator.sud_loc).get()
-        try:
-            address = BS(address, features="lxml").get_text(strip=True)
-            return " ".join(address.split())
-        except Exception as e:
-            pass
+        if address:
+            return " ".join(BS(address, features="lxml").get_text(strip=True).split())
         return None
 
     @property
@@ -320,40 +293,32 @@ class Combo:
             return " ".join(
                 list(filter(lambda x: x != "None", [last_name, name, middle_name]))
             )
-        except:
+        except Exception as e:
             pass
 
     @property
     def arbit_manager_inn(self):
-        try:
-            arb_inn = BS(
-                self.response.xpath(Locator.arbitr_inn).get(), features="lxml"
-            ).get_text()
+        inn = self.response.xpath(Locator.arbitr_inn).get()
+        if inn:
+            arb_inn = BS(inn, features="lxml").get_text()
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(dedent_func(arb_inn)))
-        except Exception as e:
-            pass
         return None
 
     @property
     def arbit_manager_org(self):
-        try:
-            td_company = BS(
-                str(self.response.xpath(Locator.arbitr_org).get()), features="lxml"
-            ).get_text()
-            if td_company != "None":
-                if "(" in td_company:
-                    td_company = "".join(
-                        [
-                            x if len(td_company) > 0 else None
-                            for x in re.split(r"\(", td_company, maxsplit=1)[0]
-                        ]
-                    )
-                return "".join(dedent_func(td_company))
-
-        except Exception as e:
-            logger.warning(f"{self.response.url} :: INVALID DATA TRADING ORG - OFFER ")
+        amo = self.response.xpath(Locator.arbitr_org).get()
+        if amo:
+            td_company = BS(amo, features="lxml").get_text()
+            if "(" in td_company:
+                td_company = "".join(
+                    [
+                        x if len(td_company) > 0 else None
+                        for x in re.split(r"\(", td_company, maxsplit=1)[0]
+                    ]
+                )
+            return "".join(dedent_func(td_company))
         return None
 
     def create_soup(self, lot):
@@ -471,11 +436,21 @@ class Combo:
 
     def get_start_date_trading(self, lot):
         try:
+            soup = self.create_soup(lot)
+
             return format_time(
-                self.create_soup(lot)
-                .find(
-                    "div",
-                    text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
+                (
+                    soup.find(
+                        "div",
+                        text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
+                    )
+                    or soup.find(
+                        "div",
+                        text=re.compile(
+                            "Дата и время начала подачи предложений о цене",
+                            re.IGNORECASE,
+                        ),
+                    )
                 )
                 .find_next("div")
                 .get_text(strip=True)
@@ -543,7 +518,7 @@ class Combo:
             .find_next("div")
         )
         periods = []
-        check_value = 10 ** 22
+        check_value = 10**22
         for table in tables.find_all("table"):
             _table = pd.read_html(str(table))
             df = _table[0][1]

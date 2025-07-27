@@ -3,8 +3,8 @@
 - [ ] отдельная таблица "Информация об объекте закупки/Информация о товаре, работе, услуге"
 - [x] ets24 arrest
 - [ ] centerr arrest/commercial
-- [ ] etp.cdtrf arrest
-- [ ] torgi.etpu arrest/commercial
+- [x] etp.cdtrf arrest
+- [x] torgi.etpu arrest/commercial/legal_entities
 - [x] akosta arrest/commercial
 - [x] арест вэтп arrest
 - [x] torgidv arrest
@@ -13,11 +13,10 @@
 - [ ] ei arrest/commercial
 - [ ] torgi.gov gis
 - [x] el-torg commercial
-- [ ] torgi.etpu commercial/legal_entities
-- [ ] etp.alfalot commercial
+- [x] etp.alfalot commercial
 - [ ] fabrikant commercial/legal_entites/fz223
 - [ ] sibtoptrade commercial
-- [ ] etp.tender.one commercial
+- [x] etp.tender.one commercial
 - [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223)
 - [ ] rutrade commercial
 - [ ] roseltorg legal_entites/capital_repair/fz223
