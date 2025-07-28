@@ -372,107 +372,112 @@ class Combo:
         )
 
     def get_lot_info(self, lot):
+        lot_info = self.create_soup(lot).find("div", text=re.compile("Предмет договора", re.IGNORECASE))
+        if not lot_info:
+            logger.warning(f"{self.response.url} | Could not parse lot_info")
+            return None
         return dedent_func(
-            self.create_soup(lot)
-            .find("div", text=re.compile("Предмет договора", re.IGNORECASE))
+            lot_info
             .find_next("div")
             .get_text(strip=True)
         )
 
     def get_property_information(self, lot):
+        info = self.create_soup(lot).find(
+            "div",
+            text=re.compile("Порядок ознакомления с имуществом", re.IGNORECASE),
+        )
+        if not info:
+            logger.warning(f'{self.response.url} | Could not parse property_information')
+            return None
         return dedent_func(
-            self.create_soup(lot)
-            .find(
-                "div",
-                text=re.compile("Порядок ознакомления с имуществом", re.IGNORECASE),
-            )
+            info
             .find_next("div")
             .get_text(strip=True)
         )
 
+    def get_start_date_requests(self, lot):
+        date = self.create_soup(lot).find(
+            "div",
+            text=re.compile("Дата и время начала приема заявок", re.IGNORECASE),
+        )
+        if not date:
+            logger.warning(f'{self.response.url} | Could not parse start_date_requests')
+            return None
+        return format_time(
+            date
+            .find_next("div")
+            .get_text(strip=True)
+        )
+
+    def get_end_date_requests(self, lot):
+        date = self.create_soup(lot).find(
+            "div",
+            text=re.compile(
+                "Дата и время окончания приема заявок", re.IGNORECASE
+            ),
+        )
+        if not date:
+            logger.warning(f'{self.response.url} | Could not parse end_date_requests')
+            return None
+
+        return format_time(
+            date.find_next("div")
+            .get_text(strip=True)
+        )
+
     def get_categories(self, lot):
+        categories = self.create_soup(lot).find(
+            "div",
+            text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
+        )
+        if not categories:
+            logger.warning(f'{self.response.url} | Could not parse categories')
+            return None
         return " ".join(
-            self.create_soup(lot)
-            .find(
-                "div",
-                text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
-            )
+            categories
             .find_next("div")
             .get_text(strip=True)
             .split()
         )
 
-    def get_start_date_requests(self, lot):
-        try:
-            return format_time(
-                self.create_soup(lot)
-                .find(
-                    "div",
-                    text=re.compile("Дата и время начала приема заявок", re.IGNORECASE),
-                )
-                .find_next("div")
-                .get_text(strip=True)
-            )
-        except Exception as e:
-            logger.error(e)
-            return None
-
-    def get_end_date_requests(self, lot):
-        try:
-            return format_time(
-                self.create_soup(lot)
-                .find(
-                    "div",
-                    text=re.compile(
-                        "Дата и время окончания приема заявок", re.IGNORECASE
-                    ),
-                )
-                .find_next("div")
-                .get_text(strip=True)
-            )
-        except Exception as e:
-            logger.error(e)
-            return None
-
     def get_start_date_trading(self, lot):
-        try:
-            soup = self.create_soup(lot)
-
-            return format_time(
-                (
-                    soup.find(
-                        "div",
-                        text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
-                    )
-                    or soup.find(
-                        "div",
-                        text=re.compile(
-                            "Дата и время начала подачи предложений о цене",
-                            re.IGNORECASE,
-                        ),
-                    )
+        soup = self.create_soup(lot)
+        date = (
+                soup.find(
+                    "div",
+                    text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
                 )
-                .find_next("div")
-                .get_text(strip=True)
-            )
-        except Exception as e:
-            logger.error(e)
+                or soup.find(
+            "div",
+            text=re.compile(
+                "Дата и время начала подачи предложений о цене",
+                re.IGNORECASE,
+            ),
+        )
+        )
+        if not date:
+            logger.warning(f'{self.response.url} | Could not parse start_date_trading')
             return None
+        return format_time(
+            date.find_next("div")
+            .get_text(strip=True)
+        )
 
     def get_end_date_trading(self, lot):
-        try:
-            return format_time(
-                self.create_soup(lot)
-                .find(
-                    "div",
-                    text=re.compile("Дата и время подведения итогов", re.IGNORECASE),
-                )
-                .find_next("div")
-                .get_text(strip=True)
-            )
-        except Exception as e:
-            logger.error(e)
+        date = self.create_soup(lot).find(
+            "div",
+            text=re.compile("Дата и время подведения итогов", re.IGNORECASE),
+        )
+        if not date:
+            logger.warning(f'{self.response.url} | Could not parse end_date_trading')
             return None
+
+        return format_time(
+            date
+            .find_next("div")
+            .get_text(strip=True)
+        )
 
     def get_start_price(self, lot):
         match = re.search(
@@ -518,7 +523,7 @@ class Combo:
             .find_next("div")
         )
         periods = []
-        check_value = 10**22
+        check_value = 10 ** 22
         for table in tables.find_all("table"):
             _table = pd.read_html(str(table))
             df = _table[0][1]

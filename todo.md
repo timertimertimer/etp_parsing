@@ -24,3 +24,6 @@
 - [ ] tender.lot-online fz223
 - [ ] b2b fz223
 - [ ] catalog.lot-online rent
+
+
+https://www.fabrikant.ru/v2/trades/procedure/view/whJ2Ga3CZFUeUDstsHpZ4g trading_type (Способ проведения) not any auction/offer/competition
