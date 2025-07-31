@@ -1,12 +1,9 @@
-import logging
 import re
 from bs4 import BeautifulSoup
 
-from general_utils import dedent_func, CheckIfCorrectContactInfo, format_time
-from general_utils.models import DownloadData
+from app.utils import dedent_func, Contacts, format_time, logger
+from app.db.models import DownloadData
 from .locators.trade_locator import TradeLocator
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -117,7 +114,7 @@ class Combo:
             ).get_text()
         )
         if case:
-            return CheckIfCorrectContactInfo.check_case_number(case)
+            return Contacts.check_case_number(case)
         else:
             return
 
@@ -131,7 +128,7 @@ class Combo:
             return
         trade_inn = dedent_func(inn)
         pattern = re.compile(r"\d{10,12}")
-        return CheckIfCorrectContactInfo.check_inn("".join(pattern.findall(trade_inn)))
+        return Contacts.check_inn("".join(pattern.findall(trade_inn)))
 
     @property
     def address(self):

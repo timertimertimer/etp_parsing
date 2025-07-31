@@ -1,13 +1,10 @@
 import re
-import logging
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from general_utils import format_time, make_float, dedent_func
+from app.utils import format_time, make_float, dedent_func, logger
 from ..locators.locator_lot_page import LocatorLotPage
 from numpy import float64
-
-logger = logging.getLogger(__name__)
 
 
 class OfferPage:
@@ -35,7 +32,7 @@ class OfferPage:
             df = table[0]
             return format_time(df.iloc[0][0])
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR start_date_request {e}", exc_info=True
             )
 
@@ -47,7 +44,7 @@ class OfferPage:
             df = table[0]
             return format_time(df.iloc[-1][1])
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR end_date_request {e}", exc_info=True
             )
 
@@ -69,11 +66,11 @@ class OfferPage:
             elif isinstance(start_price, float64):
                 start_price_ = round(float(start_price), 2)
             else:
-                logger.error(f"{self.response.url} :: INVALID TYPE START PRICE PRICE")
+                logger.warning(f"{self.response.url} :: INVALID TYPE START PRICE PRICE")
                 start_price_ = None
             return start_price_
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: ERROR start_price_offer {e}", exc_info=True
             )
 
@@ -96,7 +93,7 @@ class OfferPage:
                     elif isinstance(current_price, float64):
                         current_price_ = round(float(current_price), 2)
                     else:
-                        logger.error(
+                        logger.warning(
                             f"{self.response.url} :: INVALID TYPE CURRENT PRICE"
                         )
                         current_price_ = None
@@ -115,7 +112,7 @@ class OfferPage:
                     check_value = current_price_
             return periods
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: PERIODS ERROR {e}\n{df}", exc_info=True
             )
             return None

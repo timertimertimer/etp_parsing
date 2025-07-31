@@ -1,9 +1,9 @@
 import pathlib
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, UrlConfig
-from general_utils.config import allowable_formats
-from general_utils.models import DownloadData
+from app.utils import dedent_func, URL
+from app.utils.config import allowable_formats
+from app.db.models import DownloadData
 from ..config import data_origin
 from ..locators.locators_trade_page import LocatorTradePage
 
@@ -39,7 +39,7 @@ class DocPage:
             d = BS(str(d), features="lxml")
             a = d.find("a")
             link_etp = a.get("href")
-            link_etp = UrlConfig.url_join(host, link_etp)
+            link_etp = URL.url_join(host, link_etp)
             file_name = dedent_func(a.get_text().replace(". ", "."))
             if pathlib.Path(file_name).suffix in allowable_formats:
                 files.append(

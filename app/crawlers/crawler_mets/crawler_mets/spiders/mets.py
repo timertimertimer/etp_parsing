@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from typing import Iterable
 
 import scrapy
@@ -7,9 +6,11 @@ from playwright.async_api import Page
 from scrapy import Request
 from scrapy_playwright.page import PageMethod
 
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-from general_utils.base_spider import BaseSpider
-from general_utils.config import trash_resources, write_log_to_file
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils import URL, logger
+from app.utils.config import trash_resources, write_log_to_file
 from ..trades.combo import ComposeTrades
 from ..config import data_origin_url, start_date
 from ..locators.serp_locator import SerpLocator
@@ -39,12 +40,10 @@ async def filter_lots(page: Page) -> str:
     return page.url
 
 
-logger = logging.getLogger(__name__)
-
-
 class MetsSpider(BaseSpider):
     name = "mets"
     start_urls = ["https://m-ets.ru/search"]
+    property_type = AuctionPropertyType.bankruptcy
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
@@ -79,9 +78,7 @@ class MetsSpider(BaseSpider):
         links_to_lots = response.xpath(SerpLocator.link_to_trade_loc).getall()
         trade_links = response.meta.get("trade_links", set())
         for link in links_to_lots:
-            trading_link = "-".join(
-                UrlConfig.url_join(data_origin_url, link).split("-")[:-1]
-            )
+            trading_link = "-".join(URL.url_join(data_origin_url, link).split("-")[:-1])
             if trading_link not in self.previous_trades:
                 self.previous_trades.append(trading_link)
                 trade_links.add(trading_link + "-1")
@@ -96,7 +93,7 @@ class MetsSpider(BaseSpider):
         else:
             for i, link in enumerate(trade_links):
                 yield Request(
-                    UrlConfig.parse_url(link),
+                    URL.parse_url(link),
                     callback=self.sort_trades,
                     errback=self.errback_httpbin,
                 )

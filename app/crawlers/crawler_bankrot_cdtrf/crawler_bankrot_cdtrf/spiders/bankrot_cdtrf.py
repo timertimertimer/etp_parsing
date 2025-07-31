@@ -1,20 +1,20 @@
 import copy
-import logging
 import re
 
 from scrapy import Request, FormRequest
 
 from app.crawlers.items import EtpItemLoader, EtpItem
+from app.db.models import AuctionPropertyType
+from app.utils import logger
 from ..locators_and_attributes.locators_attributes import Offer
 from ..manage_spiders.app import Compose
 from app.crawlers.base import BaseSpider
 from ..config import data_origin_url, start_date
 
-logger = logging.getLogger(__name__)
-
 
 class BankrotCDTRFSpider(BaseSpider):
     name = "bankrot_cdtrf"
+    property_type = AuctionPropertyType.bankruptcy
 
     def __init__(self):
         super().__init__(data_origin_url)
@@ -149,6 +149,7 @@ class BankrotCDTRFSpider(BaseSpider):
         trading_id = "".join(re.findall(r"\d+$", response.url))
         trading_type_2 = combo.get_trading_type
         loader.add_value("data_origin", data_origin_url)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", trading_id)
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", combo.offer.get_trading_number)

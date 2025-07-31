@@ -1,12 +1,9 @@
 import re
-import logging
 from bs4 import BeautifulSoup as BS
 
-from general_utils import CheckIfCorrectContactInfo, format_time, dedent_func
+from app.utils import Contacts, format_time, dedent_func, logger
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
-
-logger = logging.getLogger(__name__)
 
 
 class SerpPage:
@@ -191,13 +188,13 @@ class SerpPage:
         """return organizer email"""
         org_email = self.response.xpath(self.loc_trade.trading_org_email_loc).get()
         org_email = BS(str(org_email), features="lxml").get_text().strip()
-        return CheckIfCorrectContactInfo.check_email(org_email)
+        return Contacts.check_email(org_email)
 
     def get_org_phone(self):
         """:return organizer phone"""
         org_phone = self.response.xpath(self.loc_trade.trading_org_phone_loc).get()
         phone = BS(str(org_phone), features="lxml").get_text()
-        return CheckIfCorrectContactInfo.check_phone(phone)
+        return Contacts.check_phone(phone)
 
     def get_org_contacts(self):
         return {"email": self.get_org_email(), "phone": self.get_org_phone()}
@@ -224,7 +221,7 @@ class SerpPage:
     def get_msg_number(self):
         """:return message number"""
         msg = self.response.xpath(self.loc_trade.msg_number_loc).get()
-        return CheckIfCorrectContactInfo.check_msg_number(
+        return Contacts.check_msg_number(
             BS(str(msg), features="lxml").get_text().strip()
         )
 
@@ -232,13 +229,13 @@ class SerpPage:
         """return case number"""
         case = self.response.xpath(self.loc_trade.case_number_loc).get()
         case = BS(str(case), features="lxml").get_text().strip()
-        return CheckIfCorrectContactInfo.check_case_number(case)
+        return Contacts.check_case_number(case)
 
     def get_debtor_inn(self):
         """:return debtor's inn"""
         _inn = self.response.xpath(self.loc_trade.debtor_inn_loc).get()
         _inn = BS(str(_inn), features="lxml").get_text().strip()
-        return CheckIfCorrectContactInfo.check_inn(_inn)
+        return Contacts.check_inn(_inn)
 
     @property
     def address(self):

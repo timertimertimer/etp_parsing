@@ -1,7 +1,7 @@
 from scrapy import Request
 
-from general_utils import UrlConfig
-from general_utils.config import write_log_to_file
+from app.utils import URL
+from app.utils.config import write_log_to_file
 from .base import AltimetaBaseSpider
 from ..manage_spiders.app import Combo
 from ..config import stop_page
@@ -17,10 +17,10 @@ class AukcioncenterSpider(AltimetaBaseSpider):
         combo = Combo(response_=response)
         if links := combo.serp.get_trading_number_from_serp_page():
             for link, trading_number in links:
-                url = UrlConfig.unquote_url(
+                url = URL.unquote_url(
                     self.start_url[0].replace("/index.html", "").strip()
                 )
-                url = UrlConfig.url_join(url, link)
+                url = URL.url_join(url, link)
                 if url not in self.previous_trades:
                     yield Request(
                         url,

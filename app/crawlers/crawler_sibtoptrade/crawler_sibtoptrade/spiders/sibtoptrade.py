@@ -35,10 +35,10 @@ class SibtoptradeBaseSpider(BaseSpider):
         last_page = response.xpath(
             '//nav[@class="pagination"]//li[last()]/a/text()'
         ).get()
-        for url in self.start_url_:
+        for url in self.start_urls:
             current_page = "".join(
                 re.findall(
-                    r"https://sibtoptrade.ru/trade/bankruptcy/#state=1&page=(\d+).*",
+                    r"page=(\d+).*",
                     url,
                 )
             )

@@ -72,7 +72,7 @@ class FabrikantBaseSpider(BaseSpider):
                 if link not in self.previous_trades:
                     yield Request(link, self.parse_trade)
 
-    async def parse_trade(self, response):
+    def parse_trade(self, response):
         combo = Combo(response)
         for lot in combo.count_lots():
             transfer = EtpItem()

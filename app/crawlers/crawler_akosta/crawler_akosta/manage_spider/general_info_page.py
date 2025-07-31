@@ -165,9 +165,9 @@ class MainTradingPage:
                 return "pending"
             elif status in ended:
                 return "ended"
-            logger.critical(f"{self.response.url} :: INVALID STATUS")
+            logger.warning(f"{self.response.url} :: INVALID STATUS")
         except Exception as e:
-            logger.critical(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA STATUS {e}", exc_info=True
             )
         return None

@@ -73,7 +73,10 @@ class OfferPage:
 
     def trading_form(self):
         try:
-            form = self.response.xpath(self.loc_offer.trading_form_loc).get()
+            form = (
+                self.response.xpath(self.loc_offer.trading_form_loc).get()
+                or self.response.xpath(self.loc_offer.trading_form_loc_2).get()
+            )
             if form:
                 form = BS(str(form), features="lxml").get_text().lower()
                 if "открытая" == form:

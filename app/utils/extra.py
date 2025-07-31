@@ -152,12 +152,12 @@ def count_cyrillic(text):
                     new_text = new_text.decode("CP866")
                     new_text = new_text.encode("utf-8")
                     return unicodedata.normalize("NFKC", new_text.decode("utf-8"))
-            except Exception:
+            except Exception as e:
                 try:
                     new_text = text.encode("CP866")
                     new_text = new_text.decode("utf-8")
                     return unicodedata.normalize("NFKC", new_text)
-                except Exception:
+                except Exception as e:
                     return text
     return None
 

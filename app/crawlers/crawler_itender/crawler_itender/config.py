@@ -26,7 +26,7 @@ data_origin = {
     "arbitat": "http://arbitat.ru/",
     "bepspb": "https://bankruptcy.bepspb.ru/",
     "centerr_bankrupt": "https://bankrupt.centerr.ru/",
-    "centerr_business": "https://business.centerr.ru/",
+    "centerr_commercial": "https://business.centerr.ru/",
     "etpu": "https://bankrupt.etpu.ru/",
     "etpugra": "http://etpugra.ru/",
     "ets24": "http://bankrupt.ets24.ru/",
@@ -47,8 +47,8 @@ urls = {
     "arbbitlot": "https://torgi.arbbitlot.ru/",
     "arbitat": "http://arbitat.ru/",
     "bepspb": "https://bankruptcy.bepspb.ru/",
-    "centerr_bankrupt": "https://bankrupt.centerr.ru/",
-    "centerr_business": "https://business.centerr.ru/",
+    "centerr_bankrupt": "https://centerr.ru/",
+    "centerr_commercial": "https://centerr.ru/",
     "etpu": "https://etpu.ru/",
     "etpugra": "http://etpugra.ru/",
     "ets24": "http://ets24.ru/",
@@ -64,7 +64,7 @@ urls = {
     "zakazrf": "http://bankrot.zakazrf.ru/",
 }
 
-common_data = {
+data = {
     "__EVENTTARGET": "",
     "__EVENTARGUMENT": "",
     "__VIEWSTATE": "",
@@ -72,6 +72,10 @@ common_data = {
     "__SCROLLPOSITIONY": "0",
     "__EVENTVALIDATION": "",
     "__CVIEWSTATE": "",
+}
+
+common_data = {
+    **data,
     "ctl00$ctl00$LeftContentLogin$ctl00$Login1$UserName": "",
     "ctl00$ctl00$LeftContentLogin$ctl00$Login1$Password": "",
     "ctl00$ctl00$LeftContentSideMenu$mSideMenu$extAccordionMenu_AccordionExtender_ClientState": "0",
@@ -116,6 +120,57 @@ post_data_competition = {
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_purchaseNumber_конкурса": "",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$PurchasesSearchCriteria$vPurchaseLot_fullTitle_Наименованиеконкурса": "",
     "ctl00$ctl00$MainExpandableArea$phExpandCollapse$SearchButton": "Искать конкурсы",
+}
+
+centerr_commercial_offer_post_data = {
+    **data,
+    "ctl00$ctl00$BodyScripts$ctl00$ctl00": "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$ctl00|ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$btnSearch",
+    "ctl00$ctl00$LeftContentLogin$ctl00$Login1$UserName": "",
+    "ctl00$ctl00$LeftContentLogin$ctl00$Login1$Password": "",
+    "ctl00$ctl00$LeftContentSideMenu$ctl00$extAccordionMenu_AccordionExtender_ClientState": "0",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_lotNumber_лота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_purchaseNumber_публичногопредложения": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_lotTitle_Наименованиелота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_fullTitle_Наименованиепубличногопредложения": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_contactName_AliasFullOrganizerTitle": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_persistedInitalContractPriceValue_Начальнаяценаот": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_procurementClassifierID_Категориялота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_procurementClassifierID_Категориялота_desc": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Purchase_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиес_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_registeredAddress_Местонахождение": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Purchase_bidSubmissionStartDate_Датаначалапредставлениязаявокнаучастиепо_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_inn_ИНН": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_purchaseStatusID_Статус": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_kpp_КПП": "",
+    "hiddenInputToUpdateATBuffer_CommonToolkitScripts": "1",
+    "__ASYNCPOST": "true",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$btnSearch": "Искать публичные предложения",
+}
+
+centerr_commercial_auction_post_data = {
+    **data,
+    "ctl00$ctl00$BodyScripts$ctl00$ctl00": "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$UpdatePanel1|ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$btnSearch",
+    "ctl00$ctl00$LeftContentLogin$ctl00$Login1$UserName": "",
+    "ctl00$ctl00$LeftContentLogin$ctl00$Login1$Password": "",
+    "ctl00$ctl00$LeftContentSideMenu$ctl00$extAccordionMenu_AccordionExtender_ClientState": "0",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_lotNumber_лота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_purchaseNumber_торга": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_lotTitle_Наименованиелота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_fullTitle_Наименованиеаукциона": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_contactName_AliasFullOrganizerTitle": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_initialContractPriceValue_Начальнаяценаот": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_registeredAddress_Местонахождение": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_auctionStartDate_Датапроведенияс_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_procurementClassifierID_Категориялота": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_procurementClassifierID_Категориялота_desc": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_auctionStartDate_Датапроведенияпо_dateInput": "0-0-0 -1:-1:-1",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_inn_ИНН": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$vPurchaseLot_purchaseStatusID_Статус": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$Party_kpp_КПП": "",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$SearchCriteria1$BargainType_PriceForm_Формапредставленияпредложенийоцене": "",
+    "hiddenInputToUpdateATBuffer_CommonToolkitScripts": "1",
+    "__ASYNCPOST": "true",
+    "ctl00$ctl00$MainExpandableArea$phExpandCollapse$ctl00$btnSearch": "Искать аукционы продажи",
 }
 
 script_lua_nojs = """

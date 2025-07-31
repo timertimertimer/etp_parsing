@@ -51,7 +51,7 @@ class SerpPageSearchInfo:
                     lst_href.append(str(a_href))
                     lst_num_page.append(a_text)
             return lst_href, lst_num_page
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: ")
             return []
 
@@ -70,7 +70,7 @@ class SerpPageSearchInfo:
                     lst_num_page.append(a_text)
                     if len(lst_href) > 0:
                         return lst_href, lst_num_page
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: ")
             return []
         return None

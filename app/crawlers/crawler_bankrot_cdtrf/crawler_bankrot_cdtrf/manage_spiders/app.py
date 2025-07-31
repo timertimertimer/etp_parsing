@@ -1,12 +1,8 @@
-import logging
-
-from general_utils import dedent_func
+from app.utils import dedent_func, logger
 from .offer_spider import OfferSpider
 from .auction_spider import AuctionSpider
 from ..locators_and_attributes.locators_attributes import LocatorMain
 from bs4 import BeautifulSoup as BS
-
-logger = logging.getLogger(__name__)
 
 
 class Compose:

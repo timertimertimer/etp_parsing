@@ -1,6 +1,4 @@
-from general_utils.config import (
-    absolute_download_path,
-    relative_download_path,
+from app.utils.config import (
     start_date,
 )
 
@@ -61,28 +59,6 @@ url_file = {
     "aukcioncenter": "https://aukcioncenter.ru",
     "torgidv": "https://torgidv.ru",
     "ptp_center": "https://ptp-center.ru",
-}
-
-path_absolute = {
-    "etp_profit": f"{absolute_download_path}/etp_etp_profit",
-    "ausib": f"{absolute_download_path}/etp_ausib",
-    "seltim": f"{absolute_download_path}/etp_seltim",
-    "atctrade": f"{absolute_download_path}/etp_atctrade",
-    "regtorg": f"{absolute_download_path}/etp_regtorg",
-    "aukcioncenter": f"{absolute_download_path}/etp_aukcioncenter",
-    "torgidv": f"{absolute_download_path}/etp_torgidv",
-    "ptp_center": f"{absolute_download_path}/etp_ptp_center",
-}
-
-path_relative = {
-    "etp_profit": f"{relative_download_path}/etp_etp_profit",
-    "ausib": f"{relative_download_path}/etp_ausib",
-    "seltim": f"{relative_download_path}/etp_seltim",
-    "atctrade": f"{relative_download_path}/etp_atctrade",
-    "regtorg": f"{relative_download_path}/etp_regtorg",
-    "aukcioncenter": f"{relative_download_path}/etp_aukcioncenter",
-    "torgidv": f"{relative_download_path}/etp_torgidv",
-    "ptp_center": f"{relative_download_path}/etp_ptp_center",
 }
 
 query_param = {

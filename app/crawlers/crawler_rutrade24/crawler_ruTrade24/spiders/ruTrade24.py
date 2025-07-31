@@ -3,47 +3,51 @@ import scrapy
 import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils import URL
 from app.utils.config import write_log_to_file
-from ..app import Combo
-from ..config import page_limits, formdata, data_origin
+from ..combo import Combo
+from ..config import page_limits, formdata, data_origin, start_urls, data_origins, hosts
 
 logger = logging.getLogger(__name__)
 
 
-class Rutrade24Spider(BaseSpider):
-    name = "rutrade24"
-    start_urls = ["https://ru-trade24.ru/query/Filter"]
+class Rutrade24BaseSpider(BaseSpider):
+    name = "base"
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
 
     def __init__(self):
-        super(Rutrade24Spider, self).__init__(data_origin)
+        super(Rutrade24BaseSpider, self).__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
+        encoder = MultipartEncoder(fields=formdata)
         yield FormRequest(
-            self.start_urls[0], self.parse, method="POST", formdata=formdata
+            start_urls[self.property_type.value],
+            self.parse,
+            method="POST",
+            formdata=encoder.to_string(),
+            headers={
+                'Host': hosts[self.property_type.value],
+                'Content-Type': 'multipart/form-data'
+            },
         )
 
     def parse(self, response, **kwargs):
         current_page = self.get_currentPage(response)
-        nextPage_url = self.get_next_page(response)
+        nextPage_url = self.get_next_page(response, self.property_type.value)
         trade_containers = response.css(".row.row--v-offset.trade-card")
-
-        if len(trade_containers) != 25 and nextPage_url is not None:
-            logger.warning(
-                "Площадка: ru-trade24.ru. "
-                + "Cсылка: %s. " % response.url
-                + "Полученое количество ссылок торгов не равно 25. "
-                + "Полученое количество: '%s'." % len(trade_containers)
-            )
 
         if page_limits["page_start"] <= current_page <= page_limits["page_stop"]:
             for trade_container in trade_containers:
-                trade_link = (
-                    "https://ru-trade24.ru" + trade_container.css("a::attr(href)").get()
+                trade_link = URL.url_join(
+                    data_origins[self.property_type.value],
+                    trade_container.css("a::attr(href)").get(),
                 )
                 status = trade_container.css(".trade-card__status::text").get()
                 if trade_link not in self.previous_trades:
@@ -66,11 +70,13 @@ class Rutrade24Spider(BaseSpider):
         for page in response.css("div.paging a"):
             if page.css("::attr(href)").get() == "#":
                 return int(page.css("::text").get())
+        return None
 
-    def get_next_page(self, response):
+    def get_next_page(self, response, property_type: str):
         next_href = response.css(".paging__arrow--next::attr(href)").get()
         if next_href:
-            return "http://ru-trade24.ru/" + next_href
+            return data_origins[property_type] + next_href
+        return None
 
     def parse_trade(self, response, status):
         combo = Combo(response)
@@ -78,6 +84,7 @@ class Rutrade24Spider(BaseSpider):
         address = combo.get_debtor_address()
         common_data = {
             "data_origin": data_origin,
+            "property_type": self.property_type,
             "trading_id": combo.trading_id,
             "trading_link": combo.trading_link,
             "trading_number": combo.trading_number,
@@ -118,3 +125,13 @@ class Rutrade24Spider(BaseSpider):
             for key, value in item_data.items():
                 loader.add_value(key, value)
             yield loader.load_item()
+
+
+class Rutrade24BankruptcySpider(Rutrade24BaseSpider):
+    name = "rutrade24_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+
+
+class Rutrade24CommercialSpider(Rutrade24BaseSpider):
+    name = "rutrade24_commercial"
+    property_type = AuctionPropertyType.commercial

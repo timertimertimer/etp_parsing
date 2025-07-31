@@ -49,7 +49,7 @@ class Contacts:
         try:
             only_numbers = "".join(filter(lambda x: x.isdigit(), phone))
             if re.match(r"\d{5}", only_numbers) and len(phone) < 55:
-                return re.sub(r"\s+", " ", phone).strip()
+                return re.sub(r"\s+", " ", phone).strip().replace('*', '')
             else:
                 return ""
         except Exception as e:

@@ -3,9 +3,9 @@ from typing import Iterable
 from datetime import datetime
 from scrapy import Request, FormRequest
 
-from general_utils.base_spider import BaseSpider
-from general_utils.config import format_parse_date, write_log_to_file
-from general_utils.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import format_parse_date, write_log_to_file
+from app.crawlers.items import EtpItem, EtpItemLoader
 from ..app import Combo
 from ..config import form_data, hashes, data_origin, start_date
 

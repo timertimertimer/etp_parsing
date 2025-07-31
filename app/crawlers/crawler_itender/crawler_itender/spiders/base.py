@@ -8,6 +8,7 @@ from scrapy_splash import SplashRequest, SlotPolicy
 
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
+from app.db.models import Auction, AuctionPropertyType
 from app.utils.config import write_log_to_file
 from app.crawlers.crawler_itender.crawler_itender.manage_spiders.app import Combo
 from app.crawlers.crawler_itender.crawler_itender.config import (
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ItenderBaseSpider(BaseSpider):
     name = "base"
+    property_type = AuctionPropertyType.bankruptcy
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
@@ -179,6 +181,7 @@ class ItenderBaseSpider(BaseSpider):
         combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
         loader.add_value("trading_link", response.url)
         trading_number = combo.auc.get_trading_number_auction()
@@ -252,7 +255,7 @@ class ItenderBaseSpider(BaseSpider):
             loader.add_value("property_information", combo.auc.get_property_info())
             loader.add_value("start_price", combo.auc.start_price)
             loader.add_value("step_price", combo.auc.step_price)
-            loader.add_value("categories", combo.auc.bankrupt_categories)
+            loader.add_value("categories", combo.auc.categories)
             _id = "".join(loader.get_collected_values("trading_id"))
             lot_file = combo.offer.download(self.name)
             loader.add_value("files", {"general": general, "lot": lot_file})
@@ -313,6 +316,7 @@ class ItenderBaseSpider(BaseSpider):
         combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", combo.offer.get_trading_number_offer())
@@ -373,7 +377,7 @@ class ItenderBaseSpider(BaseSpider):
             loader.add_value("start_date_trading", combo.offer.start_date_trading_offer)
             loader.add_value("end_date_trading", combo.offer.end_date_trading_offer)
             loader.add_value("start_price", combo.offer.price_offer)
-            loader.add_value("categories", combo.auc.bankrupt_categories)
+            loader.add_value("categories", combo.auc.categories)
             _id = "".join(loader.get_collected_values("trading_id"))
             lot_file = combo.offer.download(self.name)
             loader.add_value("files", {"general": general, "lot": lot_file})
@@ -571,6 +575,7 @@ class ItenderBaseSpider(BaseSpider):
         combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", self.data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", "".join(re.findall(r"\d+", response.url)))
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", combo.compet.get_trading_number_comp())

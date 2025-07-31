@@ -2,7 +2,7 @@
 - [ ] добавить новые поля в auctions/lots
 - [ ] отдельная таблица "Информация об объекте закупки/Информация о товаре, работе, услуге"
 - [x] ets24 arrest
-- [ ] centerr arrest/commercial
+- [x] centerr arrest/commercial
 - [x] etp.cdtrf arrest
 - [x] torgi.etpu arrest/commercial/legal_entities
 - [x] akosta arrest/commercial
@@ -15,7 +15,7 @@
 - [x] el-torg commercial
 - [x] etp.alfalot commercial
 - [ ] fabrikant commercial/legal_entites/fz223
-- [ ] sibtoptrade commercial
+- [x] sibtoptrade commercial
 - [x] etp.tender.one commercial
 - [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223)
 - [ ] rutrade commercial

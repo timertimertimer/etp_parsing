@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, Contacts, URL, format_time, logger
+from app.utils import dedent_func, Contacts, URL, format_time, logger, make_float
 from ..locators.serp_locator import LocatorSerp
 from ..locators.auction_locator import AuctionLocator
 
@@ -60,7 +60,10 @@ class AuctionPage:
 
     def trading_form(self):
         try:
-            form = self.response.xpath(self.loc.trading_form_loc).get()
+            form = (
+                self.response.xpath(self.loc.trading_form_loc).get()
+                or self.response.xpath(self.loc.trading_form_loc_2).get()
+            )
             if form:
                 form = BS(str(form), features="lxml").get_text().lower()
                 if "открытая" == form:
@@ -89,7 +92,7 @@ class AuctionPage:
             if _inn:
                 _inn = BS(str(_inn), features="lxml").get_text()
                 return Contacts.check_inn(dedent_func(_inn))
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} ::: ERROR INN ORG")
         return None
 
@@ -198,8 +201,8 @@ class AuctionPage:
                 "Прием заявок на интервале не активен",
                 "Определение участников торгов",
                 "Идут торги",
-                "Подведение результатов",
-                "Окончен",
+                "Подведение результатов", "Подведение итогов",
+                "Окончен", "Оконченный",
                 "Не состоялся",
                 "Отменен организатором",
                 "Отменён организатором",
@@ -366,9 +369,7 @@ class AuctionPage:
                 price = dedent_func(
                     BS(str(price), features="lxml").get_text().strip().replace(",", ".")
                 )
-                price = "".join([x for x in price if x.isdigit() or x == "."])
-                if len(price) > 0:
-                    return round(float(price), 2)
+                return make_float(price)
             elif extra_price:
                 extra_price = dedent_func(
                     BS(str(extra_price), features="lxml")
@@ -394,15 +395,16 @@ class AuctionPage:
     @property
     def step_price(self):
         try:
-            rub = self.response.xpath(self.loc_auc.step_price_auc_rub).get()
+            rub = (
+                self.response.xpath(self.loc_auc.step_price_auc_rub).get()
+                or self.response.xpath(self.loc_auc.step_price_auc_rub_2).get()
+            )
             if rub:
                 price = dedent_func(
                     BS(str(rub), features="lxml").get_text().strip().replace(",", ".")
                 )
                 if price:
-                    price = "".join([x for x in price if x.isdigit() or x == "."])
-                    if len(price) > 0:
-                        return round(float(price), 2)
+                    return make_float(price)
             elif percent := self.response.xpath(
                 self.loc_auc.step_price_auc_percent
             ).get():

@@ -74,15 +74,12 @@ class Combo:
         string_ = self.response.xpath(
             '//td[contains(.,"Вид торгов")]/following::td[1]/text()'
         ).getall()
-        offer = ["Публичное предложение", "Закрытое публичное предложение"]
-        auction = ["Открытый аукцион", "Закрытый аукцион"]
-        competition = ["Конкурс", "Закрытый конкурс"]
         string_ = ("".join(string_)).strip()
-        if string_ in auction:
+        if "аукцион" in string_.lower():
             return "auction"
-        elif string_ in offer:
+        elif "предложение" in string_.lower():
             return "offer"
-        elif string_ in competition:
+        elif "конкурс" in string_.lower():
             return "competition"
         return None
 
@@ -113,9 +110,7 @@ class Combo:
 
     @property
     def trading_org_inn(self):
-        return Contacts.check_inn(
-            self.response.xpath(Locator.inn_org).get()
-        )
+        return Contacts.check_inn(self.response.xpath(Locator.inn_org).get())
 
     @property
     def trading_org_contacts(self):
@@ -130,9 +125,7 @@ class Combo:
 
     @property
     def msg_number(self):
-        return Contacts.check_msg_number(
-            self.response.xpath(Locator.msg_num_loc).get()
-        )
+        return Contacts.check_msg_number(self.response.xpath(Locator.msg_num_loc).get())
 
     @property
     def case_number(self):
@@ -142,14 +135,15 @@ class Combo:
 
     @property
     def debtor_inn(self):
-        return Contacts.check_inn(
-            self.response.xpath(Locator.debitor_inn).get()
-        )
+        return Contacts.check_inn(self.response.xpath(Locator.debitor_inn).get())
 
     @property
     def address(self):
         try:
-            address = self.response.xpath(Locator.debitor_address).get()
+            address = (
+                self.response.xpath(Locator.debitor_address).get()
+                or self.response.xpath(Locator.seller_address).get()
+            )
             if address:
                 return BS(str(address), features="lxml").get_text(strip=True)
         except Exception as e:
@@ -162,9 +156,7 @@ class Combo:
 
     @property
     def arbit_manager_inn(self):
-        return Contacts.check_inn(
-            self.response.xpath(Locator.arbitr_inn_loc).get()
-        )
+        return Contacts.check_inn(self.response.xpath(Locator.arbitr_inn_loc).get())
 
     @property
     def arbit_manager_org(self):
@@ -257,9 +249,7 @@ class Combo:
                 start_date_requests = replaceMultiple(
                     start.strip(), pattern_replace1, " "
                 )
-                end_date_requests = replaceMultiple(
-                    end.strip(), pattern_replace1, " "
-                )
+                end_date_requests = replaceMultiple(end.strip(), pattern_replace1, " ")
                 period = {
                     "start_date_requests": return_time_period(start_date_requests),
                     "end_date_requests": return_time_period(end_date_requests),

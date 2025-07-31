@@ -17,7 +17,7 @@ class EiBaseSpider(BaseSpider):
 
     def start_requests(self):
         params["filter[type][]"] = types[self.property_type.value]
-        for i in range(2, 51):
+        for i in range(1, 51):
             params['page'] = i
             query_string = urlencode(params, doseq=True)
             url = f"{self.start_urls[0]}?{query_string}"
@@ -31,8 +31,7 @@ class EiBaseSpider(BaseSpider):
     def parse_serp(self, response):
         data = json.loads(response.text)
         for lot in data:
-
-        pass
+            pass
 
 class EiBankruptcySpider(EiBaseSpider):
     name = "ei_bankruptcy"

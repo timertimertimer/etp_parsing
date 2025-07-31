@@ -77,9 +77,9 @@ def selt_online():
     execute(["scrapy", "crawl", "selt_online"])
 
 
-def centerr_business():
-    execute(["scrapy", "crawl", "centerr_business"])
+def centerr_commercial():
+    execute(["scrapy", "crawl", "centerr_commercial"])
 
 
 if __name__ == "__main__":
-    centerr_business()
+    centerr_commercial()

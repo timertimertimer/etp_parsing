@@ -1,14 +1,11 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import dedent_func, UrlConfig, format_time
-from general_utils.models import DownloadData
+from app.utils import dedent_func, URL, format_time, logger
+from app.db.models import DownloadData
 from ..config import trade_page_file
 from ..locators_and_attributes.locators_attributes import Auction
-
-logger = logging.getLogger(__name__)
 
 
 class AuctionSpider:
@@ -134,8 +131,8 @@ class AuctionSpider:
             for link in self.list_link_to_file_lot:
                 try:
                     link = BS(str(link), features="lxml").find("a").get("href")
-                    link = UrlConfig.parse_url(
-                        UrlConfig.url_join(trade_page_file, link)
+                    link = URL.parse_url(
+                        URL.url_join(trade_page_file, link)
                     )
                     clean_set.add(link)
                 finally:
@@ -148,8 +145,8 @@ class AuctionSpider:
             if td:
                 link = BS(str(td), features="lxml").find("a")
                 if link:
-                    return UrlConfig.parse_url(
-                        UrlConfig.url_join(trade_page_file, link.get("href"))
+                    return URL.parse_url(
+                        URL.url_join(trade_page_file, link.get("href"))
                     )
                 else:
                     return list()
@@ -162,8 +159,8 @@ class AuctionSpider:
             if td:
                 link = BS(str(td), features="lxml").find("a")
                 if link:
-                    return UrlConfig.parse_url(
-                        UrlConfig.url_join(trade_page_file, link.get("href"))
+                    return URL.parse_url(
+                        URL.url_join(trade_page_file, link.get("href"))
                     )
                 else:
                     return list()
@@ -196,7 +193,7 @@ class AuctionSpider:
                     file_name = file_.get_text(strip=True)
                     files.append(
                         DownloadData(
-                            url=UrlConfig.url_join(trade_page_file, file_link),
+                            url=URL.url_join(trade_page_file, file_link),
                             file_name=file_name,
                         )
                     )

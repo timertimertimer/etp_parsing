@@ -1,27 +1,25 @@
-import logging
 import re
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils import URL, logger
+from app.utils.config import write_log_to_file
 from ..manage_spiders.app import Combo
 from ..config import (
     data_origin,
     serp_link,
     lot_link,
     doc_link,
-    path_absolute,
-    path_relative,
     url_file,
     query_param,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class AltimetaBaseSpider(BaseSpider):
     name = "base"
+    property_type = AuctionPropertyType.bankruptcy
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
@@ -32,8 +30,6 @@ class AltimetaBaseSpider(BaseSpider):
         cls.lot_link = lot_link.get(cls.name)
         cls.serp_link = serp_link.get(cls.name)
         cls.doc_link = doc_link.get(cls.name)
-        cls.full_path = path_absolute.get(cls.name)
-        cls.relative_path = path_relative.get(cls.name)
         cls.main_url = url_file.get(cls.name)
         cls.start_url = [cls.serp_link]
 
@@ -42,7 +38,7 @@ class AltimetaBaseSpider(BaseSpider):
         super().__init__(self.data_origin, *args, **kwargs)
 
     def start_requests(self):
-        url = UrlConfig.unquote_url(self.start_url[0])
+        url = URL.unquote_url(self.start_url[0])
         yield Request(url, self.make_query_search)
 
     def make_query_search(self, response):
@@ -59,10 +55,10 @@ class AltimetaBaseSpider(BaseSpider):
         combo = Combo(response_=response)
         if links := combo.serp.get_trading_number_from_serp_page():
             for link, trading_number in links:
-                url = UrlConfig.unquote_url(
+                url = URL.unquote_url(
                     self.start_url[0].replace("/index.html", "").strip()
                 )
-                url = UrlConfig.url_join(url, link)
+                url = URL.url_join(url, link)
                 if url not in self.previous_trades:
                     yield Request(
                         url,
@@ -132,7 +128,7 @@ class AltimetaBaseSpider(BaseSpider):
         current_page = 1
         general_docs = combo.doc.general_docs(self.name)
         local_lot_link = (
-            UrlConfig.unquote_url(self.lot_link) + f"{_id}&page={current_page}"
+            URL.unquote_url(self.lot_link) + f"{_id}&page={current_page}"
         )
         if trading_type == "auction":
             callback_func = self.parse_auction_lot
@@ -159,6 +155,7 @@ class AltimetaBaseSpider(BaseSpider):
         for table in combo.auc.get_all_lot_tables():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", transfer["data_origin"])
+            loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", transfer["trading_id"])
             loader.add_value("trading_link", transfer["trading_link"])
             loader.add_value("trading_number", transfer["trading_number"])
@@ -217,6 +214,7 @@ class AltimetaBaseSpider(BaseSpider):
         for table in combo.offer.get_lot_tables():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", transfer["data_origin"])
+            loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", transfer["trading_id"])
             loader.add_value("trading_link", transfer["trading_link"])
             loader.add_value("trading_number", transfer["trading_number"])
@@ -285,6 +283,7 @@ class AltimetaBaseSpider(BaseSpider):
         for table in combo.auc.get_all_lot_tables():
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", transfer["data_origin"])
+            loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", transfer["trading_id"])
             loader.add_value("trading_link", transfer["trading_link"])
             loader.add_value("trading_number", transfer["trading_number"])

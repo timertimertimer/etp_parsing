@@ -37,6 +37,10 @@ class Locator:
     td_deb_address = '/following::tr//following::td[contains(.,"Место нахождения")]'
     debitor_address = deb_info + td_deb_address + foll_sibling + ")"
 
+    seller_info = 'normalize-space(//h3[contains(.,"нформация о продавце")]'
+    td_seller_address = '/following::tr//following::td[contains(.,"Место нахождения")]'
+    seller_address  = seller_info + td_seller_address + foll_sibling + ")"
+
     # ________ARBITR________INFO____________________
     arbitr_info = (
         'normalize-space(//h3[contains(.,"нформация об арбитражном управляю")]'

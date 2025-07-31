@@ -1,11 +1,8 @@
-from general_utils import format_time, get_lot_number, dedent_func, make_float
+from app.utils import format_time, get_lot_number, dedent_func, make_float, logger
 from ..locators.locator_lot_page import LocatorLotPage
 from ..locators.locators_trade_page import LocatorTradePage
 from bs4 import BeautifulSoup as BS
 import re
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class AucPage:
@@ -76,14 +73,15 @@ class AucPage:
             elif status in ended:
                 return "ended"
             else:
-                logger.error(
+                logger.warning(
                     f"{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! ERROR WITH TEXT "
                     f"{self.response.url}"
                 )
         else:
-            logger.error(
+            logger.warning(
                 f"{str(self.response.text)[:200]} :: !!!! ERROR !!!! STATUS !!!! {self.response.url}"
             )
+        return None
 
     def get_th_of_table(self, table_):
         table = BS(str(table_), features="lxml")
@@ -91,7 +89,8 @@ class AucPage:
         try:
             return th
         except Exception as e:
-            logger.error(f"{self.response.url} :: ERROR LOT TITLE {e}", exc_info=True)
+            logger.warning(f"{self.response.url} :: ERROR LOT TITLE {e}", exc_info=True)
+        return None
 
     @get_lot_number
     def get_lot_number(self, table_):
@@ -107,6 +106,7 @@ class AucPage:
         short_name = re.split(r":", self.get_th_of_table(table_), maxsplit=1)
         if len(short_name) == 2:
             return dedent_func(short_name[1].strip())
+        return None
 
     @staticmethod
     def get_lot_info(table_):
@@ -120,6 +120,7 @@ class AucPage:
             return (
                 lot_info.findNext("td").get_text(strip=True).strip().replace("'", '"')
             )
+        return None
 
     @staticmethod
     def get_property_info(table_):
@@ -136,6 +137,7 @@ class AucPage:
                 .strip()
                 .replace("'", '"')
             )
+        return None
 
     def get_start_price(self, table_):
         table = BS(str(table_), features="lxml")
@@ -158,9 +160,10 @@ class AucPage:
             try:
                 return make_float(start_price)
             except ValueError as e:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} ::: ERROR {e} ::: START PRICE", exc_info=True
                 )
+        return None
 
     def get_step_price(self, table_):
         table = BS(str(table_), features="lxml")
@@ -178,9 +181,10 @@ class AucPage:
                 )
                 return round(step, 2)
             except ValueError as e:
-                logger.error(
+                logger.warning(
                     f"{self.response.url} ::: ERROR {e} ::: STEP PRICE", exc_info=True
                 )
+        return None
 
     def get_categories(self, table):
         table = BS(str(table), features="lxml")
@@ -189,3 +193,4 @@ class AucPage:
         )
         if categories:
             return categories.findNext("td").get_text(strip=True).strip()
+        return None

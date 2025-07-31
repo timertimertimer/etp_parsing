@@ -3,9 +3,11 @@ from typing import Iterable
 
 from scrapy import Request, FormRequest
 
-from general_utils import dedent_func, UrlConfig, EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
-from general_utils.config import trash_resources, start_date, write_log_to_file
+from app.db.models import AuctionPropertyType
+from app.utils import dedent_func, URL
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import trash_resources, start_date, write_log_to_file
 from ..locators.serp_locator import SerpLocator
 from ..app import Combo
 from ..config import data_origin_url, form_data
@@ -20,6 +22,7 @@ class KartotekaSpider(BaseSpider):
         in trash_resources,
         "PLAYWRIGHT_LAUNCH_OPTIONS": {"timeout": 60 * 1000},
     }
+    property_type = AuctionPropertyType.bankruptcy
 
     def __init__(self):
         super().__init__(data_origin_url)
@@ -51,7 +54,7 @@ class KartotekaSpider(BaseSpider):
     def parse_serp(self, response):
         trade_cards = response.xpath(SerpLocator.trade_card_loc)
         for trade in trade_cards:
-            link = UrlConfig.url_join(
+            link = URL.url_join(
                 data_origin_url, trade.xpath(SerpLocator.link_to_trade_loc).get()
             )
             if link not in self.previous_trades:
@@ -84,6 +87,7 @@ class KartotekaSpider(BaseSpider):
         status = combo.parse_status(status)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin_url)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", trading_id)
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", trading_number)

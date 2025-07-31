@@ -3,13 +3,13 @@ import re
 
 from bs4 import BeautifulSoup
 
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 from .config import host, data_origin
-from general_utils import (
+from app.utils import (
     format_time,
-    UrlConfig,
+    URL,
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     make_float,
 )
 
@@ -30,6 +30,7 @@ class Combo:
                 for row in table.select("div.info"):
                     if row.label.get_text(strip=True) == name_row:
                         return row.div.get_text(strip=True)
+        return None
 
     def get_value_by(self, lot: BeautifulSoup, name_row: str):
         element = lot.find("label", text=name_row)
@@ -37,13 +38,14 @@ class Combo:
             return element.findNext("div", {"class": "info__title"}).get_text(
                 strip=True
             )
+        return None
 
     def download_general(self):
         files = list()
         if not (docs := self.soup.select_one("div#doc")):
             return files
         for doc in docs.find_all("a"):
-            link = UrlConfig.url_join(data_origin, doc.get("href"))
+            link = URL.url_join(data_origin, doc.get("href"))
             name = doc.get_text(strip=True)
             file_type = doc.get("class")[-1].split("--")[-1]
             if not name.endswith(file_type):
@@ -65,7 +67,7 @@ class Combo:
         for info in additional_informations:
             info_block = info.find_parent("div", {"class": "info"})
             for doc in info_block.find_all("a"):
-                link = UrlConfig.url_join(data_origin, doc.get("href"))
+                link = URL.url_join(data_origin, doc.get("href"))
                 name = doc.get_text(strip=True)
                 file_type = doc.get("class")[-1].split("--")[-1]
                 if not name.endswith(file_type):
@@ -129,7 +131,7 @@ class Combo:
             "Сведения об организаторе",
             "ИНН",
         )
-        return CheckIfCorrectContactInfo.check_inn(trading_org_inn)
+        return Contacts.check_inn(trading_org_inn)
 
     @property
     def trading_org_contacts(self):
@@ -144,8 +146,8 @@ class Combo:
             ),
         ]
         return {
-            "email": CheckIfCorrectContactInfo.check_email(trading_org_contacts[1]),
-            "phone": CheckIfCorrectContactInfo.check_phone(trading_org_contacts[0]),
+            "email": Contacts.check_email(trading_org_contacts[1]),
+            "phone": Contacts.check_phone(trading_org_contacts[0]),
         }
 
     @property
@@ -173,13 +175,13 @@ class Combo:
 
     @property
     def case_number(self):
-        return CheckIfCorrectContactInfo.check_case_number(
+        return Contacts.check_case_number(
             self.get_table_value_by("Основные сведения", "Номер дела о банкротстве")
         )
 
     @property
     def debtor_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.get_table_value_by(
                 "Сведения о должнике",
                 "ИНН",
@@ -213,7 +215,7 @@ class Combo:
 
     @property
     def arbit_manager_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(
+        return Contacts.check_inn(
             self.get_table_value_by(
                 "Cведения об арбитражном управляющем",
                 "ИНН",
@@ -243,6 +245,7 @@ class Combo:
         for key in d:
             if status in d[key]:
                 return key
+        return None
 
     def get_lots(self):
         lot_list = self.soup.find("div", id="lotlist")
@@ -319,6 +322,7 @@ class Combo:
         )
         if date:
             return format_time(date)
+        return None
 
     def start_price(self, lot: BeautifulSoup):
         if periods := self.periods(lot):
@@ -342,6 +346,7 @@ class Combo:
                     return round(float(start_price), 2)
         except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
+        return None
 
     def step_price(self, lot: BeautifulSoup):
         step_price = self.get_value_by(
@@ -360,6 +365,7 @@ class Combo:
                     return round(float(step_price), 2)
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DATA STEP PRICE\n{e}")
+        return None
 
     def categories(self, lot: BeautifulSoup):
         categories = lot.find(
@@ -369,6 +375,7 @@ class Combo:
             return categories.find_next("div", class_="info__title").get_text(
                 strip=True
             )
+        return None
 
     def periods(self, lot: BeautifulSoup):
         periods = []

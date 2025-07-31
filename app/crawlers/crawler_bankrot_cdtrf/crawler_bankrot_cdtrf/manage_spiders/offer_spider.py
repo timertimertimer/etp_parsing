@@ -1,4 +1,3 @@
-import logging
 import re
 import urllib.parse
 
@@ -7,19 +6,18 @@ import numpy as np
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import (
-    UrlConfig,
+from app.utils import (
+    URL,
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     delete_extra_symbols,
     cut_lot_number,
     get_lot_number,
     format_time,
+    logger,
 )
 from ..locators_and_attributes.locators_attributes import Offer
 from ..config import data_origin_url
-
-logger = logging.getLogger(__name__)
 
 
 class OfferSpider:
@@ -78,7 +76,7 @@ class OfferSpider:
             if list_tag_links and len(list_tag_links) > 0:
                 for link in list_tag_links:
                     if link and re.match("/public.+aspx.+\d+$", link):
-                        link_set.add(UrlConfig.url_join(data_origin_url, link))
+                        link_set.add(URL.url_join(data_origin_url, link))
                 return link_set
         except:
             logger.error(
@@ -117,7 +115,7 @@ class OfferSpider:
         if trade_number and len(trade_number) > 0:
             t = dedent_func(BS(str(trade_number), features="lxml").get_text()).strip()
             if len(t) > 0 and re.match(r"\d{1,12}", t):
-                return CheckIfCorrectContactInfo.check_number(t)
+                return Contacts.check_number(t)
         else:
             logger.warning(
                 f"{self.response.url} :: INVALID DATA OR IS MISSING TARDING NUMBER"
@@ -221,7 +219,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "ИНН" in dedent_func(td[0].get_text()):
-                            return CheckIfCorrectContactInfo.check_inn(
+                            return Contacts.check_inn(
                                 dedent_func(td[1].get_text())
                             )
             elif len(person) > 0:
@@ -229,7 +227,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "ИНН" in dedent_func(td[0].get_text()):
-                            return CheckIfCorrectContactInfo.check_inn(
+                            return Contacts.check_inn(
                                 dedent_func(td[1].get_text())
                             )
 
@@ -243,7 +241,7 @@ class OfferSpider:
         try:
             email = self.soup.find(id=Offer.org_email_loc).get_text()
             if email:
-                return CheckIfCorrectContactInfo.check_email(dedent_func(email))
+                return Contacts.check_email(dedent_func(email))
             else:
                 return ""
         except Exception as e:
@@ -256,7 +254,7 @@ class OfferSpider:
             phone_ = self.response.xpath(Offer.phone_org_loc).get()
             if phone_:
                 phone = BS(str(phone_), features="lxml").get_text()
-                return CheckIfCorrectContactInfo.check_phone(dedent_func(phone))
+                return Contacts.check_phone(dedent_func(phone))
             else:
                 return ""
         except Exception as e:
@@ -290,7 +288,7 @@ class OfferSpider:
                 if case__:
                     case = dedent_func(case__.get_text())
                     if len(case) > 4:
-                        return CheckIfCorrectContactInfo.check_case_number(case)
+                        return Contacts.check_case_number(case)
 
     @property
     def get_debtor_inn(self):
@@ -302,7 +300,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "ИНН" in dedent_func(td[0].get_text()):
-                            return CheckIfCorrectContactInfo.check_inn(
+                            return Contacts.check_inn(
                                 dedent_func(td[1].get_text())
                             )
         except:
@@ -353,7 +351,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "ИНН" in dedent_func(td[0].get_text()):
-                            return CheckIfCorrectContactInfo.check_inn(
+                            return Contacts.check_inn(
                                 dedent_func(td[1].get_text()).strip()
                             )
         except:
