@@ -1,7 +1,5 @@
 from .libraries import *
 
-logger = logging.getLogger(__name__)
-
 
 class SerpParse:
     def __init__(self, response_):
@@ -17,15 +15,15 @@ class SerpParse:
             length = str(form_.get("action")).strip()
             number = "".join(re.findall(r"\d+$", length))
             return number
+        return None
 
     def get_types_param(self) -> str:
-        """get one of param data for request - types value, flot number - return string"""
         type_value = self.soup.find("input", id="types")
         if type_value:
             return str(type_value["value"])
+        return None
 
     def get_next_page_link(self, current_page: str, data_origin_):
-        """check if next page exists if true - return full link"""
         next_page = self.soup.find_all(
             "a", attrs={"data-ajax-complete": "OnPagerLinkComplete"}
         )
@@ -37,9 +35,10 @@ class SerpParse:
                 _href = next_page_number[0].get("href")
                 full_url = re.sub(r"/$", "", data_origin_) + _href
                 return full_url
+            return None
+        return None
 
     def get_status(self, status_text):
-        """return status"""
         active = ("прием заявок",)
         pending = ("подтвержден", "ожидание начала торгов")
         ended = (
@@ -61,21 +60,22 @@ class SerpParse:
         elif dedent_func(str(status_text).lower()) in ended:
             return "ended"
         else:
-            logger.error(f"{self.response.url} :: STATUS ERROR {status_text}")
+            logger.warning(f"{self.response.url} | STATUS ERROR {status_text}")
+            return None
 
     def get_div_with_lots(self):
-        """return block div with data of trading pages and lots"""
         id_divTradesTable = self.soup.find("div", class_="items-list")
         if id_divTradesTable:
             return id_divTradesTable
+        return None
 
     def get_table_with_lots(self):
         id_tradesTable = self.soup.find("table", class_="trades_table")
         if id_tradesTable:
             return id_tradesTable
+        return None
 
     def get_lots_data_from_div_table(self, crawler_name: str):
-        """fetch data (trading_link, lot_link, lot_number, organizer, status)"""
         if _div := self.get_div_with_lots():
             short_lot_data = list()
             for lot_data in _div.find_all("div", class_="row item-row"):
@@ -139,6 +139,7 @@ class SerpParse:
                     )
                 )
             return deque(short_lot_data)
+        return None
 
     def get_lots_data_from_table(self, _data_origin):
         table = self.get_table_with_lots()
@@ -148,25 +149,23 @@ class SerpParse:
         try:
             for lot_data in table.find_all("tr")[1:]:
                 lot_data_splitted = lot_data.find_all("td")
-                trading_link = UrlConfig.url_join(
+                trading_link = URL.url_join(
                     _data_origin, lot_data_splitted[0].find("a").get("href")
                 )
                 lot_number = lot_data_splitted[2].get_text().strip()
-                lot_link = UrlConfig.url_join(
+                lot_link = URL.url_join(
                     _data_origin, lot_data_splitted[3].find("a").get("href")
                 )
                 status = lot_data_splitted[-2].get_text().strip()
                 lots.append((trading_link, lot_link, lot_number, status))
             return lots
-        except Exception:
+        except Exception as e:
             pass
 
     def get_trading_id(self, trading_url):
-        """return last number of trading link"""
         return "".join(re.findall(r"\d+$", trading_url.strip()))
 
     def get_trading_type(self):
-        """return trading type"""
         if re.match(".+Trade/AuctionTrades.?", str(self.response.url)):
             return "auction"
         elif re.match(".+Trade/PublicOfferTrades.?", str(self.response.url)):
@@ -174,6 +173,7 @@ class SerpParse:
         elif re.match(".+Trade/CompetitionTrades.?", str(self.response.url)):
             return "competition"
         else:
-            logger.error(
-                f"{self.response.url} :: ERROR {self.get_trading_type.__name__} {self.response.url}"
+            logger.warning(
+                f"{self.response.url} | ERROR {self.get_trading_type.__name__} {self.response.url}"
             )
+            return None

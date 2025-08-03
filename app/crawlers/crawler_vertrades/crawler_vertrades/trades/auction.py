@@ -1,11 +1,8 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
 
-from general_utils import format_time, contains, dedent_func
-
-logger = logging.getLogger(__name__)
+from app.utils import format_time, contains, dedent_func, logger
 
 
 class AuctionParse:
@@ -44,5 +41,8 @@ class AuctionParse:
                 p = re.search(r"\d+(?:\.\d{1,2})?(?=руб)", p).group()
                 if len(p) > 0:
                     return round(float(p), 2)
+                return None
+            return None
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DATA STEP PRICE\n{e}")
+            return None

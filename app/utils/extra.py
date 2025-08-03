@@ -1,6 +1,7 @@
 import re
 import functools
 import string
+from typing import Optional
 
 import pandas as pd
 import textwrap
@@ -162,16 +163,21 @@ def count_cyrillic(text):
     return None
 
 
-def make_float(price):
+def make_float(price) -> Optional[float]:
+    if not price:
+        return None
     try:
-        if price:
-            price = "".join(price).replace(",", ".")
-            price = "".join(filter(lambda x: x.isdigit() or x == ".", price))
-            price = "".join(map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price)))))
-            if price is None:
-                price = "".join(map(str, (re.findall(r"^\d+?", str(price)))))
-            price = round(float(price), 2)
+        if isinstance(price, int):
+            return float(price)
+        elif isinstance(price, float):
             return price
+        price = price.replace(",", ".")
+        price = "".join(filter(lambda x: x.isdigit() or x == ".", price))
+        price = "".join(map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price)))))
+        if price is None:
+            price = "".join(map(str, (re.findall(r"^\d+?", str(price)))))
+        price = round(float(price), 2)
+        return price
     except Exception as e:
         logger.warning(f"Cant convert {price} to float: {e}")
     return None

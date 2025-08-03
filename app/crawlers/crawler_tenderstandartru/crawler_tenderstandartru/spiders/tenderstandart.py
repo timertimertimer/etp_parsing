@@ -1,7 +1,7 @@
 from scrapy import Request
 
-from general_utils import EtpItemLoader, EtpItem
-from general_utils.config import write_log_to_file
+from app.crawlers.items import EtpItemLoader, EtpItem
+from app.utils.config import write_log_to_file
 from .base import TenderstandartBaseSpider
 from ..trades.app import Combo
 

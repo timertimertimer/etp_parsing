@@ -38,7 +38,7 @@ class Combo:
         try:
             documents = json.loads(documents_json)
         except json.JSONDecodeError as e:
-            logger.error(f"{self.response.url}: Couldn't parse documents {e}")
+            logger.warning(f"{self.response.url}: Couldn't parse documents {e}")
             return None
         for file in documents.get("items", []):
             link = file["src"]
@@ -290,7 +290,7 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
+            logger.warning(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
         return None
 
     @property

@@ -10,7 +10,7 @@
 - [x] torgidv arrest
 - [x] eurtp arrest
 - [x] heveya arrest/rent
-- [ ] ei arrest/commercial
+- [x] ei arrest/commercial
 - [ ] torgi.gov gis
 - [x] el-torg commercial
 - [x] etp.alfalot commercial

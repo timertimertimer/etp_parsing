@@ -1,18 +1,14 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
 
-from general_utils.models import DownloadData
-from general_utils.working_with_time import format_time
-from general_utils import dedent_func, UrlConfig, contains, CheckIfCorrectContactInfo
-from .auction import AuctionParse
+from app.db.models import DownloadData
+from app.utils import format_time, dedent_func, URL, contains, Contacts
+from .auction import AuctionParse, logger
 from .offer import OfferParse
 from .serp import SerpParse
 from ..config import data_origin
 from ..locators.locator_trade import LocatorTrade
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -102,7 +98,7 @@ class Combo:
                 return "ended"
             else:
                 return None
-        except:
+        except Exception as e:
             return None
 
     @property
@@ -120,7 +116,7 @@ class Combo:
         div = BeautifulSoup(str(h1), features="lxml").get_text()
         match = "".join(re.findall(r"\d+\-\w+", str(div)))
         if len(match) < 0:
-            logger.error(f"{self.response.url} :: INVALID DATA TRADING NUMBER")
+            logger.error(f"{self.response.url} | INVALID DATA TRADING NUMBER")
         else:
             return match
 
@@ -132,14 +128,13 @@ class Combo:
                 BeautifulSoup(str(td_org), features="lxml").get_text()
             ).strip()
             return "".join(re.sub(r"\s+", " ", td_org))
-        except:
+        except Exception as e:
             logger.warning(
-                f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
+                f"{self.response.url} | INVALID DATA ORGANIZER", exc_info=True
             )
             return None
 
     def get_phone_number(self):
-        """get phone number of organizer"""
         try:
             phone = self.response.xpath(LocatorTrade.phone_org_loc).get()
             phone = (
@@ -147,12 +142,11 @@ class Combo:
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_phone(phone)
-        except:
+            return Contacts.check_phone(phone)
+        except Exception as e:
             return None
 
     def get_email(self):
-        """get email of organizer"""
         try:
             email = self.response.xpath(LocatorTrade.email_org_loc).get()
             email = (
@@ -160,8 +154,8 @@ class Combo:
                 .replace(";", "")
                 .strip()
             )
-            return CheckIfCorrectContactInfo.check_email(email)
-        except:
+            return Contacts.check_email(email)
+        except Exception as e:
             return None
 
     @property
@@ -188,7 +182,7 @@ class Combo:
         case = BeautifulSoup(
             str(self.response.xpath(LocatorTrade.case_number_loc).get()), "lxml"
         ).get_text()
-        return CheckIfCorrectContactInfo.check_case_number(dedent_func(case))
+        return Contacts.check_case_number(dedent_func(case))
 
     @property
     def debitor_inn(self):
@@ -201,7 +195,7 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(trade_inn))
-        except:
+        except Exception as e:
             return None
 
     @property
@@ -213,7 +207,7 @@ class Combo:
             address = dedent_func(BeautifulSoup(address, features="lxml").get_text())
             return address
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA ADDRESS\n{e}")
+            logger.error(f"{self.response.url} | INVALID DATA ADDRESS\n{e}")
 
     @property
     def arbitr_manager(self):
@@ -226,8 +220,8 @@ class Combo:
             ).strip()
             if td_org != "None":
                 return "".join(re.sub(r"\s+", " ", td_org))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME")
 
     @property
     def arbitr_inn(self):
@@ -241,7 +235,7 @@ class Combo:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(arbitr_inn))
-        except:
+        except Exception as e:
             return None
 
     @property
@@ -262,8 +256,8 @@ class Combo:
                         ]
                     )
                 return "".join(dedent_func(td_company))
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | INVALID DATA ARBITR COMPANY")
 
     @property
     def start_date_requests(self):
@@ -282,11 +276,11 @@ class Combo:
         files = list()
         for file in self.response.xpath(LocatorTrade.general_files_loc).getall():
             a = BeautifulSoup(str(file), features="lxml").find("a")
-            link = UrlConfig.url_join(data_origin, a.get("href"))
+            link = URL.url_join(data_origin, a.get("href"))
             name = a.get_text(strip=True)
             files.append(
                 DownloadData(
-                    url=UrlConfig.url_join(data_origin, link),
+                    url=URL.url_join(data_origin, link),
                     file_name=name,
                     referer=self.response.url,
                 )
@@ -303,7 +297,7 @@ class Combo:
             return []
         for a in lot_files:
             name = a.get_text()
-            link = UrlConfig.url_join(data_origin, a.get("href"))
+            link = URL.url_join(data_origin, a.get("href"))
             files.append(
                 DownloadData(url=link, file_name=name, referer=self.response.url)
             )
@@ -314,8 +308,8 @@ class Combo:
         match = re.findall(r"\d+$", title)
         try:
             return "".join(match)
-        except:
-            logger.warning(f"{self.response.url} :: LOT WITHOUT NUMBER")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | LOT WITHOUT NUMBER")
             return None
 
     def short_name(self, lot):
@@ -328,8 +322,8 @@ class Combo:
             )
             if short_name != "None":
                 return short_name
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - SHORT NAME")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | LOT INVALID DATA - SHORT NAME")
             return None
 
     def lot_info(self, lot):
@@ -340,8 +334,8 @@ class Combo:
             if not lot_info:
                 return
             return dedent_func(lot_info.find_next_sibling("td").get_text())
-        except:
-            logger.warning(f"{self.response.url} :: LOT INVALID DATA - LOT INFO")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | LOT INVALID DATA - LOT INFO")
 
     def property_information(self, lot):
         try:
@@ -353,8 +347,8 @@ class Combo:
             )
             if property_info != "None":
                 return property_info
-        except:
-            logger.warning(f"{self.response.url} :: INVALID DATA - PROPERTY INFO")
+        except Exception as e:
+            logger.warning(f"{self.response.url} | INVALID DATA - PROPERTY INFO")
 
     def start_price(self, lot):
         try:
@@ -371,7 +365,7 @@ class Combo:
                 if len(p) > 0:
                     return round(float(p), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
+            logger.error(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
 
     def categories(self, lot):
         categories = BeautifulSoup(str(lot), "lxml").find(

@@ -1,15 +1,13 @@
-import logging
 from typing import Iterable
 
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-from general_utils.base_spider import BaseSpider
-from general_utils.config import start_date
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils import URL
+from app.utils.config import start_date
 from ..config import data_origin, params_data
 from ..trades.app import Combo
-
-logger = logging.getLogger(__name__)
 
 
 class VertradesSpider(BaseSpider):
@@ -29,7 +27,7 @@ class VertradesSpider(BaseSpider):
         combo = Combo(response)
         for link in combo.serp.get_trading_links():
             if (
-                UrlConfig.url_join(data_origin, link.removesuffix("#lot"))
+                URL.url_join(data_origin, link.removesuffix("#lot"))
                 not in self.previous_trades
             ):
                 yield response.follow(link, callback=self.parse_trading)

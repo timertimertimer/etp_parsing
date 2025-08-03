@@ -48,7 +48,7 @@ class Auction(Base):
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)
     number: Mapped[str] = mapped_column(String(255), nullable=True)
-    type: Mapped[str] = mapped_column(SAEnum(AuctionType, convert_unicode=True))
+    type: Mapped[str] = mapped_column(SAEnum(AuctionType, convert_unicode=True), nullable=True)
     form: Mapped[str] = mapped_column(SAEnum(FormType, convert_unicode=True))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
     # bid_security: Mapped[float] = mapped_column(Float, nullable=True)

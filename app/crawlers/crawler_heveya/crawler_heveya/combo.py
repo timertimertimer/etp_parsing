@@ -18,7 +18,7 @@ class Combo:
             link = a.get("src")
             name = link.split("/")[-1]
             files.append(
-                DownloadData(url=link, file_name=name, refere=self.response.url)
+                DownloadData(url=link, file_name=name, referer=self.response.url)
             )
         return files
 

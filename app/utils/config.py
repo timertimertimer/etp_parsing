@@ -73,7 +73,6 @@ class ENV(BaseSettings):
 
 env = ENV()
 env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
-print(env.connection_string)
 
 
 def format_parse_date(days_: int, time_format=None):

@@ -1,8 +1,6 @@
-import logging
-
 from bs4 import BeautifulSoup as BS
 
-logger = logging.getLogger(__name__)
+from app.utils import logger
 
 
 class SerpParse:
@@ -11,13 +9,13 @@ class SerpParse:
         self.soup = BS(self.response.text, "lxml")
 
     def get_trading_links(self):
-        """return set with unique links"""
         try:
             links = self.soup.find_all("a", class_="row-link")
             links = set([l.get("href") for l in links])
             return links
         except Exception as e:
-            logger.error(
+            logger.warning(
                 f"{self.response.url} :: INVALID DATA DURING FETCHING TRADING LINKS {e}",
                 exc_info=True,
             )
+            return None

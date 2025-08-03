@@ -1,9 +1,5 @@
-import logging
-
-from general_utils import dedent_func, CheckIfCorrectContactInfo, return_parse_date
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from app.utils import dedent_func, Contacts, return_parse_date, logger
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -47,7 +43,7 @@ class Combo:
     def trading_type(self):
         type_value = self.data["biddForm"]["name"]
         if type_value == "Сообщение о предоставлении (реализации)":
-            return
+            return None
         d = {
             "auction": ["Электронный аукцион", "Аукцион"],
             "offer": [
@@ -60,7 +56,8 @@ class Combo:
         for key in d:
             if type_value in d[key]:
                 return key
-        logger.error(f"{self.trading_link} :: Unknown trading type {type_value}")
+        logger.error(f"{self.trading_link} | Unknown trading type {type_value}")
+        return None
 
     @property
     def trading_form(self):
@@ -72,17 +69,13 @@ class Combo:
 
     @property
     def trading_org_inn(self):
-        return CheckIfCorrectContactInfo.check_inn(self.data["bidderOrg"]["inn"])
+        return Contacts.check_inn(self.data["bidderOrg"]["inn"])
 
     @property
     def trading_org_contacts(self):
         return {
-            "email": CheckIfCorrectContactInfo.check_email(
-                self.data["bidderOrg"]["email"]
-            ),
-            "phone": CheckIfCorrectContactInfo.check_phone(
-                self.data["bidderOrg"]["tel"]
-            ),
+            "email": Contacts.check_email(self.data["bidderOrg"]["email"]),
+            "phone": Contacts.check_phone(self.data["bidderOrg"]["tel"]),
         }
 
     @property
@@ -109,7 +102,8 @@ class Combo:
         for key in d:
             if form_value in d[key]:
                 return key
-        logger.error(f"{self.trading_link} :: Unknown trading form {form_value}")
+        logger.error(f"{self.trading_link} | Unknown trading form {form_value}")
+        return None
 
     def get_category(self, lot):
         return lot["category"]["name"]
@@ -148,6 +142,7 @@ class Combo:
     def start_date_trading(self):
         if date := self.data.get("auctionStartDate"):
             return return_parse_date(date)
+        return None
 
     @property
     def end_date_trading(self):
@@ -162,6 +157,7 @@ class Combo:
             pass
         if date:
             return return_parse_date(date)
+        return None
 
     def get_start_price(self, lot):
         return lot.get("priceMin")

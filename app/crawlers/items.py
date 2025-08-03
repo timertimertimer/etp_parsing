@@ -10,8 +10,8 @@ class EtpItem(scrapy.Item):
     trading_id = scrapy.Field()
     trading_link = scrapy.Field()
     trading_number = scrapy.Field()
-    trading_type = scrapy.Field()
-    trading_form = scrapy.Field()
+    trading_type = scrapy.Field() # auction/offer/competition
+    trading_form = scrapy.Field() # open/closed
     trading_org = scrapy.Field()
     trading_org_inn = scrapy.Field()
     trading_org_contacts = scrapy.Field()

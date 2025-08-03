@@ -1,18 +1,15 @@
-import logging
-
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 from scrapy import FormRequest
 import json
 import xmltodict
 
-from general_utils import EtpItem, EtpItemLoader, increase_time_days
-from general_utils.base_spider import BaseSpider
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils import increase_time_days, logger
 from ..trades.app import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
-
-logger = logging.getLogger(__name__)
 
 
 class SberbankSpider(BaseSpider):

@@ -1,9 +1,10 @@
 from scrapy import Request, FormRequest
 
-from general_utils import UrlConfig, EtpItem, EtpItemLoader, return_servertime_timestamp
-from general_utils.config import write_log_to_file
+from app.utils import URL, return_servertime_timestamp
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
 from ..config import trades, data_origin, search_param
-from general_utils.base_spider import BaseSpider
 from ..trades.app import Combo
 
 
@@ -20,7 +21,7 @@ class TenderstandartBaseSpider(BaseSpider):
     def start_requests(self):
         for trade in trades:
             yield Request(
-                url=UrlConfig.url_join(self.data_origin, trade),
+                url=URL.url_join(self.data_origin, trade),
                 callback=self.parse_main,
                 cb_kwargs={"page": 1},
             )
@@ -35,7 +36,7 @@ class TenderstandartBaseSpider(BaseSpider):
         search_param["types"] = types_
         search_param["_"] = timestamp_
         yield FormRequest(
-            url=UrlConfig.url_join(self.data_origin, "Trade/AllSearch"),
+            url=URL.url_join(self.data_origin, "Trade/AllSearch"),
             callback=self.parse_serp,
             formdata=search_param,
             method="GET",

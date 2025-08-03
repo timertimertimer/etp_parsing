@@ -1,7 +1,5 @@
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 from .libraries import *
-
-logger = logging.getLogger(__name__)
 
 
 class Files:
@@ -17,6 +15,7 @@ class Files:
             logger.error(
                 f"{self.response.url} :: ERROR function class Files {self.section_docs.__name__}"
             )
+            return None
 
     def find_files(self, data_origin):
         files = list()
