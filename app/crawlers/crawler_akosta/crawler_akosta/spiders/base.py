@@ -5,7 +5,7 @@ from app.crawlers.base import BaseSpider
 from app.utils.config import start_date
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import Auction
-from app.utils.time_format import return_servertime
+from app.utils.datetime_helper import return_servertime
 from ..manage_spider.app import Combo
 from ..utils.config import (
     search_link,

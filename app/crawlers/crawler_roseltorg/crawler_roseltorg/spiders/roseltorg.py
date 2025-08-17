@@ -1,17 +1,15 @@
-import logging
-
 from scrapy import FormRequest, Request
 
-from general_utils import UrlConfig, EtpItemLoader, EtpItem
-from general_utils.base_spider import BaseSpider
+from app.db.models import AuctionPropertyType
+from app.utils import URL, logger
+from app.crawlers.items import EtpItemLoader, EtpItem
+from app.crawlers.base import BaseSpider
 
 from ..app import Combo
-from ..config import formdata, search_link, data_origin
-
-logger = logging.getLogger(__name__)
+from ..config import formdatas, search_link, data_origin
 
 
-class RoseltorgSpider(BaseSpider):
+class RoseltorgBaseSpider(BaseSpider):
     name = "roseltorg"
     start_urls = [search_link]
     unique_links = set()
@@ -23,14 +21,17 @@ class RoseltorgSpider(BaseSpider):
 
     def start_requests(self):
         yield FormRequest(
-            self.start_urls[0], self.parse_serp, formdata=formdata, method="GET"
+            self.start_urls[0],
+            self.parse_serp,
+            formdata=formdatas[self.property_type.value],
+            method="GET",
         )
 
     def parse_serp(self, response):
         combo = Combo(response)
         for trading_card in combo.get_trading_cards():
             link = combo.parse_link(
-                UrlConfig.url_join(data_origin, combo.trading_link(trading_card))
+                URL.url_join(data_origin, combo.trading_link(trading_card))
             )
             if link not in self.previous_trades:
                 trading_id = combo.trading_id(trading_card)
@@ -90,3 +91,18 @@ class RoseltorgSpider(BaseSpider):
             yield loader.load_item()
         self.parsed_trades += 1
         logger.info(f"Parsed {self.parsed_trades}/{self.total_trades} trades")
+
+
+class RoseltorgLegalEntitiesSpider(RoseltorgBaseSpider):
+    name = 'roseltorg_legal_entities'
+    property_type = AuctionPropertyType.legal_entities
+
+
+class RoseltorgCapitalRepairSpider(RoseltorgBaseSpider):
+    name = 'roseltorg_capital_repair'
+    property_type = AuctionPropertyType.capital_repair
+
+
+class RoseltorgFz223Spider(RoseltorgBaseSpider):
+    name = 'roseltorg_fz223'
+    property_type = AuctionPropertyType.fz223

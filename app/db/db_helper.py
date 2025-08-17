@@ -837,7 +837,7 @@ class DBHelper:
             lot_period = LotPeriod(
                 request_start_at=period["start_date_requests"],
                 request_end_at=period["end_date_requests"],
-                trading_start_at=period["start_date_requests"],
+                trading_start_at=period.get("start_date_trading") or period.get("start_date_requests"),
                 trading_end_at=period["end_date_trading"],
                 price=period["current_price"],
                 lot_id=lot_id,

@@ -6,9 +6,11 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.utils.datetime_helper import DateTimeHelper
+
 project_main_dir = PurePath(__file__).parent.parent
-absolute_download_path = project_main_dir / "set_main_path_to_download"
-relative_download_path = project_main_dir / "set_relative_path_to_download"
+absolute_download_path = project_main_dir / "set_main_path_to_download.txt"
+relative_download_path = project_main_dir / "set_relative_path_to_download.txt"
 
 with open(f"{absolute_download_path}", "r") as f:
     absolute_download_path = PurePath("".join(f.readlines()).strip().replace("\n", ""))
@@ -69,25 +71,19 @@ class ENV(BaseSettings):
     db_host: str = "localhost"
     db_port: int = 3306
     db_database: str = "etp_parsing"
+    connection_string: str = (
+        f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
+    )
 
 
 env = ENV()
 env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
 
 
-def format_parse_date(days_: int, time_format=None):
-    time_delta1 = timedelta(days=days_)
-    _date_now = datetime.now()
-    _start_date = _date_now - time_delta1
-    if time_format is None:
-        time_format = "%d.%m.%Y"
-    else:
-        time_format = time_format
-    return _start_date.strftime(time_format)
-
-
 days = 30
-start_date = format_parse_date(days)
+start_date = DateTimeHelper.format_datetime(
+    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%d.%m.%Y"
+)
 
 headers = {
     "Accept": "*/*",

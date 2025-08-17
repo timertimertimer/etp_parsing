@@ -1,4 +1,5 @@
 class Locator:
+    links_loc = '//div[@class="border-mystic-300 block rounded-lg border bg-white relative p-4"]//div[@class="flex flex-wrap justify-between gap-6 md:flex-nowrap"]//a[@data-slot="anchor"]/@href'
     pagination_lot_page = (
         '//div[contains(@class, "pages_number")]//ul[contains(@class,"pagination")]'
     )

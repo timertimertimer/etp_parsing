@@ -1,24 +1,20 @@
-from app.utils.config import (
-    format_parse_date,
-)
+from datetime import datetime, timedelta
+
+from app.utils import DateTimeHelper
 
 host = "ru-trade24.ru"
-hosts = {
-    'bankruptcy': "ru-trade24.ru",
-    'commercial': "com.ru-trade24.ru"
-}
+hosts = {"bankruptcy": "ru-trade24.ru", "commercial": "com.ru-trade24.ru"}
 data_origin = "http://ru-trade24.ru/"
-data_origins = {
-    'bankruptcy': data_origin,
-    'commercial': "https://com.ru-trade24.ru"
-}
+data_origins = {"bankruptcy": data_origin, "commercial": "https://com.ru-trade24.ru"}
 start_urls = {
-    'bankruptcy': 'https://ru-trade24.ru/query/Filter',
-    'commercial': 'https://com.ru-trade24.ru/query/Filter',
+    "bankruptcy": "https://ru-trade24.ru/query/Filter",
+    "commercial": "https://com.ru-trade24.ru/query/Filter",
 }
 
 formdata = {
-    "MainPageFilterPartpAppDateBegin": format_parse_date(30, "%d.%m.%Y %H:%M"),
+    "MainPageFilterPartpAppDateBegin": DateTimeHelper.format_datetime(
+        datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=30), "%d.%m.%Y %H:%M"
+    ),
     # "MainPageFilterTradeType": "Undefined",
     "MainPageFilterTradeStatus": "0",
 }

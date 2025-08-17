@@ -5,29 +5,28 @@ from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
 from app.crawlers.items import EtpItemLoader, EtpItem
+from app.db.models import AuctionPropertyType
 from app.utils.logger import logger
 from ..app import Combo
-from ..config import formdata, data_origin, search_link, trade_link, categories
+from ..config import formdata, data_origin, search_link, trade_link
 
 
 class TorgiGovSpider(BaseSpider):
     name = "torgigov"
+    property_type = AuctionPropertyType.gis
 
     def __init__(self):
         super().__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        for category_id, category in categories.items():
-            formdata["catCode"] = category_id
-            yield FormRequest(
-                search_link,
-                self.parse_serp,
-                formdata=formdata,
-                method="GET",
-                cb_kwargs={"category": category, "category_id": category_id},
-            )
+        yield FormRequest(
+            search_link,
+            self.parse_serp,
+            formdata=formdata,
+            method="GET",
+        )
 
-    def parse_serp(self, response, category, category_id):
+    def parse_serp(self, response):
         data = json.loads(response.text)
         for trade in data["content"]:
             if (
@@ -38,16 +37,14 @@ class TorgiGovSpider(BaseSpider):
         parsed_elements = (int(data["number"]) + 1) * int(data["size"])
         if parsed_elements < int(data["totalElements"]):
             logger.info(
-                f"Parsed elements ({category}): {parsed_elements}/{data['totalElements']}"
+                f"Parsed elements: {parsed_elements}/{data['totalElements']}"
             )
             formdata["page"] = str(int(formdata["page"]) + 1)
-            formdata["catCode"] = category_id
             yield FormRequest(
                 search_link,
                 self.parse_serp,
                 formdata=formdata,
                 method="GET",
-                cb_kwargs={"category": category, "category_id": category_id},
             )
 
     def parse_trade(self, response):
@@ -55,6 +52,7 @@ class TorgiGovSpider(BaseSpider):
         combo = Combo(data)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
         loader.add_value("trading_number", combo.trading_number)
@@ -70,6 +68,8 @@ class TorgiGovSpider(BaseSpider):
         general_files = combo.download_general()
         for lot in combo.get_lots():
             loader.add_value("address", combo.get_address(lot))
+            loader.add_value('lot_id', combo.get_lot_id(lot))
+            loader.add_value('lot_link', combo.get_lot_link(lot))
             loader.add_value("lot_number", combo.get_lot_number(lot))
             loader.add_value("categories", combo.get_category(lot))
             loader.add_value("short_name", combo.get_short_name(lot))

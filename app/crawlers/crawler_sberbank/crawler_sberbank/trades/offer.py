@@ -1,14 +1,11 @@
 import re
 
-from general_utils import format_time, dedent_func
-from general_utils.models import DownloadData
+from app.utils import dedent_func, logger, DateTimeHelper
+from app.db.models import DownloadData
 from ..utils.config import first_part_link
 from bs4 import BeautifulSoup as BS
 
 from ..utils.manage_spider import deep_get_dict
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class OfferParse:
@@ -21,7 +18,7 @@ class OfferParse:
         """return list with periods in dictionaries type"""
         try:
             data = deep_get_dict(self.data, "BidView.BidReductionPeriod.Periods")
-        except:
+        except Exception as e:
             return None
         periods = []
         for period in data:
@@ -29,9 +26,9 @@ class OfferParse:
             end = period["PeriodEndDate"]
             price = re.sub(r"\s", "", period["BidAmount"])
             period = {
-                "start_date_requests": format_time(start),
-                "end_date_requests": format_time(end),
-                "end_date_trading": format_time(end),
+                "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                 "current_price": round(float(price), 2),
             }
             periods.append(period)
@@ -43,7 +40,7 @@ class OfferParse:
         periods = self.get_periods
         try:
             return periods[0]["start_date_requests"]
-        except:
+        except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA START DATE REQUEST OFFER")
 
     @property
@@ -52,7 +49,7 @@ class OfferParse:
         periods = self.get_periods
         try:
             return periods[-1]["end_date_requests"]
-        except:
+        except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA END DATE REQUEST OFFER")
 
     @property
@@ -77,7 +74,7 @@ class OfferParse:
             ).strip()
             if start_price:
                 return round(float("".join(pattern.findall(start_price)[0])), 2)
-        except:
+        except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA START PRICE OFFER")
             return None
 

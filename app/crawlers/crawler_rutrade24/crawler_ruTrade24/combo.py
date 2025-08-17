@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from app.db.models import DownloadData
 from .config import host, data_origin
 from app.utils import (
-    format_time,
+    DateTimeHelper,
     URL,
     dedent_func,
     Contacts,

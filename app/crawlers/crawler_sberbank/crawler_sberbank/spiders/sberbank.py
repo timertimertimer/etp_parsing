@@ -6,13 +6,14 @@ import xmltodict
 
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
-from app.utils import increase_time_days, logger
+from app.db.models import AuctionPropertyType
+from app.utils.datetime_helper import DateTimeHelper
 from ..trades.app import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
 
 
-class SberbankSpider(BaseSpider):
+class SberbankBaseSpider(BaseSpider):
     name = "sberbank"
     start_urls = ["https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList"]
 
@@ -22,8 +23,10 @@ class SberbankSpider(BaseSpider):
     def start_requests(self):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
         for start_date_ in date_range:
+            end_date = DateTimeHelper.format_datetime(
+                start_date_ + timedelta(days=days), "%d.%m.%Y %H:%M"
+            )
             start_date_ = start_date_.strftime("%d.%m.%Y %H:%M")
-            end_date = increase_time_days(start_date_, time_delta)
             yield FormRequest(
                 self.start_urls[0],
                 self.make_second_request,
@@ -82,11 +85,9 @@ class SberbankSpider(BaseSpider):
         data = json.loads(response.text)
         combo = ComposeTrades(data, trading_link)
         lst_link_to_lots = list()
-        try:
-            lst_dict_lot_links = data["Purchase"]["BidsPanel"]["Bids"]["Bid"]
-        except:
-            lst_dict_lot_links = None
-            logger.error(f"{trading_link} :: INVALID DATA LOT OR NO LOT")
+        lst_dict_lot_links = (
+            data.get("Purchase", {}).get("BidsPanel", {}).get("Bids", {}).get("Bid")
+        )
         if isinstance(lst_dict_lot_links, list):
             lst_link_to_lots = list(map(lambda x: x["BidId"], lst_dict_lot_links))
         if isinstance(lst_dict_lot_links, dict):
@@ -98,6 +99,7 @@ class SberbankSpider(BaseSpider):
             _link = re.sub(r"\d+$", link, _link)
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", data_origin_url)
+            loader.add_value("property_type", self.property_type)
             loader.add_value("trading_id", combo.auc.trading_id)
             loader.add_value("trading_link", trading_link)
             loader.add_value("trading_number", combo.auc.trading_number_auc)
@@ -149,7 +151,7 @@ class SberbankSpider(BaseSpider):
         try:
             data = json.loads(response.text)
         except Exception as e:
-            raise e
+            raise e  # FIXME: слишком частые запросы
         combo = ComposeTrades(data, lot_link)
         loader.add_value("lot_id", combo.auc.get_lot_id)
         loader.add_value("lot_link", lot_link)
@@ -178,3 +180,6 @@ class SberbankSpider(BaseSpider):
         files_lot = combo.offer.download(docs + photos)
         loader.add_value("files", {"general": files, "lot": files_lot})
         yield loader.load_item()
+
+class SberbankBankruptcySpider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.bankruptcy

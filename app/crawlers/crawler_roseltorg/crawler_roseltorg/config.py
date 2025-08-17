@@ -1,13 +1,21 @@
-from general_utils.config import (
-    absolute_download_path,
-    relative_download_path,
-    format_parse_date,
+from datetime import timedelta, datetime
+
+from app.utils import (
+    DateTimeHelper
 )
 
-start_date = format_parse_date(0, "%d.%m.%y")
+start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(1), "%d.%m.%y")
 search_link = "https://www.roseltorg.ru/search/sale"
-formdata = {"sale": "all", "section-type[]": "all", "start_date_published": start_date}
-
+property_types = ['legal_entities', 'capital_repair', 'fz223']
+sections = {
+    'legal_entities': ["20", "24"],
+    'capital_repair': {'place': "fkr"},
+    'fz223': ["28", "2"],
+}
+initial_formdata = {"start_date_published": start_date}
+formdatas = {
+    'legal_entities': {"source[]": el for el in ["20", "24"]},
+    'capital_repair': {'place': "fkr"},
+    'fz223': {"source[]": el for el in ["28", "2"]},
+}
 data_origin = "https://www.roseltorg.ru/"
-path_absolute = f"{absolute_download_path}/etp_roseltorg"
-path_relative = f"{relative_download_path}/etp_roseltorg"

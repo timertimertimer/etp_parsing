@@ -1,26 +1,36 @@
-from app.utils.config import start_date
+from datetime import datetime, timedelta
+
+from app.utils import DateTimeHelper
+from app.utils.config import days
 
 data_origin_url = "https://www.fabrikant.ru/"
-start_url = 'https://www.fabrikant.ru/trades/procedure/search/'
-filter_ids = {
-    "bankruptcy": 6,
-    "commercial": 8,
-    "legal_entities": 2,
-    "fz223": 5
-}
+start_url = "https://www.fabrikant.ru/trades/procedure/search/"
 
+# fz223 https://www.fabrikant.ru/procedure/search?page_number=1&section_ids%5B%5D=5
+# legal_entities https://www.fabrikant.ru/procedure/search/purchases?procedure_direction=buy&section_ids[]=2&page_number=1
+# commercial https://www.fabrikant.ru/procedure/search/sales?procedure_direction=sell&section_ids[]=8&page_number=1
+# bankruptcy https://www.fabrikant.ru/procedure/search?page_number=1&section_ids%5B%5D=6
+sections = ["fz223", "legal_entities", "commercial", "bankruptcy"]
+section_ids = dict(zip(sections, ["5", "8", "2", "6"]))
+start_urls = dict(
+    zip(
+        sections,
+        [
+            "https://www.fabrikant.ru/procedure/search",
+            "https://www.fabrikant.ru/procedure/search/purchases",
+            "https://www.fabrikant.ru/procedure/search/sales",
+            "https://www.fabrikant.ru/procedure/search",
+        ],
+    )
+)
+
+start_date = DateTimeHelper.format_datetime(
+    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%Y-%m-%d"
+)
 formdata = {
-    "type": "1",
-    "org_type": "org",
-    "currency": "0",
-    "date_type": "date_publication",
-    "date_from": f"{start_date}",
-    "ensure": "all",
-    "filter_id": "6",
-    "okpd2_embedded": "1",
-    "okdp_embedded": "1",
-    "active": "",
-    "count_on_page": "40",
+    "date_publication_from": start_date,
+    "page_number": "1",
+    "page_limit": "100"
 }
 # splash.js_enabled=false
 script_lua = """

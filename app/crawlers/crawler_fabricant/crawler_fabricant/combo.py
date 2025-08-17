@@ -4,14 +4,7 @@ from bs4 import BeautifulSoup as BS
 
 from app.db.models import DownloadData
 from .locator import Locator
-from app.utils import (
-    URL,
-    dedent_func,
-    Contacts,
-    contains,
-    format_time,
-    logger,
-)
+from app.utils import URL, dedent_func, Contacts, contains, logger, DateTimeHelper
 from .config import data_origin_url
 
 
@@ -118,16 +111,28 @@ class Combo:
             "Аукцион продавца",
             "Аукцион с закрытой формой подачи предложений о цене",
             "Аукцион с открытой формой подачи предложений о цене",
+            "Публичное предложение (по типу голландского аукциона)",
         ]
         competition = ["Открытый конкурс", "Закрытый конкурс", "Конкурс продавца"]
+        pdo = ["ПДО продавца (по типу продажи без объявления цены)"]
         match1 = "".join(
-            filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), auction)
+            filter(
+                lambda x: re.findall(re.escape(string), x, flags=re.IGNORECASE), auction
+            )
         )
         match2 = "".join(
-            filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), offer)
+            filter(
+                lambda x: re.findall(re.escape(string), x, flags=re.IGNORECASE), offer
+            )
         )
         match3 = "".join(
-            filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), competition)
+            filter(
+                lambda x: re.findall(re.escape(string), x, flags=re.IGNORECASE),
+                competition,
+            )
+        )
+        match4 = "".join(
+            filter(lambda x: re.findall(re.escape(string), x, flags=re.IGNORECASE), pdo)
         )
 
         if match1:
@@ -136,39 +141,54 @@ class Combo:
             return "offer"
         elif match3:
             return "competition"
+        elif match4:
+            return "pdo"
         return None
 
     @property
     def trading_form(self):
-        string = self.get_trading_type_text()
-        open_form = [
-            "Публичное предложение продавца",
-            "Открытый аукцион с открытой формой подачи ценовых предложений",
-            "Открытый аукцион с закрытой формой подачи ценовых предложений",
-            "Открытый конкурс",
-            "Аукцион продавца",
-            "Аукцион с закрытой формой подачи предложений о цене",
-            "open",
-            "Аукцион с открытой формой подачи предложений о цене",
-        ]
-        close_form = [
-            "Закрытый аукцион с открытой формой подачи ценовых предложений",
-            "Закрытый аукцион с закрытой формой подачи ценовых предложений",
-            "Закрытый конкурс",
-        ]
-        match1 = "".join(
-            filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), open_form)
+        form_type = self.soup.find(
+            "div", text=re.compile("Форма торгов по составу участников")
         )
-        match2 = "".join(
-            filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), close_form)
-        )
-
-        if match1:
-            return "open"
-        elif match2:
-            return "closed"
-        else:
-            return "closed"
+        if form_type:
+            form_type = form_type.find_next("div")
+            if form_type:
+                form_type = form_type.get_text().strip()
+                if "открыт" in form_type.lower():
+                    return "open"
+                elif "закрыт" in form_type.lower():
+                    return "closed"
+                else:
+                    raise Exception
+        # string = self.get_trading_type_text()
+        # open_form = [
+        #     "Публичное предложение продавца",
+        #     "Открытый аукцион с открытой формой подачи ценовых предложений",
+        #     "Открытый аукцион с закрытой формой подачи ценовых предложений",
+        #     "Открытый конкурс",
+        #     "Аукцион продавца",
+        #     "Аукцион с закрытой формой подачи предложений о цене",
+        #     "open",
+        #     "Аукцион с открытой формой подачи предложений о цене",
+        # ]
+        # close_form = [
+        #     "Закрытый аукцион с открытой формой подачи ценовых предложений",
+        #     "Закрытый аукцион с закрытой формой подачи ценовых предложений",
+        #     "Закрытый конкурс",
+        # ]
+        # match1 = "".join(
+        #     filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), open_form)
+        # )
+        # match2 = "".join(
+        #     filter(lambda x: re.findall(string, x, flags=re.IGNORECASE), close_form)
+        # )
+        #
+        # if match1:
+        #     return "open"
+        # elif match2:
+        #     return "closed"
+        # else:
+        #     return "closed"
 
     @property
     def trading_org(self):
@@ -210,11 +230,15 @@ class Combo:
         phone = ""
         phone_loc = self.response.xpath(Locator.offer_org_phone_loc).get()
         if phone_loc:
-            phone = Contacts.check_phone(BS(phone_loc, features="lxml").get_text().strip())
+            phone = Contacts.check_phone(
+                BS(phone_loc, features="lxml").get_text().strip()
+            )
         email = ""
         email_loc = self.response.xpath(Locator.offer_org_email_loc).get()
         if email_loc:
-            email = Contacts.check_email(BS(email_loc, features="lxml").get_text().strip())
+            email = Contacts.check_email(
+                BS(email_loc, features="lxml").get_text().strip()
+            )
         return {"email": email, "phone": phone}
 
     @property
@@ -372,15 +396,20 @@ class Combo:
         )
 
     def get_lot_info(self, lot):
-        lot_info = self.create_soup(lot).find("div", text=re.compile("Предмет договора", re.IGNORECASE))
+        lot_soup = self.create_soup(lot)
+        lot_info = (
+            lot_soup.find("div", text=re.compile("Предмет договора", re.IGNORECASE))
+            or lot_soup.find(
+                "div", text=re.compile("Наименование предмета торгов", re.IGNORECASE)
+            )
+            or lot_soup.find(
+                "div", text=re.compile("Наименование предмета аренды", re.IGNORECASE)
+            )
+        )
         if not lot_info:
             logger.warning(f"{self.response.url} | Could not parse lot_info")
             return None
-        return dedent_func(
-            lot_info
-            .find_next("div")
-            .get_text(strip=True)
-        )
+        return dedent_func(lot_info.find_next("div").get_text(strip=True))
 
     def get_property_information(self, lot):
         info = self.create_soup(lot).find(
@@ -388,81 +417,92 @@ class Combo:
             text=re.compile("Порядок ознакомления с имуществом", re.IGNORECASE),
         )
         if not info:
-            logger.warning(f'{self.response.url} | Could not parse property_information')
+            logger.warning(
+                f"{self.response.url} | Could not parse property_information"
+            )
             return None
-        return dedent_func(
-            info
-            .find_next("div")
-            .get_text(strip=True)
-        )
+        return dedent_func(info.find_next("div").get_text(strip=True))
 
     def get_start_date_requests(self, lot):
-        date = self.create_soup(lot).find(
-            "div",
-            text=re.compile("Дата и время начала приема заявок", re.IGNORECASE),
-        )
-        if not date:
-            logger.warning(f'{self.response.url} | Could not parse start_date_requests')
-            return None
-        return format_time(
-            date
-            .find_next("div")
-            .get_text(strip=True)
-        )
+        if not (
+            date := self.create_soup(lot).find(
+                "div",
+                text=re.compile("Дата и время начала приема заявок", re.IGNORECASE),
+            )
+        ):
+            if not (
+                date := self.soup.find(
+                    "div", text=re.compile("Дата публикации", re.IGNORECASE)
+                )
+            ):
+                logger.warning(
+                    f"{self.response.url} | Could not parse start_date_requests"
+                )
+                return None
+        return DateTimeHelper.smart_parse(
+            date.find_next("div").get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     def get_end_date_requests(self, lot):
-        date = self.create_soup(lot).find(
-            "div",
-            text=re.compile(
-                "Дата и время окончания приема заявок", re.IGNORECASE
-            ),
-        )
-        if not date:
-            logger.warning(f'{self.response.url} | Could not parse end_date_requests')
-            return None
+        if not (
+            date := self.create_soup(lot).find(
+                "div",
+                text=re.compile("Дата и время окончания приема заявок", re.IGNORECASE),
+            )
+        ):
+            if not (
+                date := self.soup.find(
+                    "div",
+                    text=re.compile("Дата окончания приема заявок", re.IGNORECASE),
+                )
+            ):
+                logger.warning(
+                    f"{self.response.url} | Could not parse end_date_requests"
+                )
+                return None
 
-        return format_time(
-            date.find_next("div")
-            .get_text(strip=True)
-        )
+        return DateTimeHelper.smart_parse(
+            date.find_next("div").get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     def get_categories(self, lot):
-        categories = self.create_soup(lot).find(
-            "div",
-            text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
+        lot_soup = self.create_soup(lot)
+        categories = (
+            lot_soup.find(
+                "div",
+                text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
+            )
+            or lot_soup.find(
+                "div", text=re.compile("Категория имущества", re.IGNORECASE)
+            )
+            or lot_soup.find("div", text=re.compile("Коды ОКПД", re.IGNORECASE))
+            or lot_soup.find(
+                "div", text=re.compile("Категория для рассылки по ОКПД2", re.IGNORECASE)
+            )
         )
         if not categories:
-            logger.warning(f'{self.response.url} | Could not parse categories')
+            logger.warning(f"{self.response.url} | Could not parse categories")
             return None
-        return " ".join(
-            categories
-            .find_next("div")
-            .get_text(strip=True)
-            .split()
-        )
+        return " ".join(categories.find_next("div").get_text(strip=True).split())
 
     def get_start_date_trading(self, lot):
         soup = self.create_soup(lot)
-        date = (
-                soup.find(
-                    "div",
-                    text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
-                )
-                or soup.find(
+        date = soup.find(
+            "div",
+            text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
+        ) or soup.find(
             "div",
             text=re.compile(
                 "Дата и время начала подачи предложений о цене",
                 re.IGNORECASE,
             ),
         )
-        )
         if not date:
-            logger.warning(f'{self.response.url} | Could not parse start_date_trading')
+            logger.warning(f"{self.response.url} | Could not parse start_date_trading")
             return None
-        return format_time(
-            date.find_next("div")
-            .get_text(strip=True)
-        )
+        return DateTimeHelper.smart_parse(
+            date.find_next("div").get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     def get_end_date_trading(self, lot):
         date = self.create_soup(lot).find(
@@ -470,24 +510,30 @@ class Combo:
             text=re.compile("Дата и время подведения итогов", re.IGNORECASE),
         )
         if not date:
-            logger.warning(f'{self.response.url} | Could not parse end_date_trading')
+            logger.warning(f"{self.response.url} | Could not parse end_date_trading")
             return None
 
-        return format_time(
-            date
-            .find_next("div")
-            .get_text(strip=True)
-        )
+        return DateTimeHelper.smart_parse(
+            date.find_next("div").get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     def get_start_price(self, lot):
-        match = re.search(
-            r"\d+\.\d{1,2}",
-            self.create_soup(lot)
-            .find(
+        if not (
+            start_price := self.create_soup(lot).find(
                 "div",
                 text=re.compile("Начальная цена предмета договора", re.IGNORECASE),
             )
-            .find_next("div")
+        ):
+            # TODO: искать по всем div с "Начальная цена"
+            if not (
+                start_price := self.create_soup(lot).find_all(
+                    "div", text=re.compile("Начальная цена", re.IGNORECASE)
+                )
+            ):
+                ...
+        match = re.search(
+            r"\d+\.\d{1,2}",
+            start_price.find_next("div")
             .get_text(strip=True)
             .replace("\xa0", "")
             .replace(",", "."),
@@ -523,7 +569,7 @@ class Combo:
             .find_next("div")
         )
         periods = []
-        check_value = 10 ** 22
+        check_value = 10**22
         for table in tables.find_all("table"):
             _table = pd.read_html(str(table))
             df = _table[0][1]
@@ -552,9 +598,9 @@ class Combo:
                 return None
             try:
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)

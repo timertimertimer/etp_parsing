@@ -11,7 +11,7 @@ from app.utils import (
     replace_multiple,
     pattern_replace1,
     what_time_bigger,
-    return_parse_date,
+    return_servertime,
     URL,
     format_time,
     logger,
@@ -263,7 +263,7 @@ class MainTradingPage:
 
     def return_post_data(self, view_state, a_id) -> dict:
         _post = post_data_download.copy()
-        _post["formMain:inputServerTime"] = return_parse_date()
+        _post["formMain:inputServerTime"] = return_servertime()
         _post["javax.faces.ViewState"] = view_state
         data_ = self.find_correct_form_number_1()
         _post[data_] = "false"

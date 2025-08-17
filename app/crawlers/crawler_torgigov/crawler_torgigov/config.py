@@ -1,22 +1,19 @@
-from app.utils.config import format_parse_date
+from datetime import datetime, timedelta
 
-start_date = format_parse_date(0, "%Y-%m-%d")
-categories = {
-    "22": "Транспорт",
-    "7": "Недвижимость",
-    "2": "Земельные участки",
-    "5": "Акции и доли",
-    "6": "Права пользования и лицензии",
-}
+from app.utils import DateTimeHelper
+
+start_date = DateTimeHelper.format_datetime(
+    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=1), "%Y-%m-%d"
+)
 formdata = {
     "lotStatus": "PUBLISHED,APPLICATIONS_SUBMISSION",
-    "catCode": "",
     "matchPhrase": "false",
     "pubFrom": start_date,
     "byFirstVersion": "true",
     "withFacets": "true",
     "size": "10",
-    "page": "0",
+    "page": "1",
+    "sort": "firstVersionPublicationDate,desc",
 }
 
 data_origin = "https://torgi.gov.ru/"

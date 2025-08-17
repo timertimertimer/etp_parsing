@@ -1,8 +1,6 @@
 import urllib.parse
 from scrapy import Request
-from bs4 import BeautifulSoup as BS
-from scrapy_splash import SplashRequest
-from scrapy_splash import SplashFormRequest, SlotPolicy
+from scrapy_splash import SplashRequest, SplashFormRequest, SlotPolicy
 
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
@@ -10,6 +8,7 @@ from app.db.models import AuctionPropertyType
 from app.utils import URL
 from ..combo import Combo
 from ..config import *
+from ..locator import Locator
 
 
 class FabrikantBaseSpider(BaseSpider):
@@ -20,50 +19,38 @@ class FabrikantBaseSpider(BaseSpider):
         super(FabrikantBaseSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
-        yield SplashRequest(
-            start_url,
-            self.start_requests_query,
+        formdata['section_ids'] = section_ids[self.property_type.value]
+        yield SplashFormRequest(
+            start_urls[self.property_type.value],
+            self.parse,
+            method='GET',
             endpoint="execute",
             cache_args=["lua_source"],
             args={"lua_source": script_lua},
             slot_policy=SlotPolicy.PER_DOMAIN,
+            formdata=formdata,
             session_id=1,
             errback=self.errback_httpbin,
-        )
-
-    def start_requests_query(self, response):
-        soup = BS(response.text, "lxml")
-        formdata["type_hash"] = soup.find(attrs={"id": "type_hash"})["value"]
-        formdata["filter_id"] = str(filter_ids[self.property_type.value])
-        yield SplashFormRequest.from_response(
-            response=response,
-            url=response.url,
-            formdata=formdata,
-            callback=self.parse,
             meta={"current_page": 1},
         )
 
     def parse(self, response, all_links: set = None):
         current_page = response.meta["current_page"]
-        links = response.css(".marketplace-unit.ready h4 a::attr(href)").getall()
+        total_pages = response.xpath("//li[contains(@class, 'rc-pagination-item-')]")[-1].attrib["title"]
+        links = response.xpath(Locator.links_loc).getall()
         all_links = (all_links or set()).union(links)
-        # next_page = response.xpath(
-        #     '//a[contains(@class, "pagination__nav-btn")]/@href'
-        # ).getall()[-1]
-        next_page = None  # FIXME
-        link = URL.url_join(data_origin_url, next_page)
-        parse_link = urllib.parse.parse_qs(urllib.parse.urlsplit(link).query)
-        if int(current_page) < int(parse_link.get("page", [0])[0]):
-            yield SplashRequest(
-                link,
-                self.parse,
+        if int(current_page) < int(total_pages):
+            formdata['page_number'] = str(int(current_page) + 1)
+            yield SplashFormRequest.from_response(
+                response,
+                formdata=formdata,
                 endpoint="execute",
                 cache_args=["lua_source"],
                 args={"lua_source": script_lua},
                 slot_policy=SlotPolicy.PER_DOMAIN,
                 session_id=1,
                 errback=self.errback_httpbin,
-                meta={"current_page": "".join(parse_link["page"])},
+                meta={"current_page": formdata['page_number']},
                 cb_kwargs={"all_links": all_links},
             )
         else:
@@ -101,7 +88,7 @@ class FabrikantBaseSpider(BaseSpider):
             transfer["lot_info"] = combo.get_lot_info(lot)
             transfer["property_information"] = combo.get_property_information(lot)
             transfer["categories"] = combo.get_categories(lot)
-            if transfer["trading_type"] in ["auction", "competition"]:
+            if transfer["trading_type"] in ["auction", "competition", "pdo"]:
                 transfer["start_date_requests"] = combo.get_start_date_requests(lot)
                 transfer["end_date_requests"] = combo.get_end_date_requests(lot)
                 transfer["start_date_trading"] = combo.get_start_date_trading(lot)

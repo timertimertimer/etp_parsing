@@ -1,4 +1,7 @@
-from app.utils import dedent_func, Contacts, return_parse_date, logger
+from datetime import datetime
+from typing import Optional
+
+from app.utils import dedent_func, Contacts, DateTimeHelper, logger
 from app.db.models import DownloadData
 
 
@@ -131,32 +134,37 @@ class Combo:
         return
 
     @property
-    def start_date_requests(self):
-        return return_parse_date(self.data["biddStartTime"])
+    def start_date_requests(self) -> Optional[datetime]:
+        # "biddStartTime":"2025-08-05T06:00:00Z" + timezoneOffsetAbbreviation
+        return DateTimeHelper.smart_parse(self.data["biddStartTime"])
 
     @property
-    def end_date_requests(self):
-        return return_parse_date(self.data["biddEndTime"])
+    def end_date_requests(self) -> Optional[datetime]:
+        return DateTimeHelper.smart_parse(self.data["biddEndTime"])
 
     @property
-    def start_date_trading(self):
+    def start_date_trading(self) -> Optional[datetime]:
         if date := self.data.get("auctionStartDate"):
-            return return_parse_date(date)
+            return DateTimeHelper.smart_parse(date)
         return None
 
     @property
-    def end_date_trading(self):
+    def end_date_trading(self) -> Optional[datetime]:
         date = None
         if self.trading_type == "offer":
             date = self.data["auctionStartDate"]
         elif self.trading_type in ["auction", "competition"]:
             for el in self.data["attributes"]:
-                if el["fullName"] == "Дата, время подведения результатов торгов":
+                if el["fullName"] in [
+                    "Дата, время подведения результатов торгов",
+                    "Дата и время подведения итогов аукциона",
+                    "Дата и время проведения конкурса"
+                ]:
                     date = el.get("value")
         else:
             pass
         if date:
-            return return_parse_date(date)
+            return DateTimeHelper.smart_parse(date)
         return None
 
     def get_start_price(self, lot):

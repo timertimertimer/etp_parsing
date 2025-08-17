@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from .contacts import Contacts
-from .time_format import return_parse_date
+from .datetime_helper import DateTimeHelper
 from .config import proxy_path
 from .logger import logger
 from app.db.models import Counterparty, TradingFloor, LegalCase
@@ -227,7 +227,7 @@ class CounterpartyFedresurs(Fedresurs):
                 "number"
             )
             sro.data["activity_type"] = membership.get("sroActivities", [None])[0]
-            sro.data["entered_at"] = return_parse_date(membership["dateInclude"])
+            sro.data["entered_at"] = return_parse_date(membership["dateInclude"])  # FIXME!!!
             memberships.append(sro.data)
         self.data["sro_memberships"] = memberships
 
@@ -403,7 +403,7 @@ class BankrotMessageFedresurs(Fedresurs):
         self.data["fedresurs_url"] = (
             f"https://fedresurs.ru/bankruptmessages/{self.data['guid']}"
         )
-        self.data["published_at"] = return_parse_date(data["datePublish"])
+        self.data["published_at"] = return_parse_date(data["datePublish"]) # FIXME!!!
         files = list()
         for doc in data["docs"]:
             files.append(

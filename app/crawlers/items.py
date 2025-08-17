@@ -1,7 +1,11 @@
+from datetime import datetime
+
 import scrapy
 from scrapy import Field
 from scrapy.loader import ItemLoader
 from itemloaders.processors import TakeFirst, Compose, Identity
+
+from app.utils.datetime_helper import DateTimeHelper
 
 
 class EtpItem(scrapy.Item):
@@ -10,8 +14,8 @@ class EtpItem(scrapy.Item):
     trading_id = scrapy.Field()
     trading_link = scrapy.Field()
     trading_number = scrapy.Field()
-    trading_type = scrapy.Field() # auction/offer/competition
-    trading_form = scrapy.Field() # open/closed
+    trading_type = scrapy.Field()  # auction/offer/competition
+    trading_form = scrapy.Field()  # open/closed
     trading_org = scrapy.Field()
     trading_org_inn = scrapy.Field()
     trading_org_contacts = scrapy.Field()
@@ -26,10 +30,14 @@ class EtpItem(scrapy.Item):
     lot_id = scrapy.Field()
     lot_link = scrapy.Field()
     lot_number = scrapy.Field()
-    short_name = scrapy.Field()  # Краткие сведения об имуществе (предприятии) должника (наименование лота)
+    short_name = (
+        scrapy.Field()
+    )  # Краткие сведения об имуществе (предприятии) должника (наименование лота)
     lot_info = scrapy.Field()  # Cведения об имуществе (предприятии) должника, выставляемом на торги, его составе, характеристиках, описание
     categories = scrapy.Field()
-    property_information = scrapy.Field()  # Порядок ознакомления с имуществом (предприятием) должника
+    property_information = (
+        scrapy.Field()
+    )  # Порядок ознакомления с имуществом (предприятием) должника
     start_date_requests = scrapy.Field()
     end_date_requests = scrapy.Field()
     start_date_trading = scrapy.Field()
@@ -38,12 +46,28 @@ class EtpItem(scrapy.Item):
     step_price = scrapy.Field()
     periods = scrapy.Field()
     files = scrapy.Field()
-    bid_security = scrapy.Field()  # Обеспечение заявки
-    performance_security = scrapy.Field()  # Обеспечение обязательств по договору
-    operators_fee = scrapy.Field()  # Вознаграждение оператора
-    execution_time = scrapy.Field()  # Информация о сроках исполнения контракта и источниках финансирования
-    subject_info = scrapy.Field()  # Информация об объекте закупки/Информация о товаре, работе, услуге
+    application_fee = scrapy.Field()  # Обеспечение заявки/Вознаграждение оператора
+    performance_security_fee = scrapy.Field()  # Обеспечение обязательств по договору
+    execution_time = (
+        scrapy.Field()
+    )  # Информация о сроках исполнения контракта и источниках финансирования
+    subject_info = (
+        scrapy.Field()
+    )  # Информация об объекте закупки/Информация о товаре, работе, услуге
     sme = scrapy.Field()  # Только для малого и среднего предпринимательства да/нет/неизвестно ГАЛОЧКА В ФИЛЬТРЕ
+
+def format_and_set_moscow_tz(datetime_instance: datetime):
+    if not datetime_instance:
+        return None
+    return DateTimeHelper.format_datetime(datetime_instance.astimezone(DateTimeHelper.moscow_tz))
+
+def format_periods(periods):
+    date_keys = ["start_date_requests", "end_date_requests", "end_date_trading"]
+    for period in periods:
+        for key in date_keys:
+            if key in period and period[key]:
+                period[key] = format_and_set_moscow_tz(period[key])
+    return periods
 
 
 class EtpItemLoader(ItemLoader):
@@ -78,13 +102,13 @@ class EtpItemLoader(ItemLoader):
     property_information_out = Compose(
         TakeFirst(), lambda x: x.strip().replace('"', "'"), str
     )
-    start_date_requests_out = TakeFirst()
-    end_date_requests_out = TakeFirst()
-    start_date_trading_out = TakeFirst()
-    end_date_trading_out = TakeFirst()
+    start_date_requests_out = Compose(TakeFirst(), format_and_set_moscow_tz)
+    end_date_requests_out = Compose(TakeFirst(), format_and_set_moscow_tz)
+    start_date_trading_out = Compose(TakeFirst(), format_and_set_moscow_tz)
+    end_date_trading_out = Compose(TakeFirst(), format_and_set_moscow_tz)
     start_price_out = TakeFirst()
     step_price_out = TakeFirst()
-    periods_out = Identity()
+    periods_out = Compose(format_periods)
     files_out = TakeFirst()
     bid_security_out = TakeFirst()
     performance_security_out = TakeFirst()

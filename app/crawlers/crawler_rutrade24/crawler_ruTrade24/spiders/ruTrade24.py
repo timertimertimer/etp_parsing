@@ -26,12 +26,62 @@ class Rutrade24BaseSpider(BaseSpider):
         super(Rutrade24BaseSpider, self).__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        encoder = MultipartEncoder(fields=formdata)
+        # FIXME: new post data (multipart/formdata)
+        # example:
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterLotPriceStart"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterLotPriceEnd"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterPartpAppDateBegin"
+        #
+        # 29.06.2025 23:23
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterPartpAppDateEnd"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterDateBegin"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterDateEnd"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterTradeType"
+        #
+        # Undefined
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterDebtor"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterTrader"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterTradeObject"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="LotClassificationCode"
+        #
+        #
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
+        # Content-Disposition: form-data; name="MainPageFilterTradeStatus"
+        #
+        # 0
+        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar--
         yield FormRequest(
             start_urls[self.property_type.value],
             self.parse,
             method="POST",
-            formdata=encoder.to_string(),
+            formdata=formdata,
             headers={
                 'Host': hosts[self.property_type.value],
                 'Content-Type': 'multipart/form-data'
@@ -39,7 +89,7 @@ class Rutrade24BaseSpider(BaseSpider):
         )
 
     def parse(self, response, **kwargs):
-        current_page = self.get_currentPage(response)
+        current_page = self.get_current_page(response)
         nextPage_url = self.get_next_page(response, self.property_type.value)
         trade_containers = response.css(".row.row--v-offset.trade-card")
 
@@ -66,7 +116,7 @@ class Rutrade24BaseSpider(BaseSpider):
                 callback=self.parse,
             )
 
-    def get_currentPage(self, response):
+    def get_current_page(self, response):
         for page in response.css("div.paging a"):
             if page.css("::attr(href)").get() == "#":
                 return int(page.css("::text").get())

@@ -6,8 +6,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 from app.utils.config import write_log_to_file
 from app.crawlers.settings import *
 
-BOT_NAME = "crawler_roseltorg"
+BOT_NAME = "crawler_zakupkigov"
 
-SPIDER_MODULES = ["crawler_roseltorg.spiders"]
-NEWSPIDER_MODULE = "crawler_roseltorg.spiders"
-LOG_FILE = "roseltorg.log" if write_log_to_file else None
+SPIDER_MODULES = ["crawler_zakupkigov.spiders"]
+NEWSPIDER_MODULE = "crawler_zakupkigov.spiders"
+
+LOG_FILE = "zakupkigov.log" if write_log_to_file else None
