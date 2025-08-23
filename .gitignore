@@ -169,4 +169,4 @@ proxy*
 files/
 browser_data/
 uv.lock
-alembic/
+alembic/versions
