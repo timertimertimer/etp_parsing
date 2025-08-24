@@ -5,7 +5,7 @@ from io import StringIO
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, format_time, logger
+from app.utils import dedent_func, DateTimeHelper, logger
 
 
 class LotOfferPage:
@@ -110,9 +110,9 @@ class LotOfferPage:
                 return None
             try:
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)
@@ -134,9 +134,9 @@ class LotOfferPage:
             price = round(float(price), 2)
             try:
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)

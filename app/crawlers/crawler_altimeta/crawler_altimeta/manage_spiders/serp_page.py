@@ -1,7 +1,7 @@
 import re
 from bs4 import BeautifulSoup as BS
 
-from app.utils import Contacts, format_time, dedent_func, logger
+from app.utils import Contacts, DateTimeHelper, dedent_func, logger
 from ..locators.locators_serp import LocatorSerp
 from ..locators.locators_trade_page import LocatorTradePage
 
@@ -27,21 +27,16 @@ class SerpPage:
         if _date:
             _date = BS(str(_date), features="lxml").get_text().strip()
             if re.match(r"\d{1,2}\.\d{1,2}\.\d{2,4}.*?\d{1,2}\:\d{1,2}", _date):
-                _date = format_time(_date)
-                if _date > "2017-01-01 00:00":
-                    return _date
-                else:
-                    return None
+                return DateTimeHelper.smart_parse(_date).astimezone(DateTimeHelper.moscow_tz)
             else:
                 logger.error(
                     f"{self.response.url} :: INVALID DATE !!!!!!!!!!!!@@@@@@@@@@@@@############# THE LOT SHOULD LOST"
                 )
-                return None
         else:
             logger.error(
                 f"{self.response.url} :2: INVALID DATE !!!!!!!!!!!!@@@@@@@@@@@@@############# THE LOT SHOULD LOST"
             )
-            return None
+        return None
 
     def get_one_next_link(self):
         """:return next link pagination or None"""

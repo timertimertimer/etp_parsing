@@ -1,4 +1,4 @@
-from app.utils import format_time, get_lot_number, dedent_func, make_float, logger
+from app.utils import DateTimeHelper, get_lot_number, dedent_func, make_float, logger
 from ..locators.locator_lot_page import LocatorLotPage
 from ..locators.locators_trade_page import LocatorTradePage
 from bs4 import BeautifulSoup as BS
@@ -16,12 +16,12 @@ class AucPage:
     def start_date_request_auc(self):
         date = self.response.xpath(LocatorTradePage.start_date_request_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     def end_date_request_auc(self):
         date = self.response.xpath(LocatorTradePage.end_date_request_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     def start_date_trading_auc(self):
         date = self.response.xpath(LocatorTradePage.start_date_trading_loc).get()
@@ -29,12 +29,12 @@ class AucPage:
             date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
             date = BS(str(date), features="lxml").get_text(strip=True)
         date = BS(str(date), features="lxml").get_text(strip=True)
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     def end_date_trading_auc(self):
         date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     def get_all_lot_tables(self):
         tables_all = self.response.xpath(LocatorLotPage.get_all_table).getall()

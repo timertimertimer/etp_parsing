@@ -13,4 +13,4 @@ def fz223():
     execute(["scrapy", "crawl", "fabrikant_fz223"])
 
 if __name__ == '__main__':
-    commercial()
+    fz223()

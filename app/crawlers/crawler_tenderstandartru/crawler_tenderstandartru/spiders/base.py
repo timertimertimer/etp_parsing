@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from scrapy import Request, FormRequest
 
-from app.utils import URL, return_server_timestamp
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.utils.config import write_log_to_file
@@ -31,7 +32,7 @@ class TenderstandartBaseSpider(BaseSpider):
         trading_type = combo.serp.get_trading_type()
         length = combo.serp.get_length_param()
         types_ = combo.serp.get_types_param()
-        timestamp_ = return_server_timestamp()
+        timestamp_ = int(datetime.now().timestamp() * 1000)
         search_param["Length"] = length
         search_param["types"] = types_
         search_param["_"] = timestamp_

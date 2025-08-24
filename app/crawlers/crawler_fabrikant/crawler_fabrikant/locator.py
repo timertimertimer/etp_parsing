@@ -56,7 +56,8 @@ class Locator:
     )
     arbitr_org = '//div[contains(text(),"СРО, членом которого является арбитражный")]/following-sibling::div[1]'
     arbitr_inn = '//div[contains(text(),"ИНН арбитражного")]/following-sibling::div[1]'
-    div_info_lot_offer = '//div[contains(@class,"panel panel-default panel-striped")]'
+
+    div_info_lot_offer = '//div[contains(@class,"panel panel-default panel-striped")][.//div[@class="panel-footer kim-actions js-protocol-form-footer"]]'
     # _PERIOD TABLES
     period_tables_loc = '//div[contains(text(), "Этап понижения")]/following-sibling::div//div[@class="dinamic-fields-items"]'
     # get locator of link to document page

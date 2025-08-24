@@ -7,7 +7,7 @@ from app.crawlers.crawler_akosta.crawler_akosta.locators.pre_trade_page_locator 
     SearchLocator,
 )
 from app.crawlers.crawler_akosta.crawler_akosta.utils.config import data_origin
-from app.utils import dedent_func, format_time_period, URL, logger
+from app.utils import dedent_func, DateTimeHelper, URL, logger
 
 
 class PreTradePage:
@@ -147,7 +147,7 @@ class PreTradePage:
         out_put_list = list()
         dates = self.response.xpath(self.loc.start_date_request.format(text)).getall()
         for d in dates:
-            out_put_list.append(format_time_period(d))
+            out_put_list.append(DateTimeHelper.smart_parse(d).astimezone(DateTimeHelper.moscow_tz))
         return out_put_list
 
     def get_trading_number(self, page_number):

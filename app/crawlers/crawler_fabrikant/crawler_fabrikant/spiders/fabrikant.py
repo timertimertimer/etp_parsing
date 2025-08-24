@@ -1,11 +1,9 @@
-import urllib.parse
 from scrapy import Request
-from scrapy_splash import SplashRequest, SplashFormRequest, SlotPolicy
+from scrapy_splash import SplashFormRequest, SlotPolicy
 
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
-from app.utils import URL
 from ..combo import Combo
 from ..config import *
 from ..locator import Locator
@@ -16,10 +14,10 @@ class FabrikantBaseSpider(BaseSpider):
     property_type = None
 
     def __init__(self):
+        self.formdata = formdatas[self.property_type.value]
         super(FabrikantBaseSpider, self).__init__(data_origin_url)
 
     def start_requests(self):
-        formdata['section_ids'] = section_ids[self.property_type.value]
         yield SplashFormRequest(
             start_urls[self.property_type.value],
             self.parse,
@@ -28,7 +26,7 @@ class FabrikantBaseSpider(BaseSpider):
             cache_args=["lua_source"],
             args={"lua_source": script_lua},
             slot_policy=SlotPolicy.PER_DOMAIN,
-            formdata=formdata,
+            formdata=self.formdata,
             session_id=1,
             errback=self.errback_httpbin,
             meta={"current_page": 1},
@@ -37,20 +35,21 @@ class FabrikantBaseSpider(BaseSpider):
     def parse(self, response, all_links: set = None):
         current_page = response.meta["current_page"]
         total_pages = response.xpath("//li[contains(@class, 'rc-pagination-item-')]")[-1].attrib["title"]
+        # total_pages = 1
         links = response.xpath(Locator.links_loc).getall()
         all_links = (all_links or set()).union(links)
         if int(current_page) < int(total_pages):
-            formdata['page_number'] = str(int(current_page) + 1)
+            self.formdata['page_number'] = str(int(current_page) + 1)
             yield SplashFormRequest.from_response(
                 response,
-                formdata=formdata,
+                formdata=formdatas[self.property_type.value],
                 endpoint="execute",
                 cache_args=["lua_source"],
                 args={"lua_source": script_lua},
                 slot_policy=SlotPolicy.PER_DOMAIN,
                 session_id=1,
                 errback=self.errback_httpbin,
-                meta={"current_page": formdata['page_number']},
+                meta={"current_page": self.formdata['page_number']},
                 cb_kwargs={"all_links": all_links},
             )
         else:
@@ -68,7 +67,10 @@ class FabrikantBaseSpider(BaseSpider):
             transfer["trading_id"] = combo.trading_id
             transfer["trading_link"] = combo.trading_link
             transfer["trading_number"] = combo.trading_number
-            transfer["trading_type"] = combo.trading_type
+            if not (trading_type := combo.trading_type):
+                continue
+            transfer["trading_type"] = trading_type
+            transfer['sme'] = combo.sme
             transfer["trading_form"] = combo.trading_form
             transfer["trading_org"] = combo.trading_org
             transfer["trading_org_inn"] = combo.trading_org_inn
@@ -88,7 +90,7 @@ class FabrikantBaseSpider(BaseSpider):
             transfer["lot_info"] = combo.get_lot_info(lot)
             transfer["property_information"] = combo.get_property_information(lot)
             transfer["categories"] = combo.get_categories(lot)
-            if transfer["trading_type"] in ["auction", "competition", "pdo"]:
+            if transfer["trading_type"] in ["auction", "competition", "pdo", "tender", "reduction", "rfp", "rfq"]:
                 transfer["start_date_requests"] = combo.get_start_date_requests(lot)
                 transfer["end_date_requests"] = combo.get_end_date_requests(lot)
                 transfer["start_date_trading"] = combo.get_start_date_trading(lot)
@@ -157,6 +159,7 @@ class FabrikantBaseSpider(BaseSpider):
         loader.add_value("step_price", transfer.get("step_price"))
         loader.add_value("periods", transfer.get("periods"))
         loader.add_value("files", {"general": general, "lot": lot_file})
+        loader.add_value("sme", transfer.get("sme"))
         yield loader.load_item()
 
 
@@ -173,6 +176,7 @@ class FabrikantCommercialSpider(FabrikantBaseSpider):
 class FabrikantLegalEntitiesSpider(FabrikantBaseSpider):
     name = "fabrikant_legal_entities"
     property_type = AuctionPropertyType.legal_entities
+
 
 class FabrikantFZ223Spider(FabrikantBaseSpider):
     name = "fabrikant_fz223"

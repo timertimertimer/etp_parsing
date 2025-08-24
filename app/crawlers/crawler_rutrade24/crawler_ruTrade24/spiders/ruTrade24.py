@@ -3,7 +3,6 @@ import scrapy
 import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.crawlers.base import BaseSpider
@@ -11,9 +10,24 @@ from app.db.models import AuctionPropertyType
 from app.utils import URL
 from app.utils.config import write_log_to_file
 from ..combo import Combo
-from ..config import page_limits, formdata, data_origin, start_urls, data_origins, hosts
+from ..config import page_limits, formdata, main_data_origin, start_urls, data_origins
 
 logger = logging.getLogger(__name__)
+
+BOUNDARY = "wL36Yn8afVp8Ag7AmP8qZ0SA4n1v9T"
+
+
+def build_multipart(fields: dict, boundary=BOUNDARY, encoding="utf-8"):
+    lines = []
+    for name, value in fields.items():
+        lines.append(f"--{boundary}")
+        lines.append(f'Content-Disposition: form-data; name="{name}"')
+        lines.append("")  # пустая строка между заголовками части и телом
+        lines.append(value if value is not None else "")
+    lines.append(f"--{boundary}--")
+    lines.append("")  # финальный CRLF
+    body = "\r\n".join(lines).encode(encoding)
+    return body, f"multipart/form-data; boundary={boundary}"
 
 
 class Rutrade24BaseSpider(BaseSpider):
@@ -23,69 +37,16 @@ class Rutrade24BaseSpider(BaseSpider):
     }
 
     def __init__(self):
-        super(Rutrade24BaseSpider, self).__init__(data_origin)
+        super(Rutrade24BaseSpider, self).__init__(main_data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        # FIXME: new post data (multipart/formdata)
-        # example:
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterLotPriceStart"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterLotPriceEnd"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterPartpAppDateBegin"
-        #
-        # 29.06.2025 23:23
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterPartpAppDateEnd"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterDateBegin"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterDateEnd"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterTradeType"
-        #
-        # Undefined
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterDebtor"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterTrader"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterTradeObject"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="LotClassificationCode"
-        #
-        #
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar
-        # Content-Disposition: form-data; name="MainPageFilterTradeStatus"
-        #
-        # 0
-        # ------WebKitFormBoundaryCoeBdOuVwQQGZ0Ar--
-        yield FormRequest(
+        body, content_type = build_multipart(formdata)
+        yield Request(
             start_urls[self.property_type.value],
             self.parse,
             method="POST",
-            formdata=formdata,
-            headers={
-                'Host': hosts[self.property_type.value],
-                'Content-Type': 'multipart/form-data'
-            },
+            headers={"Content-Type": content_type},
+            body=body,
         )
 
     def parse(self, response, **kwargs):
@@ -130,10 +91,10 @@ class Rutrade24BaseSpider(BaseSpider):
 
     def parse_trade(self, response, status):
         combo = Combo(response)
-        general_files = combo.download_general()
+        general_files = combo.download_general(self.property_type.value)
         address = combo.get_debtor_address()
         common_data = {
-            "data_origin": data_origin,
+            "data_origin": main_data_origin,
             "property_type": self.property_type,
             "trading_id": combo.trading_id,
             "trading_link": combo.trading_link,
@@ -168,7 +129,7 @@ class Rutrade24BaseSpider(BaseSpider):
                 "start_price": combo.start_price(lot),
                 "step_price": combo.step_price(lot),
                 "categories": combo.categories(lot),
-                "files": {"general": general_files, "lot": combo.download_lot(lot)},
+                "files": {"general": general_files, "lot": combo.download_lot(lot, self.property_type.value)},
             }
             item_data = {**common_data, **lot_data}
             loader = EtpItemLoader(item=EtpItem(), response=response)

@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup
 
 from app.db.models import DownloadData
-from .config import host, data_origin
+from .config import data_origins, hosts
 from app.utils import (
     DateTimeHelper,
     URL,
@@ -24,8 +24,8 @@ class Combo:
     def get_table_value_by(self, name_table, name_row):
         for table in self.soup.select("div.collaps-block"):
             if (
-                table.select_one("div.collaps-block__title").get_text(strip=True)
-                == name_table
+                    table.select_one("div.collaps-block__title").get_text(strip=True)
+                    == name_table
             ):
                 for row in table.select("div.info"):
                     if row.label.get_text(strip=True) == name_row:
@@ -40,24 +40,24 @@ class Combo:
             )
         return None
 
-    def download_general(self):
+    def download_general(self, property_type: str):
         files = list()
         if not (docs := self.soup.select_one("div#doc")):
             return files
         for doc in docs.find_all("a"):
-            link = URL.url_join(data_origin, doc.get("href"))
+            link = URL.url_join(data_origins[property_type], doc.get("href"))
             name = doc.get_text(strip=True)
             file_type = doc.get("class")[-1].split("--")[-1]
             if not name.endswith(file_type):
                 name = f"{name}.{file_type}"
             files.append(
                 DownloadData(
-                    url=link, file_name=name, referer=self.trading_link, host=host
+                    url=link, file_name=name, referer=self.trading_link, host=hosts[property_type]
                 )
             )
         return files
 
-    def download_lot(self, lot: BeautifulSoup):
+    def download_lot(self, lot: BeautifulSoup, property_type: str):
         files = list()
         additional_informations = lot.find_all(
             "label", text="Дополнительная информация"
@@ -67,14 +67,14 @@ class Combo:
         for info in additional_informations:
             info_block = info.find_parent("div", {"class": "info"})
             for doc in info_block.find_all("a"):
-                link = URL.url_join(data_origin, doc.get("href"))
+                link = URL.url_join(data_origins[property_type], doc.get("href"))
                 name = doc.get_text(strip=True)
                 file_type = doc.get("class")[-1].split("--")[-1]
                 if not name.endswith(file_type):
                     name = f"{name}.{file_type}"
                 files.append(
                     DownloadData(
-                        url=link, file_name=name, referer=self.trading_link, host=host
+                        url=link, file_name=name, referer=self.trading_link, host=hosts[property_type]
                     )
                 )
         return files
@@ -96,10 +96,14 @@ class Combo:
         d = {
             "offer": ["Публичное предложение"],
             "auction": ["Открытый аукцион", "Торги на повышение", "Аукцион"],
+            "rfq": ['Запрос котировок']
         }
         trading_type = self.get_table_value_by(
             "Основные сведения",
             "Форма проведения торгов",
+        ) or self.get_table_value_by(
+            "Основные сведения",
+            "Тип процедуры"
         )
         for key in d:
             if trading_type in d[key]:
@@ -152,23 +156,24 @@ class Combo:
 
     @property
     def msg_number(self):
-        msg_number = self.get_table_value_by(
-            "Основные сведения",
-            "Номер сообщения «Объявление о проведении торгов» в ЕФРСБ",
-        )
+        if not (msg_number := self.get_table_value_by(
+                "Основные сведения",
+                "Номер сообщения «Объявление о проведении торгов» в ЕФРСБ",
+        )):
+            return None
         if str.isdigit(msg_number):
             msg_number = msg_number
         elif (
-            str.isdigit(msg_number.split("; ")[0])
-            and len(msg_number.split("; ")[0]) == 7
+                str.isdigit(msg_number.split("; ")[0])
+                and len(msg_number.split("; ")[0]) == 7
         ):
             msg_number = msg_number.split("; ")[0]
         elif str.isdigit(msg_number.split()[0]) and len(msg_number.split()[0]) == 7:
             msg_number = msg_number.split()[0]
         elif (
-            len(msg_number.split()) >= 2
-            and str.isdigit(msg_number.split()[1])
-            and len(msg_number.split()[1]) == 7
+                len(msg_number.split()) >= 2
+                and str.isdigit(msg_number.split()[1])
+                and len(msg_number.split()[1]) == 7
         ):
             msg_number = msg_number.split()[1]
         return msg_number
@@ -201,17 +206,17 @@ class Combo:
                 self.get_table_value_by(
                     "Cведения об арбитражном управляющем",
                     "Фамилия",
-                ),
+                ) or '',
                 self.get_table_value_by(
                     "Cведения об арбитражном управляющем",
                     "Имя",
-                ),
+                ) or '',
                 self.get_table_value_by(
                     "Cведения об арбитражном управляющем",
                     "Отчество",
-                ),
+                ) or '',
             ]
-        )
+        ).strip()
 
     @property
     def arbit_manager_inn(self):
@@ -280,6 +285,8 @@ class Combo:
             self.get_value_by(
                 lot,
                 "Сведения об имуществе должника (состав, характеристики, описание, порядок ознакомления с имуществом (предприятием) должника)",
+            ) or self.get_value_by(
+                lot, "Предмет договора"
             )
         )
 
@@ -292,18 +299,25 @@ class Combo:
         date = self.get_table_value_by(
             "Основные сведения",
             "Дата и время начала представления заявок на участие в торгах",
+        ) or self.get_table_value_by(
+            "Основные сведения",
+            "Дата и время начала представления заявок на участие в процедуре"
         )
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
         date = self.get_table_value_by(
             "Основные сведения",
             "Дата и время окончания представления заявок на участие в торгах",
+        ) or self.get_table_value_by(
+            "Основные сведения",
+            "Дата и время окончания представления заявок на участие в процедуре"
         )
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     @property
     def start_date_trading(self):
@@ -312,16 +326,20 @@ class Combo:
             "Дата и время начала проведения торгов",
         )
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     @property
     def end_date_trading(self):
         date = self.get_table_value_by(
             "Основные сведения",
             "Дата и время подведения результатов торгов",
+        ) or self.get_table_value_by(
+            "Основные сведения",
+            "Дата и время подведения итогов"
         )
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def start_price(self, lot: BeautifulSoup):
@@ -329,9 +347,11 @@ class Combo:
             return periods[0]["current_price"]
         start_price = self.get_value_by(
             lot, "Начальная цена продажи имущества (предприятия) должника, руб."
+        ) or self.get_table_value_by(
+            lot, "Сведения о начальной (максимальной) цене договора"
         )
         if not start_price:
-            return
+            return None
         try:
             if start_price:
                 start_price = re.sub(
@@ -382,21 +402,21 @@ class Combo:
         for table in lot.find_all("table"):
             periods.append(
                 {
-                    "start_date_requests": format_time(
+                    "start_date_requests": DateTimeHelper.smart_parse(
                         table.select("td")[0].get_text(strip=True).split(" по ")[0][2:]
-                    ),
-                    "end_date_requests": format_time(
+                    ).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(
                         table.select("td")[0]
                         .get_text(strip=True)
                         .split(" по ")[1]
                         .split(" - ")[0]
-                    ),
-                    "end_date_trading": format_time(
+                    ).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(
                         table.select("td")[0]
                         .get_text(strip=True)
                         .split(" по ")[1]
                         .split(" - ")[0]
-                    ),
+                    ).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": make_float(
                         table.select("td")[0]
                         .get_text(strip=True)

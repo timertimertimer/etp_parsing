@@ -1,5 +1,6 @@
 import re
 import pathlib
+from datetime import datetime
 
 from app.utils.config import allowable_formats
 from app.db.models import DownloadData
@@ -10,11 +11,8 @@ from app.utils import (
     dedent_func,
     replace_multiple,
     pattern_replace1,
-    what_time_bigger,
-    return_servertime,
     URL,
-    format_time,
-    logger,
+    logger, DateTimeHelper,
 )
 from bs4 import BeautifulSoup as BS
 
@@ -182,7 +180,7 @@ class MainTradingPage:
         period_requests_auction = dedent_func(period_requests_auction.strip())
         pattern = re.compile(r"\d{1,2}.\d{1,2}.\d{2,4}\s\d{1,2}:\d{1,2}")
         periods = pattern.findall(period_requests_auction)
-        check_if_second_eq_2 = what_time_bigger(
+        check_if_second_eq_2 = DateTimeHelper.compare(
             periods[0], periods[1], self.response.url
         )
         if check_if_second_eq_2 == 2:
@@ -194,15 +192,16 @@ class MainTradingPage:
 
     def start_date_req_auc(self):
         if self.get_period_requests_auction():
-            return format_time(self.get_period_requests_auction()[0])
+            return DateTimeHelper.smart_parse(self.get_period_requests_auction()[0]).astimezone(DateTimeHelper.moscow_tz)
         logger.error(f"{self.response.url} :: INVALID START DATE REQUEST AUCTION")
         return None
 
     def end_date_request_auc(self):
         if self.get_period_requests_auction():
-            return format_time(self.get_period_requests_auction()[1])
-        else:
-            logger.error(f"{self.response.url} :: INVALID END DATE REQUEST AUCTION")
+            return DateTimeHelper.smart_parse(self.get_period_requests_auction()[1]).astimezone(DateTimeHelper.moscow_tz)
+        logger.error(f"{self.response.url} :: INVALID END DATE REQUEST AUCTION")
+        return None
+
 
     def start_date_trading_auc(self):
         _div = self.response.xpath(GeneralInfoLocator.start_date_trading_auc_loc).get()
@@ -213,7 +212,7 @@ class MainTradingPage:
         pattern = re.compile(r"\d{1,2}.\d{1,2}.\d{2,4}\s\d{1,2}:\d{1,2}")
         _date = pattern.findall(_date)
         if len(_date) == 1:
-            return format_time(_date[0])
+            return DateTimeHelper.smart_parse(_date[0]).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def end_date_trading_auc(self):
@@ -225,7 +224,7 @@ class MainTradingPage:
         pattern = re.compile(r"\d{1,2}.\d{1,2}.\d{2,4}\s\d{1,2}:\d{1,2}")
         _date = pattern.findall(_date)
         if len(_date) == 1:
-            return format_time(_date[0])
+            return DateTimeHelper.smart_parse(_date[0]).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def get_documents_table(self):
@@ -263,7 +262,7 @@ class MainTradingPage:
 
     def return_post_data(self, view_state, a_id) -> dict:
         _post = post_data_download.copy()
-        _post["formMain:inputServerTime"] = return_servertime()
+        _post["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
         _post["javax.faces.ViewState"] = view_state
         data_ = self.find_correct_form_number_1()
         _post[data_] = "false"

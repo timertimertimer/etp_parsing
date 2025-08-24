@@ -27,10 +27,34 @@ start_urls = dict(
 start_date = DateTimeHelper.format_datetime(
     datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%Y-%m-%d"
 )
-formdata = {
-    "date_publication_from": start_date,
-    "page_number": "1",
-    "page_limit": "100"
+
+formdatas = {
+    'fz223': {
+        'date_publication_from': start_date,
+        'page_number': '1',
+        'page_limit': '100',
+        'section_ids[]': '5'
+    },
+    'legal_entities': {
+        'date_publication_from': start_date,
+        'procedure_direction': 'buy',
+        'section_ids[]': '2',
+        'page_number': '1',
+        'page_limit': '100',
+    },
+    'commercial': {
+        'date_publication_from': start_date,
+        'procedure_direction': 'sell',
+        'section_ids[]': '8',
+        'page_number': '1',
+        'page_limit': '100',
+    },
+    'bankruptcy': {
+        'date_publication_from': start_date,
+        'page_number': '1',
+        'page_limit': '100',
+        'section_ids[]': '6'
+    }
 }
 # splash.js_enabled=false
 script_lua = """

@@ -25,11 +25,13 @@ class Combo:
         match = re.search(r"https:\/\/www\.roseltorg\.ru\/procedure\/[\w\d]+", link)
         if match:
             return match.group(0)
-        logger.error(f"{self.response.url} | Trading link not found")
+        logger.warning(f"{self.response.url} | Trading link not found")
+        return None
 
     def get_next_page_link(self):
         if next_link := self.soup.find("button", class_="pagination__btn--next"):
             return search_link + next_link.get("data-href")
+        return None
 
     def download_general(self):
         files = list()
@@ -51,14 +53,16 @@ class Combo:
     def trading_id(self, trading_card: BeautifulSoup):
         if id_ := trading_card.find("a", class_="search-item__lot"):
             return id_.get_text(strip=True).split()[0]
-        logger.error(f"{self.response.url} | Trading id not found")
+        logger.warning(f"{self.response.url} | Trading id not found")
+        return None
 
     def trading_link(self, trading_card: BeautifulSoup):
         if trading_link := trading_card.find(
-            "a", class_="search-item__subject-link"
+                "a", class_="search-item__subject-link"
         ).get("href"):
             return trading_link
-        logger.error(f"{self.response.url} | Trading link not found")
+        logger.warning(f"{self.response.url} | Trading link not found")
+        return None
 
     def trading_number(self, trading_card: BeautifulSoup):
         return self.trading_id(trading_card)
@@ -67,8 +71,8 @@ class Combo:
     def trading_type(self):
         type_ = self.soup.find("span", text=contains("Способ проведения"))
         if not type_:
-            logger.error(f"{self.response.url} | Trading type not found")
-            return
+            logger.warning(f"{self.response.url} | Trading type not found")
+            return None
         type_ = type_.find_next("p").get_text(strip=True)
         for name, trading_type in {
             "аукцион": "auction",
@@ -78,6 +82,7 @@ class Combo:
             if name in type_.lower():
                 return trading_type
         logger.warning(f"{self.response.url} | Unknown type - {type_}")
+        return None
 
     @property
     def trading_form(self):
@@ -96,7 +101,8 @@ class Combo:
         text = contains("Организатор торгов")
         if org := self.soup.find("span", text=text) or self.soup.find("dt", text=text):
             return org.find_next("p").get_text(strip=True)
-        logger.error(f"{self.response.url} | Trading org not found")
+        logger.warning(f"{self.response.url} | Trading org not found")
+        return None
 
     @property
     def trading_org_inn(self):
@@ -105,6 +111,7 @@ class Combo:
             inn = match.group(1)
             return Contacts.check_inn(inn)
         logger.warning(f"{self.response.url} | Trading org inn not found")
+        return None
 
     @property
     def trading_org_contacts(self):
@@ -141,6 +148,7 @@ class Combo:
         if address := lot.find("div", class_="lot-item__region"):
             return address.get_text(strip=True)
         logger.warning(f"{self.response.url} | Address not found")
+        return None
 
     @property
     def status(self):
@@ -150,6 +158,7 @@ class Combo:
         if categories := lot.find("td", text=contains("Категория")):
             return categories.find_next("p").get_text(strip=True)
         logger.warning(f"{self.response.url} | Categories not found")
+        return None
 
     @property
     def lot_id(self):
@@ -164,6 +173,7 @@ class Combo:
         if short_name := self.soup.find("div", class_="lot-item__subject"):
             return short_name.get_text(strip=True)
         logger.warning(f"{self.response.url} | Short name not found")
+        return None
 
     @property
     def lot_info(self):
@@ -175,25 +185,26 @@ class Combo:
 
     def start_date_requests(self, lot: BeautifulSoup):
         if date := (
-            lot.find("td", text=contains("Начало приёма заявок"))
-            or lot.find("td", text=contains("Публикация извещения"))
+                lot.find("td", text=contains("Начало приёма заявок"))
+                or lot.find("td", text=contains("Публикация извещения"))
         ):
             return DateTimeHelper.smart_parse(
                 date.find_next("p").get_text(strip=True), "%d.%m.%y %H:%M:%S (МСК)"
             ).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(f"{self.response.url} | Start date requests not found")
+        return None
 
     def end_date_requests(self, lot: BeautifulSoup):
         if date := lot.find("td", text=contains("Окончание приёма заявок")):
             format = "%d.%m.%y %H:%M:%S (МСК)"
         elif date := (
-            lot.find("td", text=contains("Дата и время окончания приёма заявок"))
-            or lot.find("td", text=contains("Приём заявок"))
+                lot.find("td", text=contains("Дата и время окончания приёма заявок"))
+                or lot.find("td", text=contains("Приём заявок"))
         ):
             format = "до %d.%m.%y %H:%M:%S (МСК)"
         else:
             logger.warning(f"{self.response.url} | End date requests not found")
-            return
+            return None
         return DateTimeHelper.smart_parse(
             date.find_next("p").get_text(strip=True), format
         ).astimezone(DateTimeHelper.moscow_tz)
@@ -204,6 +215,7 @@ class Combo:
                 date.find_next("p").get_text(strip=True), "%d.%m.%y %H:%M:%S (МСК)"
             ).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(f"{self.response.url} | Start date trading not found")
+        return None
 
     @property
     def end_date_trading(self):
@@ -216,6 +228,7 @@ class Combo:
                 return
             return make_float(price)
         logger.warning(f"{self.response.url} | Start price not found")
+        return None
 
     def step_price(self, lot: BeautifulSoup):
         return

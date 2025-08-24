@@ -13,6 +13,14 @@ days = 7
 start_date = DateTimeHelper.format_datetime(
     datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%Y-%m-%d"
 )
+urls = {
+    'fz223': 'https://utp.sberbank-ast.ru/Trade/List/BidList',
+    'fz44': 'https://utp.sberbank-ast.ru/RussianPost/List/PurchaseList',
+    'capital_repair': 'https://utp.sberbank-ast.ru/GKH/List/PurchaseList',
+    'legal_entities': ['https://utp.sberbank-ast.ru/CBRF/List/PurchaseList', 'https://utp.sberbank-ast.ru/Rosatom/List/BidList'],
+    'commercial': ['https://utp.sberbank-ast.ru/Transneft/List/PurchaseSalesList', 'https://utp.sberbank-ast.ru/Property/List/BidList'],
+    'bankruptcy': 'https://utp.sberbank-ast.ru/Bankruptcy/NBT/Index/0/0/0/0'
+}
 # format period
 # W - week
 # D - day

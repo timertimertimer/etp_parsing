@@ -2,7 +2,7 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from app.utils import format_time, make_float, dedent_func, logger
+from app.utils import DateTimeHelper, make_float, dedent_func, logger
 from ..locators.locator_lot_page import LocatorLotPage
 from numpy import float64
 
@@ -30,7 +30,7 @@ class OfferPage:
             table = table.find("table", class_="data inner")
             table = pd.read_html(str(table))
             df = table[0]
-            return format_time(df.iloc[0][0])
+            return DateTimeHelper.smart_parse(df.iloc[0][0]).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.warning(
                 f"{self.response.url} :: ERROR start_date_request {e}", exc_info=True
@@ -42,7 +42,7 @@ class OfferPage:
             table = table.find("table", class_="data inner")
             table = pd.read_html(str(table))
             df = table[0]
-            return format_time(df.iloc[-1][1])
+            return DateTimeHelper.smart_parse(df.iloc[-1][1]).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.warning(
                 f"{self.response.url} :: ERROR end_date_request {e}", exc_info=True
@@ -98,9 +98,12 @@ class OfferPage:
                         )
                         current_price_ = None
                     period = {
-                        "start_date_requests": format_time(start_date_request),
-                        "end_date_requests": format_time(end_date_request),
-                        "end_date_trading": format_time(end_date_trading),
+                        "start_date_requests": DateTimeHelper.smart_parse(start_date_request).astimezone(
+                            DateTimeHelper.moscow_tz),
+                        "end_date_requests": DateTimeHelper.smart_parse(end_date_request).astimezone(
+                            DateTimeHelper.moscow_tz),
+                        "end_date_trading": DateTimeHelper.smart_parse(end_date_trading).astimezone(
+                            DateTimeHelper.moscow_tz),
                         "current_price": current_price_,
                     }
                     periods.append(period)

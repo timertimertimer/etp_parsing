@@ -5,7 +5,7 @@ from app.utils import URL, logger
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.crawlers.base import BaseSpider
 
-from ..app import Combo
+from ..combo import Combo
 from ..config import formdatas, search_link, data_origin
 
 

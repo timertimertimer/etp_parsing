@@ -34,7 +34,10 @@ class AuctionType(str, Enum):
     competition = "competition"
     offer = "offer"
     pdo = "pdo"
-
+    rfp = "rfp"
+    rfq = "rfq"
+    tender = "tender"
+    reduction = "reduction"
 
 class FormType(str, Enum):
     open = "open"
@@ -59,7 +62,7 @@ class Auction(Base):
     # operators_fee: Mapped[float] = mapped_column(Float, nullable=True)
     # execution_time: Mapped[str] = mapped_column(String, nullable=True)
     # subject_info = ...
-    # sme: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    sme: Mapped[bool] = mapped_column(Boolean, default=False)
 
     organizer_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True

@@ -7,7 +7,6 @@ import xmltodict
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
-from app.utils.datetime_helper import DateTimeHelper
 from ..trades.app import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
@@ -181,5 +180,26 @@ class SberbankBaseSpider(BaseSpider):
         loader.add_value("files", {"general": files, "lot": files_lot})
         yield loader.load_item()
 
+
 class SberbankBankruptcySpider(SberbankBaseSpider):
     property_type = AuctionPropertyType.bankruptcy
+
+
+class SberbankFz223Spider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.fz223
+
+
+class SberbankFz44Spider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.fz44
+
+
+class SberbankCapitalRepairSpider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.capital_repair
+
+
+class SberbankLegalEntitiesSpider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.legal_entities
+
+
+class SberbankCommercialSpider(SberbankBaseSpider):
+    property_type = AuctionPropertyType.commercial

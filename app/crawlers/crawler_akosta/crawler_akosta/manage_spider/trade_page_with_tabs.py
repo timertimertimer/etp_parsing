@@ -1,6 +1,6 @@
 import re
 
-from app.utils import dedent_func, format_time, Contacts, logger
+from app.utils import dedent_func, DateTimeHelper, Contacts, logger
 
 
 class TradePage:
@@ -102,7 +102,7 @@ class TradePage:
                 r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
             )
             email = pattern_mail.findall(_div.get_text().strip())
-            return Contacts.check_email(email)
+            return Contacts.check_email(email[0])
         except Exception as ex:
             logger.warning(f"{self.response.url} | ERROR organizer email {ex}")
         return None
@@ -167,7 +167,7 @@ class TradePage:
                     re.findall(r"\d{1,2}.\d{1,2}.\d{2,4}\s\s?\d{1,2}:\d{1,2}", start)[0]
                 )
                 if start:
-                    return format_time(start)
+                    return DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz)
                 else:
                     logger.warning(
                         f"{self.response.url} | START DATE WAS NOT FOUND (2)"
@@ -196,7 +196,7 @@ class TradePage:
                     re.findall(r"\d{1,2}.\d{1,2}.\d{2,4}\s\s?\d{1,2}:\d{1,2}", end)[0]
                 )
                 if end:
-                    return format_time(end)
+                    return DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz)
                 else:
                     logger.warning(f"{self.response.url} | END DATE WAS NOT FOUND (2)")
             else:
@@ -229,7 +229,7 @@ class TradePage:
         try:
             lst = self.return_period_trading_auc()
             if 1 <= len(lst) < 3:
-                _date = format_time(lst[0])
+                _date = DateTimeHelper.smart_parse(lst[0]).astimezone(DateTimeHelper.moscow_tz)
                 return _date
             else:
                 logger.warning(
@@ -245,7 +245,7 @@ class TradePage:
         try:
             lst = self.return_period_trading_auc()
             if len(lst) == 2:
-                _date = format_time(lst[1])
+                _date = DateTimeHelper.smart_parse(lst[1]).astimezone(DateTimeHelper.moscow_tz)
                 return _date
             else:
                 logger.warning(

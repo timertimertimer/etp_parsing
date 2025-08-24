@@ -86,7 +86,7 @@ projects = {
     "crawler_bankrot_cdtrf": "bankrot_cdtrf",
     "crawler_electro_torgi": electro_torgi,
     "crawler_eurtp": "eurtp",
-    "crawler_fabricant": "fabrikant",
+    "crawler_fabrikant": "fabrikant",
     "crawler_heveya": "heveya",
     "crawler_itender": itender,
     "crawler_kartoteka": "kartoteka",

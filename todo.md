@@ -15,16 +15,15 @@
 - [x] torgi.gov gis
 - [x] el-torg commercial
 - [x] etp.alfalot commercial
-- [ ] fabrikant commercial/legal_entites/fz223
+- [x] fabrikant commercial/legal_entites/fz223
 - [x] sibtoptrade commercial
 - [x] etp.tender.one commercial
 - [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223) PROXY
-- [ ] rutrade commercial NEW MULTIPART POST DATA
+- [x] rutrade commercial NEW MULTIPART POST DATA
 - [ ] roseltorg legal_entites/capital_repair/fz223
 - [ ] zakupki.gov fz44/capital_repair
 - [ ] tender.lot-online fz223
 - [ ] b2b fz223
 - [ ] catalog.lot-online rent
 
-
-https://www.fabrikant.ru/v2/trades/procedure/view/whJ2Ga3CZFUeUDstsHpZ4g trading_type (Способ проведения) not any auction/offer/competition
+- [ ] fabrikant fz223 (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0)

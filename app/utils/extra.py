@@ -9,9 +9,9 @@ import unicodedata
 from http.cookies import SimpleCookie
 from chardet import detect
 
-from app.utils import logger
-from .datetime_helper import datetime
-from .config import lot_classifiers_code_to_name
+from app.utils.logger import logger
+from app.utils.datetime_helper import datetime
+from app.utils.config import lot_classifiers_code_to_name
 
 
 columns = ["Code", "Name"]
@@ -164,6 +164,7 @@ def count_cyrillic(text):
 
 
 def make_float(price) -> Optional[float]:
+    initial_price = price
     if not price:
         return None
     try:
@@ -179,7 +180,7 @@ def make_float(price) -> Optional[float]:
         price = round(float(price), 2)
         return price
     except Exception as e:
-        logger.warning(f"Cant convert {price} to float: {e}")
+        logger.warning(f"Couldn\'t convert before=\"{initial_price}\", after=\"{price}\" to float: {e}")
     return None
 
 
@@ -302,3 +303,9 @@ def get_org_info(last, first, middle):
 
 if __name__ == "__main__":
     print(parse_classifiers("0401 Имущественные права: Права долевой собственности"))
+    print(make_float("""Цена с НДС:
+317 790,00
+Рубль (RUB)
+317 790,00
+Рубль (RUB)
+НДС 0%"""))

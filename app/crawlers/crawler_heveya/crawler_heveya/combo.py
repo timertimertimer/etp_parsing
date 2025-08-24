@@ -3,7 +3,7 @@ from itertools import takewhile
 
 from bs4 import BeautifulSoup
 
-from app.utils import contains, Contacts, dedent_func, format_time, logger
+from app.utils import contains, Contacts, dedent_func, logger, DateTimeHelper
 from app.db.models import DownloadData
 
 
@@ -229,34 +229,34 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.soup.find("h2", text="Дата начала приема заявок")
             .find_next("p")
-            .get_text()
-        )
+            .get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.soup.find("h2", text="Дата окончания приема заявок")
             .find_next("p")
-            .get_text()
-        )
+            .get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_trading(self):
         start = self.soup.find("h2", text="Начало подачи предложений")
         if start:
-            return format_time(start.find_next("p").get_text())
+            return DateTimeHelper.smart_parse(start.find_next("p").get_text(strip=True)).astimezone(DateTimeHelper.moscow_tz)
         return self.start_date_requests
 
     @property
     def end_date_trading(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.soup.find("h2", text="Подведение итогов торгов")
             .find_next("p")
-            .get_text()
-        )
+            .get_text(strip=True)
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def periods(self):
@@ -271,7 +271,7 @@ class Combo:
         )
         periods = []
         for row in table:
-            columns = row.find_all("div")  # Ищем все столбцы в строке
+            columns = row.find_all("div")
             start = columns[0].get_text(strip=True)
             end = columns[1].get_text(strip=True)
             price = columns[2].get_text(strip=True)
@@ -279,9 +279,7 @@ class Combo:
             try:
                 if isinstance(price, str):
                     price = "".join(re.sub(r"\s", "", price)).replace(",", ".")
-                    price = round(float(price), 2)
-                else:
-                    price = round(float(price), 2)
+                price = round(float(price), 2)
                 if check_value < price:
                     logger.warning(
                         f"{self.response.url} | INVALID PRICE ON PERIOD - CURRENT PRICE HIGHER THAN PREVIUOS"
@@ -295,9 +293,9 @@ class Combo:
                 return None
             try:
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)
