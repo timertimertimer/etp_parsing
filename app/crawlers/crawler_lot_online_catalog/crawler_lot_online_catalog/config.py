@@ -1,4 +1,6 @@
-from general_utils.config import format_parse_date
+from datetime import timedelta, datetime
+
+from app.utils import DateTimeHelper
 
 domains = ["bankruptcy", "private_property"]
 data_origin = "https://www.lot-online.ru/"
@@ -7,6 +9,7 @@ data_origin = "https://www.lot-online.ru/"
 hashes = {
     "lot_online_bankruptcy": "172-186359",
     "lot_online_private_property": "172-186357",
+    "lot_online_rent": "172-25147"
 }
 form_data = {
     "dispatch": "categories.view",
@@ -21,4 +24,5 @@ form_data = {
     "page": "1",
     "is_ajax": "1",
 }
-start_date = format_parse_date(7)
+days = 7
+start_datetime = datetime.now() - timedelta(days=days)

@@ -4,10 +4,11 @@ from datetime import datetime
 from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
-from app.utils.config import format_parse_date, write_log_to_file
+from app.db.models import AuctionPropertyType
+from app.utils.config import write_log_to_file
 from app.crawlers.items import EtpItem, EtpItemLoader
 from ..app import Combo
-from ..config import form_data, hashes, data_origin, start_date
+from ..config import form_data, hashes, data_origin, start_datetime
 
 
 class LotOnlineCatalogBaseSpider(BaseSpider):
@@ -21,10 +22,8 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
         super(LotOnlineCatalogBaseSpider, self).__init__(data_origin)
 
     def start_requests(self) -> Iterable[Request]:
-        start_timestamp = int(datetime.strptime(start_date, "%d.%m.%Y").timestamp())
-        end_timestamp = (
-            int(datetime.strptime(format_parse_date(-1), "%d.%m.%Y").timestamp()) - 1
-        )
+        start_timestamp = int(start_datetime.timestamp())
+        end_timestamp = int(datetime.now().timestamp()) - 1
         form_data["features_hash"] = (
             f"112-{start_timestamp}-{end_timestamp}_{hashes[self.name]}"
         )
@@ -49,6 +48,7 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
         combo = Combo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
         loader.add_value("trading_number", lot[1])
@@ -101,3 +101,26 @@ class LotOnlineCatalogBaseSpider(BaseSpider):
         loader.add_value("end_date_requests", combo.end_date_requests_auc)
         loader.add_value("step_price", combo.step_price)
         yield loader.load_item()
+
+
+class LotOnlineBankruptcySpider(LotOnlineCatalogBaseSpider):
+    name = "lot_online_bankruptcy"
+    property_type = AuctionPropertyType.bankruptcy
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+
+class LotOnlinePrivatePropertySpider(LotOnlineCatalogBaseSpider):
+    name = "lot_online_private_property"
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+
+class LotOnlineRentSpider(LotOnlineCatalogBaseSpider):
+    name = "lot_online_rent"
+    property_type = AuctionPropertyType.rent
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
