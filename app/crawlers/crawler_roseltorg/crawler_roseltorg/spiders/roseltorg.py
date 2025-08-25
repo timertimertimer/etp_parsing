@@ -1,17 +1,17 @@
-from scrapy import FormRequest, Request
+from urllib.parse import urlencode
+
+from scrapy import Request
 
 from app.db.models import AuctionPropertyType
 from app.utils import URL, logger
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.crawlers.base import BaseSpider
-
 from ..combo import Combo
-from ..config import formdatas, search_link, data_origin
+from ..config import formdatas, search_link, data_origin, start_date
 
 
 class RoseltorgBaseSpider(BaseSpider):
     name = "roseltorg"
-    start_urls = [search_link]
     unique_links = set()
 
     def __init__(self):
@@ -20,16 +20,16 @@ class RoseltorgBaseSpider(BaseSpider):
         self.parsed_trades = 0
 
     def start_requests(self):
-        yield FormRequest(
-            self.start_urls[0],
+        yield Request(
+            f'{search_link}?{urlencode(formdatas[self.property_type.value] | {"start_date_published": start_date}, doseq=True)}',
             self.parse_serp,
-            formdata=formdatas[self.property_type.value],
-            method="GET",
+            cb_kwargs={'current_page': 1},
         )
 
-    def parse_serp(self, response):
+    def parse_serp(self, response, current_page):
         combo = Combo(response)
-        for trading_card in combo.get_trading_cards():
+        cards = combo.get_trading_cards()
+        for trading_card in cards:
             link = combo.parse_link(
                 URL.url_join(data_origin, combo.trading_link(trading_card))
             )
@@ -46,13 +46,19 @@ class RoseltorgBaseSpider(BaseSpider):
                 )
                 self.previous_trades.append(link)
                 self.total_trades += 1
-        if next_page := combo.get_next_page_link():
-            yield Request(next_page, self.parse_serp)
+        if cards:
+            current_page += 1
+            yield Request(
+                f'{search_link}?{urlencode(formdatas[self.property_type.value] | {"start_date_published": start_date, "page": current_page}, doseq=True)}',
+                self.parse_serp,
+                cb_kwargs={'current_page': current_page},
+            )
 
     def parse_trade(self, response, trading_id, trading_number):
         combo = Combo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", trading_id)
         loader.add_value("trading_link", response.url)
         loader.add_value("trading_number", trading_number)

@@ -19,7 +19,7 @@ class Combo:
         self.soup = BeautifulSoup(response.text, "lxml")
 
     def get_trading_cards(self):
-        return self.soup.find_all("div", class_="search-item")
+        return self.soup.find_all("div", class_="search-results__item autoload-post")
 
     def parse_link(self, link):
         match = re.search(r"https:\/\/www\.roseltorg\.ru\/procedure\/[\w\d]+", link)
@@ -50,16 +50,14 @@ class Combo:
     def download_lot(self, lot: BeautifulSoup):
         return []
 
+    def get_procedure(self, trading_card: BeautifulSoup):
+        return trading_card.find("a", class_="search-results__link")
+
     def trading_id(self, trading_card: BeautifulSoup):
-        if id_ := trading_card.find("a", class_="search-item__lot"):
-            return id_.get_text(strip=True).split()[0]
-        logger.warning(f"{self.response.url} | Trading id not found")
-        return None
+        return self.trading_link(trading_card).split('/')[-1]
 
     def trading_link(self, trading_card: BeautifulSoup):
-        if trading_link := trading_card.find(
-                "a", class_="search-item__subject-link"
-        ).get("href"):
+        if trading_link := self.get_procedure(trading_card).get("href"):
             return trading_link
         logger.warning(f"{self.response.url} | Trading link not found")
         return None
@@ -81,6 +79,12 @@ class Combo:
         }.items():
             if name in type_.lower():
                 return trading_type
+        d = {
+            "rfp": ['Процедура по закупке с выбором победителя', 'Процедура по закупке без выбора победителя']
+        }
+        for name, trading_type in d.items():
+            if type_ in trading_type:
+                return name
         logger.warning(f"{self.response.url} | Unknown type - {type_}")
         return None
 

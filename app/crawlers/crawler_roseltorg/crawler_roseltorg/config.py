@@ -5,17 +5,14 @@ from app.utils import (
 )
 
 start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(1), "%d.%m.%y")
-search_link = "https://www.roseltorg.ru/search/sale"
-property_types = ['legal_entities', 'capital_repair', 'fz223']
-sections = {
-    'legal_entities': ["20", "24"],
-    'capital_repair': {'place': "fkr"},
-    'fz223': ["28", "2"],
-}
-initial_formdata = {"start_date_published": start_date}
+search_link = "https://www.roseltorg.ru/procedures/search"
+# https://www.roseltorg.ru/procedures/search?status%5B%5D=5&status%5B%5D=0&status%5B%5D=1&place=fkr capital_repair
+# https://www.roseltorg.ru/procedures/search?sale=1&status%5B%5D=5&status%5B%5D=0&status%5B%5D=1&currency=all&source%5B%5D=28&source%5B%5D=2 fz223
+# https://www.roseltorg.ru/procedures/search?sale=1&status%5B%5D=5&status%5B%5D=0&status%5B%5D=1&currency=all&source%5B%5D=20&source%5B%5D=24 legal_entities
+
 formdatas = {
-    'legal_entities': {"source[]": el for el in ["20", "24"]},
-    'capital_repair': {'place': "fkr"},
-    'fz223': {"source[]": el for el in ["28", "2"]},
+    'legal_entities': {"source[]": ["20", "24"], "currency": "all", "sale": "1", "status[]": ["5", "0", "1"]},
+    'capital_repair': {'place': "fkr", "status[]": ["5", "0", "1"]},
+    'fz223': {"source[]": ["28", "2"], "currency": "all", "sale": "1", "status[]": ["5", "0", "1"]},
 }
 data_origin = "https://www.roseltorg.ru/"
