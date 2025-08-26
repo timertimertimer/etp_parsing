@@ -27,3 +27,4 @@
 - [ ] catalog.lot-online rent
 
 - [ ] fabrikant fz223 (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0)
+- [ ] uv dockerfile and delete requirements.txt

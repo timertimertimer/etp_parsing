@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.utils import logger
+from app.utils import logger, Contacts
 
 
 class Combo:
@@ -47,9 +47,49 @@ class Combo:
             return None
         return org
 
+    def get_trading_org_block(self):
+        if not (trading_org_data := self.get_trading_org_data()):
+            return None
+        return trading_org_data.find_parent('div', class_='row blockInfo')
+
     @property
     def trading_org(self):
         if not (org := self.get_trading_org_data()):
             return None
         return org.find_next('span').get_text(strip=True)
 
+    @property
+    def trading_org_inn(self):
+        if not (inn := self.soup.find('div', class_='registry-entry__body-title', text='ИНН')):
+            logger.warning(f"{self.response.url} | Could not find trading_org_inn")
+            return None
+        return Contacts.check_inn(inn.find_next('div', class_='registry-entry__body-value').get_text(strip=True))
+
+    @property
+    def trading_org_contacts(self):
+        if not (trading_org_block := self.get_trading_org_block()):
+            logger.warning(f"{self.response.url} | Could not find trading_org_contacts")
+            return None
+
+        if email := trading_org_block.find('span', class_='section__title', text='Адрес электронной почты'):
+            email = email.find_next('span', class_='section__info').get_text(strip=True)
+
+        if phone := trading_org_block.find('span', class_='section__title', text='Номер телефона'):
+            phone = phone.find_next('span', class_='section__info').get_text(strip=True)
+        return {
+            'email': Contacts.check_email(email),
+            'phone': Contacts.check_phone(phone),
+        }
+
+    @property
+    def address(self):
+        if not (trading_org_block := self.get_trading_org_block()):
+            logger.warning(f"{self.response.url} | Could not find address")
+            return None
+
+        if address := trading_org_block.find('span', class_='section__title', text='Адрес'):
+            return address.find_next('span', class_='section__info').get_text(strip=True)
+
+    @property
+    def status(self):
+        ...
