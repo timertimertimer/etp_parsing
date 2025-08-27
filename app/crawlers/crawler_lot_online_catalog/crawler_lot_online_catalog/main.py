@@ -9,5 +9,9 @@ def private_property():
     execute(["scrapy", "crawl", "lot_online_private_property"])
 
 
+def lot_online_rent():
+    execute(["scrapy", "crawl", "lot_online_rent"])
+
+
 if __name__ == "__main__":
-    private_property()
+    lot_online_rent()

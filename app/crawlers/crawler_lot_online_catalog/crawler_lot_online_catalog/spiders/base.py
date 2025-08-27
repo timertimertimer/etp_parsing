@@ -7,7 +7,7 @@ from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
 from app.utils.config import write_log_to_file
 from app.crawlers.items import EtpItem, EtpItemLoader
-from ..app import Combo
+from ..combo import Combo
 from ..config import form_data, hashes, data_origin, start_datetime
 
 

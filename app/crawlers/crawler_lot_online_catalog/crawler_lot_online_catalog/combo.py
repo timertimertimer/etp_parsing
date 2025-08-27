@@ -3,14 +3,14 @@ import logging
 import pandas as pd
 from itertools import takewhile
 from bs4 import BeautifulSoup
-from general_utils import (
+from app.utils import (
     dedent_func,
-    CheckIfCorrectContactInfo,
+    Contacts,
     contains,
-    UrlConfig,
-    format_time,
+    URL,
+    DateTimeHelper,
 )
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ class Combo:
     def download_general(self):
         files = list()
         for file in self.soup.find("div", id="content_documents").find_all(
-            "div", class_="attachment__item"
+                "div", class_="attachment__item"
         ):
             name = file.get_text(strip=True).split("\n")[0]
             link = file.find("a", class_="attachment__a cm-no-ajax")
@@ -100,10 +100,10 @@ class Combo:
     def download_lot(self):
         files = list()
         for file in self.soup.find("div", class_="ty-product-block__img").find_all(
-            "img"
+                "img"
         ):
             link = file.get("src")
-            name = UrlConfig.clean_url(link).split("/")[-1]
+            name = URL.clean_url(link).split("/")[-1]
             files.append(
                 DownloadData(url=link, file_name=name, referer=self.response.url)
             )
@@ -183,7 +183,7 @@ class Combo:
     @property
     def trading_org_contacts(self):
         return {
-            "email": CheckIfCorrectContactInfo.check_email(
+            "email": Contacts.check_email(
                 self.get_organizer()
                 .find(
                     "label",
@@ -193,7 +193,7 @@ class Combo:
                 .find_next("span")
                 .get_text(strip=True)
             ),
-            "phone": CheckIfCorrectContactInfo.check_phone(
+            "phone": Contacts.check_phone(
                 self.get_organizer()
                 .find(
                     "label", class_="ty-control-group__label", text=contains("Телефон")
@@ -216,7 +216,7 @@ class Combo:
                 text=contains("Номер объявления о проведении торгов в ЕФРСБ"),
             )
             if number:
-                return CheckIfCorrectContactInfo.check_msg_number(
+                return Contacts.check_msg_number(
                     number.find_next("td").get_text(strip=True)
                 )
 
@@ -224,7 +224,7 @@ class Combo:
     def case_number(self):
         debtor = self.get_debtor()
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
-            return CheckIfCorrectContactInfo.check_case_number(
+            return Contacts.check_case_number(
                 debtor.find(
                     "td", class_="key", text=contains("Реквизиты судебного дела")
                 )
@@ -236,7 +236,7 @@ class Combo:
     def debtor_inn(self):
         debtor = self.get_debtor()
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
-            return CheckIfCorrectContactInfo.check_inn(
+            return Contacts.check_inn(
                 debtor.find("td", class_="key", text=contains("ИНН"))
                 .find_next("td")
                 .get_text(strip=True)
@@ -246,13 +246,13 @@ class Combo:
     def address(self):
         debtor = self.get_debtor()
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
-            return CheckIfCorrectContactInfo.check_address(
+            return Contacts.check_address(
                 debtor.find("td", class_="key", text=contains("Почтовый адрес"))
                 .find_next("td")
                 .get_text(strip=True)
             )
 
-        return CheckIfCorrectContactInfo.check_address(
+        return Contacts.check_address(
             self.get_main_info()
             .find("dt", text=re.compile(r"Адрес|Регион"))
             .find_next("dd")
@@ -263,12 +263,13 @@ class Combo:
     def sud(self):
         debtor = self.get_debtor()
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
-            return CheckIfCorrectContactInfo.check_address(
+            return Contacts.check_address(
                 debtor.find("td", class_="key", text=contains("Наименование суда"))
                 .find_next("td")
                 .get_text(strip=True)
             )
 
+    # TODO: Менеджер продаж (ex: https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=871797)
     @property
     def arbit_manager(self):
         debtor = self.get_debtor()
@@ -284,16 +285,13 @@ class Combo:
                 .get_text(strip=True)
                 .split()
             )
-        return (
-            self.get_organizer()
-            .find(
+        if fio := self.get_organizer().find(
                 "label",
                 class_="ty-control-group__label",
                 text=contains("Контактное лицо"),
-            )
-            .find_next("span")
-            .get_text(strip=True)
-        )
+        ):
+            return fio.find_next("span").get_text(strip=True)
+        return None
 
     @property
     def arbit_manager_inn(self):
@@ -316,9 +314,9 @@ class Combo:
         debtor = self.get_debtor()
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
             if sro := debtor.find(
-                "label",
-                class_="ty-control-group__label",
-                text=re.compile(r"Арбитражный управляющий"),
+                    "label",
+                    class_="ty-control-group__label",
+                    text=re.compile(r"Арбитражный управляющий"),
             ):
                 return " ".join(
                     sro.find_next("td", class_="key", text=contains("СРО"))
@@ -371,15 +369,14 @@ class Combo:
 
     def get_auc_dates_link(self):
         return (
-            "https://catalog.lot-online.ru/e-auction/auctionLotProperty.v.xhtml?"
-            + UrlConfig.return_only_param(
-                self.get_main_info()
-                .find("span", text=contains("Код лота"))
-                .find_next("dd")
-                .find("a")
-                .get("href")
-                .strip()
-            )
+                "https://catalog.lot-online.ru/e-auction/auctionLotProperty.v.xhtml?" + URL.return_only_param(
+            self.get_main_info()
+            .find("span", text=contains("Код лота"))
+            .find_next("dd")
+            .find("a")
+            .get("href")
+            .strip()
+        )
         )
 
     def get_date_requests(self):
@@ -392,11 +389,15 @@ class Combo:
 
     @property
     def start_date_requests_auc(self):
-        return format_time(self.get_date_requests()[0].text.strip())
+        if date := DateTimeHelper.smart_parse(self.get_date_requests()[0].text.strip()):
+            return date.astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     @property
     def end_date_requests_auc(self):
-        return format_time(self.get_date_requests()[1].text.strip())
+        if date := DateTimeHelper.smart_parse(self.get_date_requests()[1].text.strip()):
+            return date.astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     @property
     def start_price(self):
@@ -408,7 +409,7 @@ class Combo:
     @property
     def step_price(self):
         if step_price := self.get_auction_info_body().find(
-            "label", text=contains("Шаг")
+                "label", text=contains("Шаг")
         ):
             return self.parse_price(step_price.find_next("span").text.strip())
 
@@ -429,9 +430,11 @@ class Combo:
             )
             try:
                 period = {
-                    "start_date_requests": format_time(start_requests),
-                    "end_date_requests": format_time(end_requests),
-                    "end_date_trading": format_time(end_trading),
+                    "start_date_requests": DateTimeHelper.smart_parse(start_requests).astimezone(
+                        DateTimeHelper.moscow_tz
+                    ),
+                    "end_date_requests": DateTimeHelper.smart_parse(end_requests).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end_trading).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)

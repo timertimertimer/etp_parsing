@@ -28,9 +28,9 @@ class DateTimeHelper:
         return dt.strftime(return_format)
 
     @staticmethod
-    def smart_parse(string: str, input_time_format: str = iso_time_format) -> datetime:
+    def smart_parse(string: str, input_time_format: str = iso_time_format) -> Optional[datetime]:
         if not string:
-            raise InvalidFormatDateTime("Empty string provided")
+            return None
 
         dt = None
         try:
