@@ -4,34 +4,45 @@ from bs4 import BeautifulSoup
 from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
-from app.crawlers.crawler_b2b_center.crawler_b2b_center.config import data_origin, params
-from app.db.models import AuctionPropertyType
-from app.utils import URL
+from app.crawlers.crawler_b2b_center.crawler_b2b_center.combo import Combo
+from app.crawlers.crawler_b2b_center.crawler_b2b_center.config import data_origin, params, login_url, login_data
+from app.crawlers.items import EtpItemLoader, EtpItem
+from app.db.models import AuctionPropertyType, Auction
+from app.utils import URL, logger
 
 
 class B2bCenterBaseSpider(BaseSpider):
     name = "b2b_center"
-    allowed_domains = ["www.b2b-center.ru"]
     start_urls = ["https://www.b2b-center.ru/market/"]
 
     def __init__(self, **kwargs):
-        super().__init__(data_origin)
+        super().__init__(data_origin, select_keys={Auction.ext_id})
 
-    def start_requests(self) -> Iterable[Request]:
+    def start_requests(self):
+        yield Request(self.start_urls[0], self.login)
+
+    def login(self, response):
+        yield FormRequest(
+            login_url, formdata=login_data, callback=self.after_login,
+            headers={
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        )
+
+    def after_login(self, response):
         yield FormRequest(self.start_urls[0], formdata=params, method='GET', callback=self.parse_serp)
 
-    def login(self, respose):
-        ...
-
     def parse_serp(self, response):
+        logger.info(response.url)
         soup = BeautifulSoup(response.text, "lxml")
-        table = response.xpath(
-            '//table[@class="table table-hover table-filled search-results"]//tbody/tr//a[@class="search-results-title visited"]'
+        links = response.xpath(
+            '//table[@class="table table-hover table-filled search-results"]//tbody/tr//a[@class="search-results-title visited"]/@href'
         ).getall()
-        for link in table:
-            link = URL.url_join(data_origin, link.get('href'))
-            if link not in self.previous_trades:
-                yield Request(link, callback=self.parse)
+        for link in links:
+            id_ = int(link.split('?id=')[1].split('#')[0])
+            if id_ not in self.previous_trades:
+                self.previous_trades.append(id_)
+                yield Request(f'https://www.b2b-center.ru/market/view.html?id={id_}', callback=self.parse_trade)
 
         # TODO: need cookies for pagination
         current_page = soup.find('li', class_='pagi-item pagi-item-current')
@@ -39,6 +50,43 @@ class B2bCenterBaseSpider(BaseSpider):
         if next_page:
             params['from'] = str(20 * int(current_page.get_text(strip=True)))
             yield FormRequest(self.start_urls[0], formdata=params, method='GET', callback=self.parse_serp)
+
+    def parse_trade(self, response):
+        combo = Combo(response)
+        loader = EtpItemLoader(EtpItem(), response=response)
+        loader.add_value('data_origin', data_origin)
+        loader.add_value('property_type', self.property_type)
+        loader.add_value("trading_id", combo.trading_id)
+        loader.add_value("trading_link", combo.trading_link)
+        loader.add_value("trading_number", combo.trading_number)
+        loader.add_value("trading_type", combo.trading_type)
+        loader.add_value("trading_form", combo.trading_form)
+        loader.add_value("trading_org", combo.trading_org)
+        loader.add_value("trading_org_contacts", combo.trading_org_contacts)
+        loader.add_value("address", combo.address)
+        loader.add_value("status", 'active')
+        loader.add_value("lot_number", '1')
+        loader.add_value("short_name", combo.short_name)
+        loader.add_value("lot_info", combo.lot_info)
+        loader.add_value("categories", combo.categories)
+        loader.add_value("property_information", combo.property_information)
+        loader.add_value("start_date_requests", combo.start_date_requests)
+        loader.add_value("end_date_requests", combo.end_date_requests)
+        loader.add_value("start_date_trading", combo.start_date_trading)
+        loader.add_value("end_date_trading", combo.end_date_trading)
+        loader.add_value("start_price", combo.start_price)
+        if combo.trading_type in ["auction", "competition"]:
+            loader.add_value("step_price", combo.step_price)
+        loader.add_value("periods", combo.periods)
+        loader.add_value(
+            "files",
+            {"general": combo.download_general(), "lot": combo.download_lot()},
+        )
+        yield
+
+    def get_organizer_inn(self, response, loader):
+        loader.add_value("trading_org_inn", combo.trading_org_inn)
+        yield loader.load_item()
 
 
 class B2bCenterFz223Spider(B2bCenterBaseSpider):
