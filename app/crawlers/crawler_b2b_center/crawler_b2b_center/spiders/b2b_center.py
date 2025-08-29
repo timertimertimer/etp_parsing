@@ -42,9 +42,9 @@ class B2bCenterBaseSpider(BaseSpider):
             id_ = int(link.split('?id=')[1].split('#')[0])
             if id_ not in self.previous_trades:
                 self.previous_trades.append(id_)
-                yield Request(f'https://www.b2b-center.ru/market/view.html?id={id_}', callback=self.parse_trade)
+                link = f'https://www.b2b-center.ru/market/view.html?id={id_}'
+                yield Request(link, callback=self.parse_trade)
 
-        # TODO: need cookies for pagination
         current_page = soup.find('li', class_='pagi-item pagi-item-current')
         next_page = current_page.find_next('li', class_='pagi-item')
         if next_page:
@@ -82,9 +82,11 @@ class B2bCenterBaseSpider(BaseSpider):
             "files",
             {"general": combo.download_general(), "lot": combo.download_lot()},
         )
-        yield
+        if trading_org_link := combo.get_trading_org_td().get('href'):
+            yield Request(trading_org_link, callback=self.get_organizer_inn)
 
     def get_organizer_inn(self, response, loader):
+        combo = Combo(response)
         loader.add_value("trading_org_inn", combo.trading_org_inn)
         yield loader.load_item()
 

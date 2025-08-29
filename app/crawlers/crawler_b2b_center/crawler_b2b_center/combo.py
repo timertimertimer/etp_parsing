@@ -1,12 +1,18 @@
 from bs4 import BeautifulSoup
 
-from app.utils import logger, Contacts
+from app.utils import logger, Contacts, dedent_func, DateTimeHelper, make_float
 
 
 class Combo:
     def __init__(self, response):
         self.response = response
         self.soup = BeautifulSoup(response.text, 'lxml')
+
+    def download_general(self):
+        return []
+
+    def download_lot(self):
+        return []
 
     @property
     def trading_id(self):
@@ -65,3 +71,70 @@ class Combo:
 
     @property
     def short_name(self):
+        if headline := self.soup.find('h1', class_='h3', attrs={'itemprop': 'headline'}):
+            return dedent_func(headline.find('div', class_='s2').get_text(strip=True))
+        logger.warning(f'{self.response.url} | Could not parse short_name={self.short_name}')
+        return None
+
+    @property
+    def lot_info(self):
+        return None
+
+    @property
+    def categories(self):
+        categories = []
+        if okpd2 := self.soup.find('tr', id_='trade-info-okpd2'):
+            categories.append(okpd2.find_next('tr').get_text(strip=True))
+        if okved2 := self.soup.find('tr', id_='trade-info-okved2'):
+            categories.append(okved2.find_next('tr').get_text(strip=True))
+        return categories
+
+    @property
+    def property_information(self):
+        if text := self.soup.find('td', text='Порядок предоставления документации по закупке:'):
+            return dedent_func(text.get_text(strip=True))
+        return None
+
+    @property
+    def start_date_requests(self):
+        if date := self.soup.find('td', text='Дата окончания подачи заявок:'):
+            return DateTimeHelper.smart_parse(date.get_text(strip=True)).astimezone(DateTimeHelper.moscow_tz)
+        logger.warning(f'{self.response.url} | Could not parse start_date_requests={self.start_date_requests}')
+        return None
+
+    @property
+    def end_date_requests(self):
+        if date := self.soup.find('td', text='Дата окончания подачи заявок:'):
+            return DateTimeHelper.smart_parse(date.get_text(strip=True)).astimezone(DateTimeHelper.moscow_tz)
+        logger.warning(f'{self.response.url} | Could not parse end_date_requests={self.end_date_requests}')
+        return None
+
+    @property
+    def start_date_trading(self):
+        return None
+
+    @property
+    def end_date_trading(self):
+        return None
+
+    @property
+    def start_price(self):
+        if price := self.soup.find('td', text='Цена за единицу продукции:'):
+            return make_float(price.find_next('td').get_text(strip=True))
+        logger.warning(f'{self.response.url} | Could not parse start_price={self.start_price}')
+        return None
+
+    @property
+    def step_price(self):
+        return None  # TODO
+
+    @property
+    def periods(self):
+        return None  # TODO
+
+    @property
+    def trading_org_inn(self):
+        if inn := self.soup.find('td', text='ИНН'):
+            return Contacts.check_inn(inn.get_text(strip=True))
+        logger.warning(f'{self.response.url} | Could not parse trading_org_inn={self.trading_org_inn}')
+        return None
