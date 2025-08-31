@@ -96,7 +96,7 @@ class Combo:
         d = {
             "offer": ["Публичное предложение"],
             "auction": ["Открытый аукцион", "Торги на повышение", "Аукцион"],
-            "rfq": ['Запрос котировок']
+            "rfp": ['Запрос котировок']
         }
         trading_type = self.get_table_value_by(
             "Основные сведения",
@@ -108,6 +108,8 @@ class Combo:
         for key in d:
             if trading_type in d[key]:
                 return key
+        logger.warning(f'{self.response.url} | Could not parse trading_type={trading_type}')
+        return None
 
     @property
     def trading_form(self):

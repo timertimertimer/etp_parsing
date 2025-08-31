@@ -1,4 +1,3 @@
-import scrapy
 from scrapy import FormRequest, Request
 
 from app.crawlers.base import BaseSpider
@@ -22,6 +21,7 @@ class ZakupkigovBaseSpider(BaseSpider):
             formdata=formdata[self.property_type.value],
             method='GET',
             callback=self.parse_serp,
+            errback=self.errback_httpbin
         )
 
     def parse_serp(self, response):
@@ -30,7 +30,7 @@ class ZakupkigovBaseSpider(BaseSpider):
         for link in links:
             link = URL.url_join(data_origin, link)
             if link not in self.previous_trades:
-                yield Request(url=link, callback=self.parse_trade)
+                yield Request(url=link, callback=self.parse_trade, errback=self.errback_httpbin)
         if next_page := response.xpath(
                 '//a[@class="paginator-button paginator-button-next"]'
         ):
@@ -50,7 +50,7 @@ class ZakupkigovBaseSpider(BaseSpider):
         loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", response.url)
-        loader.add_value("trading_number", combo.trading_number)
+        loader.add_value("trading_number", combo.trading_number)  # trading_id
         loader.add_value("trading_type", combo.trading_type)
         loader.add_value("trading_form", combo.trading_form)
         loader.add_value("trading_org", combo.trading_org)
@@ -71,23 +71,31 @@ class ZakupkigovBaseSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
-        loader.add_value(
-            "files",
-            {"general": combo.download_general(), "lot": combo.download_lot(lot)},
-        )
         # TODO: ИНН парсится на отдельной страницы организации, контактные данные на лоте
+        # TODO: документы собираются из отдельной страницы
         trading_org_data = combo.get_trading_org_data()
+        documents_link = response.url.replace('common-info', 'documents')
         if trading_org_data:
             trading_org_link = trading_org_data.find_next('span').find('a').get('href')
             yield Request(
                 url=URL.url_join(data_origin, trading_org_link),
                 callback=self.get_trading_org_info,
-                cb_kwargs={'loader': loader}
+                cb_kwargs={'loader': loader, 'documents_link': documents_link}, errback=self.errback_httpbin
             )
+        else:
+            yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
 
-    def get_trading_org_info(self, response, loader):
+    def get_trading_org_info(self, response, loader, documents_link):
         combo = Combo(response=response)
         loader.add_value("trading_org_inn", combo.trading_org_inn)
+        yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
+
+    def get_documents(self, response, loader):
+        combo = Combo(response=response)
+        loader.add_value(
+            "files",
+            {"general": combo.download_general(), "lot": combo.download_lot()},
+        )
         yield loader.load_item()
 
 

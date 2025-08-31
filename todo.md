@@ -21,9 +21,9 @@
 - [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223) PROXY
 - [x] rutrade commercial NEW MULTIPART POST DATA
 - [ ] roseltorg legal_entites/capital_repair/fz223 PROXY
-- [ ] zakupki.gov fz44/capital_repair
+- [x] zakupki.gov fz44/capital_repair
 - [ ] tender.lot-online fz223
-- [ ] b2b fz223
+- [x] b2b fz223
 - [x] catalog.lot-online rent
 
 - [ ] fabrikant fz223 (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0)

@@ -90,7 +90,7 @@ class FabrikantBaseSpider(BaseSpider):
             transfer["lot_info"] = combo.get_lot_info(lot)
             transfer["property_information"] = combo.get_property_information(lot)
             transfer["categories"] = combo.get_categories(lot)
-            if transfer["trading_type"] in ["auction", "competition", "pdo", "tender", "reduction", "rfp", "rfq"]:
+            if transfer["trading_type"] in ["auction", "competition", "pdo", "tender", "reduction", "rfp"]:
                 transfer["start_date_requests"] = combo.get_start_date_requests(lot)
                 transfer["end_date_requests"] = combo.get_end_date_requests(lot)
                 transfer["start_date_trading"] = combo.get_start_date_trading(lot)

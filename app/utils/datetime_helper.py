@@ -22,6 +22,12 @@ class DateTimeHelper:
     iso_time_format = "%Y-%m-%dT%H:%M:%S"
 
     @staticmethod
+    def get_timezone_with_offset_from_moscow(offset: int) -> timezone:
+        moscow_offset = timedelta(hours=3)
+        total_offset = moscow_offset + timedelta(hours=offset)
+        return timezone(total_offset, name=f"MSK+{offset}")
+
+    @staticmethod
     def format_datetime(dt: datetime, return_format: str = sql_time_format) -> Optional[str]:
         if not isinstance(dt, datetime):
             return None
@@ -93,3 +99,7 @@ class DateTimeHelper:
             return datetime.strptime(cleaned, "%d.%m.%Y %H:%M:%S")
         except Exception:
             return None
+
+
+if __name__ == '__main__':
+    print(DateTimeHelper.get_timezone_with_offset_from_moscow(2))

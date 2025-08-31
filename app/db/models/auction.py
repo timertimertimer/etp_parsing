@@ -35,9 +35,9 @@ class AuctionType(str, Enum):
     offer = "offer"
     pdo = "pdo"
     rfp = "rfp"
-    rfq = "rfq"
     tender = "tender"
     reduction = "reduction"
+    other = "other"
 
 class FormType(str, Enum):
     open = "open"

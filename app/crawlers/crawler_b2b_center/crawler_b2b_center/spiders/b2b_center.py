@@ -55,10 +55,10 @@ class B2bCenterBaseSpider(BaseSpider):
         combo = Combo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value('data_origin', data_origin)
-        loader.add_value('property_type', self.property_type)
+        loader.add_value('property_type', self.property_type.value)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
-        loader.add_value("trading_number", combo.trading_number)
+        loader.add_value("trading_number", combo.trading_number)  # trading_id
         loader.add_value("trading_type", combo.trading_type)
         loader.add_value("trading_form", combo.trading_form)
         loader.add_value("trading_org", combo.trading_org)
@@ -77,18 +77,28 @@ class B2bCenterBaseSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         if combo.trading_type in ["auction", "competition"]:
             loader.add_value("step_price", combo.step_price)
-        loader.add_value("periods", combo.periods)
+        else:
+            loader.add_value("periods", combo.periods)
         loader.add_value(
             "files",
             {"general": combo.download_general(), "lot": combo.download_lot()},
         )
-        if trading_org_link := combo.get_trading_org_td().get('href'):
-            yield Request(trading_org_link, callback=self.get_organizer_inn)
+        yield loader.load_item()
+        # TODO: trading_org_inn находится на странице фирмы. досту
+        # if trading_org_link := combo.get_trading_org_td().find('a').get('href'):
+        #     yield Request(
+        #         URL.url_join(data_origin, trading_org_link),
+        #         callback=self.get_organizer_inn,
+        #         cb_kwargs={'loader': loader},
+        #         headers={
+        #             ''
+        #         }
+        #     )
 
     def get_organizer_inn(self, response, loader):
         combo = Combo(response)
-        loader.add_value("trading_org_inn", combo.trading_org_inn)
-        yield loader.load_item()
+        # loader.add_value("trading_org_inn", combo.trading_org_inn)
+        # yield loader.load_item()
 
 
 class B2bCenterFz223Spider(B2bCenterBaseSpider):
