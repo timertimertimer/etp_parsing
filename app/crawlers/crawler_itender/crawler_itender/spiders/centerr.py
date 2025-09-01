@@ -12,7 +12,7 @@ from ..config import (
     start_date,
     centerr_commercial_auction_post_data,
 )
-from ..manage_spiders.app import Combo
+from ..manage_spiders.combo import Combo
 
 mapping = {"auctions-up-all": "auction", "public-offers-all": "offer"}
 

@@ -1,5 +1,3 @@
-from typing import Iterable
-
 from bs4 import BeautifulSoup
 from scrapy import Request, FormRequest
 
@@ -8,7 +6,7 @@ from app.crawlers.crawler_b2b_center.crawler_b2b_center.combo import Combo
 from app.crawlers.crawler_b2b_center.crawler_b2b_center.config import data_origin, params, login_url, login_data
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType, Auction
-from app.utils import URL, logger
+from app.utils import logger
 
 
 class B2bCenterBaseSpider(BaseSpider):

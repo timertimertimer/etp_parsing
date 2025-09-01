@@ -7,7 +7,7 @@ search_link = "https://www.akosta.info/akosta/lots.xhtml"
 common_link = "https://www.akosta.info/akosta/auctionCard.xhtml"
 debtor_link = "https://www.akosta.info/akosta/auctionCardDeb.xhtml"
 lot_link = "https://www.akosta.info/akosta/auctionCardLots.xhtml"
-_link_post_period = "https://www.akosta.info/akosta/lotCard.xhtml"
+link_post_period = "https://www.akosta.info/akosta/lotCard.xhtml"
 
 property_type_number = {
     AuctionPropertyType.bankruptcy: 3,

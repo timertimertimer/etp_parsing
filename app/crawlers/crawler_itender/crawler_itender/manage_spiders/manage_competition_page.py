@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, format_time, logger
+from app.utils import dedent_func, DateTimeHelper, logger
 from ..locators.serp_locator import LocatorSerp
 from ..locators.competition_locator import CompetLocator
 
@@ -60,7 +60,7 @@ class CompetitionPage:
             start = self.response.xpath(self.loc_comp.start_date_request_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features="lxml").get_text())
-                return format_time(start.strip())
+                return DateTimeHelper.smart_parse(start.strip()).astimezone(DateTimeHelper.moscow_tz)
             else:
                 logger.warning(
                     f"{self.response.url} :: START DATE REQUEST ERROR AUCTION(COMPETITION)"
@@ -76,7 +76,7 @@ class CompetitionPage:
             end = self.response.xpath(self.loc_comp.end_date_request_loc).get()
             if end:
                 end = dedent_func(BS(str(end), features="lxml").get_text())
-                return format_time(end.strip())
+                return DateTimeHelper.smart_parse(end.strip()).astimezone(DateTimeHelper.moscow_tz)
             else:
                 logger.warning(
                     f"{self.response.url} :: end DATE REQUEST ERROR AUCTION(COMPETITION)"
@@ -92,21 +92,21 @@ class CompetitionPage:
             start = self.response.xpath(self.loc_comp.start_date_trading_loc).get()
             if start:
                 start = dedent_func(BS(str(start), features="lxml").get_text())
-                return format_time(start.strip())
+                return DateTimeHelper.smart_parse(start.strip()).astimezone(DateTimeHelper.moscow_tz)
             elif extra_start := self.response.xpath(
                 self.loc_comp.extra_start_date_trading
             ).get():
                 extra_start = dedent_func(
                     BS(str(extra_start), features="lxml").get_text()
                 )
-                return format_time(extra_start.strip())
+                return DateTimeHelper.smart_parse(extra_start.strip()).astimezone(DateTimeHelper.moscow_tz)
             elif start_utender := self.response.xpath(
                 self.loc_comp.start_date_trading_utender_loc
             ).get():
                 start_utender = dedent_func(
                     BS(str(start_utender), features="lxml").get_text()
                 )
-                return format_time(start_utender.strip())
+                return DateTimeHelper.smart_parse(start_utender.strip()).astimezone(DateTimeHelper.moscow_tz)
             else:
                 logger.warning(
                     f"{self.response.url} :: START DATE TRADING ERROR (COMPETITION)"

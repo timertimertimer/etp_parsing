@@ -7,13 +7,12 @@ from numpy import float64, integer
 from bs4 import BeautifulSoup as BS
 from ..config import data_origin
 from app.utils import (
-    format_time_period,
     make_float,
     URL,
     dedent_func,
     Contacts,
-    format_time,
     logger,
+    DateTimeHelper,
 )
 
 __all__ = [
@@ -27,11 +26,10 @@ __all__ = [
     "deque",
     "dedent_func",
     "make_float",
-    "format_time_period",
+    "DateTimeHelper",
     "pathlib",
     "float64",
     "pd",
-    "format_time",
     "integer",
     "logger",
 ]

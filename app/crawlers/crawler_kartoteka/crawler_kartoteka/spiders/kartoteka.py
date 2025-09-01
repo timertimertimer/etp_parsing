@@ -9,7 +9,7 @@ from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.utils.config import trash_resources, start_date, write_log_to_file
 from ..locators.serp_locator import SerpLocator
-from ..app import Combo
+from ..combo import Combo
 from ..config import data_origin_url, form_data
 
 

@@ -1,7 +1,9 @@
-from app.utils.config import format_parse_date
+from datetime import datetime
+
+from app.utils.config import DateTimeHelper
 
 data_origin_url = "http://eurtp.ru/"
-end_date = format_parse_date(0)
+end_date = DateTimeHelper.format_datetime(datetime.now(), '%d.%m.%Y')
 page_limit = 10
 bankrupt_categories = [
     "https://eurtp.ru/Home/AuctionOpen",

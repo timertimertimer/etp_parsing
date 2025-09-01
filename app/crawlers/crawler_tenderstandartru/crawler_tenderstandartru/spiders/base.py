@@ -6,7 +6,7 @@ from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.utils.config import write_log_to_file
 from ..config import trades, data_origin, search_param
-from ..trades.app import Combo
+from ..trades.combo import Combo
 
 
 class TenderstandartBaseSpider(BaseSpider):

@@ -3,11 +3,11 @@ from datetime import datetime
 
 from scrapy import FormRequest, Request
 
-from general_utils import dedent_func
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
-from general_utils.items import EtpItemLoader, EtpItem
-from ..app import Combo
+from app.utils import dedent_func
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
+from app.crawlers.items import EtpItemLoader, EtpItem
+from ..combo import Combo
 from ..config import form_data, main_data_origin, data_origin
 
 

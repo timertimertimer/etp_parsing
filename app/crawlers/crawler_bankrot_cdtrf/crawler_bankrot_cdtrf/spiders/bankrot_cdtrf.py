@@ -7,7 +7,7 @@ from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
 from app.utils import logger
 from ..locators_and_attributes.locators_attributes import Offer
-from ..manage_spiders.app import Compose
+from ..manage_spiders.combo import Compose
 from app.crawlers.base import BaseSpider
 from ..config import data_origin_url, start_date
 

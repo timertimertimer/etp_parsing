@@ -7,7 +7,7 @@ from app.crawlers.base import BaseSpider
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
 from app.utils.logger import logger
-from ..app import Combo
+from ..combo import Combo
 from ..config import formdata, data_origin, search_link, trade_link
 
 

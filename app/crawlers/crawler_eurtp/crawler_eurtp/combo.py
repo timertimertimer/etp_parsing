@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 
 from .config import data_origin_url
-from app.utils import format_time, URL, dedent_func, Contacts, logger
+from app.utils import DateTimeHelper, URL, dedent_func, Contacts
 from app.db.models import DownloadData
 
 
@@ -260,7 +260,7 @@ class Combo:
         start_date_requests = None
         for arr_item in date:
             if arr_item:
-                start_date_requests = format_time(arr_item)
+                start_date_requests = DateTimeHelper.smart_parse(arr_item).astimezone(DateTimeHelper.moscow_tz)
         if start_date_requests is None and len(self.periods) != 0:
             return self.periods[0]["start_date_requests"]
         return start_date_requests
@@ -280,7 +280,7 @@ class Combo:
         end_date_requests = None
         for arr_item in date:
             if arr_item:
-                end_date_requests = format_time(arr_item)
+                end_date_requests = DateTimeHelper.smart_parse(arr_item).astimezone(DateTimeHelper.moscow_tz)
         if end_date_requests is None and len(self.periods) != 0:
             return self.periods[-1]["end_date_requests"]
         return end_date_requests
@@ -300,7 +300,7 @@ class Combo:
         start_date_trading = None
         for arr_item in date:
             if arr_item:
-                start_date_trading = format_time(arr_item)
+                start_date_trading = DateTimeHelper.smart_parse(arr_item).astimezone(DateTimeHelper.moscow_tz)
         if start_date_trading is None and len(self.periods) != 0:
             return self.periods[0]["start_date_requests"]
         return start_date_trading
@@ -374,9 +374,9 @@ class Combo:
         for period_str in periods:
             period_str = period_str.split(": ")
             period = {
-                "start_date_requests": format_time(period_str[0].split(" - ")[0]),
-                "end_date_requests": format_time(period_str[0].split(" - ")[1]),
-                "end_date_trading": format_time(period_str[0].split(" - ")[1]),
+                "start_date_requests": DateTimeHelper.smart_parse(period_str[0].split(" - ")[0]).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_requests": DateTimeHelper.smart_parse(period_str[0].split(" - ")[1]).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_trading": DateTimeHelper.smart_parse(period_str[0].split(" - ")[1]).astimezone(DateTimeHelper.moscow_tz),
                 "current_price": self.clean_price(period_str[-1]),
             }
 

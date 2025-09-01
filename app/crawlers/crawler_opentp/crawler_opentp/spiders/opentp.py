@@ -1,12 +1,10 @@
-import logging
 from scrapy import Request
 
-from general_utils import UrlConfig, EtpItem, EtpItemLoader
-from general_utils.base_spider import BaseSpider
+from app.utils import URL
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
 from ..config import data_origin_url
-from ..app import Combo
-
-logger = logging.getLogger(__name__)
+from ..combo import Combo
 
 
 class OpentpSpider(BaseSpider):
@@ -23,7 +21,7 @@ class OpentpSpider(BaseSpider):
         next_page = combo.get_next_page()
         if next_page:
             yield Request(
-                UrlConfig.url_join(data_origin_url, next_page),
+                URL.url_join(data_origin_url, next_page),
                 self.parse,
                 cb_kwargs={"unique_links": unique_links},
             )

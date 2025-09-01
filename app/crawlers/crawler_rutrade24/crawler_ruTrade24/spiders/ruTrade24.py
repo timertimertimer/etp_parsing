@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import scrapy
-import logging
 from typing import Iterable
 from scrapy import Request, FormRequest
 
@@ -11,8 +10,6 @@ from app.utils import URL
 from app.utils.config import write_log_to_file
 from ..combo import Combo
 from ..config import page_limits, formdata, main_data_origin, start_urls, data_origins
-
-logger = logging.getLogger(__name__)
 
 BOUNDARY = "wL36Yn8afVp8Ag7AmP8qZ0SA4n1v9T"
 

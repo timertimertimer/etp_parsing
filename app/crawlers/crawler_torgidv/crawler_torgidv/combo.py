@@ -1,9 +1,7 @@
 import json
 import re
 
-from bs4 import BeautifulSoup
-
-from app.utils import URL, dedent_func, Contacts, format_time, logger
+from app.utils import URL, dedent_func, Contacts,DateTimeHelper, logger
 from app.db.models import DownloadData, AuctionPropertyType
 from .config import urls, data_origin_url
 from .locators.locator_trade import LocatorTrade
@@ -152,28 +150,28 @@ class Combo:
     def start_date_requests(self):
         date = self.response.xpath(LocatorTrade.start_date_requests_loc).get()
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(LocatorTrade.end_date_requests_loc).get()
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(LocatorTrade.start_date_trading_loc).get()
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(LocatorTrade.end_date_trading_loc).get()
         if date:
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def _inn(self, locator: str):

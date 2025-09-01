@@ -1,11 +1,8 @@
 import re
-import logging
 from bs4 import BeautifulSoup
 
-from general_utils import UrlConfig, contains, dedent_func, return_parse_date
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from app.utils import URL, contains, dedent_func, DateTimeHelper, logger
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -25,7 +22,7 @@ class Combo:
             link = link.get("href")
             files.append(
                 DownloadData(
-                    url=UrlConfig.url_join(data_origin, link),
+                    url=URL.url_join(data_origin, link),
                     file_name=name,
                     referer=self.response.url,
                 )
@@ -38,10 +35,10 @@ class Combo:
         if type_:
             type_ = type_.find_next("span").text.strip().lower()
             if any(
-                [
-                    "аукцион" in type_,
-                    "сессия" in type_,
-                ]
+                    [
+                        "аукцион" in type_,
+                        "сессия" in type_,
+                    ]
             ):
                 return "auction"
             elif "конкурс" in type_:
@@ -64,24 +61,24 @@ class Combo:
         if status:
             status = status.text.strip().lower()
             if status in (
-                "подача заявок",
-                "опубликована",
-                "опубликован проект",
-                "размещена в еис",
-                "подача предложений",
+                    "подача заявок",
+                    "опубликована",
+                    "опубликован проект",
+                    "размещена в еис",
+                    "подача предложений",
             ):
                 return "active"
             elif status in (
-                "рассмотрение заявок",
-                "ожидает рассмотрения заявок",
-                "ожидает начала подачи предложений",
+                    "рассмотрение заявок",
+                    "ожидает рассмотрения заявок",
+                    "ожидает начала подачи предложений",
             ):
                 return "pending"
             elif status in (
-                "завершена",
-                "рассмотрение предложений/подведение итогов",
-                "отменена",
-                "приостановлено",
+                    "завершена",
+                    "рассмотрение предложений/подведение итогов",
+                    "отменена",
+                    "приостановлено",
             ):
                 return "ended"
             else:
@@ -144,8 +141,9 @@ class Combo:
             format = "%d/%m/%Y %H:%M"
             cleaned_start = re.sub(r"\*?\s*\(.*\)", "", start)
             cleaned_end = re.sub(r"\*?\s*\(.*\)", "", end)
-            return return_parse_date(cleaned_start, format), return_parse_date(
-                cleaned_end, format
+            return (
+                DateTimeHelper.smart_parse(cleaned_start, format).astimezone(DateTimeHelper.moscow_tz),
+                DateTimeHelper.smart_parse(cleaned_end, format).astimezone(DateTimeHelper.moscow_tz)
             )
 
     @property
@@ -207,4 +205,5 @@ class Combo:
             logger.error(f"{self.response.url} :: INVALID DEPOSIT PRICE\n{e}")
 
     @property
-    def periods(self): ...
+    def periods(self):
+        return None

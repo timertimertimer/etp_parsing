@@ -4,7 +4,7 @@ from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
 from ..config import start_date, end_date, data_origin_urls, urls
-from ..trades.app import Combo
+from ..trades.combo import Combo
 from app.utils import URL
 from app.utils.config import write_log_to_file
 from app.crawlers.items import EtpItemLoader, EtpItem

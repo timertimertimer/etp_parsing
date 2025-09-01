@@ -1,21 +1,20 @@
 import json
 from typing import Optional
 
-import pytz
-
 from app.db.models import DownloadData
 from app.utils import logger, Contacts, DateTimeHelper, make_float
 
 
 class Combo:
     def __init__(self, response):
+        self._step_price = None
         self.response = response
         self.data = json.loads(response.text)
         self.common_data = self.data['commonInfo']
 
     @property
     def trading_id(self):
-        return self.common_data['eisNumber']
+        return self.common_data['eisNumber'] or self.common_data['etpNumber']
 
     @property
     def trading_link(self):
@@ -23,15 +22,18 @@ class Combo:
 
     @property
     def trading_type(self):
-        type_ = self.common_data['purchaseMethodCode']
+        type_ = self.common_data['purchaseCategoryCode']
         d = {
-            'auction': ['smspAuction']
+            'auction': ['SmspAuctionCase'],
+            'competition': ['SmspCompetitionCase'],
+            'offer': ['SmspRFPCase'],
+            'rfp': ['PriceRequestCase', 'PurchaseCase', 'SmspRFQCase']
         }
         for k, v in d.items():
             if type_ in v:
                 return k
         logger.warning(f'{self.response.url} | Could not parse trading_type={type_}')
-        return None
+        return 'other'
 
     @property
     def trading_number(self):
@@ -75,15 +77,14 @@ class Combo:
         return categories
 
     @property
-    def main_stage(self) -> Optional[list]:
+    def main_stage_list(self) -> Optional[list]:
         stages = self.data.get('stages')
         if not stages:
-            return
+            return []
 
         if len(stages) > 1:
             pass
-
-        return self.main_stage[0]['stageList']
+        return stages[0]['stageList']
 
     def dates(self) -> dict:
         dates = dict(
@@ -92,9 +93,9 @@ class Combo:
             start_date_trading=None,
             end_date_trading=None,
         )
-        for stage in self.main_stage:
+        for stage in self.main_stage_list:
             date_type = None
-            date = stage['date'] + ' ' + stage['time']
+            date = stage['date'] + ' ' + (stage.get('time', '') or '')
             if stage['code'] == 'GD_START':
                 date_type = 'start_date_requests'
             elif stage['code'] == 'GD_END':
@@ -105,7 +106,7 @@ class Combo:
             elif stage['code'] == 'SUMMATION':
                 date_type = 'end_date_trading'
             if date_type:
-                dates[date_type] = DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+                dates[date_type] = DateTimeHelper.smart_parse(date.strip()).astimezone(DateTimeHelper.moscow_tz)
         return dates
 
     @property
@@ -122,13 +123,13 @@ class Combo:
 
     @property
     def periods(self):
-        ...  # TODO
+        return None  # TODO
 
     def download_general(self):
         notices = self.data.get('notices')
         files = []
         for notice in notices:
-            for file in notices.get('fileSignResponse'):
+            for file in notice.get('fileSignResponse'):
                 file_dto = file['fileDTO']
                 link = f'https://tender.lot-online.ru/etp/downloadppf?uuid={file_dto["uuid"]}'
                 name = file_dto["fileName"]

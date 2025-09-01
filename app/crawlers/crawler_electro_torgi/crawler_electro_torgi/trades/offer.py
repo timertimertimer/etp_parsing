@@ -4,7 +4,7 @@ from itertools import takewhile
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from app.utils import format_time, logger
+from app.utils import DateTimeHelper, logger
 
 
 class Offer:
@@ -42,20 +42,20 @@ class Offer:
                     )
                 else:
                     check_value = price
-            except Exception:
+            except Exception as e:
                 logger.warning(
                     f"{self.response.url} Period Price - {price_} typeof - {type(price_)}"
                 )
                 return None
             try:
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)
-            except Exception:
+            except Exception as e:
                 continue
         return periods
 
@@ -63,7 +63,7 @@ class Offer:
     def start_date_trading(self):
         try:
             tbody_periods = self.get_period_table()
-            return format_time(tbody_periods.iloc[0][1])
+            return DateTimeHelper.smart_parse(tbody_periods.iloc[0][1]).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.warning(
                 f"{self.response.url} :: INVALID DATA START DATE REQUEST OFFER \n\n\n",
@@ -75,7 +75,7 @@ class Offer:
     def end_date_trading(self):
         try:
             end = self.get_period_table().iloc[-1][2]
-            return format_time(end)
+            return DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz)
         except Exception as ex:
             logger.warning(
                 f"{self.response.url} :: ERROR START DATE REQUEST OFFER {ex}"

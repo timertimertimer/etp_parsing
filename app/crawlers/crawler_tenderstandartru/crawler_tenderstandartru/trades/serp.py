@@ -17,7 +17,7 @@ class SerpParse:
             return number
         return None
 
-    def get_types_param(self) -> str:
+    def get_types_param(self) -> str | None:
         type_value = self.soup.find("input", id="types")
         if type_value:
             return str(type_value["value"])
@@ -121,9 +121,9 @@ class SerpParse:
                 )
                 if start_date_trading:
                     try:
-                        start_date_trading = format_time_period(
+                        start_date_trading = DateTimeHelper.smart_parse(
                             start_date_trading.next_sibling.strip()
-                        )
+                        ).astimezone(DateTimeHelper.moscow_tz)
                     except Exception as e:
                         print(e)
                         start_date_trading = None

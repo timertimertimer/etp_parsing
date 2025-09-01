@@ -7,7 +7,7 @@ from app.utils import (
     dedent_func,
     Contacts,
     normalize_string,
-    format_time,
+    DateTimeHelper,
     URL,
     logger,
 )
@@ -82,7 +82,7 @@ class OfferParse:
                 .strip()
             )
             return Contacts.check_phone(phone)
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -95,7 +95,7 @@ class OfferParse:
                 .strip()
             )
             return Contacts.check_email(email)
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -179,7 +179,7 @@ class OfferParse:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(trade_inn))
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -192,7 +192,7 @@ class OfferParse:
             td_org = dedent_func(BS(str(td_org), features="lxml").get_text()).strip()
             if td_org != "None":
                 return "".join(re.sub(r"\s+", " ", td_org))
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} | INVALID DATA ARBITR NAME")
         return None
 
@@ -206,7 +206,7 @@ class OfferParse:
             pattern = re.compile(r"\d{10,12}")
             if pattern:
                 return "".join(pattern.findall(arbitr_inn))
-        except Exception:
+        except Exception as e:
             pass
         return None
 
@@ -226,7 +226,7 @@ class OfferParse:
                         ]
                     )
                 return "".join(dedent_func(td_company))
-        except Exception:
+        except Exception as e:
             logger.warning(f"{self.response.url} | INVALID DATA ARBITR COMPANY")
         return None
 
@@ -330,7 +330,7 @@ class OfferParse:
                 logger.warning(
                     f"{self.response.url} | INVALID DATA START PRICE - LOT {lot_num}"
                 )
-        except Exception:
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | LOT {lot_num} INVALID DATA - START PRICE - LOT {lot_num}"
             )
@@ -347,7 +347,7 @@ class OfferParse:
                 for span in class_shortdate:
                     span.decompose()
             return pd.read_html(str(soup).replace(",", "."), header=None)[0]
-        except Exception:
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA PERIOD TABLE - LOT {lot_num}"
             )
@@ -365,13 +365,13 @@ class OfferParse:
                     price = normalize_string(price)
                     price = round(float(price.replace(" ", "")), 2)
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)
-            except Exception:
+            except Exception as e:
                 logger.warning(f"{self.response.url}", exc_info=True)
                 continue
         return periods
@@ -379,8 +379,8 @@ class OfferParse:
     def start_date_request(self, lot_num):
         try:
             table = self.period_table(lot_num)
-            return format_time(table.iloc[0][1])
-        except Exception:
+            return DateTimeHelper.smart_parse(table.iloc[0][1]).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE REQUEST LOT {lot_num}"
             )
@@ -389,8 +389,8 @@ class OfferParse:
     def end_date_request(self, lot_num):
         try:
             table = self.period_table(lot_num)
-            return format_time(table.iloc[-1][2])
-        except Exception:
+            return DateTimeHelper.smart_parse(table.iloc[-1][2]).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA END DATE REQUEST LOT {lot_num}"
             )

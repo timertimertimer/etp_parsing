@@ -1,12 +1,9 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, format_time
+from app.utils import dedent_func, DateTimeHelper, logger
 from ..locators.trade_locator import LocatorAuction
-
-logger = logging.getLogger(__name__)
 
 
 class AuctionParse:
@@ -31,7 +28,7 @@ class AuctionParse:
             match = "".join(re.findall(pattern, clean_price))
             if match:
                 return round(float(match), 2)
-        except Exception:
+        except Exception as e:
             if not re.match(r"\d{3,}-ОАЗФ", trading_number):
                 logger.warning(
                     f"{self.response.url} | LOT {lot_num} INVALID DATA - STEP PRICE - LOT {lot_num}"
@@ -45,8 +42,8 @@ class AuctionParse:
             td_date = dedent_func(
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
-            return format_time(td_date.strip())
-        except Exception:
+            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE REQUEST AUCTION/COMPETITION"
             )
@@ -59,8 +56,8 @@ class AuctionParse:
             td_date = dedent_func(
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
-            return format_time(td_date.strip())
-        except Exception:
+            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA END DATE REQUEST AUCTION/COMPETITION"
             )
@@ -73,8 +70,8 @@ class AuctionParse:
             td_date = dedent_func(
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
-            return format_time(td_date.strip())
-        except Exception:
+            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE TRADING AUCTION/COMPETITION"
             )
@@ -87,8 +84,8 @@ class AuctionParse:
             td_date = dedent_func(
                 BS(str(td_date), features="lxml").get_text(strip=True)
             )
-            return format_time(td_date.strip())
-        except Exception:
+            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA END DATE TRADING AUCTION/COMPETITION"
             )

@@ -1,7 +1,7 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from app.utils import format_time, normalize_string, logger
+from app.utils import DateTimeHelper, normalize_string, logger
 
 
 class OfferParse:
@@ -12,7 +12,7 @@ class OfferParse:
     def start_date_trading(self, lot):
         try:
             table = self.period_table(lot)
-            return format_time(table.iloc[0, 1])
+            return DateTimeHelper.smart_parse(table.iloc[0, 1]).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID LOT DATA START DATE REQUEST LOT"
@@ -22,7 +22,7 @@ class OfferParse:
     def end_date_trading(self, lot):
         try:
             table = self.period_table(lot)
-            return format_time(table.iloc[-1, 1])
+            return DateTimeHelper.smart_parse(table.iloc[-1, 1]).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID LOT DATA START DATE REQUEST LOT"
@@ -52,9 +52,9 @@ class OfferParse:
                     price = normalize_string(price)
                     price = round(float(price.replace(" ", "")), 2)
                 period = {
-                    "start_date_requests": format_time(start),
-                    "end_date_requests": format_time(end),
-                    "end_date_trading": format_time(end),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": price,
                 }
                 periods.append(period)

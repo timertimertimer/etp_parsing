@@ -1,13 +1,10 @@
-import logging
 import re
 import pandas as pd
 from bs4 import BeautifulSoup
 
 from .config import data_origin_url
-from general_utils import UrlConfig, dedent_func, CheckIfCorrectContactInfo, format_time
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from app.utils import URL, dedent_func, Contacts, DateTimeHelper, logger
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -20,7 +17,7 @@ class Combo:
             '//div[@id="tenders-box-on-index"]//table//td[1]/a/@href'
         ).getall()
         if links:
-            return [UrlConfig.url_join(data_origin_url, link) for link in links]
+            return [URL.url_join(data_origin_url, link) for link in links]
         logger.warning(f"{self.response.url} :: NO TRADING LINKS")
         return []
 
@@ -29,7 +26,7 @@ class Combo:
         try:
             next_link = BeautifulSoup(pager_select, "lxml").find("a")
             if next_link:
-                return UrlConfig.url_join(data_origin_url, next_link.get("href"))
+                return URL.url_join(data_origin_url, next_link.get("href"))
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH NEXT PAGE\n{e}",
@@ -46,7 +43,7 @@ class Combo:
             name = link_.get_text()
             files.append(
                 DownloadData(
-                    url=UrlConfig.url_join(data_origin_url, link),
+                    url=URL.url_join(data_origin_url, link),
                     file_name=name,
                     referer=self.response.url,
                 )
@@ -83,7 +80,7 @@ class Combo:
                 start_price = self.get_start_price(data[4])
                 lots.append(
                     [
-                        UrlConfig.url_join(data_origin_url, link.get("href")),
+                        URL.url_join(data_origin_url, link.get("href")),
                         lot_number,
                         short_name,
                         status,
@@ -201,7 +198,7 @@ class Combo:
             inn = (
                 self.get_org().find("b", text=re.compile("ИНН")).next_sibling.get_text()
             )
-            return CheckIfCorrectContactInfo.check_inn(inn)
+            return Contacts.check_inn(inn)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH ORGANIZER INN\n{e}",
@@ -228,7 +225,7 @@ class Combo:
                 .next_sibling.get_text()
             )
             phone = dedent_func(phone)
-            return CheckIfCorrectContactInfo.check_phone(phone)
+            return Contacts.check_phone(phone)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH PHONE NUMBER\n{e}",
@@ -243,7 +240,7 @@ class Combo:
                 .next_sibling.get_text()
             )
             email = dedent_func(email)
-            return CheckIfCorrectContactInfo.check_email(email)
+            return Contacts.check_email(email)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH EMAIL\n{e}",
@@ -283,7 +280,7 @@ class Combo:
                 .find("b", text=re.compile("ИНН"))
                 .next_sibling.get_text()
             )
-            return CheckIfCorrectContactInfo.check_inn(inn)
+            return Contacts.check_inn(inn)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH DEBITOR INN\n{e}",
@@ -343,7 +340,7 @@ class Combo:
                 )
                 .next_sibling.get_text()
             )
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH START DATE REQUESTS\n{e}",
@@ -363,7 +360,7 @@ class Combo:
                 )
                 .next_sibling.get_text()
             )
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH END DATE REQUESTS\n{e}",
@@ -428,7 +425,7 @@ class Combo:
                 .find("b", text=re.compile("Дата и время подведения итогов торгов"))
                 .next_sibling.get_text()
             )
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: SOMETHING WENT WRONG WITH END DATE TRADING\n{e}",

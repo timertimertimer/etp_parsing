@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, URL, format_time, logger
+from app.utils import dedent_func, URL, logger, DateTimeHelper
 from app.db.models import DownloadData
 from ..config import trade_page_file
 from ..locators_and_attributes.locators_attributes import Auction
@@ -44,8 +44,8 @@ class AuctionSpider:
             s = self.soup.find(id=Auction.start_date_req_loc)
             if s:
                 date = dedent_func(s.get_text())
-                return format_time(date)
-        except:
+                return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.error(
                 f"{self.response.url} :: INVAID DATA START DATE REQUST AUCTION"
             )
@@ -56,8 +56,8 @@ class AuctionSpider:
             e = self.soup.find(id=Auction.end_date_req_loc)
             if e:
                 date = dedent_func(e.get_text())
-                return format_time(date)
-        except:
+                return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING")
 
     @property
@@ -66,13 +66,13 @@ class AuctionSpider:
             st = self.soup.find(id=Auction.start_date_trading)
             if st:
                 date = dedent_func(st.get_text())
-                return format_time(date)
+                return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
             else:
                 st = self.soup.find(id=Auction.extra_start_date_trading)
                 if st:
                     date = dedent_func(st.get_text())
-                    return format_time(date)
-        except:
+                    return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA START DATE TRADING")
 
     @property
@@ -81,8 +81,8 @@ class AuctionSpider:
             st = self.soup.find(id=Auction.end_date_trading)
             if st:
                 date = dedent_func(st.get_text())
-                return format_time(date)
-        except:
+                return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING")
 
     @property
@@ -150,7 +150,7 @@ class AuctionSpider:
                     )
                 else:
                     return list()
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: ERROR GETTING GREF TO FILE GENERAL")
 
     def general_file_link_doc_2(self):

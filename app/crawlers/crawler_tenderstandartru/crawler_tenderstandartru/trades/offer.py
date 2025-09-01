@@ -36,15 +36,15 @@ class OfferParse:
                         )
                         current_price_ = None
                     period = {
-                        "start_date_requests": format_time(
+                        "start_date_requests": DateTimeHelper.smart_parse(
                             re.sub(r"\s+", " ", start_date_request.replace("-", " "))
-                        ),
-                        "end_date_requests": format_time(
+                        ).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_requests": DateTimeHelper.smart_parse(
                             re.sub(r"\s+", " ", end_date_request.replace("-", " "))
-                        ),
-                        "end_date_trading": format_time(
+                        ).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_trading": DateTimeHelper.smart_parse(
                             re.sub(r"\s+", " ", end_date_trading.replace("-", " "))
-                        ),
+                        ).astimezone(DateTimeHelper.moscow_tz),
                         "current_price": current_price_,
                     }
                     periods.append(period)

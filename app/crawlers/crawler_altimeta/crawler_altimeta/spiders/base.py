@@ -6,7 +6,7 @@ from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
 from app.utils import URL, logger
 from app.utils.config import write_log_to_file
-from ..manage_spiders.app import Combo
+from ..manage_spiders.combo import Combo
 from ..config import (
     data_origin,
     serp_link,

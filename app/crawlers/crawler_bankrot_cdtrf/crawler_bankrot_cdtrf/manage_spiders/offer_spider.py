@@ -13,7 +13,7 @@ from app.utils import (
     delete_extra_symbols,
     cut_lot_number,
     get_lot_number,
-    format_time,
+    DateTimeHelper,
     logger,
 )
 from ..locators_and_attributes.locators_attributes import Offer
@@ -30,13 +30,7 @@ class OfferSpider:
             features="lxml",
         )
 
-    def get_post_data_values(self, tag_html: str, post_argument: str) -> str or None:
-        """
-        :arg tag_html
-        :arg post_argument
-        :return value
-        P.S. work only with id
-        """
+    def get_post_data_values(self, tag_html: str, post_argument: str) -> str | None:
         try:
             tag_html = self.soup.find(tag_html, id=post_argument)
             if tag_html:
@@ -49,7 +43,6 @@ class OfferSpider:
             return ""
 
     def get_ajax_and_token(self):
-        """get value from script tag for post data field 'ctl00_ToolkitScriptManager1_HiddenField'"""
         try:
             ajax_control = "".join(
                 [
@@ -68,8 +61,7 @@ class OfferSpider:
             return ""
 
     @property
-    def trade_link_serp(self) -> set:
-        """gettting links to the trading page and return set"""
+    def trade_link_serp(self) -> set | None:
         try:
             link_set = set()
             list_tag_links = self.response.xpath(Offer.trading_links_loc).getall()
@@ -78,14 +70,13 @@ class OfferSpider:
                     if link and re.match("/public.+aspx.+\d+$", link):
                         link_set.add(URL.url_join(data_origin_url, link))
                 return link_set
-        except:
+        except Exception as e:
             logger.error(
                 f"{self.response.url} :: ERROR DURING GETTING LINKS TO TRADING PAGE"
             )
             return set()
 
     def get_total_visible_pages(self, page, date):
-        """return number of the last available page"""
         try:
             select = self.soup.find(
                 "select", title="Выбор номера страницы"
@@ -109,8 +100,7 @@ class OfferSpider:
         return total_pages.strip()
 
     @property
-    def get_trading_number(self) -> str or None:
-        """return trading number"""
+    def get_trading_number(self) -> str | None:
         trade_number = self.response.xpath(Offer.trading_number_loc).get()
         if trade_number and len(trade_number) > 0:
             t = dedent_func(BS(str(trade_number), features="lxml").get_text()).strip()
@@ -124,7 +114,6 @@ class OfferSpider:
 
     @property
     def get_trading_type(self):
-        """return trading type"""
         trading_type = self.response.xpath(Offer.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(
@@ -140,7 +129,6 @@ class OfferSpider:
                 logger.warning(f"{self.response.url} :: INVALID DATA TRADING TYPE")
 
     def get_status(self):
-        """return status"""
         trading_status = self.response.xpath(Offer.trading_status_loc).get()
         if trading_status and len(trading_status) > 0:
             status = (
@@ -157,7 +145,6 @@ class OfferSpider:
 
     @property
     def get_trading_form(self):
-        """return trading form"""
         trading_type = self.response.xpath(Offer.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(
@@ -177,7 +164,6 @@ class OfferSpider:
 
     @property
     def get_trading_org_name(self):
-        """determine the organizer(company or person)"""
         try:
             if_company = self.response.xpath(Offer.list_of_company_id).getall()
             person = self.response.xpath(Offer.list_person_info_id).getall()
@@ -186,7 +172,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "олное наименование организаци" in dedent_func(
-                            td[0].get_text()
+                                td[0].get_text()
                         ):
                             return dedent_func(td[1].get_text())
             elif len(person) > 0:
@@ -209,8 +195,7 @@ class OfferSpider:
             return None
 
     @property
-    def get_org_inn(self) -> str or None:
-        """:return trading organizer inn"""
+    def get_org_inn(self) -> str | None:
         try:
             if_company = self.response.xpath(Offer.list_of_company_id).getall()
             person = self.response.xpath(Offer.list_person_info_id).getall()
@@ -237,7 +222,6 @@ class OfferSpider:
 
     @property
     def get_email_org(self):
-        """:return organizer email"""
         try:
             email = self.soup.find(id=Offer.org_email_loc).get_text()
             if email:
@@ -249,7 +233,6 @@ class OfferSpider:
 
     @property
     def get_phone_org(self):
-        """:return"""
         try:
             phone_ = self.response.xpath(Offer.phone_org_loc).get()
             if phone_:
@@ -262,12 +245,10 @@ class OfferSpider:
 
     @property
     def org_contacts(self):
-        """:return organizer cantacts"""
         return {"email": self.get_email_org, "phone": self.get_phone_org}
 
     @property
     def get_msg(self):
-        """:return message number FEDRESURS"""
         msg = self.soup.find(id="ctl00_cph1_trIDEFRSB")
         if msg:
             msg_ = msg.find_next("td")
@@ -276,10 +257,10 @@ class OfferSpider:
                 if msg__:
                     msg = dedent_func(msg__.get_text())
                 return " ".join(re.findall(r"\d{6,9}", msg))
+        return None
 
     @property
     def get_case_number(self):
-        """return case number"""
         case = self.soup.find(id="ctl00_cph1_trDealNum")
         if case:
             case_ = case.find_next("td")
@@ -289,10 +270,10 @@ class OfferSpider:
                     case = dedent_func(case__.get_text())
                     if len(case) > 4:
                         return Contacts.check_case_number(case)
+        return None
 
     @property
     def get_debtor_inn(self):
-        """:return debtor inn"""
         try:
             debtor = self.response.xpath(Offer.list_debtor_id).getall()
             if len(debtor) > 0:
@@ -303,7 +284,7 @@ class OfferSpider:
                             return Contacts.check_inn(
                                 dedent_func(td[1].get_text())
                             )
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA dbtor inn")
 
     @property
@@ -316,12 +297,11 @@ class OfferSpider:
                 )
                 if address:
                     return dedent_func(" ".join(address.get_text(strip=True).split()))
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA sud address")
 
     @property
     def get_arbitr_name(self):
-        """:return arbitr name"""
         try:
             arbitr = self.response.xpath(Offer.list_arbitr_id).getall()
             lastname, fistname, middlename = "", "", ""
@@ -338,12 +318,11 @@ class OfferSpider:
                     else:
                         return None
             return " ".join([lastname, fistname, middlename])
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA ARBITR NAME")
 
     @property
     def get_arbitr_inn(self):
-        """:return debtor inn"""
         try:
             arbitr = self.response.xpath(Offer.list_arbitr_id).getall()
             if len(arbitr) > 0:
@@ -354,12 +333,11 @@ class OfferSpider:
                             return Contacts.check_inn(
                                 dedent_func(td[1].get_text()).strip()
                             )
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA arbitr inn")
 
     @property
     def get_arbitr_org(self):
-        """:return arbitr manager org"""
         try:
             arbitr_org = self.response.xpath(Offer.list_arbitr_id).getall()
             if len(arbitr_org) > 0:
@@ -367,7 +345,7 @@ class OfferSpider:
                     td = BS(str(tr), features="lxml").find_all("td")
                     if len(td) == 2:
                         if "организации арбитражных управляющ" in dedent_func(
-                            td[0].get_text().strip()
+                                td[0].get_text().strip()
                         ):
                             org = dedent_func(td[1].get_text())
                             if "Не требуется для данных торгов" not in org:
@@ -375,54 +353,49 @@ class OfferSpider:
                                     return "".join(re.split(r"\(", org, maxsplit=1)[0])
                                 else:
                                     return org
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
 
     @delete_extra_symbols
     @cut_lot_number
     def get_short_name(self):
-        """:return short name of lot"""
         try:
             short_name = self.soup.find(id=Offer.short_name_id_loc)
             if short_name:
                 return dedent_func(short_name.get_text())
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url}")
 
     @delete_extra_symbols
     @cut_lot_number
     def get_lot_info(self):
-        """:return short name of lot"""
         try:
             lot_info = self.soup.find(id=Offer.lot_info_id_loc)
             if lot_info:
                 return dedent_func(lot_info.get_text())
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url}:: INVALID DATA LOT INFO")
 
     @get_lot_number
     def get_lot_number_(self):
-        """:return short name of lot"""
         try:
             short_name = self.soup.find(id=Offer.short_name_id_loc)
             if short_name:
                 return dedent_func(short_name.get_text())
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url}")
 
     def get_property_info(self):
-        """:return short name of lot"""
         try:
             property_ = self.soup.find(id=Offer.property_info_if_loc)
             if property_:
                 return dedent_func(property_.get_text())
-        except:
+        except Exception as e:
             logger.error(f"{self.response.url}:: INVALID DATA LOT INFO")
 
     # WORKING WITH PERIOD TABLE
     @property
-    def get_period_table(self) -> list or None:
-        """:return list with  periods table tag"""
+    def get_period_table(self) -> list | None:
         try:
             lst_table = self.response.xpath(Offer.period_table).getall()
             if lst_table and len(lst_table) > 0:
@@ -435,12 +408,10 @@ class OfferSpider:
 
     @property
     def clean_period_table(self):
-        """filter all extra information from table(periods). Return list to lates conver to dataframe"""
         try:
             if self.get_period_table:
                 table = BS(self.get_period_table[0], features="lxml")
                 new_lst = list()
-                # list with ignoring words
                 exc_w = [
                     "рафик снижения цены",
                     "ачало периода действи",
@@ -449,9 +420,9 @@ class OfferSpider:
                 for tr in table.find_all("tr"):
                     text_tr = tr.get_text()
                     if (
-                        (exc_w[0] not in text_tr)
-                        and (exc_w[1] not in text_tr)
-                        and (exc_w[2] not in text_tr)
+                            (exc_w[0] not in text_tr)
+                            and (exc_w[1] not in text_tr)
+                            and (exc_w[2] not in text_tr)
                     ):
                         if len(text_tr) > 0:
                             new_lst.append(BS(str(tr), features="lxml"))
@@ -463,7 +434,6 @@ class OfferSpider:
 
     @property
     def create_df_period(self):
-        """return DATA FRAME with periods"""
         try:
             lst_df = list()
             for d in self.clean_period_table:
@@ -481,7 +451,6 @@ class OfferSpider:
 
     @property
     def get_periods(self):
-        """return complete periods in list with dict"""
         df = self.create_df_period
 
         periods = list()
@@ -496,24 +465,19 @@ class OfferSpider:
                 # if numpy object (but in this case it's not imposible and just in case)
                 price = round(float(price), 2)
             period = {
-                "start_date_requests": format_time(start),
-                "end_date_requests": format_time(end),
-                "end_date_trading": format_time(end),
+                "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                 "current_price": price,
             }
             periods.append(period)
         return periods
-        # except Exception as e:
-        #     logger.error(f'{self.response.url} :: PERIOD TABLE :: {e}', exc_info=True)
-
-    # END WORKING WITH PERIOD TABLE
 
     @property
     def get_start_date_req(self):
-        """retrun start_date_request"""
         try:
             start_date = self.create_df_period.iloc[0]["start_date"]
-            return format_time(start_date)
+            return DateTimeHelper.smart_parse(start_date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: START DATE REQUEST ERROR - OFFER\n{e}"
@@ -522,15 +486,13 @@ class OfferSpider:
 
     @property
     def get_start_date_trading(self):
-        """retrun start_date_request"""
         return self.get_start_date_req
 
     @property
     def get_end_date_req(self):
-        """retrun start_date_request"""
         try:
             start_date = self.create_df_period.iloc[-1]["end_date"]
-            return format_time(start_date)
+            return DateTimeHelper.smart_parse(start_date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: START DATE REQUEST ERROR - OFFER\n{e}"
@@ -539,12 +501,10 @@ class OfferSpider:
 
     @property
     def get_end_date_trading(self):
-        """retrun start_date_request"""
         return self.get_end_date_req
 
     @property
     def get_start_price(self):
-        """return start price offer"""
         try:
             price = self.create_df_period.iloc[0]["price"]
             price = "".join(re.sub(r"\s", "", price)).replace(",", ".")

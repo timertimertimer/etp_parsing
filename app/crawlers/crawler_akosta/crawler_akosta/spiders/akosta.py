@@ -8,14 +8,14 @@ from app.utils import DateTimeHelper
 from app.utils.config import start_date
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import Auction, AuctionPropertyType
-from ..manage_spider.app import Combo
+from ..manage_spider.combo import Combo
 from ..utils.config import (
     search_link,
     data_origin,
     common_link,
     debtor_link,
     lot_link,
-    _link_post_period,
+    link_post_period,
     urls,
 )
 from ..utils.post_data import (
@@ -494,7 +494,7 @@ class AkostaBaseSpider(BaseSpider):
             if combo.offer.get_refresh_form_j_idt55():
                 _form["formMain:j_idt55"] = combo.offer.get_refresh_form_j_idt55()
             yield FormRequest(
-                _link_post_period,
+                link_post_period,
                 callback=self.parse_period_offer_pages,
                 formdata=_form,
                 dont_filter=True,
@@ -545,7 +545,7 @@ class AkostaBaseSpider(BaseSpider):
             _form["formMain:dataRSList_first"] = str(10 * current - 10)
             _form["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
             yield FormRequest(
-                _link_post_period,
+                link_post_period,
                 callback=self.parse_period_offer_pages,
                 formdata=_form,
                 dont_filter=True,

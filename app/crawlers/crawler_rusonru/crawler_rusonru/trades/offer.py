@@ -4,7 +4,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from numpy import float64
 
-from app.utils import dedent_func, format_time, make_float, logger
+from app.utils import dedent_func, DateTimeHelper, make_float, logger
 
 
 class OfferParse:
@@ -201,7 +201,7 @@ class OfferParse:
         try:
             table_period = self.get_period_table(table)
             start_date = table_period.iloc[0][0]
-            return format_time(start_date)
+            return DateTimeHelper.smart_parse(start_date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as ex:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE TRADING OFFER {ex}"
@@ -212,7 +212,7 @@ class OfferParse:
         try:
             table_period = self.get_period_table(table)
             end_date = table_period.iloc[-1][1]
-            return format_time(end_date)
+            return DateTimeHelper.smart_parse(end_date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as ex:
             logger.warning(f"{self.response.url} | INVALID DATA END DATE TRADING {ex}")
         return None
@@ -244,9 +244,9 @@ class OfferParse:
                         )
                         current_price_ = None
                     period = {
-                        "start_date_requests": format_time(start_date_request),
-                        "end_date_requests": format_time(end_date_request),
-                        "end_date_trading": format_time(end_date_trading),
+                        "start_date_requests": DateTimeHelper.smart_parse(start_date_request).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_requests": DateTimeHelper.smart_parse(end_date_request).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_trading": DateTimeHelper.smart_parse(end_date_trading).astimezone(DateTimeHelper.moscow_tz),
                         "current_price": current_price_,
                     }
                     periods.append(period)

@@ -7,7 +7,7 @@ import xmltodict
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
-from ..trades.app import ComposeTrades
+from ..trades.combo import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
 

@@ -358,7 +358,7 @@ class DBHelper:
                 property_type=property_type,
                 url=item["trading_link"],
                 number=item.get("trading_number"),
-                type=item.get("trading_type"),
+                type=item.get("trading_type", 'other'),
                 form=item.get("trading_form"),
                 message_number=item.get("msg_number"),
                 organizer_id=organizer.id if organizer else None,

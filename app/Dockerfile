@@ -7,6 +7,7 @@ WORKDIR /var/www/app
 
 ENV PYTHONUNBUFFERED=1
 
+# Container needs some tools
 RUN echo "deb http://deb.debian.org/debian/ bookworm main contrib non-free" > /etc/apt/sources.list.d/debian.list \
     && apt-get update && apt-get install -y \
         curl \

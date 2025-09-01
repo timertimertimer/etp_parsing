@@ -1,7 +1,7 @@
 import re
 from bs4 import BeautifulSoup
 
-from app.utils import dedent_func, Contacts, format_time, logger
+from app.utils import dedent_func, Contacts, DateTimeHelper, logger
 from app.db.models import DownloadData
 from .locators.trade_locator import TradeLocator
 
@@ -121,8 +121,8 @@ class Combo:
     @property
     def debitor_inn(self):
         inn = (
-            self.response.xpath(TradeLocator.debtor_inn_loc).get()
-            or self.response.xpath(TradeLocator.debtor_inn_loc2).get()
+                self.response.xpath(TradeLocator.debtor_inn_loc).get()
+                or self.response.xpath(TradeLocator.debtor_inn_loc2).get()
         )
         if not inn:
             return
@@ -133,8 +133,8 @@ class Combo:
     @property
     def address(self):
         address = (
-            self.response.xpath(TradeLocator.address_loc).get()
-            or self.response.xpath(TradeLocator.address_loc2).get()
+                self.response.xpath(TradeLocator.address_loc).get()
+                or self.response.xpath(TradeLocator.address_loc2).get()
         )
         return BeautifulSoup(address, "lxml").get_text(strip=True)
 
@@ -213,15 +213,15 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.response.xpath(TradeLocator.start_date_requests_loc).get()
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.response.xpath(TradeLocator.end_date_requests_loc).get()
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     def start_and_end_dates_trading(self):
         date_interval = (
@@ -237,7 +237,11 @@ class Combo:
             start_date, end_date = parts
         else:
             start_date, end_date = parts[0], None
-        return format_time(start_date), format_time(end_date) if end_date else None
+        return (
+            DateTimeHelper.smart_parse(start_date).astimezone(DateTimeHelper.moscow_tz),
+            DateTimeHelper.smart_parse(end_date).astimezone(DateTimeHelper.moscow_tz)
+            if end_date else None
+        )
 
     @property
     def start_date_trading(self):

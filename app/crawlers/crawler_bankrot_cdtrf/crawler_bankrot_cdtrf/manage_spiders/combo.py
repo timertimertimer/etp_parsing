@@ -15,7 +15,6 @@ class Compose:
 
     @property
     def get_trading_type(self):
-        """return trading type"""
         trading_type = self.response.xpath(self.loc.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(

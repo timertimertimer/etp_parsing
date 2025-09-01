@@ -2,7 +2,7 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 
-from app.utils import dedent_func, URL, format_time, logger
+from app.utils import dedent_func, URL, DateTimeHelper, logger
 from app.db.models import DownloadData
 from ..config import data_origin
 from ..locators.serp_locator import LocatorSerp
@@ -74,8 +74,8 @@ class OfferPage:
     def trading_form(self):
         try:
             form = (
-                self.response.xpath(self.loc_offer.trading_form_loc).get()
-                or self.response.xpath(self.loc_offer.trading_form_loc_2).get()
+                    self.response.xpath(self.loc_offer.trading_form_loc).get()
+                    or self.response.xpath(self.loc_offer.trading_form_loc_2).get()
             )
             if form:
                 form = BS(str(form), features="lxml").get_text().lower()
@@ -114,9 +114,9 @@ class OfferPage:
                     price = round(float(price.replace("&nbsp;", "")), 2)
 
                     period = {
-                        "start_date_requests": format_time(start),
-                        "end_date_requests": format_time(end),
-                        "end_date_trading": format_time(end),
+                        "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
                         "current_price": price,
                     }
                     period_lst.append(period)
@@ -132,7 +132,7 @@ class OfferPage:
     @property
     def start_date_request_offer(self):
         try:
-            start = format_time(self.get_period_table().iloc[1][1])
+            start = DateTimeHelper.smart_parse(self.get_period_table().iloc[1][1]).astimezone(DateTimeHelper.moscow_tz)
             return start
         except Exception as e:
             logger.warning(
@@ -143,7 +143,7 @@ class OfferPage:
     @property
     def end_date_request_offer(self):
         try:
-            end = format_time(self.get_period_table().iloc[-1][2])
+            end = DateTimeHelper.smart_parse(self.get_period_table().iloc[-1][2]).astimezone(DateTimeHelper.moscow_tz)
             return end
         except Exception as e:
             logger.warning(

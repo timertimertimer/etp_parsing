@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 
 from app.db.models import DownloadData
-from app.utils import format_time, dedent_func, URL, contains, Contacts
+from app.utils import DateTimeHelper, dedent_func, URL, contains, Contacts
 from .auction import AuctionParse, logger
 from .offer import OfferParse
 from .serp import SerpParse
@@ -262,12 +262,12 @@ class Combo:
     @property
     def start_date_requests(self):
         date = self.response.xpath(LocatorTrade.start_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features="lxml").get_text())
+        return DateTimeHelper.smart_parse(BeautifulSoup(str(date), features="lxml").get_text()).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(LocatorTrade.end_date_requests_loc).get()
-        return format_time(BeautifulSoup(str(date), features="lxml").get_text())
+        return DateTimeHelper.smart_parse(BeautifulSoup(str(date), features="lxml").get_text()).astimezone(DateTimeHelper.moscow_tz)
 
     def get_lots(self):
         return self.response.xpath(LocatorTrade.lots_loc).getall()

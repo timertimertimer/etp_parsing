@@ -3,7 +3,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from general_utils.settings import *
+from app.crawlers.settings import *
 
 BOT_NAME = "crawler_lot_online_zalog"
 

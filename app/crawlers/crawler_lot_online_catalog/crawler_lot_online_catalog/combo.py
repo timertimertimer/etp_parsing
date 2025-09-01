@@ -1,5 +1,4 @@
 import re
-import logging
 import pandas as pd
 from itertools import takewhile
 from bs4 import BeautifulSoup
@@ -8,11 +7,9 @@ from app.utils import (
     Contacts,
     contains,
     URL,
-    DateTimeHelper,
+    DateTimeHelper, logger,
 )
 from app.db.models import DownloadData
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:
@@ -71,7 +68,8 @@ class Combo:
         for key, value in d.items():
             if status.lower() in value:
                 return key
-        logger.error(f"{self.response.url} :: Unknown status - {status}")
+        logger.error(f"{self.response.url} | Unknown status - {status}")
+        return None
 
     def parse_price(self, price: str):
         try:
@@ -80,7 +78,7 @@ class Combo:
             if len(price) > 0:
                 return round(float(price), 2)
         except Exception as e:
-            logger.error(f"{self.response.url} :: INVALID START PRICE\n{e}")
+            logger.error(f"{self.response.url} | INVALID START PRICE\n{e}")
 
     def download_general(self):
         files = list()
@@ -157,7 +155,7 @@ class Combo:
         for key, value in d.items():
             if type_.lower() in value:
                 return key
-        logger.error(f"{self.response.url} :: Unknown type - {type_}")
+        logger.error(f"{self.response.url} | Unknown type - {type_}")
 
     @property
     def trading_form(self):
@@ -231,6 +229,7 @@ class Combo:
                 .find_next("td")
                 .get_text(strip=True)
             )
+        return None
 
     @property
     def debtor_inn(self):
@@ -241,6 +240,7 @@ class Combo:
                 .find_next("td")
                 .get_text(strip=True)
             )
+        return None
 
     @property
     def address(self):
@@ -405,6 +405,7 @@ class Combo:
             return self.parse_price(
                 start_price.find("span").get_text(strip=True).replace("&nbsp;", "")
             )
+        return None
 
     @property
     def step_price(self):
@@ -412,12 +413,13 @@ class Combo:
                 "label", text=contains("Шаг")
         ):
             return self.parse_price(step_price.find_next("span").text.strip())
+        return None
 
     @property
     def periods(self):
         table = self.soup.find("div", class_="tab_rad_reduction")
         if not table:
-            return
+            return None
         td_periods = pd.read_html(str(table.find("table")))[0]
         periods = []
         for p in range(len(td_periods)):
@@ -438,6 +440,6 @@ class Combo:
                     "current_price": price,
                 }
                 periods.append(period)
-            except:
+            except Exception as e:
                 continue
         return periods

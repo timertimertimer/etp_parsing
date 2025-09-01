@@ -31,7 +31,7 @@ class LotOnlineTenderBaseSpider(BaseSpider):
         data = json.loads(response.text)
         lots = data['data']
         for lot in lots:
-            eis_number = lot['eisNumber']
+            eis_number = lot['eisNumber'] or lot['etpNumber']
             if eis_number not in self.previous_trades:
                 self.unique_links.add(eis_number)
                 yield Request(lot_link.format(procedure_id=eis_number), callback=self.parse_procedure)
@@ -53,20 +53,20 @@ class LotOnlineTenderBaseSpider(BaseSpider):
         loader.add_value('property_type', self.property_type.value)
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
-        loader.add_value("trading_number", combo.trading_number)
+        loader.add_value("trading_number", combo.trading_number)  # trading_id
         loader.add_value("trading_type", combo.trading_type)
-        loader.add_value("trading_form", combo.trading_form)
+        loader.add_value("trading_form", combo.trading_form)  # open
         loader.add_value("trading_org", combo.trading_org)
         loader.add_value("trading_org_inn", combo.trading_org_inn)
         loader.add_value("trading_org_contacts", combo.trading_org_contacts)
         loader.add_value("address", combo.address)
         loader.add_value("lot_number", combo.lot_number)
         loader.add_value("categories", combo.categories)
-        start_date_requests, end_date_requests, start_date_trading, end_date_trading = combo.dates().values()
-        loader.add_value("start_date_requests", start_date_requests)
-        loader.add_value("end_date_requests", end_date_requests)
-        loader.add_value("start_date_trading", start_date_trading)
-        loader.add_value("end_date_trading", end_date_trading)
+        dates = combo.dates()
+        loader.add_value("start_date_requests", dates['start_date_requests'])
+        loader.add_value("end_date_requests", dates['end_date_requests'])
+        loader.add_value("start_date_trading", dates['start_date_trading'])
+        loader.add_value("end_date_trading", dates['end_date_trading'])
         loader.add_value("start_price", combo.start_price)
         if combo.trading_type in ["auction", "competition"]:
             loader.add_value("step_price", combo.step_price)

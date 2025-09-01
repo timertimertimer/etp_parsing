@@ -1,5 +1,3 @@
-import re
-
 import pandas as pd
 from bs4 import BeautifulSoup
 
@@ -7,11 +5,9 @@ from app.db.models import DownloadData
 from app.utils import (
     dedent_func,
     contains,
-    format_time,
+    DateTimeHelper,
     make_float,
-    URL,
-    check_value,
-    logger,
+    URL
 )
 
 
@@ -148,7 +144,7 @@ class Combo:
         time = parts[3]
 
         formatted = f"{day}.{month}.{year} {time}"
-        return format_time(formatted)
+        return DateTimeHelper.smart_parse(formatted).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_requests(self):
@@ -188,9 +184,9 @@ class Combo:
         if not date:
             return None
 
-        return format_time(
+        return DateTimeHelper.smart_parse(
             date.find_next("td").text.strip().replace("\xa0", " ").replace(" МСК", ""),
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_price(self):

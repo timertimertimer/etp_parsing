@@ -1,20 +1,17 @@
-import logging
 import os
 import re
 from pathlib import Path
 
 from bs4 import BeautifulSoup as BS
 
-from general_utils import (
+from app.utils import (
     dedent_func,
-    format_time,
+    DateTimeHelper,
     make_float,
-    CheckIfCorrectContactInfo,
+    Contacts, logger,
 )
-from general_utils.config import image_formats
-from general_utils.models import DownloadData
-
-logger = logging.getLogger(__name__)
+from app.utils.config import image_formats
+from app.db.models import DownloadData
 
 
 class LotPage:
@@ -46,7 +43,7 @@ class LotPage:
                     phone = re.findall(r"<p><span.+Телефон:(.+)</span>", str(s))
                     if phone:
                         phone = "".join(phone).strip()
-                        return CheckIfCorrectContactInfo.check_phone(phone)
+                        return Contacts.check_phone(phone)
             return ""
         except Exception as e:
             logger.error(
@@ -70,7 +67,6 @@ class LotPage:
 
     @property
     def address(self):
-        """return address of lot"""
         try:
             addr = self.soup.find(
                 "td", string=re.compile(r"\s?Адрес:\s?", re.IGNORECASE)
@@ -83,7 +79,6 @@ class LotPage:
             logger.error(f"{self.response.url} :: ERROR ADDRESS\n{e}")
 
     def get_encumbrance(self):
-        """return description_encumbrance"""
         span = self.soup.find(
             "span", string=re.compile("Вид ограничения:", re.IGNORECASE)
         )
@@ -91,9 +86,9 @@ class LotPage:
             div = dedent_func(span.parent.get_text().strip())
             div_text = re.split(":", div, maxsplit=1)[-1]
             return dedent_func(div_text.strip())
+        return None
 
     def get_description_encumbrance(self):
-        """return description_encumbrance"""
         h5 = self.soup.find(
             "h5", string=re.compile("Описание обременения:", re.IGNORECASE)
         )
@@ -102,9 +97,9 @@ class LotPage:
             div = re.sub(r":\s{2,}", ": ", div)
             div_text = re.sub(r"\s{2,}", os.linesep, div)
             return div_text.strip()
+        return None
 
     def get_categories(self):
-        """:return list with categories"""
         try:
             div_category = self.soup.find(
                 "span", string=re.compile(r"\s?Вид имущества:\s?", re.IGNORECASE)
@@ -119,7 +114,6 @@ class LotPage:
             logger.error(f"{self.response.url} :{ex}: ERROR CATEGORY", exc_info=True)
 
     def start_date_requests(self):
-        """:return statet date requests and start date trading"""
         try:
             start_date_requests = self.soup.find(
                 "div", string=re.compile(r"\s?Дата публикации:\s?", re.IGNORECASE)
@@ -128,14 +122,13 @@ class LotPage:
                 start_date_requests = (
                     start_date_requests.findNext("div").get_text().strip()
                 )
-                return format_time(start_date_requests)
+                return DateTimeHelper.smart_parse(start_date_requests).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(
                 f"{self.response.url} :: ERROR START DATE REQUEST or TRADING\n{e}"
             )
 
     def start_price(self):
-        """return start price"""
         try:
             start_price = (
                 self.soup.find("div", class_="object-sidebar__price")
@@ -150,7 +143,6 @@ class LotPage:
             )
 
     def return_complete_lot_info(self):
-        """analyze all data related for lot info and return full description according goals"""
         if self.check_tab_transport():
             if d := self.get_lot_info_description():
                 return self.get_lot_info_characteristic() + os.linesep + d
@@ -175,7 +167,6 @@ class LotPage:
                 return text
 
     def get_lot_info_description(self):
-        """:return lot info"""
         try:
             detailed = self.soup.find("div", class_="detailed")
             if detailed:
@@ -188,7 +179,6 @@ class LotPage:
             logger.error(f"{self.response.url} :: Error with LOT INFO\n{e}")
 
     def check_tab_transport(self):
-        """check if tab transport exists"""
         if description_tabs := self.soup.find_all(
             "div", class_=re.compile("object-tabs-controls__item")
         ):
@@ -197,7 +187,6 @@ class LotPage:
             return True if search_tab in tab_text else None
 
     def get_lot_info_characteristic(self):
-        """return description with categories - pressent on lots with cars"""
         string = ""
         search_words = [
             "Год выпуска:",
@@ -273,7 +262,6 @@ class LotPage:
         return string
 
     def property_info(self):
-        """return property information"""
         try:
             span_property = self.soup.find(
                 "span",
@@ -285,7 +273,6 @@ class LotPage:
             logger.error(f"{self.response.url} :: ERROR PROPERTY INFORMATION\n{e}")
 
     def get_all_pictures_link(self):
-        """fetch all link from gallary <div> section even if link is dead"""
         galary_section = self.soup.find("div", class_="gallery")
         lst_files = list()
         if galary_section:

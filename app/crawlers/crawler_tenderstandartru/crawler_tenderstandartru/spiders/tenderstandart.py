@@ -3,7 +3,7 @@ from scrapy import Request
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.utils.config import write_log_to_file
 from .base import TenderstandartBaseSpider
-from ..trades.app import Combo
+from ..trades.combo import Combo
 
 
 class TenderstandartSpider(TenderstandartBaseSpider):

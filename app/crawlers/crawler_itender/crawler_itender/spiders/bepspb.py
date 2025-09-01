@@ -1,9 +1,5 @@
-import logging
-
 from app.utils.config import headers, write_log_to_file
 from .base import ItenderBaseSpider
-
-logger = logging.getLogger(__name__)
 
 
 class BepspbSpider(ItenderBaseSpider):

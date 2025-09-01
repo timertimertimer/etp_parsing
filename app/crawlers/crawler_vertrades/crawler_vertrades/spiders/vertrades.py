@@ -7,7 +7,7 @@ from app.crawlers.base import BaseSpider
 from app.utils import URL
 from app.utils.config import start_date
 from ..config import data_origin, params_data
-from ..trades.app import Combo
+from ..trades.combo import Combo
 
 
 class VertradesSpider(BaseSpider):

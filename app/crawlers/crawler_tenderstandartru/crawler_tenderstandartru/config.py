@@ -1,6 +1,8 @@
-from app.utils.config import format_parse_date
+from datetime import timedelta, datetime
 
-start_date = format_parse_date(30, "%d.%m.%Y %H:%M")
+from app.utils.config import DateTimeHelper
+
+start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(days=30), "%d.%m.%Y %H:%M")
 
 data_origin = {
     "au_pro": "https://au-pro.ru/",

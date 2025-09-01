@@ -235,7 +235,7 @@ class AuctionParse:
         )
         if _div:
             data_requests = _div.findNext("div").get_text().strip().lower()
-            return format_time(data_requests)
+            return DateTimeHelper.smart_parse(data_requests).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(
             f"{self.response.url} | ERROR function {self.start_date_requests_auction.__name__}"
         )
@@ -247,7 +247,7 @@ class AuctionParse:
         ).get()
         if _div:
             end_date_req = _div.strip().lower()
-            return format_time(end_date_req)
+            return DateTimeHelper.smart_parse(end_date_req).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(
             f"{self.response.url} | ERROR function {self.end_date_requests_auction.__name__}"
         )
@@ -261,7 +261,7 @@ class AuctionParse:
         )
         if _div:
             end_date_req = _div.findNext("div").get_text().strip().lower()
-            return format_time(end_date_req)
+            return DateTimeHelper.smart_parse(end_date_req).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(
             f"{self.response.url} | ERROR function {self.start_date_trading.__name__}"
         )

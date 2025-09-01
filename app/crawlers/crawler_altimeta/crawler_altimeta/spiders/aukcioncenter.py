@@ -3,7 +3,7 @@ from scrapy import Request
 from app.utils import URL
 from app.utils.config import write_log_to_file
 from .base import AltimetaBaseSpider
-from ..manage_spiders.app import Combo
+from ..manage_spiders.combo import Combo
 from ..config import stop_page
 
 

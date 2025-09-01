@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.utils import dedent_func, format_time, logger, Contacts
+from app.utils import dedent_func, DateTimeHelper, logger, Contacts
 from app.db.models import DownloadData
 from ..trades.auc import Auc
 from ..trades.offer import Offer
@@ -266,7 +266,7 @@ class Combo:
         if not date:
             logger.warning(f"{self.response.url} | start_date_requests not found")
             return None
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
@@ -274,7 +274,7 @@ class Combo:
         if not date:
             logger.warning(f"{self.response.url} | end_date_requests not found")
             return None
-        return format_time(date)
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_price(self):

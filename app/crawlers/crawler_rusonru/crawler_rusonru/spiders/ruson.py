@@ -5,7 +5,7 @@ from app.utils import URL
 from .base import RusonBaseSpider
 from app.utils.config import write_log_to_file
 from ..config import trade_link, formdata, serp_link
-from ..trades.app import Combo
+from ..trades.combo import Combo
 
 
 class RusonSpider(RusonBaseSpider):

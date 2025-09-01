@@ -8,11 +8,11 @@ from string import ascii_letters, digits
 from dotenv import load_dotenv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-from utils.extra import set_logger
+from utils import logger
 from utils.config import post_main_service
 
 load_dotenv()
-set_logger(logger)
+set_logger(logger)  # FIXME
 
 
 def run_spider(project: str, spider: str) -> None:

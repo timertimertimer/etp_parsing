@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 
 from app.crawlers.crawler_ets24_arrested.crawler_ets24_arrested.config import base_url
 from app.db.models import DownloadData
-from app.utils import URL, dedent_func, Contacts, format_time, make_float
+from app.utils import URL, dedent_func, Contacts, DateTimeHelper, make_float
 
 
 class Combo:
@@ -163,36 +163,36 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.get_requests_table()
             .find("td", text="Дата и время начала подачи заявок")
             .find_next("td")
             .text.strip()
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.get_requests_table()
             .find("td", text="Дата и время окончания подачи заявок")
             .find_next("td")
             .text.strip()
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_trading(self):
-        return format_time(
+        return DateTimeHelper.smart_parse(
             self.get_trade_table()
             .find("td", text="Дата и время начала торгов")
             .find_next("td")
             .text.strip()
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_trading(self):
         date = self.get_trade_table().find("td", text="Дата и время окончания торгов")
         if date:
-            date = format_time(date.find_next("td").text.strip())
+            date = DateTimeHelper.smart_parse(date.find_next("td").text.strip()).astimezone(DateTimeHelper.moscow_tz)
         return date
 
     @property

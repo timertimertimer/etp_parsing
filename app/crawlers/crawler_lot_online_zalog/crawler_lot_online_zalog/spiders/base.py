@@ -4,9 +4,9 @@ import re
 from scrapy import Request, FormRequest
 from scrapy_splash import SplashRequest, SlotPolicy
 
-from general_utils.base_spider import BaseSpider
-from general_utils.config import write_log_to_file
-from general_utils.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
+from app.crawlers.items import (EtpItem, EtpItemLoader)
 from ..config import (
     start_url,
     data_pagination,
@@ -15,7 +15,7 @@ from ..config import (
     script_lua,
     main_data_origin,
 )
-from ..manage_spider.app import Combo
+from ..manage_spider.combo import Combo
 
 
 class LotOnlineZalogBaseSpider(BaseSpider):

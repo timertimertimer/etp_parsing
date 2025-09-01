@@ -1,11 +1,12 @@
 from typing import Iterable
 from scrapy import Request, FormRequest
 
-from general_utils import EtpItem, EtpItemLoader, UrlConfig
-from general_utils.base_spider import BaseSpider
-from general_utils.config import start_date
+from app.crawlers.items import EtpItem, EtpItemLoader
+from app.crawlers.base import BaseSpider
+from app.utils.config import start_date
+from app.utils import URL
 from ..config import data_origin_url
-from ..app import Combo
+from ..combo import Combo
 
 
 class MoiTenderSpider(BaseSpider):
@@ -52,7 +53,7 @@ class MoiTenderSpider(BaseSpider):
             if lot["trading_link"] not in self.previous_trades:
                 if lot["org"] not in self.orgs_contacts:
                     yield Request(
-                        UrlConfig.url_join(data_origin_url, lot["org_link"]),
+                        URL.url_join(data_origin_url, lot["org_link"]),
                         self.parse_org,
                         cb_kwargs={"lot": lot},
                     )

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from app.utils import format_time
+from app.utils import DateTimeHelper
 
 
 class Auc:
@@ -15,7 +15,7 @@ class Auc:
         ).get()
         if date:
             date = BeautifulSoup(date, "lxml").get_text().strip()
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     @property
@@ -25,5 +25,5 @@ class Auc:
         ).get()
         if date:
             date = BeautifulSoup(date, "lxml").get_text().strip()
-            return format_time(date)
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         return None

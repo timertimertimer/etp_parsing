@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 from app.db.models import DownloadData
-from app.utils import logger, Contacts, format_time, make_float, return_parse_date
+from app.utils import logger, Contacts, DateTimeHelper, make_float
 
 
 class Combo:
@@ -172,15 +172,15 @@ class Combo:
 
     @property
     def start_date_requests(self):
-        return return_parse_date(self.lot["startedAt"], "%d.%m.%Y, %H:%M")
+        return DateTimeHelper.smart_parse(self.lot["startedAt"], '%d.%m.%Y, %H:%M').astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
-        return return_parse_date(self.lot["endAt"], "%d.%m.%Y, %H:%M")
+        return DateTimeHelper.smart_parse(self.lot["endAt"], '%d.%m.%Y, %H:%M').astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_trading(self):
-        return return_parse_date(self.lot["completedAt"], "%d.%m.%Y, %H:%M")
+        return DateTimeHelper.smart_parse(self.lot["completedAt"], '%d.%m.%Y, %H:%M').astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_trading(self):

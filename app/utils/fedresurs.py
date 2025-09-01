@@ -55,8 +55,8 @@ class Fedresurs:
                 response.raise_for_status()
                 break
             except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ReadTimeout,
             ) as e:
                 if i + 1 == retry_count:
                     logger.warning(
@@ -110,18 +110,18 @@ class Fedresurs:
         shutil.rmtree(Path().cwd() / "browser_data")
 
     def search(
-        self,
-        search_string: str,
-        url: str = None,
-        path: str = "",
-        params: dict = None,
-        headers: dict = None,
+            self,
+            search_string: str,
+            url: str = None,
+            path: str = "",
+            params: dict = None,
+            headers: dict = None,
     ):
         url = f"{url or self.BACKEND_URL}{f'/{path}' if len(path) else ''}"
         data = self.make_request(
             url,
             params={"searchString": search_string, "limit": 15, "offset": 0}
-            | (params or {}),
+                   | (params or {}),
             headers=headers or self.HEADERS,
         )
         if not (data := data.get("pageData")):
@@ -144,13 +144,13 @@ class CounterpartyFedresurs(Fedresurs):
     BACKEND_URL = f"https://fedresurs.ru/backend/{PATH}"
 
     def __init__(
-        self,
-        inn: str = None,
-        name: str = None,
-        guid: str = None,
-        data: dict = None,
-        *args,
-        **kwargs,
+            self,
+            inn: str = None,
+            name: str = None,
+            guid: str = None,
+            data: dict = None,
+            *args,
+            **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.data = self.data or data or dict()
@@ -227,7 +227,9 @@ class CounterpartyFedresurs(Fedresurs):
                 "number"
             )
             sro.data["activity_type"] = membership.get("sroActivities", [None])[0]
-            sro.data["entered_at"] = return_parse_date(membership["dateInclude"])  # FIXME!!!
+            sro.data["entered_at"] = (
+                DateTimeHelper.smart_parse(membership["dateInclude"]).astimezone(DateTimeHelper.moscow_tz)
+            )
             memberships.append(sro.data)
         self.data["sro_memberships"] = memberships
 
@@ -262,8 +264,8 @@ class CounterpartyFedresurs(Fedresurs):
             return
         for publication in data:
             if (
-                publication["publicationType"] != "BankruptMessage"
-                or publication["isLocked"]
+                    publication["publicationType"] != "BankruptMessage"
+                    or publication["isLocked"]
             ):
                 continue
             bmf = BankrotMessageFedresurs(publication["guid"])
@@ -403,7 +405,9 @@ class BankrotMessageFedresurs(Fedresurs):
         self.data["fedresurs_url"] = (
             f"https://fedresurs.ru/bankruptmessages/{self.data['guid']}"
         )
-        self.data["published_at"] = return_parse_date(data["datePublish"]) # FIXME!!!
+        self.data["published_at"] = (
+            DateTimeHelper.smart_parse(data["datePublish"]).astimezone(DateTimeHelper.moscow_tz)
+        )
         files = list()
         for doc in data["docs"]:
             files.append(
@@ -452,11 +456,11 @@ class AuctionFedresurs(Fedresurs):
     BACKEND_URL = "https://fedresurs.ru/backend/biddings"
 
     def __init__(
-        self,
-        trading_id: str,
-        trading_number: str,
-        trading_floor_name: str,
-        case_number: str | None = None,
+            self,
+            trading_id: str,
+            trading_number: str,
+            trading_floor_name: str,
+            case_number: str | None = None,
     ):
         super().__init__()
         self.data["trading_id"] = trading_id
@@ -481,8 +485,8 @@ class AuctionFedresurs(Fedresurs):
                 continue
             for data_ in data:
                 if (
-                    data_["tradePlace"]["name"].strip()
-                    == self.data["trading_floor_name"].strip()
+                        data_["tradePlace"]["name"].strip()
+                        == self.data["trading_floor_name"].strip()
                 ):
                     self.data["guid"] = data_["guid"]
                     return data_["guid"]

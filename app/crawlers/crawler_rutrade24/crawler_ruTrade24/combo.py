@@ -1,4 +1,3 @@
-import logging
 import re
 
 from bs4 import BeautifulSoup
@@ -10,10 +9,8 @@ from app.utils import (
     URL,
     dedent_func,
     Contacts,
-    make_float,
+    make_float, logger,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class Combo:

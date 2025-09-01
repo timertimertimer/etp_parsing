@@ -1,5 +1,4 @@
 import copy
-import logging
 import re
 from random import randint
 
@@ -8,9 +7,10 @@ from scrapy_splash import SplashRequest, SlotPolicy
 
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
-from app.db.models import Auction, AuctionPropertyType
+from app.db.models import AuctionPropertyType
+from app.utils import logger
 from app.utils.config import write_log_to_file
-from app.crawlers.crawler_itender.crawler_itender.manage_spiders.app import Combo
+from app.crawlers.crawler_itender.crawler_itender.manage_spiders.combo import Combo
 from app.crawlers.crawler_itender.crawler_itender.config import (
     return_auction_link,
     data_origin,
@@ -23,8 +23,6 @@ from app.crawlers.crawler_itender.crawler_itender.config import (
     script_lua_nojs,
     common_data, urls,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class ItenderBaseSpider(BaseSpider):

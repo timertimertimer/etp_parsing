@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.utils import dedent_func, Contacts, format_time, logger
+from app.utils import dedent_func, Contacts, DateTimeHelper, logger
 from ..locators.locator_auction import LocatorAuction
 
 
@@ -322,7 +322,7 @@ class Auction:
                     ),
                 ).findNext("td")
                 if start:
-                    start = format_time(dedent_func(start.get_text().strip()))
+                    start = DateTimeHelper.smart_parse(dedent_func(start.get_text().strip())).astimezone(DateTimeHelper.moscow_tz)
                     return start
         except Exception as ex:
             logger.warning(
@@ -342,9 +342,9 @@ class Auction:
                     ),
                 )
                 if end:
-                    end = format_time(
+                    end = DateTimeHelper.smart_parse(
                         dedent_func(end.findNext("td").get_text().strip())
-                    )
+                    ).astimezone(DateTimeHelper.moscow_tz)
                     return end
         except Exception as ex:
             logger.warning(
@@ -361,9 +361,9 @@ class Auction:
                     "td", string=re.compile("ата проведени", re.IGNORECASE)
                 )
                 if start:
-                    start = format_time(
+                    start = DateTimeHelper.smart_parse(
                         dedent_func(start.findNext("td").get_text().strip())
-                    )
+                    ).astimezone(DateTimeHelper.moscow_tz)
                     return start
         except Exception as ex:
             logger.warning(
@@ -399,7 +399,7 @@ class Auction:
                 start = start.findNextSibling("td").get_text().replace("-", " ")
                 start = re.sub(r"\s+", " ", start)
                 try:
-                    return format_time(start)
+                    return DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz)
                 except Exception as e:
                     logger.warning(f"{self.response.url} | Error: {e}")
         return None
@@ -412,7 +412,7 @@ class Auction:
                 end = end.findNextSibling("td").get_text().replace("-", " ")
                 end = re.sub(r"\s+", " ", end)
                 try:
-                    return format_time(end)
+                    return DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz)
                 except Exception as e:
                     logger.warning(f"{self.response.url} | Error: {e}")
         return None
@@ -434,7 +434,7 @@ class Auction:
                             )
                             start_trading = re.sub(r"\s+", " ", start_trading)
                             try:
-                                return format_time(start_trading)
+                                return DateTimeHelper.smart_parse(start_trading).astimezone(DateTimeHelper.moscow_tz)
                             except Exception as e:
                                 logger.warning(f"{self.response.url} | Error: {e}")
             elif len(start_trading) == 1:
@@ -445,7 +445,7 @@ class Auction:
                     )
                     start_trading = re.sub(r"\s+", " ", start_trading)
                     try:
-                        return format_time(start_trading)
+                        return DateTimeHelper.smart_parse(start_trading).astimezone(DateTimeHelper.moscow_tz)
                     except Exception as e:
                         logger.warning(f"{self.response.url} | Error: {e}")
                 except Exception as e:
