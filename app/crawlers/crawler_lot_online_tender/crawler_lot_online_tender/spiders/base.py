@@ -54,7 +54,6 @@ class LotOnlineTenderBaseSpider(BaseSpider):
         loader.add_value("trading_id", combo.trading_id)
         loader.add_value("trading_link", combo.trading_link)
         loader.add_value("trading_number", combo.trading_number)
-
         loader.add_value("trading_type", combo.trading_type)
         loader.add_value("trading_form", combo.trading_form)
         loader.add_value("trading_org", combo.trading_org)
@@ -63,10 +62,11 @@ class LotOnlineTenderBaseSpider(BaseSpider):
         loader.add_value("address", combo.address)
         loader.add_value("lot_number", combo.lot_number)
         loader.add_value("categories", combo.categories)
-        loader.add_value("start_date_requests", combo.start_date_requests)
-        loader.add_value("end_date_requests", combo.end_date_requests)
-        loader.add_value("start_date_trading", combo.start_date_trading)
-        loader.add_value("end_date_trading", combo.end_date_trading)
+        start_date_requests, end_date_requests, start_date_trading, end_date_trading = combo.dates().values()
+        loader.add_value("start_date_requests", start_date_requests)
+        loader.add_value("end_date_requests", end_date_requests)
+        loader.add_value("start_date_trading", start_date_trading)
+        loader.add_value("end_date_trading", end_date_trading)
         loader.add_value("start_price", combo.start_price)
         if combo.trading_type in ["auction", "competition"]:
             loader.add_value("step_price", combo.step_price)

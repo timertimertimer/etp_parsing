@@ -1,7 +1,10 @@
 import json
 from typing import Optional
 
-from app.utils import logger, Contacts
+import pytz
+
+from app.db.models import DownloadData
+from app.utils import logger, Contacts, DateTimeHelper, make_float
 
 
 class Combo:
@@ -82,36 +85,55 @@ class Combo:
 
         return self.main_stage[0]['stageList']
 
-    @property
-    def start_date_requests(self):
-        return self.main_stage['']
-
-    @property
-    def end_date_requests(self):
-        ...
-
-    @property
-    def start_date_trading(self):
-        ...
-
-    @property
-    def end_date_trading(self):
-        ...
+    def dates(self) -> dict:
+        dates = dict(
+            start_date_requests=None,
+            end_date_requests=None,
+            start_date_trading=None,
+            end_date_trading=None,
+        )
+        for stage in self.main_stage:
+            date_type = None
+            date = stage['date'] + ' ' + stage['time']
+            if stage['code'] == 'GD_START':
+                date_type = 'start_date_requests'
+            elif stage['code'] == 'GD_END':
+                date_type = 'end_date_requests'
+            elif stage['code'] == 'EXECUTION':
+                date_type = 'start_date_trading'
+                self.step_price = make_float(stage['tradeInfo']['minPriceStep'])
+            elif stage['code'] == 'SUMMATION':
+                date_type = 'end_date_trading'
+            if date_type:
+                dates[date_type] = DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        return dates
 
     @property
     def start_price(self):
-        ...
+        return self.common_data['price']
 
     @property
     def step_price(self):
-        ...
+        return self._step_price
+
+    @step_price.setter
+    def step_price(self, value):
+        self._step_price = make_float(value)
 
     @property
     def periods(self):
-        ...
+        ...  # TODO
 
     def download_general(self):
-        ...
+        notices = self.data.get('notices')
+        files = []
+        for notice in notices:
+            for file in notices.get('fileSignResponse'):
+                file_dto = file['fileDTO']
+                link = f'https://tender.lot-online.ru/etp/downloadppf?uuid={file_dto["uuid"]}'
+                name = file_dto["fileName"]
+                files.append(DownloadData(url=link, file_name=name))
+        return files
 
     def download_lot(self):
-        ...
+        return None
