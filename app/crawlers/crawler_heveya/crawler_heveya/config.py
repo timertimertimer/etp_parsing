@@ -1,14 +1,10 @@
-from datetime import datetime, timedelta
-
-from app.utils.config import DateTimeHelper
+from app.utils.config import start_dates
 
 data_origin_url = "https://heveya.ru/"
 main_url = "https://heveya.ru/torgi-po-bankrotstvu"
 
-days = 7
-start_date = DateTimeHelper.format_datetime(
-    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%d.%m.%Y"
-)
+crawler_name = 'heveya'
+start_date = start_dates[crawler_name]
 params = {
     "publish_date_begin": start_date,
     "search_by_all_fields": "description",

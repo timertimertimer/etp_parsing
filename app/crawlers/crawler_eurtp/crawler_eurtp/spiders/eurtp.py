@@ -4,9 +4,9 @@ from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import AuctionPropertyType
 from app.utils import URL
 from app.crawlers.base import BaseSpider
-from app.utils.config import start_date
+from app.utils.config import start_date, end_date
 from ..combo import Combo
-from ..config import bankrupt_categories, arrested_categories, end_date, page_limit
+from ..config import bankrupt_categories, arrested_categories, page_limit
 from ..config import data_origin_url
 
 

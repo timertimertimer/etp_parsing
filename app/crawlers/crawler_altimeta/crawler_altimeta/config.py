@@ -1,6 +1,4 @@
-from app.utils.config import (
-    start_date,
-)
+from app.utils.config import start_date
 
 stop_page = 10
 

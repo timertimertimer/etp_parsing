@@ -8,6 +8,7 @@ from string import ascii_letters, digits
 from dotenv import load_dotenv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
+from app.db.models import AuctionPropertyType
 from utils import logger
 from utils.config import post_main_service
 
@@ -80,8 +81,18 @@ lot_online_catalog = ["lot_online_bankruptcy", "lot_online_private_property"]
 lot_online = ["rad", "confiscate", "lease", "privatization", "arrested"]
 zalog = ["rshb", "sbrf", "rad"]
 
-projects = {
-    "crawler_akosta": "akosta",
+property_types = {
+    AuctionPropertyType.bankruptcy: [
+        'akosta'
+    ]
+}
+
+crawlers = {
+    "crawler_akosta": [f'akosta_{el}' for el in [
+        AuctionPropertyType.bankruptcy,
+        AuctionPropertyType.arrested,
+        AuctionPropertyType.commercial
+    ]],
     "crawler_altimeta": altimeta,
     "crawler_bankrot_cdtrf": "bankrot_cdtrf",
     "crawler_electro_torgi": electro_torgi,
@@ -116,12 +127,12 @@ def main():
     futures = []
 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        for project, spider in projects.items():
+        for crawler, spider in crawlers.items():
             if isinstance(spider, list):
                 for sp in spider:
-                    futures.append(executor.submit(run_spider, project, sp))
+                    futures.append(executor.submit(run_spider, crawler, sp))
             else:
-                futures.append(executor.submit(run_spider, project, spider))
+                futures.append(executor.submit(run_spider, crawler, spider))
 
         for future in as_completed(futures):
             try:

@@ -16,7 +16,7 @@ property_type_number = {
 }
 
 urls = {
-    "akosta_bankrupt": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.bankruptcy]}",
+    "akosta_bankruptcy": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.bankruptcy]}",
     "akosta_arrested": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.arrested]}",
     "akosta_commercial": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.commercial]}",
 }

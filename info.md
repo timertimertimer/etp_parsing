@@ -52,3 +52,6 @@ d = {
     "reduction": ["Редукцион"]
 }
 ```
+
+для сбера (sberbank) и росельторга (roseltorg) нужны прокси 
+proxies template `user:pass@ip:port`

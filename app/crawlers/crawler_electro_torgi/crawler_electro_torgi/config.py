@@ -1,8 +1,9 @@
-from datetime import timedelta, datetime
+from datetime import datetime
 
-from app.utils.config import DateTimeHelper
+from app.utils.config import DateTimeHelper, start_dates
 
-start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(days=30), "%d.%m.%Y 00:01")
+crawler_name = "electro_torgi"
+start_date = start_dates[crawler_name]
 end_date = DateTimeHelper.format_datetime(datetime.now(), "%d.%m.%Y 23:59")
 
 data_origin_urls = {

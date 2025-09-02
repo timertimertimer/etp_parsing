@@ -170,3 +170,4 @@ files/
 browser_data/
 uv.lock
 alembic/versions
+proxies.txt

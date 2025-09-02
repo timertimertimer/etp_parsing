@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 from scrapy import FormRequest
@@ -7,14 +9,14 @@ import xmltodict
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
+from app.utils import DateTimeHelper
 from ..trades.combo import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
 
 
 class SberbankBaseSpider(BaseSpider):
-    name = "sberbank"
-    start_urls = ["https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList"]
+    name = "base"
 
     def __init__(self):
         super().__init__(data_origin_url)
@@ -23,24 +25,28 @@ class SberbankBaseSpider(BaseSpider):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
         for start_date_ in date_range:
             end_date = DateTimeHelper.format_datetime(
-                start_date_ + timedelta(days=days), "%d.%m.%Y %H:%M"
+                start_date_ + timedelta(weeks=1), "%d.%m.%Y %H:%M"
             )
             start_date_ = start_date_.strftime("%d.%m.%Y %H:%M")
-            yield FormRequest(
-                self.start_urls[0],
-                self.make_second_request,
-                formdata={
-                    "xmlData": xml_request_data.format(
-                        start_date=start_date_, end_date=end_date, total=100
-                    ),
-                    "orgId": "0",
-                    "buId": "0",
-                    "personId": "0",
-                    "buMainId": "0",
-                    "personMainId": "0",
-                },
-                meta={"start_date": start_date, "end_date": end_date},
-            )
+            start_url = start_urls[self.property_type.value]
+            if isinstance(start_url, str):
+                start_url = [start_url]
+            for start_url in start_url:
+                yield FormRequest(
+                    start_url,
+                    self.make_second_request,
+                    formdata={
+                        "xmlData": get_xml_request_data(self.property_type.value).format(
+                            start_date=start_date_, end_date=end_date, total=100
+                        ),
+                        "orgId": "0",
+                        "buId": "0",
+                        "personId": "0",
+                        "buMainId": "0",
+                        "personMainId": "0",
+                    },
+                    meta={"start_date": start_date, "end_date": end_date},
+                )
 
     def make_second_request(self, response, **kwargs):
         soup = BS(json.loads(response.text)["data"]["Data"]["tableXml"], "lxml-xml")
@@ -150,7 +156,7 @@ class SberbankBaseSpider(BaseSpider):
         try:
             data = json.loads(response.text)
         except Exception as e:
-            raise e  # FIXME: слишком частые запросы
+            raise e  # FIXME: слишком частые запросы (нужны прокси)
         combo = ComposeTrades(data, lot_link)
         loader.add_value("lot_id", combo.auc.get_lot_id)
         loader.add_value("lot_link", lot_link)
@@ -182,24 +188,30 @@ class SberbankBaseSpider(BaseSpider):
 
 
 class SberbankBankruptcySpider(SberbankBaseSpider):
+    name = "sberbank_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
 
 
 class SberbankFz223Spider(SberbankBaseSpider):
+    name = "sberbank_fz223"
     property_type = AuctionPropertyType.fz223
 
 
 class SberbankFz44Spider(SberbankBaseSpider):
+    name = "sberbank_fz44"
     property_type = AuctionPropertyType.fz44
 
 
 class SberbankCapitalRepairSpider(SberbankBaseSpider):
+    name = "sberbank_capital_repair"
     property_type = AuctionPropertyType.capital_repair
 
 
 class SberbankLegalEntitiesSpider(SberbankBaseSpider):
+    name = "sberbank_legal_entities"
     property_type = AuctionPropertyType.legal_entities
 
 
 class SberbankCommercialSpider(SberbankBaseSpider):
+    name = "sberbank_commercial"
     property_type = AuctionPropertyType.commercial
