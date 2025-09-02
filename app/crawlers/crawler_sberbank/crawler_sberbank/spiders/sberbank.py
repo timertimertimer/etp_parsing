@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pandas as pd
 from bs4 import BeautifulSoup as BS
 from scrapy import FormRequest
@@ -7,14 +9,15 @@ import xmltodict
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
+from app.utils import DateTimeHelper
 from ..trades.combo import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
 
 
 class SberbankBaseSpider(BaseSpider):
-    name = "sberbank"
-    start_urls = ["https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList"]
+    name = "base"
+    start_urls = ["https://utp.sberbank-ast.ru/Bankruptcy/SearchQuery/BidList"]  # FIXME: в текущей реализации ТОЛЬКО банкротство
 
     def __init__(self):
         super().__init__(data_origin_url)
@@ -23,7 +26,7 @@ class SberbankBaseSpider(BaseSpider):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
         for start_date_ in date_range:
             end_date = DateTimeHelper.format_datetime(
-                start_date_ + timedelta(days=days), "%d.%m.%Y %H:%M"
+                start_date_ + timedelta(weeks=1), "%d.%m.%Y %H:%M"
             )
             start_date_ = start_date_.strftime("%d.%m.%Y %H:%M")
             yield FormRequest(
@@ -182,24 +185,30 @@ class SberbankBaseSpider(BaseSpider):
 
 
 class SberbankBankruptcySpider(SberbankBaseSpider):
+    name = "sberbank_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
 
 
 class SberbankFz223Spider(SberbankBaseSpider):
+    name = "sberbank_fz223"
     property_type = AuctionPropertyType.fz223
 
 
 class SberbankFz44Spider(SberbankBaseSpider):
+    name = "sberbank_fz44"
     property_type = AuctionPropertyType.fz44
 
 
 class SberbankCapitalRepairSpider(SberbankBaseSpider):
+    name = "sberbank_capital_repair"
     property_type = AuctionPropertyType.capital_repair
 
 
 class SberbankLegalEntitiesSpider(SberbankBaseSpider):
+    name = "sberbank_legal_entities"
     property_type = AuctionPropertyType.legal_entities
 
 
 class SberbankCommercialSpider(SberbankBaseSpider):
+    name = "sberbank_commercial"
     property_type = AuctionPropertyType.commercial

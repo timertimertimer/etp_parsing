@@ -1,6 +1,4 @@
-from datetime import timedelta, datetime
-
-from app.utils import DateTimeHelper
+from app.utils.config import start_dates
 
 main_data_origin = "https://www.lot-online.ru/"
 domains = ["rad", "confiscate", "lease", "privatization", "arrested"]
@@ -9,9 +7,11 @@ path_absolute = {}
 path_relative = {}
 for domain in domains:
     data_origin[domain] = f"https://{domain}.lot-online.ru/"
+crawler_name = 'lot_online_old'
+start_date = start_dates[crawler_name]
 form_data = {
     "saleTypeId": "3001",
-    "applicationSubmitStart": DateTimeHelper.format_datetime(datetime.now() - timedelta(days=30), "%d/%m/%Y"),
+    "applicationSubmitStart": start_date,
     "applicationSubmitStop": "",
     "biddingStart": "",
     "biddingStop": "",

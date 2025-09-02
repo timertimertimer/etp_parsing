@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
-
-from app.utils import DateTimeHelper
+from app.utils.config import start_dates
 
 data_origin_url = "https://m-ets.ru/"
 url_start = "https://m-ets.ru/search"
-start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(7))
+crawler_name = 'mets'
+start_date = start_dates[crawler_name]
 
 pattern_without_hash = r"https.+m-ets.+generalView.+id=\d+"
 pattern_trade_links = r"https.+mets.+View.+id=\d+.(lot1)$"

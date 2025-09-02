@@ -1,18 +1,14 @@
-from datetime import datetime, timedelta
 from pathlib import Path
 
-from app.utils.datetime_helper import (
-    DateTimeHelper
-)
+from app.utils.config import start_dates
 
 data_origin_url = "https://utp.sberbank-ast.ru/"
 main_url_start = "https://utp.sberbank-ast.ru/Bankruptcy/List/BidList"
 part_path_to_trade = r"PurchaseView"
 part_path_to_lot = r"BidView"
-days = 7
-start_date = DateTimeHelper.format_datetime(
-    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%Y-%m-%d"
-)
+crawler_name = 'sberbank'
+start_date = start_dates[crawler_name]
+
 urls = {
     'fz223': 'https://utp.sberbank-ast.ru/Trade/List/BidList',
     'fz44': 'https://utp.sberbank-ast.ru/RussianPost/List/PurchaseList',

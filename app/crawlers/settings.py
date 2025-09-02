@@ -1,10 +1,11 @@
 import sys
 import logging
 import warnings
+from pathlib import Path
 
 import scrapy.utils.log
 
-from app.utils.config import headers
+from app.utils.config import headers, proxy_path
 from app.utils.logger import logger
 from bs4 import XMLParsedAsHTMLWarning
 
@@ -29,7 +30,7 @@ DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware": 810,
 }
 
-# ROTATING_PROXY_LIST_PATH = proxy_path if Path(proxy_path).exists() else None
+ROTATING_PROXY_LIST_PATH = proxy_path if Path(proxy_path).exists() else None
 ROTATING_PROXY_LOGSTATS_INTERVAL = 60
 ROTATING_PROXY_PAGE_RETRY_TIMES = 7
 

@@ -15,7 +15,7 @@ absolute_download_path = Path(os.getenv("ABSOLUTE_DOWNLOAD_PATH", Path(project_m
 relative_download_path = Path(os.getenv("RELATIVE_DOWNLOAD_PATH", '/files'))
 
 config_file_name = "config.ini"
-proxy_file_name = "proxy.txt"
+proxy_file_name = "proxies.txt"
 socks_file_name = "socks_5.txt"
 user_agent_file_name = "user-agent.txt"
 indexes_file_name = "index.json"
@@ -74,12 +74,6 @@ class ENV(BaseSettings):
 
 env = ENV()
 env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.mysql_external_port}/{env.db_database}"
-
-
-days = 30
-start_date = DateTimeHelper.format_datetime(
-    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), "%d.%m.%Y"
-)
 
 headers = {
     "Accept": "*/*",
@@ -142,6 +136,36 @@ trash_resources = [
     "media",
     "ping",
 ]
+
+default_days = days = 30
+default_datetime_format = '%d.%m.%Y'
+default_start_date = start_date = DateTimeHelper.format_datetime(
+    datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=days), default_datetime_format
+)
+today = default_end_date = end_date = DateTimeHelper.format_datetime(
+    datetime.now(), default_datetime_format
+)
+
+start_dates = {
+    'akosta': start_date,
+    'altimeta': start_date,
+    'b2b_center': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=7), default_datetime_format),
+    'bankrot_cdtrf': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=3), default_datetime_format),
+    'electro_torgi': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=default_days),
+                                                    f"{default_datetime_format} 00:01"),
+    'heveya': DateTimeHelper.format_datetime(
+        datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=7), default_datetime_format
+    ),
+    'itender': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=default_days), "%Y-%m-%d 0:0:-1"),
+    'lot_online_old': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=default_days), "%d/%m/%Y"),
+    'lot_online_tender': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=1), '%Y-%m-%d'),
+    'mets': DateTimeHelper.format_datetime(datetime.now() - timedelta(days=7), default_datetime_format),
+    'sberbank': DateTimeHelper.format_datetime(
+        datetime.now(DateTimeHelper.moscow_tz) - timedelta(days=7), "%Y-%m-%d"
+    ),
+
+    'zakupkigov': today
+}
 
 download_files_from_get_url = True
 write_log_to_file = False

@@ -52,3 +52,5 @@ d = {
     "reduction": ["Редукцион"]
 }
 ```
+
+proxies template `user:pass@ip:port`

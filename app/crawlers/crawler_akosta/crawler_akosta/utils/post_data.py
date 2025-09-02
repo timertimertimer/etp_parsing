@@ -163,7 +163,6 @@ post_data_period_offer_page = {
     # neccesssary
     "formMain:dataRSList_selection": "",
     "formMain:j_idt61_collapsed": "false",
-    # neccessary
     "javax.faces.ViewState": "",
 }
-property_type_sgtable_id_map = {"bankruptcy": "2", "arrested": "0", "commercial": "1"}
+property_type_sgtable_id_map = {"bankruptcy": "1", "arrested": "2", "commercial": "0"}

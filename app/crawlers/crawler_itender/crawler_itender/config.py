@@ -17,9 +17,8 @@ def return_compet_link(_data_origin):
 
 
 # очень важно иметь дату без нулей в начале дня и месяца, иначе неправильно работает фильтрация
-current_date = datetime.now()
-one_month_ago = current_date - timedelta(days=30)
-start_date = f"{one_month_ago.year}-{one_month_ago.month}-{one_month_ago.day} 0:0:-1"
+crawler_name = 'itender'
+start_date = start_dates[crawler_name]
 data_origin = {
     "alfalot": "https://bankrupt.alfalot.ru/",
     "arbbitlot": "https://torgi.arbbitlot.ru/",

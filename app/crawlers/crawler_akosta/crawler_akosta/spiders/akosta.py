@@ -4,7 +4,7 @@ from datetime import datetime
 from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
-from app.utils import DateTimeHelper
+from app.utils import DateTimeHelper, logger
 from app.utils.config import start_date
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import Auction, AuctionPropertyType
@@ -51,6 +51,7 @@ class AkostaBaseSpider(BaseSpider):
         )
         post_data_date_query["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
         post_data_date_query["javax.faces.ViewState"] = viewstate
+        logger.info(f'{self.name} | Start date (Период приема заявок): {start_date}')
         post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
         post_data_date_query[
             f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
@@ -70,8 +71,9 @@ class AkostaBaseSpider(BaseSpider):
         viewstate = combo.pre.get_post_data_values(
             "input", "j_id1:javax.faces.ViewState:0"
         )
-        post_data_panel_list_query["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(),
-                                                                                                "%H:%M:%S")
+        post_data_panel_list_query["formMain:inputServerTime"] = (
+            DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+        )
         post_data_panel_list_query["javax.faces.ViewState"] = viewstate
         post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
         post_data_panel_list_query[
@@ -443,7 +445,7 @@ class AkostaBaseSpider(BaseSpider):
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", transfer["data_origin"])
-        loader.add_value("property_type", self.property_type)
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", transfer["trading_id"])
         loader.add_value("trading_link", transfer["trading_link"])
         loader.add_value("trading_type", transfer["trading_type"])
@@ -589,6 +591,7 @@ class AkostaBaseSpider(BaseSpider):
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", transfer["data_origin"])
+        loader.add_value("property_type", self.property_type.value)
         loader.add_value("trading_id", transfer["trading_id"])
         loader.add_value("trading_link", transfer["trading_link"])
         loader.add_value("trading_type", transfer["trading_type"])
@@ -628,8 +631,8 @@ class AkostaArrestedSpider(AkostaBaseSpider):
     property_type = AuctionPropertyType.arrested
 
 
-class AkostaBankruptSpider(AkostaBaseSpider):
-    name = "akosta_bankrupt"
+class AkostaBankruptcySpider(AkostaBaseSpider):
+    name = "akosta_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
 
 
