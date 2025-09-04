@@ -28,15 +28,23 @@ class SberbankBaseSpider(BaseSpider):
                 start_date_ + timedelta(weeks=1), "%d.%m.%Y %H:%M"
             )
             start_date_ = start_date_.strftime("%d.%m.%Y %H:%M")
-            start_url = start_urls[self.property_type.value]
+            start_url = search_query_urls[self.property_type.value]
+            url = []
+            xmls_prefix = []
             if isinstance(start_url, str):
-                start_url = [start_url]
-            for start_url in start_url:
+                url = [start_url]
+                xmls_prefix = [self.property_type.value]
+            elif isinstance(start_url, dict):
+                url_data = start_url[self.property_type.value]
+                url = list(url_data.values())
+                xmls_prefix = [f"{self.property_type.value}_{el}" for el in url_data.keys()]
+            for u, p in zip(url, xmls_prefix):
+                xml_request_data = get_xml_request_data(p)
                 yield FormRequest(
-                    start_url,
+                    u,
                     self.make_second_request,
                     formdata={
-                        "xmlData": get_xml_request_data(self.property_type.value).format(
+                        "xmlData": xml_request_data.format(
                             start_date=start_date_, end_date=end_date, total=100
                         ),
                         "orgId": "0",
@@ -45,7 +53,12 @@ class SberbankBaseSpider(BaseSpider):
                         "buMainId": "0",
                         "personMainId": "0",
                     },
-                    meta={"start_date": start_date, "end_date": end_date},
+                    meta={
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "xml_request_data": xml_request_data,
+                        'start_url': u
+                    },
                 )
 
     def make_second_request(self, response, **kwargs):
@@ -53,10 +66,10 @@ class SberbankBaseSpider(BaseSpider):
         data = xmltodict.parse(str(soup))["datarow"]
         total = int(data["total"]["value"])
         yield FormRequest(
-            self.start_urls[0],
+            response.meta['start_url'],
             self.parse_table,
             formdata={
-                "xmlData": xml_request_data.format(
+                "xmlData": response.meta['xml_request_data'].format(
                     start_date=response.meta["start_date"],
                     end_date=response.meta["end_date"],
                     total=total,
