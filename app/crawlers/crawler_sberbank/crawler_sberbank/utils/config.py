@@ -53,6 +53,6 @@ first_part_link = (
 
 def get_xml_request_data(prefix: str):
     with open(
-        Path(__file__).parent.parent / 'data' / f"{prefix}_request.xml", encoding="utf-8"
+        Path(__file__).parent / f"{prefix}_request.xml", encoding="utf-8"
     ) as file:
         return file.read().replace("\n", "").replace(" ", "")
