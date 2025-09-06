@@ -54,6 +54,7 @@ from app.utils.fedresurs import (
 )
 from app.utils.config import env
 
+logger.info(f"{env.connection_string=}")
 engine = create_engine(env.connection_string, echo=False, pool_size=2, max_overflow=0)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -358,7 +359,7 @@ class DBHelper:
                 property_type=property_type,
                 url=item["trading_link"],
                 number=item.get("trading_number"),
-                type=item.get("trading_type", 'other'),
+                type=item.get("trading_type", "other"),
                 form=item.get("trading_form"),
                 message_number=item.get("msg_number"),
                 organizer_id=organizer.id if organizer else None,
@@ -837,7 +838,8 @@ class DBHelper:
             lot_period = LotPeriod(
                 request_start_at=period["start_date_requests"],
                 request_end_at=period["end_date_requests"],
-                trading_start_at=period.get("start_date_trading") or period.get("start_date_requests"),
+                trading_start_at=period.get("start_date_trading")
+                or period.get("start_date_requests"),
                 trading_end_at=period["end_date_trading"],
                 price=period["current_price"],
                 lot_id=lot_id,

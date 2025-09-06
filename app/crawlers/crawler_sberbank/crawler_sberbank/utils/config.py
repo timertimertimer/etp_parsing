@@ -26,7 +26,7 @@ search_query_urls = {
 }
 
 urls = {
-    "bankruptcy": "https://utp.sberbank-ast.ru/Bankruptcy/SearchQueryGeoData/BidList",
+    "bankruptcy": "https://utp.sberbank-ast.ru/Bankruptcy/List/BidList",
     "fz223": "https://utp.sberbank-ast.ru/Trade/List/BidList",
     "fz44": "https://utp.sberbank-ast.ru/RussianPost/List/PurchaseList",
     "capital_repair": "https://utp.sberbank-ast.ru/GKH/List/PurchaseList",
@@ -53,6 +53,6 @@ first_part_link = (
 
 def get_xml_request_data(prefix: str):
     with open(
-        Path(__file__).parent.parent / 'data' / f"{prefix}_request.xml", encoding="utf-8"
+        Path(__file__).parent.parent / f"{prefix}_request.xml", encoding="utf-8"
     ) as file:
         return file.read().replace("\n", "").replace(" ", "")

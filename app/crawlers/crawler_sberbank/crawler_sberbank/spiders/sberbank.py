@@ -35,8 +35,9 @@ class SberbankBaseSpider(BaseSpider):
                 url = [start_url]
                 xmls_prefix = [self.property_type.value]
             elif isinstance(start_url, dict):
-                url = list(start_url.values())
-                xmls_prefix = [f"{self.property_type.value}_{el}" for el in start_url.keys()]
+                url_data = start_url[self.property_type.value]
+                url = list(url_data.values())
+                xmls_prefix = [f"{self.property_type.value}_{el}" for el in url_data.keys()]
             for u, p in zip(url, xmls_prefix):
                 xml_request_data = get_xml_request_data(p)
                 yield FormRequest(
