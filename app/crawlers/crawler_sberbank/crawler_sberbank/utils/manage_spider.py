@@ -1,8 +1,9 @@
+import math
 import re
 from functools import reduce, wraps
 from http.cookies import SimpleCookie
 
-from .config import pattern_lots_links
+from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import pattern_lots_links
 
 
 # Method for manage default value in dictionary. If key is None any error will not view - just None
@@ -138,3 +139,31 @@ def cut_lot_number(func):
 @cut_lot_number
 def return_itself(text):
     return text
+
+
+def solve_challenge(challenge) -> str:
+    var_str = str(challenge)
+    var_arr = list(var_str)
+
+    var_arr = list(reversed(var_arr))
+    last_dig = var_arr[0]
+    var_arr.sort()
+    min_dig = var_arr[0]
+
+    subvar1 = 2 * int(var_arr[2]) + int(var_arr[1])
+    subvar2 = str(2 * int(var_arr[2])) + var_arr[1]
+
+    my_pow = pow(int(var_arr[0]) + 2, int(var_arr[1]))
+
+    x = challenge * 3 + subvar1
+    y = math.cos(math.pi * int(subvar2))
+
+    answer = x * y
+    answer -= my_pow
+    answer += int(min_dig) - int(last_dig)
+    answer = str(int(answer)) + subvar2
+
+    return answer
+
+if __name__ == '__main__':
+    print(solve_challenge(312048))

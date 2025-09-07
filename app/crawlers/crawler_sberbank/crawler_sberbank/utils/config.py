@@ -39,6 +39,14 @@ urls = {
         "property": "https://utp.sberbank-ast.ru/Property/List/BidList",
     },
 }
+api_map = {
+    "bankruptcy": True,
+    "fz223": False,
+    "fz44": False,
+    "capital_repair": True,
+    "legal_entities": True,
+    "commercial": False,
+}
 # format period
 # W - week
 # D - day
@@ -53,6 +61,7 @@ first_part_link = (
 
 def get_xml_request_data(prefix: str):
     with open(
-        Path(__file__).parent.parent / 'data' / f"{prefix}_request.xml", encoding="utf-8"
+        Path(__file__).parent.parent / "data" / f"{prefix}_request.xml",
+        encoding="utf-8",
     ) as file:
         return file.read().replace("\n", "").replace(" ", "")
