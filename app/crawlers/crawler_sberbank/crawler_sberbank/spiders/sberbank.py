@@ -2,6 +2,8 @@ import json
 
 import xmltodict
 from scrapy import FormRequest, Request
+from scrapy_playwright.page import PageMethod
+from playwright.async_api import Page
 from bs4 import BeautifulSoup as BS
 
 from app.crawlers.crawler_sberbank.crawler_sberbank.spiders.base import (
@@ -15,15 +17,34 @@ from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import (
 from app.crawlers.crawler_sberbank.crawler_sberbank.utils.manage_spider import solve_challenge
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
+from app.utils.config import trash_resources, write_log_to_file
+
+async def wait_for_statistic_load(page: Page):
+    await page.wait_for_selector(selector='div[id="statisticAreaContainer"]', state="attached")
+    return
 
 
 class SberbankBaseHTMLSpider(SberbankBaseSpider):
     name = "base_html"
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
+        in trash_resources,
+        "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+    }
 
     def start_requests(self):
+        url = urls[self.property_type.value]
         yield Request(
-            url=urls[self.property_type.value],
-            callback=self.send_request_for_new_cookies,
+            url,
+            callback=self.after_challenge,
+            meta=dict(
+                playwright=True,
+                playwright_page_methods=[
+                    PageMethod("goto", url),
+                    PageMethod(wait_for_statistic_load)
+                ],
+            ),
         )
 
     def send_request_for_new_cookies(self, response):
