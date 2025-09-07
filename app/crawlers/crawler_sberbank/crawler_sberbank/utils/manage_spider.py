@@ -83,12 +83,10 @@ def sort_trading_type(text):
         return "offer"
     if match3:
         return "competition"
+    return None
 
 
 def get_trading_form(text):
-    """get text from trading page - section trading form an type
-    :return open or close form
-    """
     opened = [
         "Открытое публичное предложение",
         "Открытый аукцион",
@@ -114,6 +112,7 @@ def get_trading_form(text):
         return "open"
     if match2:
         return "closed"
+    return None
 
 
 # cut lot number

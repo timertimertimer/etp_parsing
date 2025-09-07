@@ -39,6 +39,7 @@ class AuctionType(str, Enum):
     reduction = "reduction"
     other = "other"
 
+
 class FormType(str, Enum):
     open = "open"
     closed = "closed"
@@ -54,7 +55,9 @@ class Auction(Base):
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)
     number: Mapped[str] = mapped_column(String(255), nullable=True)
-    type: Mapped[str] = mapped_column(SAEnum(AuctionType, convert_unicode=True))
+    type: Mapped[str] = mapped_column(
+        SAEnum(AuctionType, convert_unicode=True), default=AuctionType.other
+    )
     form: Mapped[str] = mapped_column(SAEnum(FormType, convert_unicode=True))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)
     # bid_security: Mapped[float] = mapped_column(Float, nullable=True)
@@ -62,7 +65,7 @@ class Auction(Base):
     # operators_fee: Mapped[float] = mapped_column(Float, nullable=True)
     # execution_time: Mapped[str] = mapped_column(String, nullable=True)
     # subject_info = ...
-    sme: Mapped[bool] = mapped_column(Boolean, default=False)
+    # sme: Mapped[bool] = mapped_column(Boolean, default=False)
 
     organizer_id: Mapped[int | None] = mapped_column(
         ForeignKey("counterparties.id"), nullable=True

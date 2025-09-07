@@ -30,3 +30,5 @@
 - [ ] uv dockerfile and delete requirements.txt
 - [ ] вынести start_date/days в общий конфиг в виде словаря
 - [ ] пересмотреть скрипты в /deploy
+- [ ] поправить логирование в целом и по каждому скраперу
+- [ ] протестить прокси на playwright (mets, sberbank и другие)

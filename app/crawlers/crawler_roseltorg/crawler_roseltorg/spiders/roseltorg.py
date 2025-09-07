@@ -90,10 +90,14 @@ class RoseltorgBaseSpider(BaseSpider):
             loader.add_value("start_price", combo.start_price(lot))
             loader.add_value("step_price", combo.step_price(lot))
             loader.add_value("periods", combo.periods)
-            loader.add_value(
-                "files",
-                {"general": combo.download_general(), "lot": combo.download_lot(lot)},
-            )
+            if self.property_type not in [AuctionPropertyType.capital_repair]:
+                # на момент 07/09/25 файлы качаются с https://zakupki.gov.ru/44fz/filestore/public/1.0/download/priz/file.html
+                # в ответе приходит Запрашиваемая страница не существует.
+                # 
+                loader.add_value(
+                    "files",
+                    {"general": combo.download_general(), "lot": combo.download_lot(lot)},
+                )
             yield loader.load_item()
         self.parsed_trades += 1
         logger.info(f"Parsed {self.parsed_trades}/{self.total_trades} trades")
