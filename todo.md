@@ -20,7 +20,7 @@
 - [x] etp.tender.one commercial
 - [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223) PROXY
 - [x] rutrade commercial NEW MULTIPART POST DATA
-- [ ] roseltorg legal_entites/capital_repair/fz223 PROXY
+- [x] roseltorg legal_entites/capital_repair/fz223 PROXY
 - [x] zakupki.gov fz44/capital_repair
 - [x] tender.lot-online fz223
 - [x] b2b fz223
