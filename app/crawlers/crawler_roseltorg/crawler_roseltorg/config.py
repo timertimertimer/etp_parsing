@@ -3,8 +3,10 @@ from datetime import timedelta, datetime
 from app.utils import (
     DateTimeHelper
 )
+from app.utils.config import start_dates
 
-start_date = DateTimeHelper.format_datetime(datetime.now() - timedelta(1), "%d.%m.%y")
+crawler_name = 'roseltorg'
+start_date = start_dates[crawler_name]
 search_link = "https://www.roseltorg.ru/procedures/search"
 # https://www.roseltorg.ru/procedures/search?status%5B%5D=5&status%5B%5D=0&status%5B%5D=1&place=fkr capital_repair
 # https://www.roseltorg.ru/procedures/search?sale=1&status%5B%5D=5&status%5B%5D=0&status%5B%5D=1&currency=all&source%5B%5D=28&source%5B%5D=2 fz223

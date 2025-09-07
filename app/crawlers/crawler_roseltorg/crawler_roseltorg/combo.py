@@ -54,7 +54,7 @@ class Combo:
         return trading_card.find("a", class_="search-results__link")
 
     def trading_id(self, trading_card: BeautifulSoup):
-        return self.trading_link(trading_card).split('/')[-1]
+        return self.trading_link(trading_card).split("/")[-1]
 
     def trading_link(self, trading_card: BeautifulSoup):
         if trading_link := self.get_procedure(trading_card).get("href"):
@@ -80,7 +80,13 @@ class Combo:
             if name in type_.lower():
                 return trading_type
         d = {
-            "rfp": ['Процедура по закупке с выбором победителя', 'Процедура по закупке без выбора победителя']
+            "rfp": [
+                "Процедура по закупке с выбором победителя",
+                "Процедура по закупке без выбора победителя",
+                "Запрос котировок", "Запрос котировок МСП", "Запрос о предоставлении ценовой информации",
+                "Запрос оферт в электронной форме", "Запрос котировок (цен)", "Котировочная сессия",
+                "Запрос цен", "Ценовой отбор"
+            ]
         }
         for name, trading_type in d.items():
             if type_ in trading_type:
@@ -151,6 +157,10 @@ class Combo:
     def address(self, lot: BeautifulSoup):
         if address := lot.find("div", class_="lot-item__region"):
             return address.get_text(strip=True)
+        if icon_map := lot.find("i", class_="search-results__icon-map"):
+            return icon_map.find_next("p", class_="search-results__tooltip").get_text(
+                strip=True
+            )
         logger.warning(f"{self.response.url} | Address not found")
         return None
 
@@ -189,11 +199,11 @@ class Combo:
 
     def start_date_requests(self, lot: BeautifulSoup):
         if date := (
-                lot.find("td", text=contains("Начало приёма заявок"))
-                or lot.find("td", text=contains("Публикация извещения"))
+            lot.find("td", text=contains("Начало приёма заявок"))
+            or lot.find("td", text=contains("Публикация извещения"))
         ):
             return DateTimeHelper.smart_parse(
-                date.find_next("p").get_text(strip=True), "%d.%m.%y %H:%M:%S (МСК)"
+                date.find_next("p").get_text(strip=True), ["%d.%m.%y %H:%M:%S (МСК)", "%d.%m.%y  (МСК)"]
             ).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(f"{self.response.url} | Start date requests not found")
         return None
@@ -202,8 +212,8 @@ class Combo:
         if date := lot.find("td", text=contains("Окончание приёма заявок")):
             format = "%d.%m.%y %H:%M:%S (МСК)"
         elif date := (
-                lot.find("td", text=contains("Дата и время окончания приёма заявок"))
-                or lot.find("td", text=contains("Приём заявок"))
+            lot.find("td", text=contains("Дата и время окончания приёма заявок"))
+            or lot.find("td", text=contains("Приём заявок"))
         ):
             format = "до %d.%m.%y %H:%M:%S (МСК)"
         else:
@@ -216,7 +226,7 @@ class Combo:
     def start_date_trading(self, lot: BeautifulSoup):
         if date := lot.find("td", text=contains("Проведение торгов")):
             return DateTimeHelper.smart_parse(
-                date.find_next("p").get_text(strip=True), "%d.%m.%y %H:%M:%S (МСК)"
+                date.find_next("p").get_text(strip=True), ["%d.%m.%y %H:%M:%S (МСК)", "%d.%m.%y  (МСК)"]
             ).astimezone(DateTimeHelper.moscow_tz)
         logger.warning(f"{self.response.url} | Start date trading not found")
         return None

@@ -34,7 +34,7 @@ class DateTimeHelper:
         return dt.strftime(return_format)
 
     @staticmethod
-    def smart_parse(string: str, input_time_format: str = iso_time_format) -> Optional[datetime]:
+    def smart_parse(string: str, input_time_format: str | list = iso_time_format) -> Optional[datetime]:
         if not string:
             return None
 
@@ -44,13 +44,14 @@ class DateTimeHelper:
         except Exception:
             pass
 
+        if isinstance(input_time_format, str):
+            input_time_format = [input_time_format]
         possible_formats = [
-            input_time_format,
             DateTimeHelper.sql_time_format,
             "%d.%m.%Y %H:%M:%S",
             "%d.%m.%Y %H:%M",
             "%d.%m.%Y",
-        ]
+        ] + input_time_format
 
         for fmt in possible_formats:
             if dt is None:
