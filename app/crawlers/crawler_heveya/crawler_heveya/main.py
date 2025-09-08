@@ -10,5 +10,5 @@ def heveya_arrested():
 
 
 if __name__ == "__main__":
-    # heveya_bankruptcy()
-    heveya_arrested()
+    heveya_bankruptcy()
+    # heveya_arrested()

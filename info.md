@@ -83,7 +83,8 @@ proxies template `user:pass@ip:port`
 
 - akosta general POST, lot GET
 
-akosta gallery
+### gallery/carousel
+- akosta
 parse_lot_{trading_type}
 <div id="gallery" style="float:left; min-height: 450px;width:404px;">
     <div>
@@ -92,3 +93,15 @@ parse_lot_{trading_type}
                 </div>
     </div>
 </div>
+
+- ei
+carousel data["images"]
+
+- heveya
+download_lot уже качает только фото с карусели
+
+- kartoteka
+
+
+
+- cat
