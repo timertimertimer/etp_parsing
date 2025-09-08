@@ -16,6 +16,8 @@ class DownloadData(BaseModel):
     host: Annotated[str, Field(exclude=True)] = None
     referer: Annotated[str, Field(exclude=True)] = None
     verify: Optional[bool] = True
+    is_image: Optional[bool] = False
+    order: Optional[int] = None
 
     def __init__(self, **data):
         super().__init__(**data)

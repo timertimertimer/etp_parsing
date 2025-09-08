@@ -26,7 +26,7 @@ class File(Base):
         SAEnum(FileModelType, convert_unicode=True)
     )
     model_id: Mapped[int] = mapped_column(Integer)
-    is_image: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    is_image: Mapped[bool] = mapped_column(Boolean, default=False)
     order: Mapped[int] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

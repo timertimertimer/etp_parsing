@@ -5,7 +5,7 @@ from app.db.models import DownloadData
 from .pre_trade import PreTradePage
 from .general_info_page import MainTradingPage
 from .trade_page_with_tabs import TradePage
-from .debtor_tab_page import DebrorTab
+from .debtor_tab_page import DebtorTab
 from .lot_auction_page import LotAuctionPage
 from .lot_offer_page import LotOfferPage
 from bs4 import BeautifulSoup as BS
@@ -25,7 +25,7 @@ class Combo:
         self.pre = PreTradePage(self.response, self.soup)
         self.main_ = MainTradingPage(self.response, self.soup)
         self.trade = TradePage(self.response, self.soup)
-        self.deb = DebrorTab(self.response, self.soup)
+        self.deb = DebtorTab(self.response, self.soup)
         self.auc = LotAuctionPage(self.response, self.soup)
         self.offer = LotOfferPage(self.response, self.soup)
 

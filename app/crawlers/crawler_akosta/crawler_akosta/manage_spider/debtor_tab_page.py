@@ -2,7 +2,7 @@ import re
 from app.utils import dedent_func, logger, Contacts
 
 
-class DebrorTab:
+class DebtorTab:
     def __init__(self, _response, soup):
         self.response = _response
         self.soup = soup
@@ -178,7 +178,7 @@ class DebrorTab:
         arb = self.return_arbitrator_form()
         try:
             sro = arb.find("label", string=re.compile("СРО", re.IGNORECASE))
-        except Exception:
+        except Exception as e:
             return None
         if sro:
             sro = sro.parent

@@ -2,7 +2,7 @@ from scrapy import Request, FormRequest
 
 from app.crawlers.base import BaseSpider
 from app.utils.config import write_log_to_file
-from app.utils import logger, URL
+from app.utils import URL
 from ..trades.combo import Combo
 from ..config import trade_link, data_origin, serp_link, formdata
 from app.crawlers.items import EtpItem, EtpItemLoader
