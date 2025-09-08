@@ -55,3 +55,13 @@ d = {
 
 для сбера (sberbank) и росельторга (roseltorg) нужны прокси 
 proxies template `user:pass@ip:port`
+
+карусели
+- akosta https://www.akosta.info/akosta/lotCard.xhtml?parm=707267682048474C573E6F727758716C6720375F3834353B
+- ei https://ei.ru/lot/3102080
+- mets https://m-ets.ru/177064-1
+- heveya https://heveya.ru/lot/4206964
+- kartoteka https://www.kartoteka.ru/property/?id=4003135
+
+скачивание файлов
+- akosta general POST, lot GET

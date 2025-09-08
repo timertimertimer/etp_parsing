@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Integer, String, DateTime, Enum as SAEnum, Index, Text
+from sqlalchemy import Integer, String, DateTime, Enum as SAEnum, Index, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -26,6 +26,8 @@ class File(Base):
         SAEnum(FileModelType, convert_unicode=True)
     )
     model_id: Mapped[int] = mapped_column(Integer)
+    is_image: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    order: Mapped[int] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(

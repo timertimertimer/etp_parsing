@@ -26,7 +26,7 @@
 - [x] b2b fz223
 - [x] catalog.lot-online rent
 
-- [ ] fabrikant fz223 (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0)
+- [ ] fabrikant (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0, https://www.fabrikant.ru/trades/atom/PriceMonitoring/?action=view&id=895850)
 - [ ] uv dockerfile and delete requirements.txt
 - [ ] вынести start_date/days в общий конфиг в виде словаря
 - [ ] пересмотреть скрипты в /deploy

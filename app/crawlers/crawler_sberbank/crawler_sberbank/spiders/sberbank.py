@@ -20,6 +20,7 @@ from app.db.models import AuctionPropertyType
 from app.utils.config import trash_resources, write_log_to_file
 
 async def wait_for_statistic_load(page: Page):
+    input()
     await page.wait_for_selector(selector='div[id="statisticAreaContainer"]', state="attached")
     return
 
@@ -41,7 +42,7 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
             meta=dict(
                 playwright=True,
                 playwright_page_methods=[
-                    PageMethod("goto", url),
+                    PageMethod("goto", url, wait_until="networkidle"),
                     PageMethod(wait_for_statistic_load)
                 ],
             ),
