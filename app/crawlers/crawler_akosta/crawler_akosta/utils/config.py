@@ -20,3 +20,15 @@ urls = {
     "akosta_arrested": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.arrested]}",
     "akosta_commercial": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.commercial]}",
 }
+
+# https://www.akosta.info/akosta/javax.faces.resource/dynamiccontent.properties.xhtml?
+# ln=primefaces&
+# v=6.2&
+# pfdrid=745c8f5d986e089f26d8e13ef97a293c&
+# pfdrt=sc&
+# pictureDfPreviewFilePath=%5C20240506%5Ctmp-6861335255386914639.jpg&
+# pictureDfFilePath=%5C20240506%5Ctmp-6861335255386914639.jpg&
+# pictureDfExt=jpg&
+# pictureDfName=2.jpg&
+# pictureWidth=250&
+# pfdrid_c=true
