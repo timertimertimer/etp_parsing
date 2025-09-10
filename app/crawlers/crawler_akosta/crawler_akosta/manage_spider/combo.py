@@ -96,8 +96,8 @@ class Combo:
         files = list()
         if not (images := self.get_lot_images()):
             return None
-        for t in images:
+        for i, t in enumerate(images):
             name = t.get("title")
             url = URL.url_join(data_origin, t.get("src"))
-            files.append(DownloadData(url=url, file_name=name, verify=False))
+            files.append(DownloadData(url=url, file_name=name, verify=False, is_image=True, order=i))
         return files

@@ -84,7 +84,7 @@ class DocumentLot:
         files = list()
         for d in self.get_lot_files(table):
             name, link = d
-            file_type = link.split(".")[-1]
+            file_type = link.split(".")[-1].lower()
             if f".{file_type}" in allowable_formats:
                 name = f"{name}.{file_type}" if f".{file_type}" not in name else name
             files.append(

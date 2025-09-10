@@ -97,33 +97,18 @@ image_formats = [
     ".png",
     ".jpg",
     ".bmp",
-    ".JPG",
-    ".JPEG",
-    "jpg",
-    "jpeg",
-    "JPG",
-    "JPEG",
-    ".PNG",
+    ".webp",
 ]
 image_and_doc_formats = image_formats + [
     ".docx",
     ".doc",
     ".pdf",
     ".rtf",
-    ".PDF",
-    ".DOC",
-    ".DOCX",
-    ".RTF",
 ]
 archive_formats = [
     ".rar",
     ".zip",
     ".7z",
-    ".RAR",
-    ".ZIP",
-    ".7Z",
-    ".Rar",
-    ".Zip",
 ]
 allowable_formats = image_and_doc_formats + archive_formats
 trash_resources = [
@@ -187,7 +172,7 @@ start_dates = {
     "zakupkigov": today,
 }
 
-download_files_from_get_url = True
+download_files_from_get_url = True  # True - файлы качаются по GET запросу
 write_log_to_file = False
 post_main_service = True
 parse_fedresurs = False

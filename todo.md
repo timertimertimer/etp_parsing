@@ -26,9 +26,21 @@
 - [x] b2b fz223
 - [x] catalog.lot-online rent
 
+- [ ] пофиксить akosta. находит только банкротные секции, даже в arrested/commercial
 - [ ] fabrikant (https://market.fabrikant.ru/purchase_notice/view?id=689f13bc8c21746e228babd0, https://www.fabrikant.ru/trades/atom/PriceMonitoring/?action=view&id=895850)
 - [ ] uv dockerfile and delete requirements.txt
 - [ ] вынести start_date/days в общий конфиг в виде словаря
 - [ ] пересмотреть скрипты в /deploy
 - [ ] поправить логирование в целом и по каждому скраперу
 - [ ] протестить прокси на playwright (mets, sberbank и другие)
+
+карусели
+- [ ] akosta https://www.akosta.info/akosta/lotCard.xhtml?parm=707267682048474C573E6F727758716C6720375F3834353B
+- [x] ei https://ei.ru/lot/3102080
+- [x] heveya https://heveya.ru/lot/4206964
+- [x] kartoteka https://www.kartoteka.ru/property/?id=4003135
+- lot_online_catalog https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=1141955
+- lot_online_old https://rad.lot-online.ru/lot/details.html?lotId=174164003
+- lot_online_zalog https://zalog.lot-online.ru/user/collateral/catalog_page.html?id=766696005
+- mets https://m-ets.ru/177064-1
+- torgigov https://torgi.gov.ru/new/public/lots/lot/21000031920000000258_5/(lotInfo:info)?fromRec=false

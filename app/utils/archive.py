@@ -47,7 +47,7 @@ class ArchiveFiles:
                 link = None
                 if fixed_absolute_file_path.exists():
                     link = fixed_relative_file_path
-                elif fixed_absolute_file_path.suffix in image_and_doc_formats:
+                elif fixed_absolute_file_path.suffix.lower() in image_and_doc_formats:
                     with (
                         archive.open(file_name) as source,
                         open(fixed_absolute_file_path, "wb") as target,

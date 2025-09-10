@@ -15,6 +15,10 @@ class Combo:
             link = doc.get("url")
             name = doc.get("name")
             files.append(DownloadData(url=link, file_name=name))
+        for i, image in enumerate(self.lot.get("images")):
+            link = image.get("origin")
+            name = link.split("/")[-1]
+            files.append(DownloadData(url=link, file_name=name, is_image=True, order=i))
         return files
 
     @classmethod
@@ -91,7 +95,7 @@ class Combo:
     @property
     def case_number(self):
         return Contacts.check_case_number(
-            self.lot.get("casefile", {}).get("casefile", {}).get("regNumber")
+            ((self.lot.get("casefile") or {}).get("casefile", {}) or {}).get("regNumber")
         )
 
     @property

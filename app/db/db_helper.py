@@ -19,7 +19,7 @@ from app.utils.config import (
     relative_download_path,
     download_files_from_get_url,
     allowable_formats,
-    parse_fedresurs,
+    parse_fedresurs, image_formats,
 )
 from app.utils.download import DownloadFiles
 from app.db.models import (
@@ -83,10 +83,10 @@ class DBHelper:
 
     @staticmethod
     def get_latest_lot(
-        data_origin_url: str,
-        select_keys: set = None,
-        day: int = 30,
-        property_type: AuctionPropertyType = None,
+            data_origin_url: str,
+            select_keys: set = None,
+            day: int = 30,
+            property_type: AuctionPropertyType = None,
     ) -> Union[tuple[List, int], None]:
         date_threshold = datetime.now(UTC) - timedelta(days=day)
         if not select_keys:
@@ -133,11 +133,11 @@ class DBHelper:
 
     @staticmethod
     def save_counter_and_duration(
-        counter: int,
-        duration: float,
-        status_active: bool,
-        spider_name: str,
-        trading_floor_id: int,
+            counter: int,
+            duration: float,
+            status_active: bool,
+            spider_name: str,
+            trading_floor_id: int,
     ):
         if status_active is not None:
             with DBHelper.transaction_scope() as session:
@@ -164,7 +164,7 @@ class DBHelper:
 
     @staticmethod
     def add_regions(
-        source_path: PurePath = data_path / "regions_with_oktmo.csv",
+            source_path: PurePath = data_path / "regions_with_oktmo.csv",
     ):
         regions = []
         with DBHelper.transaction_scope() as session:
@@ -188,8 +188,8 @@ class DBHelper:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=";")
                 for row in reader:
                     if (
-                        id_ := regions.get(row["region"])
-                        and row["address"] not in existing_addresses
+                            id_ := regions.get(row["region"])
+                                   and row["address"] not in existing_addresses
                     ):
                         addresses.append(Address(region_id=id_, name=row["address"]))
             session.add_all(addresses)
@@ -204,15 +204,15 @@ class DBHelper:
                 reader: csv.DictReader = csv.DictReader(csvfile, delimiter=";")
                 for row in reader:
                     if (
-                        id_ := regions.get(row["region"])
-                        and row["city"] not in existing_cities
+                            id_ := regions.get(row["region"])
+                                   and row["city"] not in existing_cities
                     ):
                         cities.append(City(region_id=id_, name=row["city"]))
             session.add_all(cities)
 
     @staticmethod
     def add_trading_floors(
-        source_path: PurePath = data_path / "trading_floors.csv",
+            source_path: PurePath = data_path / "trading_floors.csv",
     ):
         trading_floors = []
         with DBHelper.transaction_scope() as session:
@@ -267,7 +267,7 @@ class DBHelper:
 
     @staticmethod
     def get_counterparty(
-        inn: str | None = None, name: str | None = None, short_name: str | None = None
+            inn: str | None = None, name: str | None = None, short_name: str | None = None
     ):
         with DBHelper.transaction_scope(commit=False) as session:
             query = session.query(Counterparty)
@@ -319,11 +319,11 @@ class DBHelper:
 
     @staticmethod
     def store_and_get_auction(
-        item: EtpItem,
-        trading_floor_id: int,
-        organizer: Counterparty | None = None,
-        arbitrator: Counterparty | None = None,
-        debtor: Counterparty | None = None,
+            item: EtpItem,
+            trading_floor_id: int,
+            organizer: Counterparty | None = None,
+            arbitrator: Counterparty | None = None,
+            debtor: Counterparty | None = None,
     ):
         auction = (
             DBHelper.session.query(Auction)
@@ -387,9 +387,9 @@ class DBHelper:
                 region_name = RegionIdentifier.get_region(address_str)
                 if region_name:
                     if (
-                        region := DBHelper.session.query(Region)
-                        .filter_by(name=region_name)
-                        .first()
+                            region := DBHelper.session.query(Region)
+                                    .filter_by(name=region_name)
+                                    .first()
                     ):
                         address.region = region
                     else:
@@ -461,11 +461,11 @@ class DBHelper:
                 else:
                     arb_client.parse()
                     if not (
-                        arbitrator_counterparty := DBHelper.get_counterparty(
-                            inn=arb_client.data.get("inn"),
-                            name=arb_client.data.get("name"),
-                            short_name=arb_client.data.get("short_name"),
-                        )
+                            arbitrator_counterparty := DBHelper.get_counterparty(
+                                inn=arb_client.data.get("inn"),
+                                name=arb_client.data.get("name"),
+                                short_name=arb_client.data.get("short_name"),
+                            )
                     ):
                         arb_client.parse_sro_membership()
                         arbitrator_counterparty = (
@@ -486,11 +486,11 @@ class DBHelper:
                     if len(arbit_manager_org) > 10:
                         sro = DBHelper.store_model(Counterparty(name=arbit_manager_org))
                 if (
-                    arbitrator_counterparty
-                    and sro
-                    and not DBHelper.get_counterparty_sro(
-                        arbitrator_counterparty.id, sro.short_name
-                    )
+                        arbitrator_counterparty
+                        and sro
+                        and not DBHelper.get_counterparty_sro(
+                    arbitrator_counterparty.id, sro.short_name
+                )
                 ):
                     sro_membership = CounterpartySRO(
                         counterparty_id=arbitrator_counterparty.id,
@@ -502,24 +502,24 @@ class DBHelper:
     @staticmethod
     def store_and_get_organizer(item: EtpItem, arbitrator_counterparty: Counterparty):
         if (
-            (
-                item.get("trading_org_inn")
-                and item.get("trading_org_inn") == item.get("arbit_manager_inn")
-            )
-            or (
+                (
+                        item.get("trading_org_inn")
+                        and item.get("trading_org_inn") == item.get("arbit_manager_inn")
+                )
+                or (
                 item.get("trading_org")
                 and item.get("trading_org") == item.get("arbit_manager")
-            )
-            or (
+        )
+                or (
                 item.get("trading_org")
                 and arbitrator_counterparty
                 and item.get("trading_org") == arbitrator_counterparty.short_name
-            )
-            or (
+        )
+                or (
                 item.get("trading_org")
                 and arbitrator_counterparty
                 and item.get("trading_org_inn") == arbitrator_counterparty.inn
-            )
+        )
         ):
             return arbitrator_counterparty
         organizer_counterparty: Counterparty = DBHelper.get_counterparty(
@@ -536,16 +536,16 @@ class DBHelper:
                         org_client = CompanyFedresurs(inn, item["trading_org"])
                 else:
                     if guid := (
-                        ArbitrManagerFedresurs(item.get("trading_org")).data.get("guid")
-                        or PersonOrganizerFedresurs(item.get("trading_org")).data.get(
-                            "guid"
-                        )
+                            ArbitrManagerFedresurs(item.get("trading_org")).data.get("guid")
+                            or PersonOrganizerFedresurs(item.get("trading_org")).data.get(
+                        "guid"
+                    )
                     ):
                         org_client = PersonFedresurs(
                             name=item.get("trading_org"), guid=guid
                         )
                     elif guid := CompanyOrganizerFedresurs(
-                        item.get("trading_org")
+                            item.get("trading_org")
                     ).data.get("guid"):
                         org_client = CompanyFedresurs(
                             name=item.get("trading_org"), guid=guid
@@ -568,11 +568,11 @@ class DBHelper:
                 else:
                     org_client.parse()
                     if not (
-                        organizer_counterparty := DBHelper.get_counterparty(
-                            inn=org_client.data.get("inn"),
-                            name=org_client.data.get("name"),
-                            short_name=org_client.data.get("short_name"),
-                        )
+                            organizer_counterparty := DBHelper.get_counterparty(
+                                inn=org_client.data.get("inn"),
+                                name=org_client.data.get("name"),
+                                short_name=org_client.data.get("short_name"),
+                            )
                     ):
                         org_client.parse_sro_membership()
                         organizer_counterparty = (
@@ -624,17 +624,17 @@ class DBHelper:
                 else:
                     debtor_client.parse()
                     if not (
-                        debtor_counterparty := DBHelper.get_counterparty(
-                            inn=debtor_client.data.get("inn"),
-                            name=debtor_client.data.get("name"),
-                            short_name=debtor_client.data.get("short_name"),
-                        )
+                            debtor_counterparty := DBHelper.get_counterparty(
+                                inn=debtor_client.data.get("inn"),
+                                name=debtor_client.data.get("name"),
+                                short_name=debtor_client.data.get("short_name"),
+                            )
                     ):
                         debtor_client.parse_sro_membership()
                         debtor_client.parse_bankruptcy()
                         debtor_client.parse_publications()
                         debtor_client.data["address"] = (
-                            debtor_client.data["address"] or item["address"]
+                                debtor_client.data["address"] or item["address"]
                         )
                         debtor_counterparty = (
                             DBHelper.store_counterparty_and_co_from_dict(
@@ -723,9 +723,9 @@ class DBHelper:
     @staticmethod
     def store_legal_case_from_dict(data: dict) -> LegalCase:
         if not (
-            legal_case := DBHelper.session.query(LegalCase)
-            .filter_by(number=data["number"])
-            .first()
+                legal_case := DBHelper.session.query(LegalCase)
+                        .filter_by(number=data["number"])
+                        .first()
         ):
             legal_case = LegalCase(
                 number=data["number"],
@@ -740,12 +740,12 @@ class DBHelper:
 
     @staticmethod
     def store_debtor_message_from_dict(
-        data: dict, debtor: Counterparty
+            data: dict, debtor: Counterparty
     ) -> DebtorMessage:
         if not (
-            debtor_message := DBHelper.session.query(DebtorMessage)
-            .filter_by(number=data["number"])
-            .first()
+                debtor_message := DBHelper.session.query(DebtorMessage)
+                        .filter_by(number=data["number"])
+                        .first()
         ):
             legal_case = (
                 DBHelper.session.query(LegalCase)
@@ -839,7 +839,7 @@ class DBHelper:
                 request_start_at=period["start_date_requests"],
                 request_end_at=period["end_date_requests"],
                 trading_start_at=period.get("start_date_trading")
-                or period.get("start_date_requests"),
+                                 or period.get("start_date_requests"),
                 trading_end_at=period["end_date_trading"],
                 price=period["current_price"],
                 lot_id=lot_id,
@@ -878,9 +878,9 @@ class DBHelper:
 
     @staticmethod
     def download_files(
-        model_id: int,
-        model: Type[Auction | Lot | LegalCase | DebtorMessage],
-        download_datas: list[DownloadData],
+            model_id: int,
+            model: Type[Auction | Lot | LegalCase | DebtorMessage],
+            download_datas: list[DownloadData],
     ):
         model_type = {
             Auction: FileModelType.Auction,
@@ -901,10 +901,10 @@ class DBHelper:
         )
         existing_file_names = {file.name for file in existing_files}
         absolute_download_dir_path = (
-            absolute_download_path / f"{model_lowercase}_{model_id}"
+                absolute_download_path / f"{model_lowercase}_{model_id}"
         )
         relative_download_dir_path = (
-            relative_download_path / f"{model_lowercase}_{model_id}"
+                relative_download_path / f"{model_lowercase}_{model_id}"
         )
         file_objs = list()
         for download_data in download_datas:
@@ -915,7 +915,7 @@ class DBHelper:
                 continue
             absolute_path = absolute_download_dir_path / file_name
             relative_path = relative_download_dir_path / file_name
-            if absolute_path.suffix not in allowable_formats:
+            if absolute_path.suffix.lower() not in allowable_formats:
                 continue
             if download_data.method == "GET" and not download_files_from_get_url:
                 paths = [None]
@@ -926,6 +926,7 @@ class DBHelper:
                     absolute_path=absolute_path,
                     relative_path=relative_path,
                 )
+            # paths может быть списком из более чем одного элемента в случае если архив в download_data
             for path in paths:  # type: pathlib.Path
                 file_objs.append(
                     File(
@@ -936,6 +937,8 @@ class DBHelper:
                         else None,
                         model_type=model_type,
                         model_id=model_id,
+                        is_image=download_data.is_image or (path.suffix.lower() in image_formats if path else False),
+                        order=download_data.order,
                     )
                 )
         DBHelper.session.add_all(file_objs)

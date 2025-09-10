@@ -2,7 +2,7 @@ import re
 import pathlib
 from datetime import datetime
 
-from app.utils.config import allowable_formats
+from app.utils.config import allowable_formats, image_formats
 from app.db.models import DownloadData
 from ..locators.trading_page_locator import GeneralInfoLocator
 from ..utils.config import data_origin, debtor_link, lot_link, host
@@ -273,7 +273,8 @@ class MainTradingPage:
         files = list()
         for t in self.get_documents_table():
             form_data, name = t
-            if pathlib.PurePath(name).suffix in allowable_formats:
+            path = pathlib.PurePath(name)
+            if path.suffix.lower() in allowable_formats:
                 files.append(
                     DownloadData(
                         url=url,
@@ -284,6 +285,7 @@ class MainTradingPage:
                         method="POST",
                         data=self.return_post_data(view_state=view, a_id=form_data),
                         verify=False,
+                        is_image=path.suffix.lower() in image_formats
                     )
                 )
         return files

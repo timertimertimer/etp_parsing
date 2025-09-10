@@ -14,11 +14,11 @@ class Combo:
 
     def download_lot(self):
         files = list()
-        for a in self.soup.find("div", class_="mainPhoto").find_all("img"):
+        for i, a in enumerate(self.soup.find("div", class_="mainPhoto").find_all("img")):
             link = a.get("src")
             name = link.split("/")[-1]
             files.append(
-                DownloadData(url=link, file_name=name, referer=self.response.url)
+                DownloadData(url=link, file_name=name, referer=self.response.url, is_image=True, order=i)
             )
         return files
 
@@ -247,7 +247,8 @@ class Combo:
     def start_date_trading(self):
         start = self.soup.find("h2", text="Начало подачи предложений")
         if start:
-            return DateTimeHelper.smart_parse(start.find_next("p").get_text(strip=True)).astimezone(DateTimeHelper.moscow_tz)
+            return DateTimeHelper.smart_parse(start.find_next("p").get_text(strip=True)).astimezone(
+                DateTimeHelper.moscow_tz)
         return self.start_date_requests
 
     @property
@@ -263,7 +264,7 @@ class Combo:
         table = self.soup.find("h2", text="Порядок понижения цены")
         if not table:
             return None
-        check_value = 10**22
+        check_value = 10 ** 22
         table = (
             table.find_next("div", class_="priceDowngrade")
             .find("div", class_="body")

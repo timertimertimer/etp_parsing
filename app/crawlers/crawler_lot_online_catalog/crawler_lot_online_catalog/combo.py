@@ -1,4 +1,6 @@
+import pathlib
 import re
+
 import pandas as pd
 from itertools import takewhile
 from bs4 import BeautifulSoup
@@ -10,6 +12,7 @@ from app.utils import (
     DateTimeHelper, logger,
 )
 from app.db.models import DownloadData
+from app.utils.config import image_formats
 
 
 class Combo:
@@ -96,16 +99,21 @@ class Combo:
         return files
 
     def download_lot(self):
-        files = list()
-        for file in self.soup.find("div", class_="ty-product-block__img").find_all(
+        images = list()
+        for i, image in enumerate(self.soup.find("div", class_="ty-product-block__img").find_all(
                 "img"
-        ):
-            link = file.get("src")
+        )):
+            link = image.get("src")
             name = URL.clean_url(link).split("/")[-1]
-            files.append(
-                DownloadData(url=link, file_name=name, referer=self.response.url)
+            path = pathlib.Path(name)
+            images.append(
+                DownloadData(
+                    url=link, file_name=name, referer=self.response.url,
+                    is_image=path.suffix.lower() in image_formats,
+                    order=i
+                )
             )
-        return files
+        return images
 
     def get_main_info(self):
         return self.soup.find("div", class_="ty-product-block_product_main")
@@ -224,7 +232,7 @@ class Combo:
         if debtor and debtor.has_attr("data-ca-accordion-is-active-scroll-to-elm"):
             return Contacts.check_case_number(
                 debtor.find(
-                    "td", class_="key", text=contains("Реквизиты судебного дела")
+                    "td", class_="key", text=contains("Реквизиты судебного")
                 )
                 .find_next("td")
                 .get_text(strip=True)

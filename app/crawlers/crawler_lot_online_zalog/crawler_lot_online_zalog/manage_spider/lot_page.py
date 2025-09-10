@@ -289,9 +289,9 @@ class LotPage:
             return files
         for pic in lst_pictures:
             _sufix = Path(pic).suffix
-            if _sufix in image_formats:
+            if _sufix.lower() in image_formats:
                 name = "".join(Path(pic).name).strip()
                 files.append(
-                    DownloadData(url=pic, file_name=name, referer=self.response.url)
+                    DownloadData(url=pic, file_name=name, referer=self.response.url, is_image=True)
                 )
         return files

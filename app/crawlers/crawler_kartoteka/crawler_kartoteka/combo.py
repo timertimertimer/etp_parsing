@@ -38,7 +38,7 @@ class Combo:
                 return "ended"
             else:
                 pass
-        except:
+        except Exception as e:
             pass
 
     @property
@@ -89,7 +89,7 @@ class Combo:
                 .strip()
             )
             return "".join(re.sub(r"\s+", " ", org))
-        except:
+        except Exception as e:
             logger.warning(
                 f"{self.response.url} :: INVALID DATA ORGANIZER", exc_info=True
             )
@@ -148,7 +148,7 @@ class Combo:
             )
             if td_org != "None":
                 return "".join(re.sub(r"\s+", " ", td_org))
-        except:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID DATA ARBITR NAME")
 
     @property
@@ -173,7 +173,7 @@ class Combo:
                         ]
                     )
                 return "".join(dedent_func(td_company))
-        except:
+        except Exception as e:
             logger.warning(f"{self.response.url} :: INVALID DATA ARBITR COMPANY")
 
     @property
@@ -283,6 +283,9 @@ class Combo:
                     file_name=f"image_{i}.jpg",
                     referer=self.response.url,
                     cookies=self.response.request.headers["Cookie"].decode(),
+                    # TODO: проверить. возможно куки прокидываются на всякий случай
+                    is_image=True,
+                    order=i
                 )
             )
         return images
@@ -299,6 +302,7 @@ class Combo:
                     file_name=name,
                     referer=self.response.url,
                     cookies=self.response.request.headers["Cookie"].decode(),
+                    # TODO: проверить. возможно куки прокидываются на всякий случай
                 )
             )
         return files + self.download_images()

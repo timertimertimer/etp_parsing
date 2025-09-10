@@ -38,7 +38,7 @@ class DownloadFiles:
 
         for attempt in range(1, attempts + 1):
             try:
-                if path.suffix not in archive_formats:
+                if path.suffix.lower() not in archive_formats:
                     if not path.exists():
                         DownloadFiles.download_file(
                             session, download_data, absolute_path, attempt

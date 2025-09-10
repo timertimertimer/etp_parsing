@@ -41,7 +41,7 @@ class DocPage:
             link_etp = a.get("href")
             link_etp = URL.url_join(host, link_etp)
             file_name = dedent_func(a.get_text().replace(". ", "."))
-            if pathlib.Path(file_name).suffix in allowable_formats:
+            if pathlib.Path(file_name).suffix.lower() in allowable_formats:
                 files.append(
                     DownloadData(
                         url=link_etp, file_name=file_name, referer=self.response.url
