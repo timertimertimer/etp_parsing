@@ -39,8 +39,8 @@
 - [x] ei https://ei.ru/lot/3102080
 - [x] heveya https://heveya.ru/lot/4206964
 - [x] kartoteka https://www.kartoteka.ru/property/?id=4003135
-- lot_online_catalog https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=1141955
-- lot_online_old https://rad.lot-online.ru/lot/details.html?lotId=174164003
-- lot_online_zalog https://zalog.lot-online.ru/user/collateral/catalog_page.html?id=766696005
-- mets https://m-ets.ru/177064-1
-- torgigov https://torgi.gov.ru/new/public/lots/lot/21000031920000000258_5/(lotInfo:info)?fromRec=false
+- [ ] lot_online_catalog https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=1141955
+- [ ] lot_online_old https://rad.lot-online.ru/lot/details.html?lotId=174164003
+- [ ] lot_online_zalog https://zalog.lot-online.ru/user/collateral/catalog_page.html?id=766696005
+- [ ] mets https://m-ets.ru/177064-1
+- [ ] torgigov https://torgi.gov.ru/new/public/lots/lot/21000031920000000258_5/(lotInfo:info)?fromRec=false
