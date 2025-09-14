@@ -63,67 +63,26 @@ def format_lua_script_pagination(lua_script, start_time, time_to, current_page):
     )
 
 
-def sort_trading_type(text):
-    offer = ["Открытое публичное предложение", "Закрытое публичное предложение"]
-    auction = ["Открытый аукцион", "Закрытый аукцион"]
-    competition = ["Открытый конкурс", "Закрытый конкурс"]
-    rfp = ["Запрос цен (коммерческих предложений)"]
-    try:
-        text = re.escape("".join(re.split(r"/", text.replace("\\", "/"))[0]).strip())
-    except Exception as e:
-        print(e)
-        return None
-    auction_match = "".join(
-        filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), auction)
-    )
-    offer_match = "".join(
-        filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), offer)
-    )
-    competition_match = "".join(
-        filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), competition)
-    )
-    rfp_match = "".join(filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), rfp))
-    if auction_match:
-        return "auction"
-    if offer_match:
-        return "offer"
-    if competition_match:
-        return "competition"
-    if rfp_match:
+def sort_trading_type(text: str) -> str | None:
+    text_lower = text.lower()
+    if re.search(r"запрос", text_lower):
         return "rfp"
+    if re.search(r"аукцион", text_lower) or re.search(r"ценовой отбор", text_lower):
+        return "auction"
+    if re.search(r"конкурс", text_lower):
+        return "competition"
+    if re.search(r"предложени", text_lower):
+        return "offer"
     return None
 
 
-def get_trading_form(text):
-    opened = [
-        "Открытое публичное предложение",
-        "Открытый аукцион",
-        "Открытый конкурс",
-        "Открытая",
-    ]
-    closed = [
-        "Закрытое публичное предложение",
-        "Закрытый аукцион",
-        "Закрытый конкурс",
-        "Закрытая",
-    ]
-    try:
-        text = "".join(re.split(r"/", text.replace("\\", "/"))[0]).strip()
-        if "(" in text:
-            text = "".join(re.split(r"\(", text)[0]).strip()
-    except Exception as e:
-        print(e)
-        return None
-    match1 = "".join(filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), opened))
-    match2 = "".join(filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), closed))
-    if match1:
+def get_trading_form(text: str) -> str | None:
+    text_lower = text.lower()
+    if re.search(r"открыт", text_lower):
         return "open"
-    if match2:
+    if re.search(r"закрыт", text_lower):
         return "closed"
     return None
-
-
-# cut lot number
 
 
 def cut_lot_number(func):
@@ -148,29 +107,9 @@ def return_itself(text):
     return text
 
 
-def solve_challenge(challenge) -> str:
-    var_str = str(challenge)
-    var_arr = list(var_str)
-
-    var_arr = list(reversed(var_arr))
-    last_dig = var_arr[0]
-    var_arr.sort()
-    min_dig = var_arr[0]
-
-    subvar1 = 2 * int(var_arr[2]) + int(var_arr[1])
-    subvar2 = str(2 * int(var_arr[2])) + var_arr[1]
-
-    my_pow = pow(int(var_arr[0]) + 2, int(var_arr[1]))
-
-    x = challenge * 3 + subvar1
-    y = math.cos(math.pi * int(subvar2))
-
-    answer = x * y
-    answer -= my_pow
-    answer += int(min_dig) - int(last_dig)
-    answer = str(int(answer)) + subvar2
-
-    return answer
-
-if __name__ == '__main__':
-    print(solve_challenge(312048))
+if __name__ == "__main__":
+    print(sort_trading_type("Открытый аукцион"))  # auction
+    print(sort_trading_type("Закрытый конкурс"))  # competition
+    print(sort_trading_type("Открытое публичное предложение"))  # offer
+    print(sort_trading_type("Запрос цен (коммерческих предложений)")) # rfp
+    print(sort_trading_type("Что-то другое")) 

@@ -24,6 +24,7 @@ class DownloadFiles:
                 "http": "socks5://" + choice(socks5_proxies),
                 "https": "socks5://" + choice(socks5_proxies),
             }
+        return None
 
     @staticmethod
     def request_to_download_general(

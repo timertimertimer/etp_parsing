@@ -1,10 +1,11 @@
 import json
+from typing import Callable
 
 import xmltodict
 from scrapy import Request
 from scrapy_playwright.page import PageMethod
 from playwright.async_api import Page
-from playwright._impl._errors import TimeoutError
+from playwright._impl._errors import TimeoutError as PlaywrightTimeoutError
 from bs4 import BeautifulSoup as BS
 
 from app.crawlers.crawler_sberbank.crawler_sberbank.spiders.base import (
@@ -20,7 +21,7 @@ from app.db.models import AuctionPropertyType
 from app.utils import logger
 from app.utils.config import trash_resources, write_log_to_file, env
 
-playwright_timeout = 60
+playwright_timeout = 30
 
 
 async def wait_for_search_query(page: Page):
@@ -32,7 +33,7 @@ async def wait_for_search_query(page: Page):
                 timeout=playwright_timeout * 1000,
             )
             return
-        except Exception as e:
+        except PlaywrightTimeoutError as e:
             logger.warning(
                 f"{page.url} | Timeout error ({playwright_timeout} sec), trying again {i + 1}/{env.retry_count}"
             )
@@ -50,36 +51,68 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
         in trash_resources,
     }
+    cookies_invalidated = False
 
-    def start_requests(self, cookies: dict = None):
-        url = list_urls[self.property_type.value]
+    def invalidate_cookies(self):
+        self.cookies_invalidated = True
+
+    def update_cookies(
+        self, after_func: Callable, after_args: list = None, after_kwargs: dict = None
+    ):
+        url = data_origin_url
         yield Request(
             url,
-            callback=self.after_challenge,
+            callback=self.after_update_cookies,
             meta=dict(
                 playwright=True,
                 playwright_include_page=True,
                 playwright_page_methods=[
-                    PageMethod("goto", url),
-                    PageMethod(wait_for_search_query),
+                    PageMethod("goto", url)
                 ],
+                after_func=after_func,
+                after_args=after_args or [],
+                after_kwargs=after_kwargs or {},
             ),
         )
 
-    async def after_challenge(self, response):
+    def start_requests(self, cookies: dict = None):
+        yield from self.update_cookies(super().start_requests)
+
+    async def after_update_cookies(self, response):
         page = response.meta["playwright_page"]
         cookies = await page.context.cookies()
-        for req in super().start_requests(cookies):
-            yield req
+        self.cookies = {c["name"]: c["value"] for c in cookies}
+        func = response.meta.get("after_func")
+        args = response.meta.get("after_args", [])
+        kwargs = response.meta.get("after_kwargs", {})
+        if func:
+            for req in func(*args, **kwargs):
+                yield req
 
     def parse_table(self, response, **kwargs):
         soup = BS(json.loads(response.text)["data"]["Data"]["tableXml"], "lxml-xml")
         data = xmltodict.parse(str(soup))["datarow"]
         trades = set(lot["_source"]["objectHrefTerm"] for lot in data["hits"])
         for trade in trades:
-            yield Request(trade, self.parse_trade, cb_kwargs=kwargs)
+            if trade not in self.previous_trades:
+                yield Request(trade, self.parse_trade, cb_kwargs=kwargs, cookies=self.cookies)
 
     def parse_trade(self, response, **kwargs):
+        if "Действия блокированы защитой ЭТП" in response.text:
+            if not self.cookies_invalidated:
+                logger.warning(
+                    f"{response.url} | Blocked by protection, restarting playwright session"
+                )
+                self.invalidate_cookies()
+                yield from self.update_cookies(
+                    self._retry_trade,
+                    after_args=[],
+                    after_kwargs=dict(url=response.url, cb_kwargs=kwargs),
+                )
+            else:
+                logger.error(f"{response.url} | Blocked again even after refresh, skipping")
+            return
+        self.previous_trades.append(response.url)
         combo = NewCombo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin_url)
@@ -93,9 +126,6 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
         loader.add_value("trading_org_inn", combo.trading_org_inn)
         loader.add_value("trading_org_contacts", combo.trading_org_contacts)
         loader.add_value("address", combo.address)
-        loader.add_value("lot_id", combo.lot_id)
-        loader.add_value("lot_number", combo.lot_number)
-        loader.add_value("short_name", combo.short_name)
         loader.add_value("start_date_requests", combo.start_date_requests)
         loader.add_value("end_date_requests", combo.end_date_requests)
         loader.add_value(
@@ -109,7 +139,16 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
                 "lot": [],
             },
         )
-        yield loader.load_item()
+        for lot in combo.get_lots():
+            loader.add_value("lot_id", combo.lot_id(lot))
+            loader.add_value("lot_number", combo.lot_number(lot))
+            loader.add_value("short_name", combo.short_name(lot))
+            loader.add_value("start_price", combo.start_price(lot))
+            # loader.add_value("step_price", combo.step_price)
+            yield loader.load_item()
+
+    def _retry_trade(self, url: str, cb_kwargs: dict):
+        yield Request(url, callback=self.parse_trade, cb_kwargs=cb_kwargs, dont_filter=True)
 
 
 class SberbankCommercialHTMLSpider(SberbankBaseHTMLSpider):

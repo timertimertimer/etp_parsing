@@ -1,7 +1,7 @@
 - [x] !!! SET MOSCOW TIMEZONE BEFORE STORE IN DATABASE !!!
-- [ ] добавить новые поля в items
-- [ ] добавить новые поля в auctions/lots
-- [ ] отдельная таблица "Информация об объекте закупки/Информация о товаре, работе, услуге"
+- [ ] добавить новые поля в items (запрос Инсафа)
+- [ ] добавить новые поля в auctions/lots (запрос Инсафа)
+- [ ] отдельная таблица "Информация об объекте закупки/Информация о товаре, работе, услуге" (запрос Инсафа)
 - [x] ets24 arrest
 - [x] centerr arrest/commercial
 - [x] etp.cdtrf arrest
@@ -46,3 +46,10 @@
 - [x] lot_online_zalog https://zalog.lot-online.ru/user/collateral/catalog_page.html?id=766696005
 - [x] mets https://m-ets.ru/177064-1
 - [x] torgigov https://torgi.gov.ru/new/public/lots/lot/21000031920000000258_5/(lotInfo:info)?fromRec=false
+
+вынести start_date/days в общий конфиг в виде словаря
+- [ ] akosta
+- [ ] altimeta (vse)
+- [ ] b2b
+- [ ] bankrot_cdtrf
+- [ ] eo

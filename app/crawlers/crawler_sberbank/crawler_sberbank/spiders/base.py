@@ -24,8 +24,9 @@ class SberbankBaseSpider(BaseSpider):
 
     def __init__(self):
         super().__init__(data_origin_url)
+        self.cookies = {}
 
-    def start_requests(self, cookies: dict = None):
+    def start_requests(self):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
         for start_date_ in date_range:
             end_date = DateTimeHelper.format_datetime(
@@ -65,7 +66,7 @@ class SberbankBaseSpider(BaseSpider):
                         "start_url": url,
                     },
                     cb_kwargs={'org': property_type},
-                    cookies=cookies,
+                    cookies=self.cookies,
                 )
 
     def make_second_request(self, response, **kwargs):
@@ -93,5 +94,6 @@ class SberbankBaseSpider(BaseSpider):
                 headers={
                     "x-requested-with": "XMLHttpRequest",
                 },
-                cb_kwargs=kwargs
+                cb_kwargs=kwargs,
+                cookies=self.cookies
             )
