@@ -1,10 +1,9 @@
 import re
+from bs4 import BeautifulSoup as BS
 
 from app.utils import dedent_func, logger, DateTimeHelper
 from app.db.models import DownloadData
-from ..utils.config import first_part_link
-from bs4 import BeautifulSoup as BS
-
+from ..utils.config import main_urls
 from ..utils.manage_spider import deep_get_dict
 
 
@@ -15,7 +14,6 @@ class OfferParse:
 
     @property
     def get_periods(self):
-        """return list with periods in dictionaries type"""
         try:
             data = deep_get_dict(self.data, "BidView.BidReductionPeriod.Periods")
         except Exception as e:
@@ -26,9 +24,15 @@ class OfferParse:
             end = period["PeriodEndDate"]
             price = re.sub(r"\s", "", period["BidAmount"])
             period = {
-                "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
-                "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
-                "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(
+                    DateTimeHelper.moscow_tz
+                ),
+                "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(
+                    DateTimeHelper.moscow_tz
+                ),
+                "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(
+                    DateTimeHelper.moscow_tz
+                ),
                 "current_price": round(float(price), 2),
             }
             periods.append(period)
@@ -36,35 +40,32 @@ class OfferParse:
 
     @property
     def start_date_request(self):
-        """return start date request"""
         periods = self.get_periods
         try:
             return periods[0]["start_date_requests"]
         except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA START DATE REQUEST OFFER")
+        return None
 
     @property
     def end_date_request(self):
-        """return end date request"""
         periods = self.get_periods
         try:
             return periods[-1]["end_date_requests"]
         except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA END DATE REQUEST OFFER")
+        return None
 
     @property
     def start_date_trading(self):
-        """:return start date trading - the same as start date request"""
         return self.start_date_request
 
     @property
     def end_date_trading(self):
-        """:return end date trading - the same as end date request"""
         return self.end_date_request
 
     @property
     def start_price(self):
-        """:return start price"""
         start_price = deep_get_dict(self.data, "BidView.Bids.BidTenderInfo.BidPrice")
         start_price = re.sub(r"\s", "", start_price)
         pattern = re.compile(r"\d+\.\d{1,2}")
@@ -76,30 +77,31 @@ class OfferParse:
                 return round(float("".join(pattern.findall(start_price)[0])), 2)
         except Exception as e:
             logger.error(f"{self.url} :: INVALID DATA START PRICE OFFER")
-            return None
+        return None
 
-    # working with files general
     def get_xml_data(self, xml_data: str):
-        """get and return response with xml data (trading page)"""
         return xml_data
 
-    def get_file_name_and_hash(self, lst_file_name):
+    def get_file_name_and_hash(
+        self, lst_file_name, property_type: str, org: str = None
+    ):
         if isinstance(lst_file_name, dict):
             lst_file_name = [lst_file_name]
         clean_name = list()
         lst_hash_links = list()
         for n in lst_file_name:
             clean_name.append(n["filename"])
-            lst_hash_links.append(first_part_link + n["fileid"])
+            main_url = main_urls[property_type]
+            if org:
+                main_url = main_url[org]
+            lst_hash_links.append(f"{main_url}/File/DownloadFile?fid={n['fileid']}")
         names = clean_name
         links = lst_hash_links
         return names, links
 
-    # end working with files general
-
-    def download(self, file):
+    def download(self, file, property_type: str, org: str):
         files = list()
-        name, link = self.get_file_name_and_hash(file)
+        name, link = self.get_file_name_and_hash(file, property_type, org)
         for i in range(len(name)):
             files.append(DownloadData(url=link[i], file_name=name[i], referer=self.url))
         return files

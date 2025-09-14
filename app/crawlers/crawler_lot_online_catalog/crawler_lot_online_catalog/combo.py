@@ -9,7 +9,9 @@ from app.utils import (
     Contacts,
     contains,
     URL,
-    DateTimeHelper, logger,
+    DateTimeHelper,
+    logger,
+    make_float,
 )
 from app.db.models import DownloadData
 from app.utils.config import image_formats
@@ -75,13 +77,7 @@ class Combo:
         return None
 
     def parse_price(self, price: str):
-        try:
-            price = re.sub(r"\s", "", dedent_func(price).replace(",", "."))
-            price = "".join([x for x in price if x.isdigit() or x == "."])
-            if len(price) > 0:
-                return round(float(price), 2)
-        except Exception as e:
-            logger.error(f"{self.response.url} | INVALID START PRICE\n{e}")
+        return make_float(price)
 
     def download_general(self):
         files = list()
@@ -153,6 +149,8 @@ class Combo:
             "offer": [
                 "запрос предложений",
                 "продажа посредством публичного предложения",
+                "публичная оферта",
+                "сбор предложений"
             ],
             "competition": [
                 "конкурс",
@@ -164,6 +162,7 @@ class Combo:
             if type_.lower() in value:
                 return key
         logger.error(f"{self.response.url} | Unknown type - {type_}")
+        return None
 
     @property
     def trading_form(self):
@@ -225,6 +224,7 @@ class Combo:
                 return Contacts.check_msg_number(
                     number.find_next("td").get_text(strip=True)
                 )
+        return None
 
     @property
     def case_number(self):
@@ -276,6 +276,7 @@ class Combo:
                 .find_next("td")
                 .get_text(strip=True)
             )
+        return None
 
     # TODO: Менеджер продаж (ex: https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=871797)
     @property
@@ -316,6 +317,7 @@ class Combo:
                 .get_text(strip=True)
                 .split()
             )
+        return None
 
     @property
     def arbit_manager_org(self):
@@ -324,7 +326,7 @@ class Combo:
             if sro := debtor.find(
                     "label",
                     class_="ty-control-group__label",
-                    text=re.compile(r"Арбитражный управляющий"),
+                    text=re.compile("Арбитражный управляющий"),
             ):
                 return " ".join(
                     sro.find_next("td", class_="key", text=contains("СРО"))
@@ -356,8 +358,7 @@ class Combo:
             return "1"
         if len(lot_number) < 5:
             return lot_number
-        else:
-            return "1"
+        return "1"
 
     @property
     def lot_info(self):
@@ -371,6 +372,7 @@ class Combo:
     def property_information(self):
         if info := self.soup.find("div", class_="review_order"):
             return dedent_func(info.find("span").get_text(strip=True))
+        return None
 
     def get_auction_info_body(self):
         return self.soup.find("div", class_="ty-product-block_auction_info__body")

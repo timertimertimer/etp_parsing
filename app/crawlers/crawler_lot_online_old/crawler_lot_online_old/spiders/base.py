@@ -3,6 +3,7 @@ from datetime import datetime
 
 from scrapy import FormRequest, Request
 
+from app.db.models import AuctionPropertyType
 from app.utils import dedent_func
 from app.crawlers.base import BaseSpider
 from app.utils.config import write_log_to_file
@@ -19,6 +20,7 @@ class LotOnlineOldBaseSpider(BaseSpider):
     }
 
     def __init__(self):
+        self.name_without_prefix = self.name.removeprefix('lot_online_old_')
         super(LotOnlineOldBaseSpider, self).__init__(main_data_origin)
 
     def start_requests(self):
@@ -28,10 +30,10 @@ class LotOnlineOldBaseSpider(BaseSpider):
             "lease": "7001",
             "privatization": "4001",
             "arrested": "8001",
-        }[self.name]
+        }[self.name_without_prefix]
         form_data["nd"] = str(int(datetime.now().timestamp() * 1000))
         yield FormRequest(
-            self.start_urls[0].format(self.name),
+            self.start_urls[0].format(self.name_without_prefix),
             self.parse_serp,
             formdata=form_data,
             method="POST",
@@ -43,11 +45,11 @@ class LotOnlineOldBaseSpider(BaseSpider):
         for trade in data["rows"]:
             trading_id = trade["id"]
             if (
-                f"https://{self.name}.lot-online.ru/tender/details.html?tenderId={trading_id}"
+                f"https://{self.name_without_prefix}.lot-online.ru/tender/details.html?tenderId={trading_id}"
                 not in self.previous_trades
             ):
                 yield FormRequest(
-                    f"https://{self.name}.lot-online.ru/tender/{trading_id}/lots.html",
+                    f"https://{self.name_without_prefix}.lot-online.ru/tender/{trading_id}/lots.html",
                     self.parse_trade,
                     formdata={
                         "_search": "false",
@@ -69,7 +71,7 @@ class LotOnlineOldBaseSpider(BaseSpider):
             form_data["nd"] = str(int(datetime.now().timestamp() * 1000))
             form_data["page"] = str(current_page)
             yield FormRequest(
-                self.start_urls[0].format(self.name),
+                self.start_urls[0].format(self.name_without_prefix),
                 self.parse_serp,
                 formdata=form_data,
                 method="POST",
@@ -80,17 +82,18 @@ class LotOnlineOldBaseSpider(BaseSpider):
         data = json.loads(response.text)
         for lot in data["rows"]:
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", data_origin[self.name])
+            loader.add_value("data_origin", data_origin[self.name_without_prefix])
+            loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", trading_id)
             loader.add_value(
                 "trading_link",
-                f"https://{self.name}.lot-online.ru/tender/details.html?tenderId={trading_id}",
+                f"https://{self.name_without_prefix}.lot-online.ru/tender/details.html?tenderId={trading_id}",
             )
             loader.add_value("trading_number", trading_number)
             loader.add_value("lot_number", lot["lotInfo"]["lotCode"].split("-")[-1])
             loader.add_value("short_name", dedent_func(lot["lotInfo"]["name"]))
             yield Request(
-                f"https://{self.name}.lot-online.ru/lot/details.html?lotId={lot['lotInfo']['id']}",
+                f"https://{self.name_without_prefix}.lot-online.ru/lot/details.html?lotId={lot['lotInfo']['id']}",
                 self.parse_lot,
                 cb_kwargs={"loader": loader},
             )
@@ -126,7 +129,43 @@ class LotOnlineOldBaseSpider(BaseSpider):
             "files",
             {
                 "general": combo.download_general(),
-                "lot": combo.download_lot(data_origin[self.name]),
+                "lot": combo.download_lot(data_origin[self.name_without_prefix]),
             },
         )
         yield loader.load_item()
+
+
+class LotOnlineArrestedSpider(LotOnlineOldBaseSpider):
+    name = "lot_online_old_arrested"
+    property_type = AuctionPropertyType.arrested
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+class LotOnlineConfiscateSpider(LotOnlineOldBaseSpider):
+    name = "lot_online_old_confiscate"
+    property_type = AuctionPropertyType.other
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+class LotOnlineLeaseSpider(LotOnlineOldBaseSpider):
+    name = "lot_online_old_lease"
+    property_type = AuctionPropertyType.other
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+class LotOnlinePrivatizationSpider(LotOnlineOldBaseSpider):
+    name = "lot_online_old_privatization"
+    property_type = AuctionPropertyType.other
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
+
+class LotOnlineRadSpider(LotOnlineOldBaseSpider):
+    name = "lot_online_old_rad"
+    property_type = AuctionPropertyType.other
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

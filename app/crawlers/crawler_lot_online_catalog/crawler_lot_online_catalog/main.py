@@ -14,4 +14,4 @@ def lot_online_rent():
 
 
 if __name__ == "__main__":
-    bankruptcy()
+    private_property()

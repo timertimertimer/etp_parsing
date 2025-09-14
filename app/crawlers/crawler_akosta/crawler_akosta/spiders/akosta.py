@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime
+from pprint import pprint
 
 from scrapy import Request, FormRequest
 
@@ -19,82 +20,101 @@ from ..utils.config import (
     urls,
 )
 from ..utils.post_data import (
-    post_data_date_query,
+    post_date_dict,
     post_data_pagination,
     post_data_to_trade,
-    post_data_panel_list_query,
+    post_panel_list_dict,
     post_data_debitor,
     post_data_lot_tab,
     post_data_unique_lot_page,
     post_data_period_offer_page,
     property_type_sgtable_id_map,
+    post_property_type_choose_dict,
 )
 
 
 class AkostaBaseSpider(BaseSpider):
     name = "akosta"
-    property_type = None
 
     def __init__(self):
+        self.sg_table_id = property_type_sgtable_id_map[self.property_type.value]
         super(AkostaBaseSpider, self).__init__(data_origin, {Auction.ext_id})
+
+    def _parse_response(self, response, post_data: dict):
+        combo = Combo(response)
+        viewstate = combo.pre.get_post_data_values(
+            "input", "j_id1:javax.faces.ViewState:0"
+        )
+        data = copy.deepcopy(post_data)
+        data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+            datetime.now(), "%H:%M:%S"
+        )
+        data["javax.faces.ViewState"] = viewstate
+        return data
 
     def start_requests(self):
         yield Request(
             urls[self.name],
-            self.parse,
+            self.make_table_list,
         )
 
-    def parse(self, response, **kwargs):
-        combo = Combo(response)
-        viewstate = combo.pre.get_post_data_values(
-            "input", "j_id1:javax.faces.ViewState:0"
-        )
-        post_data_date_query["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
-        post_data_date_query["javax.faces.ViewState"] = viewstate
-        logger.info(f'{self.name} | Start date (Период приема заявок): {start_date}')
-        post_data_date_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        post_data_date_query[
-            f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
-        ] = "on"
+    def make_table_list(self, response, **kwargs):
+        data = self._parse_response(response, post_panel_list_dict)
+        print('make_table_list')
+        pprint(data)
         yield FormRequest(
             search_link,
-            callback=self.refresh_from_date,
-            formdata=post_data_date_query,
-            dont_filter=True,
-        )
-
-    def refresh_from_date(self, response):
-        yield Request(response.url, self.post_make_panel_list, dont_filter=True)
-
-    def post_make_panel_list(self, response):
-        combo = Combo(response)
-        viewstate = combo.pre.get_post_data_values(
-            "input", "j_id1:javax.faces.ViewState:0"
-        )
-        post_data_panel_list_query["formMain:inputServerTime"] = (
-            DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
-        )
-        post_data_panel_list_query["javax.faces.ViewState"] = viewstate
-        post_data_panel_list_query["formMain:fromIdAcceptancePeriod_input"] = start_date
-        post_data_panel_list_query[
-            f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
-        ] = "on"
-        yield FormRequest.from_response(
-            response,
             callback=self.refresh_panel_list,
-            formdata=post_data_panel_list_query,
+            formdata=data,
             dont_filter=True,
         )
 
     def refresh_panel_list(self, response):
         yield Request(
             response.url,
-            self.parse_panel_list,
+            self.choose_property_type,
+            dont_filter=True,
+        )
+
+    def choose_property_type(self, response):
+        data = self._parse_response(response, post_property_type_choose_dict)
+        data = data | {
+            "javax.faces.source": f"formMain:sgTable:{self.sg_table_id}:j_idt92",
+            f"formMain:sgTable:{self.sg_table_id}:j_idt92_input": "on",
+        }
+        print('choose_property_type')
+        pprint(data)
+        yield FormRequest(
+            search_link,
+            callback=self.choose_date_range,
+            formdata=data,
+            dont_filter=True,
+            cb_kwargs={'view_state': data['javax.faces.ViewState']}
+        )
+
+    def choose_date_range(self, response, view_state):
+        data = self._parse_response(response, post_date_dict)
+        data['javax.faces.ViewState'] = view_state
+        data["formMain:fromIdAcceptancePeriod_input"] = start_date
+        data[f"formMain:sgTable:{self.sg_table_id}:j_idt92_input"] = "on"
+        print('choose_date_range')
+        pprint(data)
+        yield FormRequest(
+            search_link,
+            callback=self.refresh_date_range,
+            formdata=data,
+            dont_filter=True,
+        )
+
+    def refresh_date_range(self, response):
+        yield Request(
+            response.url,
+            self.parse_trades,
             cb_kwargs={"page_number": 1, "total_pages": 0, "viewstate": None},
             dont_filter=True,
         )
 
-    def parse_panel_list(self, response, page_number, total_pages, viewstate):
+    def parse_trades(self, response, page_number, total_pages, viewstate):
         combo = Combo(response)
         sources = dict()
         if page_number == 1:
@@ -116,7 +136,7 @@ class AkostaBaseSpider(BaseSpider):
         )
 
     def process_trade_one_by_one(
-            self, response, sources, page_number, total_pages, viewstate
+        self, response, sources, page_number, total_pages, viewstate
     ):
         combo = Combo(response)
         viewstate = viewstate or combo.pre.get_post_data_values(
@@ -126,7 +146,9 @@ class AkostaBaseSpider(BaseSpider):
             id_, data = sources.popitem()
             post_data = copy.deepcopy(post_data_to_trade)
             post_data["javax.faces.source"] = data
-            post_data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+            post_data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+                datetime.now(), "%H:%M:%S"
+            )
             post_data["formMain:fromIdAcceptancePeriod_input"] = start_date
             post_data["javax.faces.ViewState"] = viewstate
             post_data[data] = data
@@ -147,8 +169,9 @@ class AkostaBaseSpider(BaseSpider):
                 page_number += 1
                 data_lots = int(page_number) * 50 - 50
                 post_data_pagination["formMain:lotListTable_first"] = str(data_lots)
-                post_data_pagination["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(),
-                                                                                                  "%H:%M:%S")
+                post_data_pagination["formMain:inputServerTime"] = (
+                    DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+                )
                 post_data_pagination["javax.faces.ViewState"] = viewstate
                 post_data_pagination[
                     f"formMain:sgTable:{property_type_sgtable_id_map[self.property_type.value]}:j_idt92_input"
@@ -166,7 +189,7 @@ class AkostaBaseSpider(BaseSpider):
                 )
 
     def redirect_trade_page(
-            self, response, trading_id, sources, page_number, total_pages
+        self, response, trading_id, sources, page_number, total_pages
     ):
         combo = Combo(_response=response)
         url_to_trade = combo.main_.get_link_redirect()
@@ -211,7 +234,9 @@ class AkostaBaseSpider(BaseSpider):
         )
 
         post_data = copy.deepcopy(post_data_debitor)
-        post_data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+        post_data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+            datetime.now(), "%H:%M:%S"
+        )
         post_data["javax.faces.ViewState"] = new_view
         for form_number_search in combo.deb.find_correct_form_number_collapsed():
             post_data[form_number_search] = "false"
@@ -233,14 +258,14 @@ class AkostaBaseSpider(BaseSpider):
         )
 
     def parse_debitor(
-            self,
-            response,
-            transfer,
-            trading_type,
-            general_files,
-            sources,
-            page_number,
-            total_pages,
+        self,
+        response,
+        transfer,
+        trading_type,
+        general_files,
+        sources,
+        page_number,
+        total_pages,
     ):
         """parse debtor tab(page), get new viewstate  and make requests to lot tab(page)"""
         combo = Combo(_response=response)
@@ -255,12 +280,14 @@ class AkostaBaseSpider(BaseSpider):
         transfer["arbit_manager_org"] = combo.deb.get_arbitr_company()
         transfer["debtor_inn"] = combo.deb.get_debtor_inn()
         if (
-                combo.deb.soup.find("input", type="checkbox").get("checked")
-                or transfer["trading_org"] == transfer["arbit_manager"]
+            combo.deb.soup.find("input", type="checkbox").get("checked")
+            or transfer["trading_org"] == transfer["arbit_manager"]
         ):
             transfer["trading_org_inn"] = transfer["arbit_manager_inn"]
         transfer["address"] = combo.deb.get_debtor_address()
-        post_data_lot_tab["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+        post_data_lot_tab["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+            datetime.now(), "%H:%M:%S"
+        )
         post_data_lot_tab["javax.faces.ViewState"] = debtor_view_state
         yield FormRequest(
             debtor_link,
@@ -279,16 +306,16 @@ class AkostaBaseSpider(BaseSpider):
         )
 
     def parse_lot_tab(
-            self,
-            response,
-            transfer,
-            trading_type,
-            general_files,
-            lots,
-            sources,
-            page_number,
-            total_pages,
-            current_lot=None,
+        self,
+        response,
+        transfer,
+        trading_type,
+        general_files,
+        lots,
+        sources,
+        page_number,
+        total_pages,
+        current_lot=None,
     ):
         """fetch post data to all unique lot and make post request"""
         combo = Combo(_response=response)
@@ -299,7 +326,9 @@ class AkostaBaseSpider(BaseSpider):
         post_lot = copy.deepcopy(post_data_unique_lot_page)
         post_lot["javax.faces.source"] = current_lot
         post_lot[current_lot] = current_lot
-        post_lot["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+        post_lot["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+            datetime.now(), "%H:%M:%S"
+        )
         viewstate = combo.pre.get_post_data_values(
             "input", "j_id1:javax.faces.ViewState:0"
         )
@@ -352,18 +381,18 @@ class AkostaBaseSpider(BaseSpider):
             )
 
     def parse_pre_lot_page(
-            self,
-            response,
-            transfer,
-            trading_type,
-            general_files,
-            lot_number,
-            sources,
-            page_number,
-            total_pages,
-            lots,
-            current_lot,
-            lot_tab_link,
+        self,
+        response,
+        transfer,
+        trading_type,
+        general_files,
+        lot_number,
+        sources,
+        page_number,
+        total_pages,
+        lots,
+        current_lot,
+        lot_tab_link,
     ):
         combo = Combo(_response=response)
         url_to_trade = combo.main_.get_link_redirect()
@@ -432,15 +461,15 @@ class AkostaBaseSpider(BaseSpider):
             )
 
     def parse_lot_offer(
-            self,
-            response,
-            url_to_trade,
-            transfer,
-            lot_number,
-            general_files: list,
-            sources,
-            page_number,
-            total_pages,
+        self,
+        response,
+        url_to_trade,
+        transfer,
+        lot_number,
+        general_files: list,
+        sources,
+        page_number,
+        total_pages,
     ):
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
@@ -490,7 +519,9 @@ class AkostaBaseSpider(BaseSpider):
                 "input", "j_id1:javax.faces.ViewState:0"
             )
             _form["javax.faces.ViewState"] = lot_viewstate2
-            _form["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+            _form["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+                datetime.now(), "%H:%M:%S"
+            )
             # param data depend from page number -> second page has value - 10
             _form["formMain:dataRSList_first"] = str(10 * 2 - 10)
             if combo.offer.get_refresh_form_j_idt55():
@@ -529,15 +560,15 @@ class AkostaBaseSpider(BaseSpider):
             yield loader.load_item()
 
     def parse_period_offer_pages(
-            self,
-            response,
-            loader,
-            _form,
-            current,
-            total,
-            periods_: list,
-            sources,
-            page_number,
+        self,
+        response,
+        loader,
+        _form,
+        current,
+        total,
+        periods_: list,
+        sources,
+        page_number,
     ):
         combo = Combo(_response=response)
         next_periods: list = combo.offer.return_next_periods()
@@ -545,7 +576,9 @@ class AkostaBaseSpider(BaseSpider):
         if current < total:
             current += 1
             _form["formMain:dataRSList_first"] = str(10 * current - 10)
-            _form["formMain:inputServerTime"] = DateTimeHelper.format_datetime(datetime.now(), "%H:%M:%S")
+            _form["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+                datetime.now(), "%H:%M:%S"
+            )
             yield FormRequest(
                 link_post_period,
                 callback=self.parse_period_offer_pages,
@@ -578,15 +611,15 @@ class AkostaBaseSpider(BaseSpider):
             yield loader.load_item()
 
     def parse_lot_auction(
-            self,
-            response,
-            url_to_trade,
-            transfer,
-            lot_number,
-            general_files,
-            sources,
-            page_number,
-            total_pages,
+        self,
+        response,
+        url_to_trade,
+        transfer,
+        lot_number,
+        general_files,
+        sources,
+        page_number,
+        total_pages,
     ):
         combo = Combo(_response=response)
         loader = EtpItemLoader(EtpItem(), response=response)

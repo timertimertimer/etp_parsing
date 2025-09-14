@@ -16,3 +16,4 @@ DOWNLOADER_MIDDLEWARES[
     "crawler_akosta.middlewares.CrawlerAkostaDownloaderMiddleware"
 ] = 543
 LOG_FILE = "akosta.log" if write_log_to_file else None
+ROTATING_PROXY_LIST_PATH = None

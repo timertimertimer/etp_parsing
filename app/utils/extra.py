@@ -173,10 +173,10 @@ def make_float(price) -> Optional[float]:
         elif isinstance(price, float):
             return price
         price = price.replace(",", ".")
-        price = "".join(filter(lambda x: x.isdigit() or x == ".", price))
-        price = "".join(map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price)))))
-        if price is None:
-            price = "".join(map(str, (re.findall(r"^\d+?", str(price)))))
+        price_ = "".join(filter(lambda x: x.isdigit() or x == ".", price))
+        price = "".join(map(str, (re.findall(r"^\d+?\.\d{1,2}", str(price_)))))
+        if not price:
+            price = "".join(map(str, (re.findall(r"^\d+", str(price_)))))
         price = round(float(price), 2)
         return price
     except Exception as e:

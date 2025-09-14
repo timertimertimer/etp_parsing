@@ -14,9 +14,9 @@ from app.utils.config import image_formats
 from app.db.models import DownloadData
 
 
-class LotPage:
-    def __init__(self, resposne_):
-        self.response = resposne_
+class Combo:
+    def __init__(self, response):
+        self.response = response
         self.soup = BS(
             str(self.response.body.decode("utf-8"))
             .replace("&lt;", "<")
@@ -30,6 +30,7 @@ class LotPage:
             return dedent_func(short_name.get_text().strip())
         else:
             logger.error(f"{self.response.url} :: ERROR SHORT NAME NOT FOUND")
+        return None
 
     def return_all_scripts(self):
         phone_script = self.soup.find_all("script")
@@ -49,6 +50,7 @@ class LotPage:
             logger.error(
                 f"{self.response.url} :: ERROR WITH PHONE NUMBER\n{e}", exc_info=True
             )
+        return None
 
     def get_trading_org_contact(self):
         return {"email": "", "phone": self.get_phone()}
@@ -64,6 +66,7 @@ class LotPage:
             logger.error(f"{self.response.url} :: ERROR TRADING ID NOT FOUND")
         except Exception as e:
             logger.error(f"{self.response.url} :: ERROR TRADING ID\n{e}")
+        return None
 
     @property
     def address(self):
@@ -77,6 +80,7 @@ class LotPage:
                 )
         except Exception as e:
             logger.error(f"{self.response.url} :: ERROR ADDRESS\n{e}")
+        return None
 
     def get_encumbrance(self):
         span = self.soup.find(
@@ -112,6 +116,7 @@ class LotPage:
                 return [text_cat.strip()]
         except Exception as ex:
             logger.error(f"{self.response.url} :{ex}: ERROR CATEGORY", exc_info=True)
+        return None
 
     def start_date_requests(self):
         try:
@@ -127,6 +132,7 @@ class LotPage:
             logger.error(
                 f"{self.response.url} :: ERROR START DATE REQUEST or TRADING\n{e}"
             )
+        return None
 
     def start_price(self):
         try:
@@ -141,6 +147,7 @@ class LotPage:
             logger.error(
                 f"{self.response.url} :: ERROR START PRICE\n{e}", exc_info=True
             )
+        return None
 
     def return_complete_lot_info(self):
         if self.check_tab_transport():
@@ -177,6 +184,7 @@ class LotPage:
                 return re.sub(r"\xa0 Cкрыть детали", "", d).strip()
         except Exception as e:
             logger.error(f"{self.response.url} :: Error with LOT INFO\n{e}")
+        return None
 
     def check_tab_transport(self):
         if description_tabs := self.soup.find_all(
@@ -185,6 +193,7 @@ class LotPage:
             search_tab = "Транспорт"
             tab_text = [t.get_text().strip() for t in description_tabs]
             return True if search_tab in tab_text else None
+        return None
 
     def get_lot_info_characteristic(self):
         string = ""
@@ -271,6 +280,7 @@ class LotPage:
                 return span_property.findNext().get_text().strip()
         except Exception as e:
             logger.error(f"{self.response.url} :: ERROR PROPERTY INFORMATION\n{e}")
+        return None
 
     def get_all_pictures_link(self):
         galary_section = self.soup.find("div", class_="gallery")
@@ -287,11 +297,11 @@ class LotPage:
         files = list()
         if len(lst_pictures) == 0:
             return files
-        for pic in lst_pictures:
+        for i, pic in enumerate(lst_pictures):
             _sufix = Path(pic).suffix
             if _sufix.lower() in image_formats:
                 name = "".join(Path(pic).name).strip()
                 files.append(
-                    DownloadData(url=pic, file_name=name, referer=self.response.url, is_image=True)
+                    DownloadData(url=pic, file_name=name, referer=self.response.url, is_image=True, order=i)
                 )
         return files

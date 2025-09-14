@@ -1,28 +1,46 @@
 import json
 
 import xmltodict
-from scrapy import FormRequest, Request
+from scrapy import Request
 from scrapy_playwright.page import PageMethod
 from playwright.async_api import Page
+from playwright._impl._errors import TimeoutError
 from bs4 import BeautifulSoup as BS
 
 from app.crawlers.crawler_sberbank.crawler_sberbank.spiders.base import (
     SberbankBaseSpider,
 )
-from app.crawlers.crawler_sberbank.crawler_sberbank.trades.html_combo import HTMLCombo
+from app.crawlers.crawler_sberbank.crawler_sberbank.trades.html_combo import NewCombo
 from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import (
-    urls,
+    list_urls,
     data_origin_url,
 )
-from app.crawlers.crawler_sberbank.crawler_sberbank.utils.manage_spider import solve_challenge
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
-from app.utils.config import trash_resources, write_log_to_file
+from app.utils import logger
+from app.utils.config import trash_resources, write_log_to_file, env
 
-async def wait_for_statistic_load(page: Page):
-    input()
-    await page.wait_for_selector(selector='div[id="statisticAreaContainer"]', state="attached")
-    return
+playwright_timeout = 60
+
+
+async def wait_for_search_query(page: Page):
+    for i in range(env.retry_count):
+        try:
+            await page.wait_for_event(
+                "response",
+                lambda r: "/SearchQuery/" in r.url and r.request.method == "POST",
+                timeout=playwright_timeout * 1000,
+            )
+            return
+        except Exception as e:
+            logger.warning(
+                f"{page.url} | Timeout error ({playwright_timeout} sec), trying again {i + 1}/{env.retry_count}"
+            )
+            await page.reload()
+    else:
+        logger.error(
+            f"{page.url} | Timeout error ({playwright_timeout} sec), tried {env.retry_count} times, stopping"
+        )
 
 
 class SberbankBaseHTMLSpider(SberbankBaseSpider):
@@ -31,62 +49,66 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
         in trash_resources,
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
     }
 
-    def start_requests(self):
-        url = urls[self.property_type.value]
+    def start_requests(self, cookies: dict = None):
+        url = list_urls[self.property_type.value]
         yield Request(
             url,
             callback=self.after_challenge,
             meta=dict(
                 playwright=True,
+                playwright_include_page=True,
                 playwright_page_methods=[
-                    PageMethod("goto", url, wait_until="networkidle"),
-                    PageMethod(wait_for_statistic_load)
+                    PageMethod("goto", url),
+                    PageMethod(wait_for_search_query),
                 ],
             ),
         )
 
-    def send_request_for_new_cookies(self, response):
-        text = response.text
-        challenge = text.split("Challenge=")[1].split(";")[0]
-        challenge_id = text.split("ChallengeId=")[1].split(";")[0]
-        result = solve_challenge(int(challenge))
-        return Request(
-            url=urls[self.property_type.value],
-            method="POST",
-            headers={
-                "X-Aa-Challenge": str(challenge),
-                "X-Aa-Challenge-ID": str(challenge_id),
-                "X-Aa-Challenge-Result": result,
-                "Content-Type": "text/plain",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua": '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
-                "content-length": "0"
-            },
-            callback=self.after_challenge,
-            dont_filter=True,
-        )
+    async def after_challenge(self, response):
+        page = response.meta["playwright_page"]
+        cookies = await page.context.cookies()
+        for req in super().start_requests(cookies):
+            yield req
 
-    def after_challenge(self, response):
-        cookies = response.headers.get(b"Cookie")
-        super().start_requests()
-
-    def parse_table(self, response):
+    def parse_table(self, response, **kwargs):
         soup = BS(json.loads(response.text)["data"]["Data"]["tableXml"], "lxml-xml")
         data = xmltodict.parse(str(soup))["datarow"]
         trades = set(lot["_source"]["objectHrefTerm"] for lot in data["hits"])
         for trade in trades:
-            yield Request(trade, self.parse_trade)
+            yield Request(trade, self.parse_trade, cb_kwargs=kwargs)
 
-    def parse_trade(self, response):
-        combo = HTMLCombo(response)
+    def parse_trade(self, response, **kwargs):
+        combo = NewCombo(response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin_url)
         loader.add_value("property_type", self.property_type.value)
-        loader.add_value("trading_link", response.url)
+        loader.add_value("trading_id", combo.trading_id)
+        loader.add_value("trading_link", combo.trading_link)
+        loader.add_value("trading_number", combo.trading_number)
+        loader.add_value("trading_type", combo.trading_type)
+        loader.add_value("trading_form", combo.trading_form)
+        loader.add_value("trading_org", combo.trading_org)
+        loader.add_value("trading_org_inn", combo.trading_org_inn)
+        loader.add_value("trading_org_contacts", combo.trading_org_contacts)
+        loader.add_value("address", combo.address)
+        loader.add_value("lot_id", combo.lot_id)
+        loader.add_value("lot_number", combo.lot_number)
+        loader.add_value("short_name", combo.short_name)
+        loader.add_value("start_date_requests", combo.start_date_requests)
+        loader.add_value("end_date_requests", combo.end_date_requests)
+        loader.add_value(
+            "files",
+            {
+                "general": combo.download(
+                    response.request.headers[b"Cookie"].decode(),
+                    self.property_type.value,
+                    kwargs.get("org"),
+                ),
+                "lot": [],
+            },
+        )
         yield loader.load_item()
 
 

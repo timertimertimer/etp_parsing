@@ -65,6 +65,8 @@ d = {
 для сбера (sberbank) и росельторга (roseltorg) нужны прокси
 proxies template `user:pass@ip:port`
 
-отказались от sales.lot-online.ru, catalog.lot-online.ru пришел на замену с теми же лотами
+отказались от sales.lot-online.ru, тк catalog.lot-online.ru пришел на замену с теми же лотами
 
 в heveya нет документов, только картинки с карусели
+
+по дефолту если не проставлены property_type/trading_type, то ставится 'other'

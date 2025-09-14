@@ -73,6 +73,8 @@ class ENV(BaseSettings):
 
     mysql_external_port: int = 3316
 
+    retry_count: Optional[int] = 5
+
 
 env = ENV()
 env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.mysql_external_port}/{env.db_database}"
@@ -116,7 +118,7 @@ trash_resources = [
     "stylesheet",
     "audio",
     "font",
-    "xhr",
+    # "xhr",
     "fetch",
     "eventsource",
     "websocket",

@@ -22,7 +22,6 @@ post_data_pagination = {
     "formMain:toIdAcceptancePeriod_input": "",
     "formMain:j_idt71": "",
     "formMain:j_idt73": "",
-    "formMain:sgTable:2:j_idt79_input": "on",
     "formMain:sgTablePanel_collapsed": "false",
     "formMain:taTablePanel_collapsed": "true",
     "formMain:stateTablePanel_collapsed": "true",
@@ -36,36 +35,13 @@ post_data_pagination = {
     "javax.faces.ViewState": "",
 }
 
-post_data_date_query = {
-    "javax.faces.partial.ajax": "true",
-    "javax.faces.source": "formMain:cbLotFilterFindId",
-    "javax.faces.partial.execute": "@all",
-    "javax.faces.partial.render": "formMain",
-    "formMain:cbLotFilterFindId": "formMain:cbLotFilterFindId",
-    "formMain": "formMain",
-    "formMain:inputServerTime": "",
-    "formMain:fromIdAcceptancePeriod_input": "",
-    "formMain:sgTablePanel_collapsed": "true",
-    "formMain:taTablePanel_collapsed": "true",
-    "formMain:stateTablePanel_collapsed": "true",
-    "formMain:sgTable:0:j_idt92_input": "on",
-    "formMain:j_idt135_scrollState": "0,0",
-    "formMain:selectTreeDlgPanel_collapsed": "true",
-    "formMain:selectRegTreeDlgPanel_collapsed": "true",
-    "formMain:lotDataGridId_rppDD": "12",
-    "formMain:selectTreeDlgTree_scrollState": "0,0",
-    "javax.faces.ViewState": "",
-}
-
-post_data_panel_list_query = {
+post_panel_list_dict = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "formMain:clTable",
     "javax.faces.partial.execute": "formMain:clTable",
     "javax.faces.partial.render": "formMain:panelList formMain:showLotsPanel",
     "formMain:clTable": "formMain:clTable",
     "formMain": "formMain",
-    "formMain:inputServerTime": "",
-    "formMain:fromIdAcceptancePeriod_input": "",
     "formMain:sgTablePanel_collapsed": "true",
     "formMain:taTablePanel_collapsed": "true",
     "formMain:stateTablePanel_collapsed": "true",
@@ -74,8 +50,42 @@ post_data_panel_list_query = {
     "formMain:selectRegTreeDlgPanel_collapsed": "true",
     "formMain:lotDataGridId_rppDD": "12",
     "formMain:selectTreeDlgTree_scrollState": "0,0",
-    "javax.faces.ViewState": "",
 }
+
+post_property_type_choose_dict = {
+    "javax.faces.partial.ajax": "true",
+    "javax.faces.partial.execute": "formMain:sgTablePanel",
+    "javax.faces.partial.render": "formMain:sgTablePanel",
+    "javax.faces.behavior.event": "valueChange",
+    "javax.faces.partial.event": "change",
+    "formMain": "formMain",
+    "formMain:sgTablePanel_collapsed": "false",
+    "formMain:taTablePanel_collapsed": "true",
+    "formMain:stateTablePanel_collapsed": "true",
+    "formMain:j_idt135_scrollState": "0,0",
+    "formMain:selectTreeDlgPanel_collapsed": "true",
+    "formMain:selectRegTreeDlgPanel_collapsed": "true",
+    "formMain:lotListTable_rppDD": "50",
+    "formMain:selectTreeDlgTree_scrollState": "0,0",
+}
+
+post_date_dict = {
+    "javax.faces.partial.ajax": "true",
+    "javax.faces.source": "formMain:cbLotFilterFindId",
+    "javax.faces.partial.execute": "@all",
+    "javax.faces.partial.render": "formMain",
+    "formMain:cbLotFilterFindId": "formMain:cbLotFilterFindId",
+    "formMain": "formMain",
+    "formMain:sgTablePanel_collapsed": "false",
+    "formMain:taTablePanel_collapsed": "true",
+    "formMain:stateTablePanel_collapsed": "true",
+    "formMain:j_idt135_scrollState": "0,0",
+    "formMain:selectTreeDlgPanel_collapsed": "true",
+    "formMain:selectRegTreeDlgPanel_collapsed": "true",
+    "formMain:lotDataGridId_rppDD": "50",
+    "formMain:selectTreeDlgTree_scrollState": "0,0",
+}
+
 post_data_to_trade = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "",
@@ -124,7 +134,6 @@ post_data_unique_lot_page = {
     "javax.faces.partial.ajax": "true",
     "javax.faces.source": "",
     "javax.faces.partial.execute": "@all",
-    # 'formMain:dataLot:1:j_idt63: formMain:dataLot:1:j_idt63'
     "formMain": "formMain",
     "formMain:inputServerTime": "",
     "formMain:commonSearchCriteriaStr": "",
@@ -137,7 +146,6 @@ post_data_download = {
     "formMain:commonSearchCriteriaStr": "",
     "formMain:j_idt59_collapsed": "false",
     "formMain:j_idt74_collapsed": "false",
-    # 'formMain:j_idt82_collapsed': 'false',
     "formMain:auctionDocsPanel_collapsed": "false",
     "javax.faces.ViewState": "",
 }
@@ -149,7 +157,6 @@ post_data_period_offer_page = {
     "javax.faces.partial.render": "formMain:dataRSList",
     "formMain:dataRSList": "formMain:dataRSList",
     "formMain:dataRSList_pagination": "true",
-    # neccessary
     "formMain:dataRSList_first": "",
     "formMain:dataRSList_rows": "10",
     "formMain:dataRSList_skipChildren": "true",
@@ -157,10 +164,8 @@ post_data_period_offer_page = {
     "formMain": "formMain",
     "formMain:inputServerTime": "",
     "formMain:commonSearchCriteriaStr": "",
-    # formMain:j_idt55: 133 дн. 01 час. (08.06.2021 00:00:00)
     "formMain:j_idt45_collapsed": "false",
     "formMain:dataRSList_rppDD": "10",
-    # neccesssary
     "formMain:dataRSList_selection": "",
     "formMain:j_idt61_collapsed": "false",
     "javax.faces.ViewState": "",

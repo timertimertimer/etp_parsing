@@ -14,4 +14,4 @@ def akosta_commercial():
 
 
 if __name__ == "__main__":
-    akosta_commercial()
+    akosta_bankruptcy()

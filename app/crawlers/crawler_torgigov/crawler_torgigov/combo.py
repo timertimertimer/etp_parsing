@@ -24,10 +24,16 @@ class Combo:
     def download_lot(self, lot):
         files = list()
         attachments = lot.get("attachments", [])
+        image_ids = lot.get("imageIds", [])
+        i = 0
         for file in attachments:
             link = f"https://torgi.gov.ru/new/file-store/v1/{file['fileId']}"
             name = file["fileName"]
-            files.append(DownloadData(url=link, file_name=name))
+            if file["fileId"] in image_ids:
+                files.append(DownloadData(url=link, file_name=name, is_image=True, order=i))
+                i += 1
+            else:
+                files.append(DownloadData(url=link, file_name=name))
         return files
 
     @property
@@ -53,6 +59,7 @@ class Combo:
                 "Публичное предложение",
                 "Публичное предложение (цессия)",
                 "Публичное предложение (ЗК РФ)",
+                "Предложение о заключении концессионного соглашения"
             ],
             "competition": ["Электронный конкурс", "Конкурс"],
         }

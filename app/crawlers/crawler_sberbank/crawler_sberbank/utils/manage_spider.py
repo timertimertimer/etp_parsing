@@ -3,7 +3,9 @@ import re
 from functools import reduce, wraps
 from http.cookies import SimpleCookie
 
-from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import pattern_lots_links
+from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import (
+    pattern_lots_links,
+)
 
 
 # Method for manage default value in dictionary. If key is None any error will not view - just None
@@ -65,24 +67,30 @@ def sort_trading_type(text):
     offer = ["Открытое публичное предложение", "Закрытое публичное предложение"]
     auction = ["Открытый аукцион", "Закрытый аукцион"]
     competition = ["Открытый конкурс", "Закрытый конкурс"]
+    rfp = ["Запрос цен (коммерческих предложений)"]
     try:
-        text = "".join(re.split(r"/", text.replace("\\", "/"))[0]).strip()
+        text = re.escape("".join(re.split(r"/", text.replace("\\", "/"))[0]).strip())
     except Exception as e:
         print(e)
         return None
-    match1 = "".join(
+    auction_match = "".join(
         filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), auction)
     )
-    match2 = "".join(filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), offer))
-    match3 = "".join(
+    offer_match = "".join(
+        filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), offer)
+    )
+    competition_match = "".join(
         filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), competition)
     )
-    if match1:
+    rfp_match = "".join(filter(lambda x: re.findall(text, x, flags=re.IGNORECASE), rfp))
+    if auction_match:
         return "auction"
-    if match2:
+    if offer_match:
         return "offer"
-    if match3:
+    if competition_match:
         return "competition"
+    if rfp_match:
+        return "rfp"
     return None
 
 

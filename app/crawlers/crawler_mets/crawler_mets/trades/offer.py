@@ -19,6 +19,7 @@ from ..config import data_origin_url
 class OfferParse:
     def __init__(self, response):
         self.response = response
+        self.soup = BS(response.text, "lxml")
 
     @property
     def data_origin(self):
@@ -40,8 +41,7 @@ class OfferParse:
         match = "".join(re.findall(r"\d+\-\w+", str(div)))
         if len(match) < 0:
             logger.warning(f"{self.response.url} | Couldn't parse trading_number")
-        else:
-            return match
+        return match
 
     @property
     def trading_type(self):
@@ -263,7 +263,10 @@ class OfferParse:
             ),
         )
 
-        status = self.response.xpath(TradeLocator.status_loc).get().strip().lower()
+        status = self.response.xpath(TradeLocator.status_loc).get()
+        if not status:
+            return None
+        status = status.strip().lower()
         for k, v in d.items():
             if status in v:
                 return k
@@ -365,9 +368,15 @@ class OfferParse:
                     price = normalize_string(price)
                     price = round(float(price.replace(" ", "")), 2)
                 period = {
-                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz),
-                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
-                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(DateTimeHelper.moscow_tz),
+                    "start_date_requests": DateTimeHelper.smart_parse(start).astimezone(
+                        DateTimeHelper.moscow_tz
+                    ),
+                    "end_date_requests": DateTimeHelper.smart_parse(end).astimezone(
+                        DateTimeHelper.moscow_tz
+                    ),
+                    "end_date_trading": DateTimeHelper.smart_parse(end).astimezone(
+                        DateTimeHelper.moscow_tz
+                    ),
                     "current_price": price,
                 }
                 periods.append(period)
@@ -379,7 +388,9 @@ class OfferParse:
     def start_date_request(self, lot_num):
         try:
             table = self.period_table(lot_num)
-            return DateTimeHelper.smart_parse(table.iloc[0][1]).astimezone(DateTimeHelper.moscow_tz)
+            return DateTimeHelper.smart_parse(table.iloc[0][1]).astimezone(
+                DateTimeHelper.moscow_tz
+            )
         except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE REQUEST LOT {lot_num}"
@@ -389,7 +400,9 @@ class OfferParse:
     def end_date_request(self, lot_num):
         try:
             table = self.period_table(lot_num)
-            return DateTimeHelper.smart_parse(table.iloc[-1][2]).astimezone(DateTimeHelper.moscow_tz)
+            return DateTimeHelper.smart_parse(table.iloc[-1][2]).astimezone(
+                DateTimeHelper.moscow_tz
+            )
         except Exception as e:
             logger.warning(
                 f"{self.response.url} | INVALID DATA END DATE REQUEST LOT {lot_num}"
@@ -429,5 +442,17 @@ class OfferParse:
                 name = re.sub(r". $", "_.", name)
             files.append(
                 DownloadData(url=parse_link, file_name=name, referer=self.response.url)
+            )
+
+        gallery = self.soup.find("div", class_="gallery-container")
+        if not gallery:
+            return files
+        for i, image in enumerate(gallery.find_all('img')):
+            link = image.get('src')
+            name = link.split('/')[-1]
+            if 'static-maps.yandex.ru' in name:
+                name = f'map_{i}.png'
+            files.append(
+                DownloadData(url=URL.url_join(data_origin_url, link), file_name=name, referer=self.response.url, is_image=True, order=i)
             )
         return files

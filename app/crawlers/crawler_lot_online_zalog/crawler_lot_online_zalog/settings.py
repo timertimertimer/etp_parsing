@@ -16,3 +16,4 @@ DOWNLOADER_MIDDLEWARES = DOWNLOADER_MIDDLEWARES | {
     "scrapy_splash.SplashMiddleware": 725,
 }
 DEFAULT_REQUEST_HEADERS["Accept-Encoding"] = "*/*"
+ROTATING_PROXY_LIST_PATH = None

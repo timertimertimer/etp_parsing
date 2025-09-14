@@ -14,13 +14,12 @@ class AuctionParse:
 
     @property
     def trading_id(self):
-        """return trading id - last numbers of url"""
         try:
             pattern = re.compile("\d+$")
             return "".join(pattern.findall(self.url))
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA TRADING ID")
-            return None
+        return None
 
     @property
     def trading_link_auc(self):
@@ -37,23 +36,17 @@ class AuctionParse:
             ).strip()
         except Exception as e:
             logger.error(f"{self.url} th| WITHOUT TRADING NUMBER")
-            return None
+        return None
 
     @property
     def trading_type_auc(self):
-        try:
-            trading_type = sort_trading_type(
-                deep_get_dict(
-                    self.data,
-                    "Purchase.PurchaseinfoPanel.PurchaseInfo.PurchaseTypeInfo.PurchaseTypeName",
-                )
+        trading_type = sort_trading_type(
+            deep_get_dict(
+                self.data,
+                "Purchase.PurchaseinfoPanel.PurchaseInfo.PurchaseTypeInfo.PurchaseTypeName",
             )
-            return dedent_func(
-                BS(str(trading_type), features="lxml").get_text()
-            ).strip()
-        except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA TRADING TYPE", exc_info=True)
-            return None
+        )
+        return trading_type
 
     @property
     def trading_form_auc(self):
@@ -69,23 +62,21 @@ class AuctionParse:
             ).strip()
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA TRADING TYPE", exc_info=True)
-            return None
+        return None
 
     @property
     def trading_org_auc(self):
-        """return name or company name of trading organizer"""
         try:
             td_org = deep_get_dict(
                 self.data, "Purchase.PurchaseinfoPanel.OrganizatorInfo.orgname"
             )
-            td_org = dedent_func(BS(str(td_org), features="lxml").get_text()).strip()
             return "".join(re.sub(r"\s+", " ", td_org))
         except Exception as e:
             logger.warning(f"{self.url} | INVALID DATA ORGANIZER")
+        return None
 
     @property
     def trading_org_inn(self):
-        """check and return trading organizer inn"""
         try:
             td_inn = deep_get_dict(
                 self.data, "Purchase.PurchaseinfoPanel.OrganizatorInfo.orginn"
@@ -96,7 +87,6 @@ class AuctionParse:
             return None
 
     def get_phone_number(self):
-        """get phone number of organizer"""
         try:
             phone = deep_get_dict(
                 self.data,
@@ -113,7 +103,6 @@ class AuctionParse:
             return None
 
     def get_email(self):
-        """get email of organizer"""
         try:
             email = deep_get_dict(
                 self.data,
@@ -131,7 +120,6 @@ class AuctionParse:
 
     @property
     def trading_org_contacts(self):
-        """return dict that include email and phone of organizer"""
         if self.get_phone_number():
             phone = self.get_phone_number()
         else:
@@ -154,7 +142,6 @@ class AuctionParse:
 
     @property
     def get_case_number(self):
-        """return case number of judgement"""
         try:
             case_number = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.BusinesInfo.businessno"
@@ -167,12 +154,12 @@ class AuctionParse:
             )
             if len(case_number) < 38:
                 return case_number.replace("\\", "/").replace(" ", "").strip()
+            return None
         except Exception as e:
             return None
 
     @property
     def get_debitor_inn(self):
-        """return INN of debitor"""
         try:
             td_inn = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.DebtorInfo.DebtorINN"
@@ -190,10 +177,10 @@ class AuctionParse:
             )
         except Exception as e:
             logger.warning(f"{self.url} | INVALID DATA ADDRESS DEBITOR")
+        return None
 
     @property
     def get_arbitr_manager(self):
-        """return name of arbitr manager"""
         try:
             td_arbitr = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisicmanagerfullname"
@@ -204,10 +191,10 @@ class AuctionParse:
             return "".join(re.sub(r"\s+", " ", td_arbitr))
         except Exception as e:
             logger.warning(f"{self.url} | INVALID DATA ARBITR MANAGER NAME")
+        return None
 
     @property
     def get_arbitr_manager_inn(self):
-        """return INN of arbitr"""
         try:
             td_inn = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisismanagerinn"
@@ -219,7 +206,6 @@ class AuctionParse:
 
     @property
     def get_arbitr_manager_org(self):
-        """return arbitr manager org"""
         try:
             td_company = deep_get_dict(
                 self.data,
@@ -249,6 +235,7 @@ class AuctionParse:
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA START DATE REQUEST AUCTION")
+        return None
 
     @property
     def get_end_date_requests(self):
@@ -258,6 +245,7 @@ class AuctionParse:
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA END DATE REQUEST AUCTION")
+        return None
 
     @property
     def get_start_date_trading(self):
@@ -269,6 +257,7 @@ class AuctionParse:
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.url} | INVALID START DATE TRADING AUCTION")
+        return None
 
     @property
     def get_end_date_trading(self):
@@ -278,6 +267,7 @@ class AuctionParse:
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.url} | INVALID END DATE TRADING AUCTION")
+        return None
 
     @property
     def get_lot_id(self):
@@ -299,7 +289,7 @@ class AuctionParse:
                 return lot_number
         except Exception as e:
             logger.warning(f"{self.url} | INVALID DATA LOT NUMBER")
-            return "1"
+        return "1"
 
     @property
     def get_short_name(self):
@@ -310,6 +300,7 @@ class AuctionParse:
             ).strip()
             if short_name:
                 return short_name
+            return None
         except Exception as e:
             return None
 
@@ -322,6 +313,7 @@ class AuctionParse:
             ).strip()
             if lot_info:
                 return lot_info
+            return None
         except Exception as e:
             return None
 
@@ -336,6 +328,7 @@ class AuctionParse:
             ).strip()
             if property_info:
                 return property_info
+            return None
         except Exception as e:
             return None
 
@@ -352,7 +345,7 @@ class AuctionParse:
                 return round(float("".join(pattern.findall(start_price)[0])), 2)
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA START PRICE AUCTION")
-            return None
+        return None
 
     @property
     def get_step_price(self):
@@ -375,4 +368,4 @@ class AuctionParse:
             return round(float(self.get_start_price * (step_price / 100)), 2)
         except Exception as e:
             logger.error(f"{self.url} | INVALID DATA STEP PRICE AUCTION")
-            return None
+        return None

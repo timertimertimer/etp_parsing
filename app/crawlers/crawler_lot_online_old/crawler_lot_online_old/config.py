@@ -3,8 +3,6 @@ from app.utils.config import start_dates
 main_data_origin = "https://www.lot-online.ru/"
 domains = ["rad", "confiscate", "lease", "privatization", "arrested"]
 data_origin = {}
-path_absolute = {}
-path_relative = {}
 for domain in domains:
     data_origin[domain] = f"https://{domain}.lot-online.ru/"
 crawler_name = 'lot_online_old'

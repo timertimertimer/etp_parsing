@@ -48,6 +48,7 @@ class MetsSpider(BaseSpider):
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
         in trash_resources,
+        "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
     }
 
     def __init__(self):
@@ -128,12 +129,12 @@ class MetsSpider(BaseSpider):
 
     def parse_auction(self, response, trading_type, trading_form):
         comp = ComposeTrades(response=response)
-        files_general = comp.offer.download()
         property_info = comp.offer.property_info
         status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", comp.offer.data_origin_urls)
+            loader.add_value("data_origin", data_origin_url)
+            loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", comp.offer.trading_id)
             loader.add_value("trading_link", comp.offer.trading_link)
             loader.add_value("trading_number", comp.offer.trading_number)
@@ -169,17 +170,17 @@ class MetsSpider(BaseSpider):
             loader.add_value("periods", None)
             loader.add_value("categories", None)
             files_lot = comp.offer.download()
-            loader.add_value("files", {"general": files_general, "lot": files_lot})
+            loader.add_value("files", {"general": [], "lot": files_lot})
             yield loader.load_item()
 
     def parse_offer(self, response, trading_type, trading_form):
         comp = ComposeTrades(response=response)
-        files_general = comp.offer.download()
         property_info = comp.offer.property_info
         status = comp.offer.status
         for lot in comp.offer.count_lots:
             loader = EtpItemLoader(EtpItem(), response=response)
-            loader.add_value("data_origin", comp.offer.data_origin_urls)
+            loader.add_value("data_origin", data_origin_url)
+            loader.add_value("property_type", self.property_type)
             loader.add_value("trading_id", comp.offer.trading_id)
             loader.add_value("trading_link", comp.offer.trading_link)
             loader.add_value("trading_number", comp.offer.trading_number)
@@ -219,7 +220,7 @@ class MetsSpider(BaseSpider):
             loader.add_value("periods", comp.offer.get_period(lot_number))
             loader.add_value("categories", None)
             files_lot = comp.offer.download()
-            loader.add_value("files", {"general": files_general, "lot": files_lot})
+            loader.add_value("files", {"general": [], "lot": files_lot})
             yield loader.load_item()
 
     async def errback(self, failure):

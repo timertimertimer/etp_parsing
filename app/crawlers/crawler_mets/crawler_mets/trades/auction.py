@@ -37,56 +37,40 @@ class AuctionParse:
 
     @property
     def start_date_request(self):
-        try:
-            td_date = self.response.xpath(LocatorAuction.start_date_request_loc).get()
-            td_date = dedent_func(
-                BS(str(td_date), features="lxml").get_text(strip=True)
-            )
-            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
-        except Exception as e:
-            logger.warning(
-                f"{self.response.url} | INVALID DATA START DATE REQUEST AUCTION/COMPETITION"
-            )
-        return None
+        td_date = self.response.xpath(LocatorAuction.start_date_request_loc).get()
+        if not td_date:
+            return None
+        td_date = dedent_func(BS(str(td_date), features="lxml").get_text(strip=True))
+        return DateTimeHelper.smart_parse(td_date.strip()).astimezone(
+            DateTimeHelper.moscow_tz
+        )
 
     @property
     def end_date_request(self):
-        try:
-            td_date = self.response.xpath(LocatorAuction.end_date_request_loc).get()
-            td_date = dedent_func(
-                BS(str(td_date), features="lxml").get_text(strip=True)
-            )
-            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
-        except Exception as e:
-            logger.warning(
-                f"{self.response.url} | INVALID DATA END DATE REQUEST AUCTION/COMPETITION"
-            )
-        return None
+        td_date = self.response.xpath(LocatorAuction.end_date_request_loc).get()
+        if not td_date:
+            return None
+        td_date = dedent_func(BS(str(td_date), features="lxml").get_text(strip=True))
+        return DateTimeHelper.smart_parse(td_date.strip()).astimezone(
+            DateTimeHelper.moscow_tz
+        )
 
     @property
     def start_date_trading(self):
-        try:
-            td_date = self.response.xpath(LocatorAuction.start_date_trading_loc).get()
-            td_date = dedent_func(
-                BS(str(td_date), features="lxml").get_text(strip=True)
-            )
-            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
-        except Exception as e:
-            logger.warning(
-                f"{self.response.url} | INVALID DATA START DATE TRADING AUCTION/COMPETITION"
-            )
-        return None
+        td_date = self.response.xpath(LocatorAuction.start_date_trading_loc).get()
+        if not td_date:
+            return None
+        td_date = dedent_func(BS(str(td_date), features="lxml").get_text(strip=True))
+        return DateTimeHelper.smart_parse(td_date.strip()).astimezone(
+            DateTimeHelper.moscow_tz
+        )
 
     @property
     def end_date_trading(self):
-        try:
-            td_date = self.response.xpath(LocatorAuction.end_date_trading_loc).get()
-            td_date = dedent_func(
-                BS(str(td_date), features="lxml").get_text(strip=True)
-            )
-            return DateTimeHelper.smart_parse(td_date.strip()).astimezone(DateTimeHelper.moscow_tz)
-        except Exception as e:
-            logger.warning(
-                f"{self.response.url} | INVALID DATA END DATE TRADING AUCTION/COMPETITION"
-            )
-        return None
+        td_date = self.response.xpath(LocatorAuction.end_date_trading_loc).get()
+        if not td_date:
+            return None
+        td_date = dedent_func(BS(str(td_date), features="lxml").get_text(strip=True))
+        return DateTimeHelper.smart_parse(td_date.strip()).astimezone(
+            DateTimeHelper.moscow_tz
+        )

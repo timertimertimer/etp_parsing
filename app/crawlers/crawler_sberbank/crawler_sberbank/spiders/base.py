@@ -25,7 +25,7 @@ class SberbankBaseSpider(BaseSpider):
     def __init__(self):
         super().__init__(data_origin_url)
 
-    def start_requests(self):
+    def start_requests(self, cookies: dict = None):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
         for start_date_ in date_range:
             end_date = DateTimeHelper.format_datetime(
@@ -33,21 +33,17 @@ class SberbankBaseSpider(BaseSpider):
             )
             start_date_ = start_date_.strftime("%d.%m.%Y %H:%M")
             start_url = search_query_urls[self.property_type.value]
-            url = []
-            xmls_prefix = []
             if isinstance(start_url, str):
-                url = [start_url]
-                xmls_prefix = [self.property_type.value]
-            elif isinstance(start_url, dict):
-                url_data = start_url[self.property_type.value]
-                url = list(url_data.values())
-                xmls_prefix = [
-                    f"{self.property_type.value}_{el}" for el in url_data.keys()
-                ]
-            for u, p in zip(url, xmls_prefix):
-                xml_request_data = get_xml_request_data(p)
+                start_url = {"": start_url}
+            for property_type, url in start_url.items():
+                xml_prefix_name = (
+                    f"{self.property_type.value}_{property_type}"
+                    if property_type
+                    else self.property_type.value
+                )
+                xml_request_data = get_xml_request_data(xml_prefix_name)
                 yield FormRequest(
-                    u,
+                    url,
                     self.make_second_request,
                     formdata={
                         "xmlData": xml_request_data.format(
@@ -66,8 +62,10 @@ class SberbankBaseSpider(BaseSpider):
                         "start_date": start_date_,
                         "end_date": end_date,
                         "xml_request_data": xml_request_data,
-                        "start_url": u,
+                        "start_url": url,
                     },
+                    cb_kwargs={'org': property_type},
+                    cookies=cookies,
                 )
 
     def make_second_request(self, response, **kwargs):
@@ -95,4 +93,5 @@ class SberbankBaseSpider(BaseSpider):
                 headers={
                     "x-requested-with": "XMLHttpRequest",
                 },
+                cb_kwargs=kwargs
             )

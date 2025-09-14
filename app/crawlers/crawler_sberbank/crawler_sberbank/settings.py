@@ -30,3 +30,4 @@ DEFAULT_REQUEST_HEADERS = {
     "Priority": "u=1, i",
     "User-Agent": choice(user_agents),
 }
+ROTATING_PROXY_LIST_PATH = None

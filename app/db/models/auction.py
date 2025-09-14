@@ -25,6 +25,8 @@ class AuctionPropertyType(str, Enum):
 
     gis = "gis"
 
+    other = "other"
+
     def __str__(self):
         return self.value
 
@@ -50,7 +52,7 @@ class Auction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     property_type: Mapped[str] = mapped_column(
-        SAEnum(AuctionPropertyType), default=AuctionPropertyType.bankruptcy
+        SAEnum(AuctionPropertyType), default=AuctionPropertyType.other
     )
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)

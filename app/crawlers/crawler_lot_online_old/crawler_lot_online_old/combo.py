@@ -1,8 +1,10 @@
+import pathlib
 import re
 from bs4 import BeautifulSoup
 
-from app.utils import URL, contains, dedent_func, DateTimeHelper, logger
+from app.utils import URL, contains, dedent_func, DateTimeHelper, logger, make_float
 from app.db.models import DownloadData
+from app.utils.config import image_formats
 
 
 class Combo:
@@ -20,13 +22,35 @@ class Combo:
         for link in self.soup.find("div", id="lot_documents").find_all("a"):
             name = link.get_text().strip()
             link = link.get("href")
+            path = pathlib.Path(name)
             files.append(
                 DownloadData(
                     url=URL.url_join(data_origin, link),
                     file_name=name,
                     referer=self.response.url,
+                    is_image=path.suffix.lower() in image_formats,
                 )
             )
+
+        images = []
+        lot_images = (
+            self.soup.find("div", id="lot_photos") or
+            self.soup.find("div", id="img-container")
+        ).find_all("img")
+        for i, image in enumerate(lot_images):
+            relative_link = image.get('src')
+            absolute_link = URL.url_join(data_origin, relative_link)
+            name = relative_link.split("/")[-1]
+            images.append(
+                DownloadData(
+                    url=absolute_link,
+                    file_name=name,
+                    referer=self.response.url,
+                    is_image=True,
+                    order=i
+                )
+            )
+        files.extend(images)
         return files
 
     @property
@@ -45,8 +69,7 @@ class Combo:
                 return "competition"
             elif "предложени" in type_:
                 return "offer"
-            else:
-                pass
+        return None
 
     @property
     def trading_org(self):
@@ -54,6 +77,7 @@ class Combo:
         if org:
             org = org.find_next("span").text.strip()
             return dedent_func(org)
+        return None
 
     @property
     def status(self):
@@ -81,8 +105,7 @@ class Combo:
                     "приостановлено",
             ):
                 return "ended"
-            else:
-                pass
+        return None
 
     @property
     def category(self):
@@ -96,6 +119,7 @@ class Combo:
                     continue
                 categories_.append(category)
             return categories_
+        return None
 
     @property
     def address(self):
@@ -107,6 +131,7 @@ class Combo:
             address = address.find_next("span").text.strip()
             address = dedent_func(f"{country}, {address}")
             return address
+        return None
 
     @property
     def lot_info(self):
@@ -114,6 +139,7 @@ class Combo:
         if info:
             info = info.find_next("span").text.strip()
             return dedent_func(info)
+        return None
 
     @property
     def start_date_requests(self):
@@ -145,48 +171,28 @@ class Combo:
                 DateTimeHelper.smart_parse(cleaned_start, format).astimezone(DateTimeHelper.moscow_tz),
                 DateTimeHelper.smart_parse(cleaned_end, format).astimezone(DateTimeHelper.moscow_tz)
             )
+        return None
 
     @property
     def start_price(self):
-        try:
-            p = self.get_acitvity_table().find("span", id="priceStart")
-            if p:
-                p = re.sub(
-                    r"\s", "", dedent_func(p.get_text().strip()).replace(",", ".")
-                )
-                p = "".join([x for x in p if x.isdigit() or x == "."])
-                if len(p) > 0:
-                    return round(float(p), 2)
-        except ValueError as e:
-            logger.error(f"{self.response.url} :: INVALID START PRICE\n{e}")
+        p = self.get_acitvity_table().find("span", id="priceStart")
+        if p:
+            return make_float(p.get_text().strip())
+        return None
 
     @property
     def step_price(self):
-        try:
-            p = self.get_acitvity_table().find("td", id="priceStepUp")
-            if p:
-                p = re.sub(
-                    r"\s", "", dedent_func(p.get_text().strip()).replace(",", ".")
-                )
-                p = "".join([x for x in p if x.isdigit() or x == "."])
-                if len(p) > 0:
-                    return round(float(p), 2)
-        except ValueError as e:
-            logger.error(f"{self.response.url} :: INVALID STEP PRICE\n{e}")
+        p = self.get_acitvity_table().find("td", id="priceStepUp")
+        if p:
+            return make_float(p.get_text().strip())
+        return None
 
     @property
     def min_price(self):
-        try:
-            p = self.get_acitvity_table().find("span", id="priceMin")
-            if p:
-                p = re.sub(
-                    r"\s", "", dedent_func(p.get_text().strip()).replace(",", ".")
-                )
-                p = "".join([x for x in p if x.isdigit() or x == "."])
-                if len(p) > 0:
-                    return round(float(p), 2)
-        except ValueError as e:
-            logger.error(f"{self.response.url} :: INVALID START PRICE\n{e}")
+        p = self.get_acitvity_table().find("span", id="priceMin")
+        if p:
+            return make_float(p.get_text().strip())
+        return None
 
     def get_acitvity_table(self):
         return self.soup.find("table", class_="tbl-activity")
@@ -203,6 +209,7 @@ class Combo:
                     return round(float(p), 2)
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DEPOSIT PRICE\n{e}")
+        return None
 
     @property
     def periods(self):

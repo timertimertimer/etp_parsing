@@ -32,6 +32,7 @@ class TradeLocator:
 
     file_lot_link_loc = '//div[@class="generalview-container" and @data-lotnumber="{}"]//div[normalize-space(text())="Сведения по лоту"]/following-sibling::div//div[@class="sfi-info"]//a'
     general_files_loc = '//div[normalize-space(text())="Информация о торгах"]/following::div[@class="sfi-info"]//a'
+    image_loc = '//div[@class="gallery-container"]//img'
 
 
 class LocatorAuction:

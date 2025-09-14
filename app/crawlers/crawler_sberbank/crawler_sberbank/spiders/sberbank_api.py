@@ -4,18 +4,18 @@ from bs4 import BeautifulSoup as BS
 from scrapy import FormRequest
 
 from app.crawlers.items import EtpItem, EtpItemLoader
-from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
 from app.utils import logger
+from .base import SberbankBaseSpider
 from ..trades.combo import ComposeTrades
 from ..utils.config import *
 from ..utils.manage_spider import *
 
 
-class SberbankBaseAPISpider(BaseSpider):
+class SberbankBaseAPISpider(SberbankBaseSpider):
     name = "base_api"
 
-    def parse_table(self, response):
+    def parse_table(self, response, **kwargs):
         soup = BS(json.loads(response.text)["data"]["Data"]["tableXml"], "lxml-xml")
         data = xmltodict.parse(str(soup))["datarow"]
         trades = set(lot["_source"]["objectHrefTerm"] for lot in data["hits"])
@@ -34,17 +34,21 @@ class SberbankBaseAPISpider(BaseSpider):
                         }
                     ),
                     meta={"trade": trade},
+                    cb_kwargs=kwargs,
                 )
             else:
                 logger.error(f"{self.name} is not in api_map, check config.py")
 
-    def parse_trade(self, response):
+    def parse_trade(self, response, **kwargs):
         trading_link = response.meta["trade"]
         data = json.loads(response.text)
         combo = ComposeTrades(data, trading_link)
         lst_link_to_lots = list()
         lst_dict_lot_links = (
-            data.get("Purchase", {}).get("BidsPanel", {}).get("Bids", {}).get("Bid")
+            data.get("Purchase", {})
+            .get("BidsPanel", {})
+            .get("Bids", {})
+            .get("Bid")  # FIXME
         )
         if isinstance(lst_dict_lot_links, list):
             lst_link_to_lots = list(map(lambda x: x["BidId"], lst_dict_lot_links))
@@ -86,7 +90,9 @@ class SberbankBaseAPISpider(BaseSpider):
                 files_general = combo.offer.download(
                     data["Purchase"]["PurchaseinfoPanel"]["ContractInfo"][
                         "contractdoc"
-                    ]["file"]
+                    ]["file"],
+                    self.property_type.value,
+                    kwargs.get("org"),
                 )
                 path = url.removeprefix("https://utp.sberbank-ast.ru")
                 yield FormRequest(
@@ -101,10 +107,14 @@ class SberbankBaseAPISpider(BaseSpider):
                         }
                     ),
                     meta={"lot": url},
-                    cb_kwargs={"loader": loader, "files": files_general},
+                    cb_kwargs={
+                        "loader": loader,
+                        "files": files_general,
+                        "org": kwargs.get("org"),
+                    },
                 )
 
-    def parse_lot(self, response, loader, files):
+    def parse_lot(self, response, loader, files, org):
         lot_link = response.meta["lot"]
         try:
             data = json.loads(response.text)
@@ -135,7 +145,7 @@ class SberbankBaseAPISpider(BaseSpider):
             photos = (
                 [photos["file"]] if isinstance(photos["file"], dict) else photos["file"]
             )
-        files_lot = combo.offer.download(docs + photos)
+        files_lot = combo.offer.download(docs + photos, self.property_type.value, org)
         loader.add_value("files", {"general": files, "lot": files_lot})
         yield loader.load_item()
 
