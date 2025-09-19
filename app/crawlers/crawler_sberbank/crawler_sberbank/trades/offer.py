@@ -103,5 +103,6 @@ class OfferParse:
         files = list()
         name, link = self.get_file_name_and_hash(file, property_type, org)
         for i in range(len(name)):
-            files.append(DownloadData(url=link[i], file_name=name[i], referer=self.url))
+            if link[i] and name[i]:
+                files.append(DownloadData(url=link[i], file_name=name[i], referer=self.url))
         return files

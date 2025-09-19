@@ -44,11 +44,12 @@ class SberbankBaseAPISpider(SberbankBaseSpider):
         data = json.loads(response.text)
         combo = ComposeTrades(data, trading_link)
         lst_link_to_lots = list()
-        lst_dict_lot_links = (
-            data.get("Purchase", {})
-            .get("BidsPanel", {})
-            .get("Bids", {})
-            .get("Bid")  # FIXME
+        lst_dict_lot_links = (  # FIXME
+                data.get("Purchase", {})
+                .get("BidsPanel", {})
+                .get("Bids", {})
+                .get("Bid") or
+                data.get("Purchase", {}).get("Bids", {}).get("Bid").get("BidInfo", {})
         )
         if isinstance(lst_dict_lot_links, list):
             lst_link_to_lots = list(map(lambda x: x["BidId"], lst_dict_lot_links))
@@ -56,6 +57,8 @@ class SberbankBaseAPISpider(SberbankBaseSpider):
             lst_link_to_lots = data["Purchase"]["BidsPanel"]["Bids"]["Bid"][
                 "BidId"
             ].split()
+        if not lst_link_to_lots:
+            return
         for link in lst_link_to_lots:
             _link = re.sub(part_path_to_trade, part_path_to_lot, response.meta["trade"])
             _link = re.sub(r"\d+$", link, _link)
