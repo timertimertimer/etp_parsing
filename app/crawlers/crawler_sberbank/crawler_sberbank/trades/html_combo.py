@@ -1,5 +1,4 @@
 import re
-from idlelib.run import Executive
 
 import xmltodict
 from bs4 import BeautifulSoup
@@ -28,13 +27,17 @@ class NewCombo:
 
     @property
     def purchase_info(self):
-        return deep_get_dict(
-            self.data, "PurchaseInfoTotal.PurchaseInfo"
-        ) or deep_get_dict(self.data, "PurchaseMainInfo")
+        return (
+            deep_get_dict(self.data, "PurchaseInfoTotal.PurchaseInfo")
+            or deep_get_dict(self.data, "PurchaseMainInfo")
+            or deep_get_dict(self.data, "PurchaseInfo.PurchaseMainInfo")
+        )
 
     @property
     def trading_id(self):
-        return self.purchase_info.get("PurchaseID") or self.purchase_info.get("PurchaseId")
+        return self.purchase_info.get("PurchaseID") or self.purchase_info.get(
+            "PurchaseId"
+        )
 
     @property
     def trading_link(self):
@@ -46,8 +49,13 @@ class NewCombo:
 
     @property
     def trading_type(self):
-        trading_type = deep_get_dict(
-            self.purchase_info, "PurchaseTypeInfo.PurchaseTypeName"
+        trading_type = (
+            deep_get_dict(self.purchase_info, "PurchaseTypeInfo.PurchaseTypeName")
+            or deep_get_dict(
+                self.data,
+                "PurchaseInfoTotal.PurchaseOrderInfo.PurchasePurchaseTypeCustomName",
+            )
+            or self.purchase_info.get("PurchaseTypeName")
         )
         if not trading_type:
             return None
@@ -60,28 +68,40 @@ class NewCombo:
 
     @property
     def trading_org(self):
-        org = deep_get_dict(
-            self.data, "PurchaseInfoTotal.OrganizatorInfo.orgname"
-        ) or deep_get_dict(self.data, "OrganizatorInfo.orgname")
+        org = (
+            deep_get_dict(self.data, "PurchaseInfoTotal.OrganizatorInfo.orgname")
+            or deep_get_dict(self.data, "OrganizatorInfo.orgname")
+            or deep_get_dict(self.data, "PurchaseInfo.OrganizatorInfo.orgname")
+        )
         return "".join(re.sub(r"\s+", " ", org))
 
     @property
     def trading_org_inn(self):
-        inn = deep_get_dict(
-            self.data, "PurchaseInfoTotal.OrganizatorInfo.orginn"
-        ) or deep_get_dict(self.data, "OrganizatorInfo.orginn")
+        inn = (
+            deep_get_dict(self.data, "PurchaseInfoTotal.OrganizatorInfo.orginn")
+            or deep_get_dict(self.data, "OrganizatorInfo.orginn")
+            or deep_get_dict(self.data, "PurchaseInfo.OrganizatorInfo.orginn")
+        )
         return Contacts.check_inn(inn)
 
     @property
     def trading_org_contacts(self):
-        phone = deep_get_dict(
-            self.data,
-            "PurchaseInfoTotal.ContactInfo.ContactPhone",
-        ) or deep_get_dict(self.data, "OrganizatorInfo.orgphone")
-        email = deep_get_dict(
-            self.data,
-            "PurchaseInfoTotal.ContactInfo.ContactEmail",
-        ) or deep_get_dict(self.data, "OrganizatorInfo.orgemail")
+        phone = (
+            deep_get_dict(
+                self.data,
+                "PurchaseInfoTotal.ContactInfo.ContactPhone",
+            )
+            or deep_get_dict(self.data, "OrganizatorInfo.orgphone")
+            or deep_get_dict(self.data, "PurchaseInfo.OrganizatorInfo.orgphone")
+        )
+        email = (
+            deep_get_dict(
+                self.data,
+                "PurchaseInfoTotal.ContactInfo.ContactEmail",
+            )
+            or deep_get_dict(self.data, "OrganizatorInfo.orgemail")
+            or deep_get_dict(self.data, "PurchaseInfo.OrganizatorInfo.orgemail")
+        )
         return {
             "phone": Contacts.check_phone(phone),
             "email": Contacts.check_email(email),
@@ -89,9 +109,11 @@ class NewCombo:
 
     @property
     def address(self):
-        return deep_get_dict(
-            self.data, "PurchaseInfoTotal.OrganizatorInfo.orgaddressjur"
-        ) or deep_get_dict(self.data, "OrganizatorInfo.orgaddressjur")
+        return (
+            deep_get_dict(self.data, "PurchaseInfoTotal.OrganizatorInfo.orgaddressjur")
+            or deep_get_dict(self.data, "OrganizatorInfo.orgaddressjur")
+            or deep_get_dict(self.data, "PurchaseInfo.OrganizatorInfo.orgaddressjur")
+        )
 
     def get_lots(self):
         lots = deep_get_dict(self.data, "Bids.Bid")
@@ -100,21 +122,29 @@ class NewCombo:
         return lots
 
     def lot_id(self, lot: dict):
-        return deep_get_dict(lot, "BidInfoTotal.BidInfo.BidId") or deep_get_dict(lot, "BidInfo.BidId")
+        return deep_get_dict(lot, "BidInfoTotal.BidInfo.BidId") or deep_get_dict(
+            lot, "BidInfo.BidId"
+        )
 
     def lot_number(self, lot: dict):
-        number = deep_get_dict(lot, "BidInfoTotal.BidInfo.BidNo") or deep_get_dict(lot, "BidInfo.BidNo")
+        number = deep_get_dict(lot, "BidInfoTotal.BidInfo.BidNo") or deep_get_dict(
+            lot, "BidInfo.BidNo"
+        )
         return number
 
     def short_name(self, lot: dict):
-        return dedent_func(deep_get_dict(lot, "BidInfoTotal.BidInfo.BidName") or deep_get_dict(lot, "BidInfo.BidName"))
+        return dedent_func(
+            deep_get_dict(lot, "BidInfoTotal.BidInfo.BidName")
+            or deep_get_dict(lot, "BidInfo.BidName")
+        )
 
     def start_price(self, lot: dict):
         return make_float(
             deep_get_dict(
                 lot,
                 "BidInfoTotal.BidPriceInfo.BidPrice",
-            ) or deep_get_dict(lot, "BidInfo.BidPrice"),
+            )
+            or deep_get_dict(lot, "BidInfo.BidPrice"),
         )
 
     @property
@@ -123,31 +153,41 @@ class NewCombo:
 
     @property
     def start_date_requests(self):
-        date = deep_get_dict(
-            self.data,
-            "PurchasePlan.ApplSubmissionInfo.ApplSubmissionStartDate",
-        ) or deep_get_dict(
-            self.data,
-            "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStartDate",
-        ) or deep_get_dict(
-            self.data,
-            "PurchasePlan.RequestStartDate"
+        date = (
+            deep_get_dict(
+                self.data,
+                "PurchasePlan.ApplSubmissionInfo.ApplSubmissionStartDate",
+            )
+            or deep_get_dict(
+                self.data,
+                "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStartDate",
+            )
+            or deep_get_dict(self.data, "PurchasePlan.RequestStartDate")
+            or deep_get_dict(self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStartDate")
         )
-        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        try:
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
+            return None
 
     @property
     def end_date_requests(self):
-        date = deep_get_dict(
-            self.data,
-            "PurchasePlan.ApplSubmissionInfo.ApplSubmissionStopDate",
-        ) or deep_get_dict(
-            self.data,
-            "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStopDate",
-        ) or deep_get_dict(
-            self.data,
-            "PurchasePlan.RequestStopDate"
+        date = (
+            deep_get_dict(
+                self.data,
+                "PurchasePlan.ApplSubmissionInfo.ApplSubmissionStopDate",
+            )
+            or deep_get_dict(
+                self.data,
+                "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStopDate",
+            )
+            or deep_get_dict(self.data, "PurchasePlan.RequestStopDate")
+            or deep_get_dict(self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStopDate")
         )
-        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        try:
+            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        except Exception as e:
+            return None
 
     @property
     def start_date_trading(self):
@@ -171,18 +211,17 @@ class NewCombo:
 
     def download(self, cookies: str, property_type: str, org: str = None):
         files = []
-        documents = deep_get_dict(
-            self.data,
-            "PurchaseDocumentationInfo.PurchaseDocumentationDocsInfo.Docs.file",
-        ) or deep_get_dict(
-            self.data,
-            "PurchaseDocumentationInfo.PurchaseDocumentationDocsInfo.DocFiles.document",
-        ) or deep_get_dict(
-            self.data,
-            "DocsDiv.Docs.file"
-        ) or deep_get_dict(
-            self.data,
-            "Docs.AuctionDocs.file"
+        documents = (
+            deep_get_dict(
+                self.data,
+                "PurchaseDocumentationInfo.PurchaseDocumentationDocsInfo.Docs.file",
+            )
+            or deep_get_dict(
+                self.data,
+                "PurchaseDocumentationInfo.PurchaseDocumentationDocsInfo.DocFiles.document",
+            )
+            or deep_get_dict(self.data, "DocsDiv.Docs.file")
+            or deep_get_dict(self.data, "Docs.AuctionDocs.file")
         )
         if isinstance(documents, dict):
             documents = [documents]

@@ -1,9 +1,11 @@
 import json
 from asyncio import Lock
+from pprint import pprint
+
 from typing import Callable
 
 import xmltodict
-from scrapy import Request
+from scrapy import Request, FormRequest
 from scrapy_playwright.page import PageMethod
 from playwright.async_api import Page
 from playwright._impl._errors import TimeoutError as PlaywrightTimeoutError
@@ -14,8 +16,10 @@ from app.crawlers.crawler_sberbank.crawler_sberbank.spiders.base import (
 )
 from app.crawlers.crawler_sberbank.crawler_sberbank.trades.html_combo import NewCombo
 from app.crawlers.crawler_sberbank.crawler_sberbank.utils.config import (
-    list_urls,
     data_origin_url,
+)
+from app.crawlers.crawler_sberbank.crawler_sberbank.utils.request import (
+    Request as SavedRequest,
 )
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
@@ -50,8 +54,8 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
-                                                    in trash_resources,
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+        in trash_resources,
+        # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
     }
     cookies_invalidated = False
     cookies_updating = False  # флаг «уже обновляем»
@@ -65,7 +69,10 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
         self.cookies_invalidated = True
 
     def update_cookies(
-            self, after_func: Callable, after_args: list = None, after_kwargs: dict = None
+        self,
+        after_func: Callable = None,
+        after_args: list = None,
+        after_kwargs: dict = None,
     ):
         url = data_origin_url
         yield Request(
@@ -74,13 +81,10 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
             meta=dict(
                 playwright=True,
                 playwright_include_page=True,
-                playwright_page_methods=[
-                    PageMethod("goto", url)
-                ],
+                playwright_page_methods=[PageMethod("goto", url)],
                 playwright_context="cookie_refresh",
                 playwright_context_close=True,
                 playwright_page_close=True,
-
                 after_func=after_func,
                 after_args=after_args or [],
                 after_kwargs=after_kwargs or {},
@@ -90,51 +94,92 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
     def start_requests(self, cookies: dict = None):
         yield from self.update_cookies(super().start_requests)
 
-    async def after_update_cookies(self, response):
+    async def after_update_cookies(
+        self, response
+    ):  # TODO: возобновлятор запросов (GET/POST с телом, куками, хедерами)
         page = response.meta["playwright_page"]
         cookies = await page.context.cookies()
         self.cookies = {c["name"]: c["value"] for c in cookies}
+        await page.context.browser.close()
         logger.info("New cookies received")
         self.cookies_invalidated = False
         self.cookies_updating = False
 
+        pprint([el[0] for el in self.failed_trades])
         # Возобновляем все накопленные запросы
-        for url, kwargs in list(self.failed_trades):
-            yield Request(url, callback=self.parse_trade,
-                          cb_kwargs=kwargs, cookies=self.cookies,
-                          dont_filter=True)
+        for request, kwargs in list(self.failed_trades):
+            if request.method == "POST":
+                yield FormRequest(
+                    url=request.url,
+                    body=request.body,
+                    callback=self.parse_table,
+                    headers={
+                        "x-requested-with": "XMLHttpRequest",
+                    },
+                    cb_kwargs=kwargs,
+                    cookies=self.cookies,
+                    dont_filter=True,
+                )
+            else:
+                yield Request(
+                    request.url,
+                    callback=self.parse_trade,
+                    cb_kwargs=kwargs,
+                    cookies=self.cookies,
+                    dont_filter=True,
+                )
         self.failed_trades.clear()
 
-        # если был передан after_func для первоначального вызова
         func = response.meta.get("after_func")
         if func:
-            for req in func(*response.meta.get("after_args", []),
-                            **response.meta.get("after_kwargs", {})):
+            for req in func(
+                *response.meta.get("after_args", []),
+                **response.meta.get("after_kwargs", {}),
+            ):
                 yield req
 
     def parse_table(self, response, **kwargs):
+        if "Действия блокированы защитой ЭТП" in response.text:
+            if not self.cookies_invalidated:
+                logger.warning(f"{response.url} | Blocked, scheduling cookie refresh")
+                self.cookies_invalidated = True
+                if not self.cookies_updating:
+                    self.cookies_updating = True
+                    yield from self.update_cookies()
+            else:
+                self.failed_trades.append(
+                    (
+                        SavedRequest(
+                            method="POST",
+                            url=response.url,
+                            body=response.request.content,
+                        ),
+                        kwargs,
+                    )
+                )
+            return
         soup = BS(json.loads(response.text)["data"]["Data"]["tableXml"], "lxml-xml")
         data = xmltodict.parse(str(soup))["datarow"]
         trades = set(lot["_source"]["objectHrefTerm"] for lot in data["hits"])
         for trade in trades:
             if trade not in self.previous_trades:
-                yield Request(trade, self.parse_trade, cb_kwargs=kwargs, cookies=self.cookies)
+                yield Request(
+                    trade, self.parse_trade, cb_kwargs=kwargs, cookies=self.cookies
+                )
 
     def parse_trade(self, response, **kwargs):
-        if "Действия блокированы защитой ЭТП" in response.text:
+        if (
+            "Действия блокированы защитой ЭТП" in response.text
+            or "Слишком частые обращения к страницам сайта." in response.text
+        ):
             if not self.cookies_invalidated:
                 logger.warning(f"{response.url} | Blocked, scheduling cookie refresh")
                 self.cookies_invalidated = True
-                # единожды инициируем обновление
                 if not self.cookies_updating:
                     self.cookies_updating = True
-                    yield from self.update_cookies(
-                        self._retry_trade,
-                        after_args=[],
-                        after_kwargs=dict(url=response.url, cb_kwargs=kwargs),
-                    )
+                    yield from self.update_cookies()
             else:
-                self.failed_trades.append((response.url, kwargs))
+                self.failed_trades.append((SavedRequest(url=response.url), kwargs))
             return
         self.previous_trades.append(response.url)
         combo = NewCombo(response)
@@ -170,9 +215,6 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
             loader.add_value("start_price", combo.start_price(lot))
             # loader.add_value("step_price", combo.step_price)
             yield loader.load_item()
-
-    def _retry_trade(self, url: str, cb_kwargs: dict):
-        yield Request(url, callback=self.parse_trade, cb_kwargs=cb_kwargs, dont_filter=True)
 
 
 class SberbankCommercialHTMLSpider(SberbankBaseHTMLSpider):

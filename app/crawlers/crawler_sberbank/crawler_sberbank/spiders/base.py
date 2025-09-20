@@ -75,10 +75,7 @@ class SberbankBaseSpider(BaseSpider):
         total = int(data["total"]["value"])
         logger.info(f"Total lots: {total}")
         for page in range(ceil(total / 20)):
-            yield FormRequest(
-                response.meta["start_url"],
-                self.parse_table,
-                formdata={
+            request_formdata = {
                     "xmlData": response.meta["xml_request_data"].format(
                         start_date=response.meta["start_date"],
                         end_date=response.meta["end_date"],
@@ -90,7 +87,12 @@ class SberbankBaseSpider(BaseSpider):
                     "personId": "0",
                     "buMainId": "0",
                     "personMainId": "0",
-                },
+                }
+            kwargs.update({'request_formdata': request_formdata})
+            yield FormRequest(
+                response.meta["start_url"],
+                self.parse_table,
+                formdata=request_formdata,
                 headers={
                     "x-requested-with": "XMLHttpRequest",
                 },

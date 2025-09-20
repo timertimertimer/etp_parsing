@@ -18,7 +18,7 @@
 - [x] fabrikant commercial/legal_entites/fz223
 - [x] sibtoptrade commercial
 - [x] etp.tender.one commercial
-- [ ] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223) PROXY
+- [x] sber (transneft, property, cb, rosatom, russanpost, gkh, fz223)
 - [x] rutrade commercial NEW MULTIPART POST DATA
 - [x] roseltorg legal_entites/capital_repair/fz223 PROXY
 - [x] zakupki.gov fz44/capital_repair
@@ -35,6 +35,7 @@
 - [ ] протестить прокси на playwright (mets, sberbank и другие)
 - [ ] на всех спайдерах проставить property_type из AuctionPropertyType
 - [ ] отдельно проверить все поля у каждого типа у sberbank
+- [ ] пофиксить сбер
 
 карусели
 - [x] akosta https://www.akosta.info/akosta/lotCard.xhtml?parm=707267682048474C573E6F727758716C6720375F3834353B

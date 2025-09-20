@@ -18,6 +18,7 @@ from ..utils.config import (
     lot_link,
     link_post_period,
     urls,
+    post_headers,
 )
 from ..utils.post_data import (
     post_date_dict,
@@ -33,24 +34,23 @@ from ..utils.post_data import (
 )
 
 
+def _parse_response(response, post_data: dict):
+    combo = Combo(response)
+    viewstate = combo.pre.get_post_data_values("input", "j_id1:javax.faces.ViewState:0")
+    data = copy.deepcopy(post_data)
+    data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
+        datetime.now(), "%H:%M:%S"
+    )
+    data["javax.faces.ViewState"] = viewstate
+    return data
+
+
 class AkostaBaseSpider(BaseSpider):
     name = "akosta"
 
     def __init__(self):
         self.sg_table_id = property_type_sgtable_id_map[self.property_type.value]
         super(AkostaBaseSpider, self).__init__(data_origin, {Auction.ext_id})
-
-    def _parse_response(self, response, post_data: dict):
-        combo = Combo(response)
-        viewstate = combo.pre.get_post_data_values(
-            "input", "j_id1:javax.faces.ViewState:0"
-        )
-        data = copy.deepcopy(post_data)
-        data["formMain:inputServerTime"] = DateTimeHelper.format_datetime(
-            datetime.now(), "%H:%M:%S"
-        )
-        data["javax.faces.ViewState"] = viewstate
-        return data
 
     def start_requests(self):
         yield Request(
@@ -59,14 +59,15 @@ class AkostaBaseSpider(BaseSpider):
         )
 
     def make_table_list(self, response, **kwargs):
-        data = self._parse_response(response, post_panel_list_dict)
-        print('make_table_list')
+        data = _parse_response(response, post_panel_list_dict)
+        print("make_table_list")
         pprint(data)
         yield FormRequest(
             search_link,
             callback=self.refresh_panel_list,
             formdata=data,
             dont_filter=True,
+            headers=post_headers,
         )
 
     def refresh_panel_list(self, response):
@@ -77,33 +78,35 @@ class AkostaBaseSpider(BaseSpider):
         )
 
     def choose_property_type(self, response):
-        data = self._parse_response(response, post_property_type_choose_dict)
+        data = _parse_response(response, post_property_type_choose_dict)
         data = data | {
             "javax.faces.source": f"formMain:sgTable:{self.sg_table_id}:j_idt92",
             f"formMain:sgTable:{self.sg_table_id}:j_idt92_input": "on",
         }
-        print('choose_property_type')
-        pprint(data)
-        yield FormRequest(
-            search_link,
-            callback=self.choose_date_range,
-            formdata=data,
-            dont_filter=True,
-            cb_kwargs={'view_state': data['javax.faces.ViewState']}
-        )
-
-    def choose_date_range(self, response, view_state):
-        data = self._parse_response(response, post_date_dict)
-        data['javax.faces.ViewState'] = view_state
-        data["formMain:fromIdAcceptancePeriod_input"] = start_date
-        data[f"formMain:sgTable:{self.sg_table_id}:j_idt92_input"] = "on"
-        print('choose_date_range')
+        print("choose_property_type")
         pprint(data)
         yield FormRequest(
             search_link,
             callback=self.refresh_date_range,
             formdata=data,
             dont_filter=True,
+            # cb_kwargs={"view_state": data["javax.faces.ViewState"]},
+            headers=post_headers,
+        )
+
+    def choose_date_range(self, response, view_state):
+        data = _parse_response(response, post_date_dict)
+        data["javax.faces.ViewState"] = view_state
+        data["formMain:fromIdAcceptancePeriod_input"] = start_date
+        data[f"formMain:sgTable:{self.sg_table_id}:j_idt92_input"] = "on"
+        print("choose_date_range")
+        pprint(data)
+        yield FormRequest(
+            search_link,
+            callback=self.refresh_date_range,
+            formdata=data,
+            dont_filter=True,
+            headers=post_headers,
         )
 
     def refresh_date_range(self, response):
@@ -119,6 +122,10 @@ class AkostaBaseSpider(BaseSpider):
         sources = dict()
         if page_number == 1:
             current_page, total_pages = combo.pre.get_total_and_current_page
+            trades = combo.pre.get_trade_links()
+            logger.info(
+                f"{self.name} | Found {len(trades)} trades on {current_page} page"
+            )
             for tag_tr in combo.pre.get_trade_links():
                 data, id_ = combo.pre.get_post_id_and_trading_id(tag_tr)
                 if id_ in self.previous_trades:
@@ -163,6 +170,7 @@ class AkostaBaseSpider(BaseSpider):
                     "total_pages": total_pages,
                     "trading_id": id_,
                 },
+                headers=post_headers,
             )
         else:
             if page_number < total_pages:
@@ -186,6 +194,7 @@ class AkostaBaseSpider(BaseSpider):
                         "total_pages": total_pages,
                         "viewstate": viewstate,
                     },
+                    headers=post_headers,
                 )
 
     def redirect_trade_page(
@@ -255,6 +264,7 @@ class AkostaBaseSpider(BaseSpider):
                 "page_number": page_number,
                 "total_pages": total_pages,
             },
+            headers=post_headers,
         )
 
     def parse_debitor(
@@ -303,6 +313,7 @@ class AkostaBaseSpider(BaseSpider):
                 "page_number": page_number,
                 "total_pages": total_pages,
             },
+            headers=post_headers,
         )
 
     def parse_lot_tab(
@@ -351,6 +362,7 @@ class AkostaBaseSpider(BaseSpider):
                 "current_lot": current_lot,
                 "lot_tab_link": lot_tab_link,
             },
+            headers=post_headers,
         )
         if len(lots) > 0:
             yield Request(
@@ -540,6 +552,7 @@ class AkostaBaseSpider(BaseSpider):
                     "sources": sources,
                     "page_number": page_number,
                 },
+                headers=post_headers,
             )
         else:
             loader.add_value(
@@ -593,6 +606,7 @@ class AkostaBaseSpider(BaseSpider):
                     "sources": sources,
                     "page_number": page_number,
                 },
+                headers=post_headers,
             )
         else:
             loader.add_value("periods", periods_)

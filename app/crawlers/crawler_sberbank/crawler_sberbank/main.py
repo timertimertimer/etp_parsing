@@ -29,6 +29,6 @@ if __name__ == '__main__':
     # sberbank_bankruptcy()
     # sberbank_fz223()
     # sberbank_fz44()
-    sberbank_capital_repair()
+    # sberbank_capital_repair()
     # sberbank_legal_entities()
-    # sberbank_commercial()
+    sberbank_commercial()

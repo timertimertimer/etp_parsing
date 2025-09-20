@@ -21,6 +21,16 @@ urls = {
     "akosta_commercial": f"https://www.akosta.info/akosta/lots.xhtml?sgUnid={property_type_number[AuctionPropertyType.commercial]}",
 }
 
+post_headers = {
+    'Accept': 'application/xml, text/xml, */*; q=0.01',
+    'origin': 'https://www.akosta.info',
+    'faces-request': 'partial/ajax',
+    'x-requested-with': 'XMLHttpRequest',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+}
+
 # https://www.akosta.info/akosta/javax.faces.resource/dynamiccontent.properties.xhtml?
 # ln=primefaces&
 # v=6.2&
