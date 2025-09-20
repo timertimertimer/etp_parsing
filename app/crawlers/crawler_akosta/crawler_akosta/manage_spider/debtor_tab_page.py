@@ -27,7 +27,8 @@ class DebtorTab:
         )
         return None
 
-    def get_trading_number(self):
+    @property
+    def trading_number(self):
         try:
             trading_number = self.soup.find(
                 "label", string=re.compile("Номер торгов в ЕФРСБ", re.IGNORECASE)
@@ -40,7 +41,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | ERROR trading number {ex}")
         return None
 
-    def get_msg_number(self):
+    @property
+    def msg_number(self):
         try:
             msg_number = self.soup.find(
                 "label",
@@ -60,7 +62,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | ERROR message number {ex}")
         return None
 
-    def get_case_number(self):
+    @property
+    def case_number(self):
         try:
             case_number = self.soup.find(
                 "label", string=re.compile("дела о банкротстве", re.IGNORECASE)
@@ -73,7 +76,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | ERROR case number {ex}")
         return None
 
-    def get_debtor_inn(self):
+    @property
+    def debtor_inn(self):
         try:
             div_debtor = self.soup.find("div", string="Должник")
             if div_debtor:
@@ -93,7 +97,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | INVALID DATA DEBTOR INN {ex}")
         return None
 
-    def get_debtor_address(self):
+    @property
+    def debtor_address(self):
         try:
             address = None
             div_debtor = self.soup.find("div", string="Должник")
@@ -126,7 +131,8 @@ class DebtorTab:
             return arb.parent
         return None
 
-    def get_arbitr_full_name(self):
+    @property
+    def arbit_manager(self):
         try:
             arb = self.return_arbitrator_form()
 
@@ -159,7 +165,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | ERROR ARBITR NAME {e}")
         return None
 
-    def get_arbitr_inn(self):
+    @property
+    def arbit_manager_inn(self):
         try:
             arb = self.return_arbitrator_form()
             _inn = arb.find("label", string=re.compile("ИНН", re.IGNORECASE))
@@ -174,7 +181,8 @@ class DebtorTab:
             logger.warning(f"{self.response.url} | INVALID DATA ARBITR {ex}")
         return None
 
-    def get_arbitr_company(self):
+    @property
+    def arbit_manager_org(self):
         arb = self.return_arbitrator_form()
         try:
             sro = arb.find("label", string=re.compile("СРО", re.IGNORECASE))

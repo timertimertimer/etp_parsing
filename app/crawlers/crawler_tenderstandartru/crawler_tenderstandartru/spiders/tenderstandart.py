@@ -54,7 +54,7 @@ class TenderstandartSpider(TenderstandartBaseSpider):
         transfer["debtor_inn"] = combo.auc.get_debtor_inn()
         transfer["address"] = combo.auc.address
         transfer["arbit_manager"] = combo.auc.get_arbitr_name()
-        transfer["arbit_manager_org"] = combo.auc.get_arbitr_company()
+        transfer["arbit_manager_org"] = combo.auc.arbit_manager_org()
         transfer["property_information"] = combo.auc.get_property_information()
         general_files = combo.gen.download_files(data_origin=self.data_origin)
         if trading_type == "offer":

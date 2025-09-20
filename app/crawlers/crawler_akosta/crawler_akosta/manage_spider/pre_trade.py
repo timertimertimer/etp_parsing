@@ -46,7 +46,6 @@ class PreTradePage:
             )
         return None
 
-    @property
     def get_total_and_current_page(self) -> tuple or None:
         try:
             span = self.soup.find("span", class_="ui-paginator-current").get_text()

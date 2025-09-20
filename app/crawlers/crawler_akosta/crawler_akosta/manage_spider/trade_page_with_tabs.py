@@ -57,7 +57,8 @@ class TradePage:
             logger.warning(f"{self.response.url} | {ex}")
         return None
 
-    def get_trading_form(self):
+    @property
+    def trading_form(self):
         trading_form = self.soup.find(
             "label", string=re.compile("Вид торгов", re.IGNORECASE)
         ).parent
@@ -86,7 +87,8 @@ class TradePage:
             logger.warning(f"{self.response.url} | ERROR ORG TEXT - {ex}")
         return None
 
-    def get_org_name(self):
+    @property
+    def trading_org(self):
         try:
             _div = self.return_org_text()
             return dedent_func(" ".join(_div.a.get_text().strip().split()))
@@ -94,8 +96,8 @@ class TradePage:
             logger.warning(f"{self.response.url} | ERROR org name {ex}")
         return None
 
-    def get_org_email(self):
-        """return org email"""
+    @property
+    def email(self):
         try:
             _div = self.return_org_text()
             pattern_mail = re.compile(
@@ -107,7 +109,8 @@ class TradePage:
             logger.warning(f"{self.response.url} | ERROR organizer email {ex}")
         return None
 
-    def get_org_phone(self):
+    @property
+    def phone(self):
         _div = self.return_org_text()
         p_in_div = _div.find_all("p")
         if len(p_in_div) > 0:
@@ -130,11 +133,10 @@ class TradePage:
                 return Contacts.check_phone(phone)
         return None
 
-    def get_org_contacts(self) -> dict | None:
+    @property
+    def trading_org_contacts(self) -> dict | None:
         try:
-            email = self.get_org_email()
-            phone = self.get_org_phone()
-            return {"email": email, "phone": phone}
+            return {"email": self.email, "phone": self.phone}
         except Exception as e:
             logger.warning(f"{self.response.url} | func get_org_contacts {e}")
         return None

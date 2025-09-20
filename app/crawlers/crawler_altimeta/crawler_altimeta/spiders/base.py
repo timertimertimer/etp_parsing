@@ -79,7 +79,7 @@ class AltimetaBaseSpider(BaseSpider):
 
     def parse_trade_page(self, response, trading_number):
         combo = Combo(response_=response)
-        trading_form = combo.serp.get_trading_form()
+        trading_form = combo.serp.trading_form()
         if trading_form:
             trading_type = combo.serp.trading_type_str()
             transfer = EtpItem()
@@ -92,7 +92,7 @@ class AltimetaBaseSpider(BaseSpider):
             transfer["trading_form"] = trading_form
             transfer["trading_org"] = combo.serp.get_trading_org()
             transfer["trading_org_inn"] = None
-            transfer["trading_org_contacts"] = combo.serp.get_org_contacts()
+            transfer["trading_org_contacts"] = combo.serp.trading_org_contacts
             transfer["msg_number"] = combo.serp.msg_number()
             transfer["case_number"] = combo.serp.case_number()
             transfer["debtor_inn"] = combo.serp.get_debtor_inn()

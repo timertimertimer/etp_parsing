@@ -22,7 +22,6 @@ class SerpPage:
         return self.soup
 
     def return_current_start_date(self):
-        """return start date request or None for check valid trading"""
         _date = self.response.xpath(self.loc_trade.check_date).get()
         if _date:
             _date = BS(str(_date), features="lxml").get_text().strip()
@@ -39,12 +38,10 @@ class SerpPage:
         return None
 
     def get_one_next_link(self):
-        """:return next link pagination or None"""
         next_page = self.response.xpath(self.loc_serp.links_to_the_next_page).get()
         return next_page
 
     def get_links_to_trade(self):
-        """:return list with links to trading pages using regex"""
         tr_with_links = self.response.xpath(self.loc_serp.links_to_trade_page).getall()
         pattern = re.compile(
             r"window.location.+(\/trade\/view\/purchase\/general\.html\?id=\d+).+"
@@ -67,8 +64,8 @@ class SerpPage:
             )
             return None
 
-    def get_trading_type(self):
-        """get tradding form on trading page"""
+    @property
+    def trading_type(self):
         auction = (
             "открытый аукцион с открытой формой представления предложений о цене",
             "открытый аукцион с открытой формой представления предложений о цене (банкротство)",
@@ -103,9 +100,10 @@ class SerpPage:
             return "offer"
         if _type in competition:
             return "competition"
+        return None
 
-    def get_trading_form(self):
-        """get trading form"""
+    @property
+    def trading_form(self):
         _open = (
             "открытый аукцион с открытой формой представления предложений о цене",
             "открытый аукцион с открытой формой представления предложений о цене (банкротство)",
@@ -140,9 +138,8 @@ class SerpPage:
             return None
         elif "гк рф" in _form:
             return None
-        else:
-            logger.warning(f"{self.response.url} :: ERROR FORM, {_form}")
-            return None
+        logger.warning(f"{self.response.url} :: ERROR FORM, {_form}")
+        return None
 
     @staticmethod
     def get_trading_id(url):
@@ -163,7 +160,6 @@ class SerpPage:
         return links
 
     def get_trading_number(self) -> str or None:
-        """trading_number from h1 tag"""
         _h1 = self.soup.h1.get_text()
         pattern = re.compile(r"идентификационный номер: (\d+-\D{4})\)")
         match = pattern.findall(_h1)
@@ -174,28 +170,25 @@ class SerpPage:
             return None
 
     def get_trading_org(self):
-        """get trading organizer"""
         org_name = self.response.xpath(self.loc_trade.trading_org_name_loc).get()
         org_name = BS(str(org_name), features="lxml").get_text().strip()
         return dedent_func(org_name)
 
     def get_org_email(self):
-        """return organizer email"""
         org_email = self.response.xpath(self.loc_trade.trading_org_email_loc).get()
         org_email = BS(str(org_email), features="lxml").get_text().strip()
         return Contacts.check_email(org_email)
 
     def get_org_phone(self):
-        """:return organizer phone"""
         org_phone = self.response.xpath(self.loc_trade.trading_org_phone_loc).get()
         phone = BS(str(org_phone), features="lxml").get_text()
         return Contacts.check_phone(phone)
 
-    def get_org_contacts(self):
+    @property
+    def trading_org_contacts(self):
         return {"email": self.get_org_email(), "phone": self.get_org_phone()}
 
     def get_arbitr_name(self):
-        """:return arbitrator name"""
         arb_name = self.response.xpath(self.loc_trade.arbitr_name_loc).get()
         if arb_name:
             arb_name = BS(str(arb_name), features="lxml").get_text().strip()
@@ -205,29 +198,27 @@ class SerpPage:
             if comp_man:
                 comp_man = BS(str(comp_man), features="lxml").get_text().strip()
                 return dedent_func(comp_man)
+        return None
 
     def get_arb_org(self):
-        """get arbitrator company"""
         company = self.response.xpath(self.loc_trade.arbitr_org_loc).get()
         if company:
             company = BS(str(company), features="lxml").get_text().strip()
             return dedent_func(company)
+        return None
 
     def get_msg_number(self):
-        """:return message number"""
         msg = self.response.xpath(self.loc_trade.msg_number_loc).get()
         return Contacts.check_msg_number(
             BS(str(msg), features="lxml").get_text().strip()
         )
 
     def get_case_number(self):
-        """return case number"""
         case = self.response.xpath(self.loc_trade.case_number_loc).get()
         case = BS(str(case), features="lxml").get_text().strip()
         return Contacts.check_case_number(case)
 
     def get_debtor_inn(self):
-        """:return debtor's inn"""
         _inn = self.response.xpath(self.loc_trade.debtor_inn_loc).get()
         _inn = BS(str(_inn), features="lxml").get_text().strip()
         return Contacts.check_inn(_inn)

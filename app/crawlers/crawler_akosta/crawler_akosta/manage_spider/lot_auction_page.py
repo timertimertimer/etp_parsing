@@ -50,7 +50,8 @@ class LotAuctionPage:
             logger.warning(f"{self.response.url} | INVALID DATA SHORT NAME {e}")
         return None
 
-    def get_lot_info(self):
+    @property
+    def lot_info(self):
         try:
             lot_info = self.soup.find(
                 "label", string=re.compile("Предмет торгов", re.IGNORECASE)
@@ -65,7 +66,8 @@ class LotAuctionPage:
             logger.warning(f"{self.response.url} | INVALID DATA LOT INFO {e}")
         return None
 
-    def get_property_info(self):
+    @property
+    def property_information(self):
         try:
             property_info = self.soup.find(
                 "label",
