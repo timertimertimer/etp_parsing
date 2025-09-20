@@ -144,28 +144,24 @@ class LotOnlineArrestedSpider(LotOnlineOldBaseSpider):
 
 class LotOnlineConfiscateSpider(LotOnlineOldBaseSpider):
     name = "lot_online_old_confiscate"
-    property_type = AuctionPropertyType.other
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
 
 class LotOnlineLeaseSpider(LotOnlineOldBaseSpider):
     name = "lot_online_old_lease"
-    property_type = AuctionPropertyType.other
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
 
 class LotOnlinePrivatizationSpider(LotOnlineOldBaseSpider):
     name = "lot_online_old_privatization"
-    property_type = AuctionPropertyType.other
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }
 
 class LotOnlineRadSpider(LotOnlineOldBaseSpider):
     name = "lot_online_old_rad"
-    property_type = AuctionPropertyType.other
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
     }

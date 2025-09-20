@@ -87,10 +87,10 @@ class AkostaBaseSpider(BaseSpider):
         pprint(data)
         yield FormRequest(
             search_link,
-            callback=self.refresh_date_range,
+            callback=self.choose_date_range,
             formdata=data,
             dont_filter=True,
-            # cb_kwargs={"view_state": data["javax.faces.ViewState"]},
+            cb_kwargs={"view_state": data["javax.faces.ViewState"]},
             headers=post_headers,
         )
 
@@ -186,7 +186,7 @@ class AkostaBaseSpider(BaseSpider):
                 ] = "on"
                 yield FormRequest(
                     response.url,
-                    callback=self.parse_panel_list,
+                    callback=self.parse_trades,
                     formdata=post_data_pagination,
                     dont_filter=True,
                     cb_kwargs={
@@ -221,7 +221,7 @@ class AkostaBaseSpider(BaseSpider):
         transfer["data_origin"] = data_origin
         transfer["trading_id"] = trading_id
         transfer["trading_link"] = response.url
-        trading_type = combo.trade.get_trading_type()
+        trading_type = combo.trade.trading_type_str()
         transfer["trading_type"] = trading_type
         transfer["trading_form"] = combo.trade.get_trading_form()
         transfer["trading_org"] = combo.trade.get_org_name()
@@ -263,8 +263,7 @@ class AkostaBaseSpider(BaseSpider):
                 "sources": sources,
                 "page_number": page_number,
                 "total_pages": total_pages,
-            },
-            headers=post_headers,
+            }
         )
 
     def parse_debitor(
@@ -277,14 +276,13 @@ class AkostaBaseSpider(BaseSpider):
         page_number,
         total_pages,
     ):
-        """parse debtor tab(page), get new viewstate  and make requests to lot tab(page)"""
         combo = Combo(_response=response)
         debtor_view_state = combo.pre.get_post_data_values(
             "input", "j_id1:javax.faces.ViewState:0"
         )
         transfer["trading_number"] = combo.deb.get_trading_number()
-        transfer["msg_number"] = combo.deb.get_msg_number()
-        transfer["case_number"] = combo.deb.get_case_number()
+        transfer["msg_number"] = combo.deb.msg_number()
+        transfer["case_number"] = combo.deb.case_number()
         transfer["arbit_manager_inn"] = combo.deb.get_arbitr_inn()
         transfer["arbit_manager"] = combo.deb.get_arbitr_full_name()
         transfer["arbit_manager_org"] = combo.deb.get_arbitr_company()
@@ -312,8 +310,7 @@ class AkostaBaseSpider(BaseSpider):
                 "sources": sources,
                 "page_number": page_number,
                 "total_pages": total_pages,
-            },
-            headers=post_headers,
+            }
         )
 
     def parse_lot_tab(
@@ -344,7 +341,7 @@ class AkostaBaseSpider(BaseSpider):
             "input", "j_id1:javax.faces.ViewState:0"
         )
         post_lot["javax.faces.ViewState"] = viewstate
-        lot_number = combo.trade.get_lot_number(_id=current_lot)
+        lot_number = combo.trade.lot_number(_id=current_lot)
         yield FormRequest(
             lot_link,
             callback=self.parse_pre_lot_page,
@@ -361,8 +358,7 @@ class AkostaBaseSpider(BaseSpider):
                 "lots": lots,
                 "current_lot": current_lot,
                 "lot_tab_link": lot_tab_link,
-            },
-            headers=post_headers,
+            }
         )
         if len(lots) > 0:
             yield Request(
@@ -506,9 +502,9 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)
-        loader.add_value("short_name", combo.auc.get_short_name(lot_number))
-        loader.add_value("lot_info", combo.auc.get_lot_info())
-        loader.add_value("property_information", combo.auc.get_property_info())
+        loader.add_value("short_name", combo.auc.short_name(lot_number))
+        loader.add_value("lot_info", combo.auc.lot_info())
+        loader.add_value("property_information", combo.auc.property_information())
         loader.add_value("start_price", combo.start_price)
         loader.add_value("categories", combo.categories)
         lot_files = combo.download_lot()
@@ -551,8 +547,7 @@ class AkostaBaseSpider(BaseSpider):
                     "total": total,
                     "sources": sources,
                     "page_number": page_number,
-                },
-                headers=post_headers,
+                }
             )
         else:
             loader.add_value(
@@ -605,8 +600,7 @@ class AkostaBaseSpider(BaseSpider):
                     "total": total,
                     "sources": sources,
                     "page_number": page_number,
-                },
-                headers=post_headers,
+                }
             )
         else:
             loader.add_value("periods", periods_)
@@ -662,9 +656,9 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)
-        loader.add_value("short_name", combo.auc.get_short_name(lot_number))
-        loader.add_value("lot_info", combo.auc.get_lot_info())
-        loader.add_value("property_information", combo.auc.get_property_info())
+        loader.add_value("short_name", combo.auc.short_name(lot_number))
+        loader.add_value("lot_info", combo.auc.lot_info())
+        loader.add_value("property_information", combo.auc.property_information())
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("categories", combo.categories)

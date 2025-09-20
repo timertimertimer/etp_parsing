@@ -9,7 +9,7 @@ from app.crawlers.crawler_sberbank.crawler_sberbank.utils.manage_spider import (
     sort_trading_type,
 )
 from app.db.models import DownloadData
-from app.utils import Contacts, dedent_func, DateTimeHelper, make_float
+from app.utils import Contacts, dedent_func, DateTimeHelper, make_float, logger
 from app.utils.config import default_user_agent
 
 
@@ -148,8 +148,11 @@ class NewCombo:
         )
 
     @property
-    def step_price(self):
-        return None  # TODO
+    def step_price(self):  # FIXME
+        step_price = deep_get_dict(
+            self.data, "BidView.Bids.BidTenderInfo.AuctionStepRub"
+        )
+        return make_float(step_price)
 
     @property
     def start_date_requests(self):
@@ -163,7 +166,9 @@ class NewCombo:
                 "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStartDate",
             )
             or deep_get_dict(self.data, "PurchasePlan.RequestStartDate")
-            or deep_get_dict(self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStartDate")
+            or deep_get_dict(
+                self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStartDate"
+            )
         )
         try:
             return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
@@ -182,7 +187,9 @@ class NewCombo:
                 "PurchaseInfoTotal.ApplSubmissionInfo.ApplSubmissionStopDate",
             )
             or deep_get_dict(self.data, "PurchasePlan.RequestStopDate")
-            or deep_get_dict(self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStopDate")
+            or deep_get_dict(
+                self.data, "PurchaseInfo.PurchasePlan.PurchaseRequestStopDate"
+            )
         )
         try:
             return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)

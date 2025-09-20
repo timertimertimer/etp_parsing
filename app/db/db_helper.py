@@ -351,7 +351,7 @@ class DBHelper:
                 organizer = organizer or DBHelper.store_and_get_organizer(
                     item, arbitrator
                 )
-            property_type = item.get("property_type", AuctionPropertyType)
+            property_type = item.get("property_type")
             if isinstance(property_type, AuctionPropertyType):
                 property_type = property_type.value
             auction = Auction(
@@ -359,7 +359,7 @@ class DBHelper:
                 property_type=property_type,
                 url=item["trading_link"],
                 number=item.get("trading_number"),
-                type=item.get("trading_type", "other"),
+                type=item.get("trading_type"),
                 form=item.get("trading_form"),
                 message_number=item.get("msg_number"),
                 organizer_id=organizer.id if organizer else None,

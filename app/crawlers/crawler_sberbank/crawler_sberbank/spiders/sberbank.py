@@ -58,85 +58,10 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
         # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
     }
     cookies_invalidated = False
-    cookies_updating = False  # флаг «уже обновляем»
-    cookies_lock = Lock()  # общий asyncio-замок
-
-    def __init__(self):
-        super().__init__()
-        self.failed_trades = []
-
-    def invalidate_cookies(self):
-        self.cookies_invalidated = True
-
-    def update_cookies(
-        self,
-        after_func: Callable = None,
-        after_args: list = None,
-        after_kwargs: dict = None,
-    ):
-        url = data_origin_url
-        yield Request(
-            url,
-            callback=self.after_update_cookies,
-            meta=dict(
-                playwright=True,
-                playwright_include_page=True,
-                playwright_page_methods=[PageMethod("goto", url)],
-                playwright_context="cookie_refresh",
-                playwright_context_close=True,
-                playwright_page_close=True,
-                after_func=after_func,
-                after_args=after_args or [],
-                after_kwargs=after_kwargs or {},
-            ),
-        )
+    cookies_updating = False
 
     def start_requests(self, cookies: dict = None):
         yield from self.update_cookies(super().start_requests)
-
-    async def after_update_cookies(
-        self, response
-    ):  # TODO: возобновлятор запросов (GET/POST с телом, куками, хедерами)
-        page = response.meta["playwright_page"]
-        cookies = await page.context.cookies()
-        self.cookies = {c["name"]: c["value"] for c in cookies}
-        await page.context.browser.close()
-        logger.info("New cookies received")
-        self.cookies_invalidated = False
-        self.cookies_updating = False
-
-        pprint([el[0] for el in self.failed_trades])
-        # Возобновляем все накопленные запросы
-        for request, kwargs in list(self.failed_trades):
-            if request.method == "POST":
-                yield FormRequest(
-                    url=request.url,
-                    body=request.body,
-                    callback=self.parse_table,
-                    headers={
-                        "x-requested-with": "XMLHttpRequest",
-                    },
-                    cb_kwargs=kwargs,
-                    cookies=self.cookies,
-                    dont_filter=True,
-                )
-            else:
-                yield Request(
-                    request.url,
-                    callback=self.parse_trade,
-                    cb_kwargs=kwargs,
-                    cookies=self.cookies,
-                    dont_filter=True,
-                )
-        self.failed_trades.clear()
-
-        func = response.meta.get("after_func")
-        if func:
-            for req in func(
-                *response.meta.get("after_args", []),
-                **response.meta.get("after_kwargs", {}),
-            ):
-                yield req
 
     def parse_table(self, response, **kwargs):
         if "Действия блокированы защитой ЭТП" in response.text:

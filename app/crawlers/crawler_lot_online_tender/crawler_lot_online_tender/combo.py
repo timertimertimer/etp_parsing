@@ -33,7 +33,7 @@ class Combo:
             if type_ in v:
                 return k
         logger.warning(f'{self.response.url} | Could not parse trading_type={type_}')
-        return 'other'
+        return None
 
     @property
     def trading_number(self):

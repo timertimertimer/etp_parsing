@@ -69,4 +69,4 @@ proxies template `user:pass@ip:port`
 
 в heveya нет документов, только картинки с карусели
 
-по дефолту если не проставлены property_type/trading_type, то ставится 'other'
+property_type/trading_type могут быть null, значит что тип нельзя отнести к какой-либо группе

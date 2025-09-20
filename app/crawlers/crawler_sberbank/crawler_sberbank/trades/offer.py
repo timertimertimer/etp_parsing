@@ -79,30 +79,26 @@ class OfferParse:
             logger.error(f"{self.url} :: INVALID DATA START PRICE OFFER")
         return None
 
-    def get_xml_data(self, xml_data: str):
-        return xml_data
-
-    def get_file_name_and_hash(
-        self, lst_file_name, property_type: str, org: str = None
+    def download(
+        self, files: list[dict], property_type: str, org: str, cookies: dict = None
     ):
-        if isinstance(lst_file_name, dict):
-            lst_file_name = [lst_file_name]
-        clean_name = list()
-        lst_hash_links = list()
-        for n in lst_file_name:
-            clean_name.append(n["filename"])
-            main_url = main_urls[property_type]
-            if org:
-                main_url = main_url[org]
-            lst_hash_links.append(f"{main_url}/File/DownloadFile?fid={n['fileid']}")
-        names = clean_name
-        links = lst_hash_links
-        return names, links
-
-    def download(self, file, property_type: str, org: str):
-        files = list()
-        name, link = self.get_file_name_and_hash(file, property_type, org)
-        for i in range(len(name)):
-            if link[i] and name[i]:
-                files.append(DownloadData(url=link[i], file_name=name[i], referer=self.url))
-        return files
+        dd = list()
+        main_url = main_urls[property_type]
+        if org:
+            main_url = main_url[org]
+        if not files:
+            return dd
+        for file in files:
+            link = file.get("url")
+            id_ = file.get("fileid")
+            dd.append(
+                DownloadData(
+                    url=link or f"{main_url}/File/DownloadFile?fid={id_}",
+                    file_name=file["filename"],
+                    referer=self.url,
+                    cookies="; ".join([f"{k}={v}" for k, v in cookies.items()])
+                    if cookies
+                    else None,
+                )
+            )
+        return dd

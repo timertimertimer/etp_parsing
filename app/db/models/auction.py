@@ -25,8 +25,6 @@ class AuctionPropertyType(str, Enum):
 
     gis = "gis"
 
-    other = "other"
-
     def __str__(self):
         return self.value
 
@@ -39,7 +37,6 @@ class AuctionType(str, Enum):
     rfp = "rfp"
     tender = "tender"
     reduction = "reduction"
-    other = "other"
 
 
 class FormType(str, Enum):
@@ -52,13 +49,13 @@ class Auction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     property_type: Mapped[str] = mapped_column(
-        SAEnum(AuctionPropertyType), default=AuctionPropertyType.other
+        SAEnum(AuctionPropertyType), nullable=True
     )
     ext_id: Mapped[str] = mapped_column(String(255))
     url: Mapped[str] = mapped_column(String(255), unique=True)
     number: Mapped[str] = mapped_column(String(255), nullable=True)
     type: Mapped[str] = mapped_column(
-        SAEnum(AuctionType, convert_unicode=True), default=AuctionType.other
+        SAEnum(AuctionType, convert_unicode=True), nullable=True
     )
     form: Mapped[str] = mapped_column(SAEnum(FormType, convert_unicode=True))
     message_number: Mapped[str] = mapped_column(String(255), nullable=True)

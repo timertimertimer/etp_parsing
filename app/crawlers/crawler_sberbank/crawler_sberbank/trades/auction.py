@@ -1,6 +1,6 @@
 import re
 
-from app.utils import dedent_func, Contacts, logger, DateTimeHelper
+from app.utils import dedent_func, Contacts, logger, DateTimeHelper, make_float
 from ..utils.manage_spider import deep_get_dict, sort_trading_type, get_trading_form
 from bs4 import BeautifulSoup as BS
 
@@ -18,57 +18,80 @@ class AuctionParse:
             pattern = re.compile("\d+$")
             return "".join(pattern.findall(self.url))
         except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA TRADING ID")
+            logger.warning(f"{self.url} | INVALID DATA TRADING ID")
         return None
 
     @property
-    def trading_link_auc(self):
+    def trading_link(self):
         return self.url
 
     @property
-    def trading_number_auc(self):
+    def purchase_info(self):
+        return (
+            deep_get_dict(self.data, "Purchase.PurchaseinfoPanel.PurchaseInfo")
+            or deep_get_dict(self.data, "Purchase.PurchaseInfo")
+            or deep_get_dict(self.data, "PurchaseView.PurchaseInfo")
+            or deep_get_dict(self.data, "formData.Purchase.PurchasePanel.PurchaseInfo")
+        )
+
+    @property
+    def trading_number(self):
         try:
             trading_number = deep_get_dict(
                 self.data, "Purchase.PurchaseinfoPanel.PurchaseInfo.PurchaseCode"
             )
-            return dedent_func(
-                BS(str(trading_number), features="lxml").get_text()
-            ).strip()
+            return trading_number
         except Exception as e:
-            logger.error(f"{self.url} th| WITHOUT TRADING NUMBER")
+            logger.warning(f"{self.url} th| WITHOUT TRADING NUMBER")
         return None
 
     @property
-    def trading_type_auc(self):
-        trading_type = sort_trading_type(
+    def trading_type_str(self):
+        return (
             deep_get_dict(
-                self.data,
-                "Purchase.PurchaseinfoPanel.PurchaseInfo.PurchaseTypeInfo.PurchaseTypeName",
+                self.purchase_info,
+                "PurchaseTypeInfo.PurchaseTypeName",
+            )
+            or deep_get_dict(self.purchase_info, "PurchaseTypeInfo.PurchaseTypeName")
+            or deep_get_dict(self.purchase_info, "PurchaseTypeName")
+        )
+
+    @property
+    def trading_type(self):
+        try:
+            trading_type = sort_trading_type(self.trading_type_str)
+            return trading_type
+        except Exception as e:
+            logger.warning(f"{self.url} | WITHOUT TRADING TYPE")
+        return None
+
+    @property
+    def trading_form(self):
+        try:
+            trading_type = get_trading_form(self.trading_type_str) or "open"
+            return trading_type
+        except Exception as e:
+            logger.warning(f"{self.url} | INVALID DATA TRADING TYPE", exc_info=True)
+        return None
+
+    @property
+    def org_info(self):
+        return (
+            deep_get_dict(self.data, "Purchase.OrganizatorInfo")
+            or deep_get_dict(self.data, "Purchase.PurchaseinfoPanel.OrganizatorInfo")
+            or deep_get_dict(self.data, "PurchaseView.OrganizatorInfo")
+            or deep_get_dict(
+                self.data, "formData.Purchase.PurchasePanel.OrganizatorInfo"
             )
         )
-        return trading_type
 
     @property
-    def trading_form_auc(self):
+    def trading_org(self):
         try:
-            trading_type = get_trading_form(
-                deep_get_dict(
-                    self.data,
-                    "Purchase.PurchaseinfoPanel.PurchaseInfo.PurchaseTypeInfo.PurchaseTypeName",
-                )
-            )
-            return dedent_func(
-                BS(str(trading_type), features="lxml").get_text()
-            ).strip()
-        except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA TRADING TYPE", exc_info=True)
-        return None
-
-    @property
-    def trading_org_auc(self):
-        try:
-            td_org = deep_get_dict(
-                self.data, "Purchase.PurchaseinfoPanel.OrganizatorInfo.orgname"
+            td_org = (
+                self.org_info.get("orgname")
+                or self.org_info.get("fullName")
+                or self.org_info.get("fullname")
             )
             return "".join(re.sub(r"\s+", " ", td_org))
         except Exception as e:
@@ -78,41 +101,36 @@ class AuctionParse:
     @property
     def trading_org_inn(self):
         try:
-            td_inn = deep_get_dict(
-                self.data, "Purchase.PurchaseinfoPanel.OrganizatorInfo.orginn"
+            td_inn = (
+                self.org_info.get("INN")
+                or self.org_info.get("orginn")
+                or self.org_info.get("OrgINN")
             )
-            text_inn = dedent_func(BS(str(td_inn), features="lxml").get_text()).strip()
-            return Contacts.check_inn(text_inn)
+            return Contacts.check_inn(td_inn)
         except Exception as e:
             return None
 
-    def get_phone_number(self):
+    @property
+    def phone(self):
         try:
-            phone = deep_get_dict(
-                self.data,
-                "Purchase.PurchaseinfoPanel.OrganizatorInfo.orgphone",
-                default="",
-            )
             phone = (
-                dedent_func(BS(str(phone), features="lxml").get_text())
-                .replace(";", "")
-                .strip()
+                self.org_info.get("contactPhone")
+                or self.org_info.get("orgphone")
+                or self.org_info.get("OrgPhone")
+                or self.org_info.get("ContactInfo", {}).get("ContactPhone")
             )
             return Contacts.check_phone(phone)
         except Exception as e:
             return None
 
-    def get_email(self):
+    @property
+    def email(self):
         try:
-            email = deep_get_dict(
-                self.data,
-                "Purchase.PurchaseinfoPanel.OrganizatorInfo.orgemail",
-                default="",
-            )
             email = (
-                dedent_func(BS(str(email), features="lxml").get_text())
-                .replace(";", "")
-                .strip()
+                self.org_info.get("contactEmail")
+                or self.org_info.get("orgemail")
+                or self.org_info.get("OrgEmail")
+                or self.org_info.get("ContactInfo", {}).get("ContactEmail")
             )
             return Contacts.check_email(email)
         except Exception as e:
@@ -120,18 +138,10 @@ class AuctionParse:
 
     @property
     def trading_org_contacts(self):
-        if self.get_phone_number():
-            phone = self.get_phone_number()
-        else:
-            phone = None
-        if self.get_email():
-            email = self.get_email()
-        else:
-            email = None
-        return {"email": email, "phone": phone}
+        return {"email": self.email, "phone": self.phone}
 
     @property
-    def get_msg_number(self):
+    def msg_number(self):
         try:
             msg_number = deep_get_dict(
                 self.data, "Purchase.PurchaseinfoPanel.PurchaseInfo.IDEFRSB"
@@ -141,7 +151,7 @@ class AuctionParse:
             return None
 
     @property
-    def get_case_number(self):
+    def case_number(self):
         try:
             case_number = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.BusinesInfo.businessno"
@@ -159,7 +169,7 @@ class AuctionParse:
             return None
 
     @property
-    def get_debitor_inn(self):
+    def debtor_inn(self):
         try:
             td_inn = deep_get_dict(
                 self.data, "Purchase.DebtorInfo.DebtorInfo.DebtorINN"
@@ -172,200 +182,138 @@ class AuctionParse:
     @property
     def address(self):
         try:
-            return deep_get_dict(
-                self.data, "Purchase.DebtorInfo.BusinesInfo.businessname"
+            return (
+                deep_get_dict(self.data, "Purchase.DebtorInfo.BusinesInfo.businessname")
+                or self.org_info.get("postAddress")
+                or self.org_info.get("orgaddressjur")
             )
         except Exception as e:
             logger.warning(f"{self.url} | INVALID DATA ADDRESS DEBITOR")
         return None
 
     @property
-    def get_arbitr_manager(self):
-        try:
-            td_arbitr = deep_get_dict(
-                self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisicmanagerfullname"
-            )
-            td_arbitr = dedent_func(
-                BS(str(td_arbitr), features="lxml").get_text()
-            ).strip()
-            return "".join(re.sub(r"\s+", " ", td_arbitr))
-        except Exception as e:
-            logger.warning(f"{self.url} | INVALID DATA ARBITR MANAGER NAME")
+    def arbit_manager(self):
+        td_arbitr = deep_get_dict(
+            self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisicmanagerfullname"
+        )
+        if td_arbitr:
+            return td_arbitr
         return None
 
     @property
-    def get_arbitr_manager_inn(self):
-        try:
-            td_inn = deep_get_dict(
-                self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisismanagerinn"
-            )
-            text_inn = dedent_func(BS(str(td_inn), features="lxml").get_text()).strip()
-            return Contacts.check_inn(text_inn)
-        except Exception as e:
-            return None
+    def arbit_manager_inn(self):
+        td_inn = deep_get_dict(
+            self.data, "Purchase.DebtorInfo.CrisicManagerInfo.crisismanagerinn"
+        )
+        if td_inn:
+            return Contacts.check_inn(td_inn)
+        return None
 
     @property
-    def get_arbitr_manager_org(self):
-        try:
-            td_company = deep_get_dict(
-                self.data,
-                "Purchase.DebtorInfo.CrisicManagerInfo.arbitrageorganizationpanel.arbitrageorganizationname",
-            )
-            td_company = dedent_func(
-                BS(str(td_company), features="lxml").get_text()
-            ).strip()
-            if "(" in td_company:
-                td_company = "".join(
-                    [
-                        x if len(td_company) > 0 else None
-                        for x in re.split(r"\(", td_company, maxsplit=1)[0]
-                    ]
-                )
-                return "".join(td_company)
-            else:
-                return td_company
-        except Exception as e:
-            return None
+    def arbitr_manager_org(self):
+        td_company = deep_get_dict(
+            self.data,
+            "Purchase.DebtorInfo.CrisicManagerInfo.arbitrageorganizationpanel.arbitrageorganizationname",
+        )
+        if td_company:
+            return td_company
+        return None
 
     @property
-    def get_start_date_requests(self):
+    def start_date_requests(self):
         try:
             return DateTimeHelper.smart_parse(
                 deep_get_dict(self.data, "Purchase.Step6.RequestInfo.RequestStartDate")
+                or deep_get_dict(self.data, "Purchase.TenderInfo.RequestStartDate")
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA START DATE REQUEST AUCTION")
+            logger.warning(f"{self.url} | INVALID DATA START DATE REQUEST AUCTION")
         return None
 
     @property
-    def get_end_date_requests(self):
+    def end_date_requests(self):
         try:
             return DateTimeHelper.smart_parse(
                 deep_get_dict(self.data, "Purchase.Step6.RequestInfo.RequestStopDate")
+                or deep_get_dict(self.data, "Purchase.TenderInfo.RequestStopDate")
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA END DATE REQUEST AUCTION")
+            logger.warning(f"{self.url} | INVALID DATA END DATE REQUEST AUCTION")
         return None
 
     @property
-    def get_start_date_trading(self):
+    def start_date_trading(self):
         try:
             return DateTimeHelper.smart_parse(
                 deep_get_dict(
                     self.data, "Purchase.Step6.Terms.PurchaseAuctionStartDate"
                 )
+                or deep_get_dict(self.data, "Purchase.TenderInfo.AuctionStartDate")
             ).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
-            logger.error(f"{self.url} | INVALID START DATE TRADING AUCTION")
+            logger.warning(f"{self.url} | INVALID START DATE TRADING AUCTION")
         return None
 
     @property
-    def get_end_date_trading(self):
-        try:
-            return DateTimeHelper.smart_parse(
-                deep_get_dict(self.data, "Purchase.Step6.ResultInfo.AuctionResultDate")
-            ).astimezone(DateTimeHelper.moscow_tz)
-        except Exception as e:
-            logger.error(f"{self.url} | INVALID END DATE TRADING AUCTION")
-        return None
+    def end_date_trading(self):
+        date = deep_get_dict(self.data, "Purchase.Step6.ResultInfo.AuctionResultDate")
+        if not date:
+            return None
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
-    def get_lot_id(self):
+    def lot_id(self):
         pattern = re.compile(r"\d+$")
         return "".join(pattern.findall(self.url))
 
     @property
-    def get_lot_link(self):
+    def lot_link(self):
         return "".join(self.url)
 
     @property
-    def get_lot_number(self):
-        lot_number = deep_get_dict(self.data, "BidView.Bids.BidInfo.BidNo")
-        try:
-            lot_number = dedent_func(
-                BS(str(lot_number), features="lxml").get_text()
-            ).strip()
-            if int(lot_number):
-                return lot_number
-        except Exception as e:
-            logger.warning(f"{self.url} | INVALID DATA LOT NUMBER")
-        return "1"
+    def lot_number(self):
+        lot_number = deep_get_dict(
+            self.data, "BidView.Bids.BidInfo.BidNo"
+        ) or deep_get_dict(self.data, "Purchase.Bids.Bid.BidInfo.BidNo")
+        return lot_number or "1"
 
     @property
-    def get_short_name(self):
-        short_name = deep_get_dict(self.data, "BidView.Bids.BidInfo.BidName")
-        try:
-            short_name = dedent_func(
-                BS(str(short_name), features="lxml").get_text()
-            ).strip()
-            if short_name:
-                return short_name
-            return None
-        except Exception as e:
-            return None
+    def short_name(self):
+        short_name = deep_get_dict(
+            self.data, "BidView.Bids.BidInfo.BidName"
+        ) or deep_get_dict(self.data, "Purchase.Bids.Bid.BidInfo.BidName")
+        return short_name
 
     @property
-    def get_lot_info(self):
-        lot_info = deep_get_dict(self.data, "BidView.Bids.BidDebtorInfo.DebtorBidName")
-        try:
-            lot_info = dedent_func(
-                BS(str(lot_info), features="lxml").get_text()
-            ).strip()
-            if lot_info:
-                return lot_info
-            return None
-        except Exception as e:
-            return None
+    def lot_info(self):
+        lot_info = deep_get_dict(
+            self.data, "BidView.Bids.BidDebtorInfo.DebtorBidName"
+        ) or deep_get_dict(self.data, "Purchase.PurchaseInfo.PurchaseName")
+        return lot_info
 
     @property
-    def get_property_info(self):
+    def property_information(self):
         property_info = deep_get_dict(
             self.data, "BidView.Bids.BidDebtorInfo.BidInventoryResearchType"
         )
-        try:
-            property_info = dedent_func(
-                BS(str(property_info), features="lxml").get_text()
-            ).strip()
-            if property_info:
-                return property_info
-            return None
-        except Exception as e:
-            return None
+        return property_info
 
     @property
-    def get_start_price(self):
-        start_price = deep_get_dict(self.data, "BidView.Bids.BidTenderInfo.BidPrice")
-        start_price = re.sub(r"\s", "", start_price)
-        pattern = re.compile(r"\d+\.\d{1,2}")
-        try:
-            start_price = dedent_func(
-                BS(str(start_price), features="lxml").get_text()
-            ).strip()
-            if start_price:
-                return round(float("".join(pattern.findall(start_price)[0])), 2)
-        except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA START PRICE AUCTION")
+    def start_price(self):
+        start_price = (
+            deep_get_dict(self.data, "BidView.Bids.BidTenderInfo.BidPrice")
+            or deep_get_dict(self.data, "Purchase.Bids.Bid.BidInfo.BidAmount")
+            or deep_get_dict(self.data, "PurchaseView.")
+        )
+        if start_price:
+            return make_float(start_price)
         return None
 
     @property
-    def get_step_price(self):
+    def step_price(self):
         step_price = deep_get_dict(
             self.data, "BidView.Bids.BidTenderInfo.AuctionStepRub"
         )
-        step_price = re.sub(r"\s", "", step_price)
-        pattern = re.compile(r"\d+\.\d{1,2}")
-        pattern1 = re.compile(r"^\d{1,2}")
-        try:
-            step_price = dedent_func(
-                BS(str(step_price), features="lxml").get_text()
-            ).strip()
-            step_price = "".join(pattern.findall(step_price))
-            if step_price:
-                step_price = round(float(step_price), 2)
-            else:
-                step_price = "".join(pattern1.findall(step_price))
-                step_price = round(float(step_price), 2)
-            return round(float(self.get_start_price * (step_price / 100)), 2)
-        except Exception as e:
-            logger.error(f"{self.url} | INVALID DATA STEP PRICE AUCTION")
+        if step_price:
+            return make_float(step_price)
         return None

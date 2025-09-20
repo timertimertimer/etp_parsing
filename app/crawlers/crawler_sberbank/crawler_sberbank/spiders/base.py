@@ -1,10 +1,12 @@
 import json
 from datetime import timedelta
 from math import ceil
+from typing import Callable
 
 import pandas as pd
 import xmltodict
-from scrapy import FormRequest
+from scrapy import Request, FormRequest
+from scrapy_playwright.page import PageMethod
 from bs4 import BeautifulSoup as BS
 
 from app.crawlers.base import BaseSpider
@@ -25,6 +27,7 @@ class SberbankBaseSpider(BaseSpider):
     def __init__(self):
         super().__init__(data_origin_url)
         self.cookies = {}
+        self.failed_trades = []
 
     def start_requests(self):
         date_range = pd.date_range(start_date, periods=periods_, freq=format_period)
@@ -99,3 +102,68 @@ class SberbankBaseSpider(BaseSpider):
                 cb_kwargs=kwargs,
                 cookies=self.cookies
             )
+
+    def update_cookies(
+        self,
+        after_func: Callable = None,
+        after_args: list = None,
+        after_kwargs: dict = None,
+    ):
+        url = data_origin_url
+        yield Request(
+            url,
+            callback=self.after_update_cookies,
+            meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods=[PageMethod("goto", url)],
+                playwright_context="cookie_refresh",
+                playwright_context_close=True,
+                playwright_page_close=True,
+                after_func=after_func,
+                after_args=after_args or [],
+                after_kwargs=after_kwargs or {},
+            ),
+        )
+
+    async def after_update_cookies(
+        self, response
+    ):
+        page = response.meta["playwright_page"]
+        cookies = await page.context.cookies()
+        self.cookies = {c["name"]: c["value"] for c in cookies}
+        await page.context.browser.close()
+        logger.info("New cookies received")
+        self.cookies_invalidated = False
+        self.cookies_updating = False
+
+        for request, kwargs in list(self.failed_trades):
+            if request.method == "POST":
+                yield FormRequest(
+                    url=request.url,
+                    body=request.body,
+                    callback=self.parse_table,
+                    headers={
+                        "x-requested-with": "XMLHttpRequest",
+                    },
+                    cb_kwargs=kwargs,
+                    cookies=self.cookies,
+                    dont_filter=True,
+                )
+            else:
+                yield Request(
+                    request.url,
+                    callback=self.parse_trade,
+                    cb_kwargs=kwargs,
+                    cookies=self.cookies,
+                    dont_filter=True,
+                )
+        self.failed_trades.clear()
+
+        func = response.meta.get("after_func")
+        if func:
+            for req in func(
+                *response.meta.get("after_args", []),
+                **response.meta.get("after_kwargs", {}),
+            ):
+                yield req

@@ -12,7 +12,7 @@ from app.utils import logger
 
 class BaseSpider(scrapy.Spider):
     name: str = None
-    property_type: AuctionPropertyType = AuctionPropertyType.other
+    property_type: AuctionPropertyType = None
 
     def __init__(
         self, data_origin_url: str, select_keys: set = None, *args, **kwargs

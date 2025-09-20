@@ -36,7 +36,7 @@ class Combo:
                 return 'competition'
             if type_ in v:
                 return k
-        logger.warning(f"{self.response.url} | Could not parse trading_type='{type_}', setting to 'other'")
+        logger.warning(f"{self.response.url} | Could not parse trading_type='{type_}'")
         return 'other'
 
     @property
