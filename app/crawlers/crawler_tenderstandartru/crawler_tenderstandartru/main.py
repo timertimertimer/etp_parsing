@@ -18,7 +18,7 @@ def viomitra():
 
 
 if __name__ == "__main__":
-    au_pro()
+    # au_pro()
     # tenderstandart()
     # torggroup()
-    # viomitra()
+    viomitra()

@@ -7,7 +7,7 @@ from .base import ElectroTorgiBaseSpider
 
 
 class VetpArrestSpiderElectroTorgi(ElectroTorgiBaseSpider):
-    name = "vetp_arrest"
+    name = "vetp_arrested"
     property_type = AuctionPropertyType.arrested
     custom_settings = {
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,

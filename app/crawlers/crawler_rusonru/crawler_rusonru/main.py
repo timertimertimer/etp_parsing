@@ -1,9 +1,6 @@
 from scrapy.cmdline import execute
 
 
-def ruson():
-    execute(["scrapy", "crawl", "ruson"])
-
 
 def eltorg_bankruptcy():
     execute(["scrapy", "crawl", "eltorg_bankruptcy"])
@@ -19,6 +16,9 @@ def nistp():
 
 def promkonsalt():
     execute(["scrapy", "crawl", "promkonsalt"])
+
+def ruson():
+    execute(["scrapy", "crawl", "ruson"])
 
 
 def sistematorg():

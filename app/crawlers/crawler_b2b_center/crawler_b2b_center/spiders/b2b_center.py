@@ -6,7 +6,7 @@ from app.crawlers.crawler_b2b_center.crawler_b2b_center.combo import Combo
 from app.crawlers.crawler_b2b_center.crawler_b2b_center.config import data_origin, params, login_url, login_data
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType, Auction
-from app.utils import logger
+from app.utils import logger, URL
 
 
 class B2bCenterBaseSpider(BaseSpider):
@@ -82,21 +82,17 @@ class B2bCenterBaseSpider(BaseSpider):
             {"general": combo.download_general(), "lot": combo.download_lot()},
         )
         yield loader.load_item()
-        # TODO: trading_org_inn находится на странице фирмы. досту
         # if trading_org_link := combo.get_trading_org_td().find('a').get('href'):
         #     yield Request(
         #         URL.url_join(data_origin, trading_org_link),
         #         callback=self.get_organizer_inn,
         #         cb_kwargs={'loader': loader},
-        #         headers={
-        #             ''
-        #         }
         #     )
 
     def get_organizer_inn(self, response, loader):
         combo = Combo(response)
-        # loader.add_value("trading_org_inn", combo.trading_org_inn)
-        # yield loader.load_item()
+        loader.add_value("trading_org_inn", combo.trading_org_inn)
+        yield loader.load_item()
 
 
 class B2bCenterFz223Spider(B2bCenterBaseSpider):

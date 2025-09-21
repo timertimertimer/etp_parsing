@@ -188,7 +188,7 @@ class OfferPage:
                     url=link_etp,
                     file_name=file_name,
                     referer=self.response.url,
-                    verify=False if crawler_name in ["etpu", "meta_invest"] else True,
+                    verify=False if crawler_name in ["etpu", "meta_invest", "arbbitlot"] else True,
                 )
             )
         return files

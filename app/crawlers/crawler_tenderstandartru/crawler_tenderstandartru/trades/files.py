@@ -1,3 +1,5 @@
+from enum import verify
+
 from app.db.models import DownloadData
 from .libraries import *
 
@@ -51,6 +53,6 @@ class Files:
         for f in lst:
             name, url = f
             files.append(
-                DownloadData(url=url, file_name=name, referer=self.response.url)
+                DownloadData(url=url, file_name=name, referer=self.response.url, verify=False)
             )
         return files

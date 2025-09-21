@@ -116,7 +116,7 @@ class Combo:
 
     @property
     def property_information(self):
-        return None  # TODO
+        return None
 
     @property
     def lot_info(self):

@@ -49,11 +49,11 @@ itender = [
     "arbbitlot",
     "arbitat",
     "bepspb",
-    "centerr_bankrupt",
-    "centerr_business",
+    "centerr_bankruptcy",
+    "centerr_commercial",
     "etpu",
     "etpugra",
-    "ets24",
+    "ets24_bankruptcy",
     "gloriaservice",
     "meta_invest",
     "propertytrade",
@@ -74,48 +74,126 @@ altimeta = [
     "regtorg",
     "seltim",
 ]
-electro_torgi = ["electro_torgi", "uralbidin", "vetp"]
-ruson = ["eltorg", "nistp", "promkonsalt", "ruson", "sistematorg"]
+electro_torgi = ["electro_torgi", "uralbidin", "vetp_bankrupt", "vetp_arrested"]
+eurtp = ["eurtp_bankruptcy", "eurtp_arrested"]
+ruson = [
+    "eltorg_bankruptcy",
+    "eltorg_commercial",
+    "nistp",
+    "promkonsalt",
+    "ruson",
+    "sistematorg",
+]
+sitesoft = [
+    "cdtrf_arrested",
+    "etpu_arrested",
+    "etpu_commercial",
+    "etpu_legal_entities",
+    "alfalot_commercial",
+    "tender_one_commercial"
+]
 tenderstandartru = ["au_pro", "tenderstandart", "torggroup", "viomitra"]
-lot_online_catalog = ["lot_online_bankruptcy", "lot_online_private_property"]
-lot_online = ["rad", "confiscate", "lease", "privatization", "arrested"]
-zalog = ["rshb", "sbrf", "rad"]
+lot_online_catalog = [
+    "lot_online_bankruptcy",
+    "lot_online_private_property",
+    "lot_online_rent",
+]
+lot_online_old = [
+    "lot_online_old_rad",
+    "lot_online_old_confiscate",
+    "lot_online_old_lease",
+    "lot_online_old_privatization",
+    "lot_online_old_arrested",
+]
+zalog = ["lot_online_zalog_rshb", "lot_online_zalog_sbrf", "lot_online_zalog_rad"]
 
-property_types = {
-    AuctionPropertyType.bankruptcy: [
-        'akosta'
-    ]
-}
+property_types = {AuctionPropertyType.bankruptcy: ["akosta"]}
 
 crawlers = {
-    "crawler_akosta": [f'akosta_{el}' for el in [
-        AuctionPropertyType.bankruptcy,
-        # AuctionPropertyType.arrested,
-        # AuctionPropertyType.commercial
-    ]],
+    "crawler_akosta": [
+        f"akosta_{el}"
+        for el in [
+            AuctionPropertyType.bankruptcy,
+            # AuctionPropertyType.arrested,
+            # AuctionPropertyType.commercial
+        ]
+    ],
     "crawler_altimeta": altimeta,
+    "crawler_b2b_center": "b2b_center_fz223",
     "crawler_bankrot_cdtrf": "bankrot_cdtrf",
+    "crawler_ei": [
+        f"ei_{el}"
+        for el in [
+            AuctionPropertyType.bankruptcy,
+            AuctionPropertyType.arrested,
+            AuctionPropertyType.commercial,
+        ]
+    ],
     "crawler_electro_torgi": electro_torgi,
-    "crawler_eurtp": "eurtp",
-    "crawler_fabrikant": "fabrikant",
-    "crawler_heveya": "heveya",
+    "crawler_ets24_arrested": "ets24_arrested",
+    "crawler_eurtp": eurtp,
+    "crawler_fabrikant": [
+        f"fabrikant_{el}"
+        for el in [
+            AuctionPropertyType.bankruptcy,
+            AuctionPropertyType.commercial,
+            AuctionPropertyType.legal_entities,
+            AuctionPropertyType.fz223,
+        ]
+    ],
+    "crawler_heveya": [
+        f"heveya_{el}"
+        for el in [
+            AuctionPropertyType.bankruptcy,
+            AuctionPropertyType.arrested,
+        ]
+    ],
     "crawler_itender": itender,
     "crawler_kartoteka": "kartoteka",
     "crawler_lot_online_catalog": lot_online_catalog,
-    "crawler_lot_online_old": lot_online,
+    "crawler_lot_online_old": lot_online_old,
+    "crawler_lot_online_tender": "lot_online_tender",
     "crawler_lot_online_zalog": zalog,
     "crawler_mets": "mets",
     "crawler_moi_tender": "moi_tender",
     "crawler_opentp": "opentp",
-    "crawler_roseltorg": "roseltorg",
+    "crawler_roseltorg": [
+        f"roseltorg_{el}"
+        for el in [
+            AuctionPropertyType.legal_entities,
+            AuctionPropertyType.capital_repair,
+            AuctionPropertyType.fz223,
+        ]
+    ],
     "crawler_rusonru": ruson,
-    "crawler_rutrade24": "rutrade24",
-    "crawler_sberbank": "sberbank",
-    "crawler_sibtoptrade": "sibtoptrade",
+    "crawler_rutrade24": [f"rutrade24_{el}" for el in [
+        AuctionPropertyType.bankruptcy,
+        AuctionPropertyType.commercial
+    ]],
+    "crawler_sberbank": [f"sberbank_{el}" for el in [
+        AuctionPropertyType.bankruptcy,
+        AuctionPropertyType.fz223,
+        AuctionPropertyType.fz44,
+        AuctionPropertyType.capital_repair,
+        AuctionPropertyType.legal_entities,
+        AuctionPropertyType.commercial
+    ]],
+    "crawler_sibtoptrade": [f"sibtoptrade_{el}" for el in [
+        AuctionPropertyType.bankruptcy,
+        AuctionPropertyType.commercial,
+    ]],
+    "crawler_sitesoft": sitesoft,
     "crawler_tenderstandartru": tenderstandartru,
-    "crawler_torgidv": "torgidv",
+    "crawler_torgidv": [f"torgidv_{el}" for el in [
+        AuctionPropertyType.bankruptcy,
+        AuctionPropertyType.arrested,
+    ]],
     "crawler_torgigov": "torgigov",
     "crawler_vertrades": "vertrades",
+    "crawler_zakupkigov": [f"zakupkigov_{el}" for el in [
+        AuctionPropertyType.fz44,
+        AuctionPropertyType.capital_repair,
+    ]],
 }
 
 

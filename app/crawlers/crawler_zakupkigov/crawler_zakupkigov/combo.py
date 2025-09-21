@@ -276,7 +276,6 @@ class Combo:
             )
         ):
             return self.parse_date(date)
-        logger.warning(f"{self.response.url} | Could not parse end_date_requests")
         return None
 
     @property
@@ -308,17 +307,15 @@ class Combo:
                     strip=True
                 )
             )
-
-        logger.warning(f"{self.response.url} | Could not parse start_price")
         return None
 
     @property
     def step_price(self):
-        return None  # TODO
+        return None
 
     @property
     def periods(self):
-        return None  # TODO
+        return None
 
     def download_general(self):
         files = []

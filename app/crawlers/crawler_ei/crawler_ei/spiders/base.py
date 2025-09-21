@@ -112,7 +112,6 @@ class EiBaseSpider(BaseSpider):
         if combo.trading_type in ["auction", "competition"]:
             loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
-        # TODO: carousel data["images"]
         loader.add_value(
             "files",
             {"general": combo.download_general(), "lot": combo.download_lot()},
