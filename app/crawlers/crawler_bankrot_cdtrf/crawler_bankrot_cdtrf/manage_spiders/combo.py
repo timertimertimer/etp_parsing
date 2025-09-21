@@ -38,3 +38,4 @@ class Compose:
                 return "offer"
             else:
                 logger.warning(f"{self.response.url} :: INVALID DATA TRADING TYPE")
+        return None

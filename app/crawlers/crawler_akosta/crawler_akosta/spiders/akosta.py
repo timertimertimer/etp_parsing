@@ -227,10 +227,10 @@ class AkostaBaseSpider(BaseSpider):
         transfer["trading_org"] = combo.trade.trading_org()
         transfer["trading_org_contacts"] = combo.trade.trading_org_contacts()
         if trading_type in ("auction", "competition"):
-            transfer["start_date_requests"] = combo.main_.start_date_req_auc()
-            transfer["end_date_requests"] = combo.main_.end_date_request_auc()
-            transfer["start_date_trading"] = combo.main_.start_date_trading_auc()
-            transfer["end_date_trading"] = combo.main_.end_date_trading_auc()
+            transfer["start_date_requests"] = combo.main_.start_date_requests
+            transfer["end_date_requests"] = combo.main_.end_date_requests
+            transfer["start_date_trading"] = combo.main_.start_date_trading
+            transfer["end_date_trading"] = combo.main_.end_date_trading
 
         # !!! DOCS !!!
         new_view = combo.pre.get_post_data_values(
@@ -502,14 +502,14 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)
-        loader.add_value("short_name", combo.auc.get_short_name(lot_number))
+        loader.add_value("short_name", combo.auc.short_name(lot_number))
         loader.add_value("lot_info", combo.auc.lot_info)
         loader.add_value("property_information", combo.auc.property_information)
         loader.add_value("start_price", combo.start_price)
         loader.add_value("categories", combo.categories)
         lot_files = combo.download_lot()
         loader.add_value("files", dict(general=general_files, lot=lot_files))
-        period_first_page = combo.offer.return_periods()
+        period_first_page = combo.offer.periods()
         total_pages_period = combo.offer.return_period_pagination()
         # total_pages_period & total are info about how many pages has pariod table
         if total_pages_period:
@@ -656,7 +656,7 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)
-        loader.add_value("short_name", combo.auc.get_short_name(lot_number))
+        loader.add_value("short_name", combo.auc.short_name(lot_number))
         loader.add_value("lot_info", combo.auc.lot_info)
         loader.add_value("property_information", combo.auc.property_information)
         loader.add_value("start_price", combo.start_price)

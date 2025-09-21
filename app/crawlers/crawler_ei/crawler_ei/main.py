@@ -14,4 +14,4 @@ def ei_commercial():
 
 
 if __name__ == "__main__":
-    ei_arrested()
+    ei_commercial()

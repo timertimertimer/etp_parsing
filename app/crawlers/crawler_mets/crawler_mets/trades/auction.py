@@ -10,7 +10,7 @@ class AuctionParse:
     def __init__(self, response):
         self.response = response
 
-    def step_price(self, trading_number, lot_num: str):
+    def get_step_price(self, trading_number, lot_num: str):
         trading_number = "".join(trading_number)
         step_price = self.response.xpath(
             LocatorAuction.step_price_loc.format(lot_num)
@@ -36,7 +36,7 @@ class AuctionParse:
         return None
 
     @property
-    def start_date_request(self):
+    def start_date_requests(self):
         td_date = self.response.xpath(LocatorAuction.start_date_request_loc).get()
         if not td_date:
             return None
@@ -46,7 +46,7 @@ class AuctionParse:
         )
 
     @property
-    def end_date_request(self):
+    def end_date_requests(self):
         td_date = self.response.xpath(LocatorAuction.end_date_request_loc).get()
         if not td_date:
             return None

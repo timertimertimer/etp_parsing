@@ -10,5 +10,5 @@ def eurtp_arrested():
 
 
 if __name__ == "__main__":
-    # eurtp_bankruptcy()
-    eurtp_arrested()
+    eurtp_bankruptcy()
+    # eurtp_arrested()

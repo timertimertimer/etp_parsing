@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.utils import format_time, contains, dedent_func, logger
+from app.utils import DateTimeHelper, contains, dedent_func, logger
 
 
 class AuctionParse:
@@ -16,7 +16,9 @@ class AuctionParse:
             "td", text=contains("Начало подачи предложений о цене имущества")
         )
         if date:
-            return format_time(date.find_next_sibling("td").get_text())
+            return DateTimeHelper.smart_parse(
+                date.find_next_sibling("td").get_text()
+            ).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     @property
@@ -25,7 +27,9 @@ class AuctionParse:
             "td", text=contains("Дата и время подведения результатов торгов")
         )
         if date:
-            return format_time(date.find_next_sibling("td").get_text())
+            return DateTimeHelper.smart_parse(
+                date.find_next_sibling("td").get_text()
+            ).astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def step_price(self, lot):
@@ -41,8 +45,6 @@ class AuctionParse:
                 p = re.search(r"\d+(?:\.\d{1,2})?(?=руб)", p).group()
                 if len(p) > 0:
                     return round(float(p), 2)
-                return None
-            return None
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DATA STEP PRICE\n{e}")
-            return None
+        return None

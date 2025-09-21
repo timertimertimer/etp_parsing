@@ -24,7 +24,7 @@ class OfferPage:
         table = BS(str(table_), features="lxml")
         return table
 
-    def start_date_request(self, table_):
+    def get_start_date_requests(self, table_):
         try:
             table = self.get_table_period(table_)
             table = table.find("table", class_="data inner")
@@ -35,8 +35,9 @@ class OfferPage:
             logger.warning(
                 f"{self.response.url} :: ERROR start_date_request {e}", exc_info=True
             )
+        return None
 
-    def end_date_request(self, table_):
+    def get_end_date_requests(self, table_):
         try:
             table = self.get_table_period(table_)
             table = table.find("table", class_="data inner")
@@ -47,14 +48,15 @@ class OfferPage:
             logger.warning(
                 f"{self.response.url} :: ERROR end_date_request {e}", exc_info=True
             )
+        return None
 
-    def start_date_trading(self, table_):
-        return self.start_date_request(table_)
+    def get_start_date_trading(self, table_):
+        return self.get_start_date_requests(table_)
 
-    def end_date_trading(self, table_):
-        return self.end_date_request(table_)
+    def get_end_date_trading(self, table_):
+        return self.get_end_date_requests(table_)
 
-    def start_price_offer(self, table_):
+    def get_start_price_offer(self, table_):
         try:
             table = self.get_table_period(table_)
             table = table.find("table", class_="data inner")
@@ -73,6 +75,7 @@ class OfferPage:
             logger.warning(
                 f"{self.response.url} :: ERROR start_price_offer {e}", exc_info=True
             )
+        return None
 
     def get_period(self, table_):
         check_value = int(10000000000000000000000)
@@ -124,3 +127,4 @@ class OfferPage:
         page = self.response.xpath(self.loc_lot.pagination).get()
         if page:
             return dedent_func(page.strip())
+        return None

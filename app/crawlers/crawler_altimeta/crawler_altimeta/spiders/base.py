@@ -79,32 +79,32 @@ class AltimetaBaseSpider(BaseSpider):
 
     def parse_trade_page(self, response, trading_number):
         combo = Combo(response_=response)
-        trading_form = combo.serp.trading_form()
+        trading_form = combo.serp.trading_form
         if trading_form:
-            trading_type = combo.serp.trading_type_str()
+            trading_type = combo.serp.trading_type
             transfer = EtpItem()
             transfer["data_origin"] = self.data_origin
-            id_trade = combo.serp.get_trading_id(url=response.url)
+            id_trade = combo.serp.trading_id
             transfer["trading_id"] = id_trade
             transfer["trading_link"] = response.url
             transfer["trading_number"] = trading_number
             transfer["trading_type"] = trading_type
             transfer["trading_form"] = trading_form
-            transfer["trading_org"] = combo.serp.get_trading_org()
+            transfer["trading_org"] = combo.serp.trading_org
             transfer["trading_org_inn"] = None
             transfer["trading_org_contacts"] = combo.serp.trading_org_contacts
-            transfer["msg_number"] = combo.serp.msg_number()
-            transfer["case_number"] = combo.serp.case_number()
-            transfer["debtor_inn"] = combo.serp.get_debtor_inn()
+            transfer["msg_number"] = combo.serp.msg_number
+            transfer["case_number"] = combo.serp.case_number
+            transfer["debtor_inn"] = combo.serp.debtor_inn
             transfer["address"] = combo.serp.address
-            transfer["arbit_manager"] = combo.serp.get_arbitr_name()
+            transfer["arbit_manager"] = combo.serp.arbit_manager
             transfer["arbit_manager_inn"] = None
-            transfer["arbit_manager_org"] = combo.serp.get_arb_org()
+            transfer["arbit_manager_org"] = combo.serp.arbit_manager_org
             if trading_type == "auction" or trading_type == "competition":
-                transfer["start_date_requests"] = combo.auc.start_date_request_auc()
-                transfer["end_date_requests"] = combo.auc.end_date_request_auc()
-                transfer["start_date_trading"] = combo.auc.start_date_trading_auc()
-                transfer["end_date_trading"] = combo.auc.end_date_trading_auc()
+                transfer["start_date_requests"] = combo.auc.start_date_requests
+                transfer["end_date_requests"] = combo.auc.end_date_requests
+                transfer["start_date_trading"] = combo.auc.start_date_trading
+                transfer["end_date_trading"] = combo.auc.end_date_trading
             try:
                 yield Request(
                     self.doc_link + f"{id_trade}&&id={id_trade}",
@@ -171,12 +171,12 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("arbit_manager", transfer["arbit_manager"])
             loader.add_value("arbit_manager_inn", None)
             loader.add_value("arbit_manager_org", transfer["arbit_manager_org"])
-            loader.add_value("status", combo.auc.get_status(table_=table))
+            loader.add_value("status", combo.auc.status(table_=table))
             loader.add_value("start_date_requests", transfer["start_date_requests"])
             loader.add_value("end_date_requests", transfer["end_date_requests"])
             loader.add_value("start_date_trading", transfer["start_date_trading"])
             loader.add_value("end_date_trading", transfer["end_date_trading"])
-            loader.add_value("lot_number", combo.auc.lot_number(table_=table))
+            loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.short_name(table_=table))
             loader.add_value("lot_info", combo.auc.lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
@@ -184,7 +184,7 @@ class AltimetaBaseSpider(BaseSpider):
                 "property_information", combo.auc.property_information(table_=table)
             )
             loader.add_value("start_price", combo.auc.start_price(table_=table))
-            loader.add_value("step_price", combo.auc.step_price(table_=table))
+            loader.add_value("step_price", combo.auc.get_step_price(table_=table))
             lot_files = combo.doc.get_lot_docs(table_=table, crawler_name=self.name)
             loader.add_value("files", {"general": general_docs, "lot": lot_files})
             yield loader.load_item()
@@ -230,8 +230,8 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("arbit_manager", transfer["arbit_manager"])
             loader.add_value("arbit_manager_inn", None)
             loader.add_value("arbit_manager_org", transfer["arbit_manager_org"])
-            loader.add_value("status", combo.auc.get_status(table_=table))
-            loader.add_value("lot_number", combo.auc.lot_number(table_=table))
+            loader.add_value("status", combo.auc.status(table_=table))
+            loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.short_name(table_=table))
             loader.add_value("lot_info", combo.auc.lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
@@ -239,10 +239,10 @@ class AltimetaBaseSpider(BaseSpider):
                 "property_information", combo.auc.property_information(table_=table)
             )
             loader.add_value(
-                "start_date_requests", combo.offer.start_date_request(table_=table)
+                "start_date_requests", combo.offer.get_start_date_requests(table_=table)
             )
             loader.add_value(
-                "end_date_requests", combo.offer.end_date_request(table_=table)
+                "end_date_requests", combo.offer.get_end_date_requests(table_=table)
             )
             loader.add_value(
                 "start_date_trading", combo.offer.start_date_trading(table_=table)
@@ -251,7 +251,7 @@ class AltimetaBaseSpider(BaseSpider):
                 "end_date_trading", combo.offer.end_date_trading(table_=table)
             )
             loader.add_value("periods", combo.offer.get_period(table_=table))
-            loader.add_value("start_price", combo.offer.start_price_offer(table_=table))
+            loader.add_value("start_price", combo.offer.get_start_price_offer(table_=table))
             lot_files = combo.doc.get_lot_docs(table_=table, crawler_name=self.name)
             loader.add_value("files", {"general": general_docs, "lot": lot_files})
             yield loader.load_item()
@@ -299,19 +299,19 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("arbit_manager", transfer["arbit_manager"])
             loader.add_value("arbit_manager_inn", None)
             loader.add_value("arbit_manager_org", transfer["arbit_manager_org"])
-            loader.add_value("status", combo.auc.get_status(table_=table))
+            loader.add_value("status", combo.auc.status(table_=table))
             loader.add_value("start_date_requests", transfer["start_date_requests"])
             loader.add_value("end_date_requests", transfer["end_date_requests"])
             loader.add_value("start_date_trading", transfer["start_date_trading"])
             loader.add_value("end_date_trading", transfer["end_date_trading"])
-            loader.add_value("lot_number", combo.auc.lot_number(table_=table))
+            loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.short_name(table_=table))
             loader.add_value("lot_info", combo.auc.lot_info(table_=table))
             loader.add_value(
                 "property_information", combo.auc.property_information(table_=table)
             )
             loader.add_value("start_price", combo.auc.start_price(table_=table))
-            loader.add_value("step_price", combo.auc.step_price(table_=table))
+            loader.add_value("step_price", combo.auc.get_step_price(table_=table))
             lot_files = combo.doc.get_lot_docs(table_=table, crawler_name=self.name)
             loader.add_value("files", {"general": general_docs, "lot": lot_files})
             yield loader.load_item()

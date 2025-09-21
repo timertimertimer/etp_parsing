@@ -1,4 +1,4 @@
-from app.utils import delete_extra_symbols, cut_lot_number
+from app.utils import delete_extra_symbols, cut_lot_number, contains
 from .libraries import *
 
 
@@ -9,7 +9,8 @@ class AuctionParse:
         self.response = response_
         self.soup = soup(self.response)
 
-    def get_organizer_name(self):
+    @property
+    def trading_org(self):
         label = self.soup.find(
             "label", string=re.compile(r"Организатор торгов", re.IGNORECASE)
         )
@@ -20,10 +21,10 @@ class AuctionParse:
             if div_inn:
                 div_inn = div_inn.findNextSibling("div")
                 return div_inn.get_text()
-            return None
         return None
 
-    def get_organizer_inn(self):
+    @property
+    def trading_org_inn(self):
         label = self.soup.find(
             "label", string=re.compile(r"Организатор торгов", re.IGNORECASE)
         )
@@ -35,10 +36,10 @@ class AuctionParse:
                 div_inn = div_inn.findNextSibling("div")
                 inn = div_inn.get_text()
                 return Contacts.check_inn(inn)
-            return None
         return None
 
-    def get_org_email(self):
+    @property
+    def email(self):
         label = self.soup.find(
             "label",
             string=re.compile(r"Контактное лицо организатора торгов", re.IGNORECASE),
@@ -51,10 +52,10 @@ class AuctionParse:
                 div_email = div_email.findNextSibling("div")
                 email = div_email.get_text()
                 return Contacts.check_email(email)
-            return None
         return None
 
-    def get_org_phone(self):
+    @property
+    def phone(self):
         label = self.soup.find(
             "label",
             string=re.compile(r"Контактное лицо организатора торгов", re.IGNORECASE),
@@ -67,13 +68,14 @@ class AuctionParse:
                 div_phone = div_phone.findNextSibling("div")
                 phone = div_phone.get_text()
                 return Contacts.check_phone(phone)
-            return None
         return None
 
-    def get_full_org_contacts(self):
-        return {"email": self.get_org_email(), "phone": self.get_org_phone()}
+    @property
+    def trading_org_contacts(self):
+        return {"email": self.email, "phone": self.phone}
 
-    def get_case_number(self):
+    @property
+    def case_number(self):
         label = self.soup.find(
             "label", string=re.compile(r"Сведения о банкротстве", re.IGNORECASE)
         )
@@ -85,10 +87,10 @@ class AuctionParse:
                 div_bankrot_info = div_bankrot_info.findNextSibling("div")
                 case_number = div_bankrot_info.get_text()
                 return Contacts.check_case_number(case_number)
-            return None
         return None
 
-    def get_arbitr_name(self):
+    @property
+    def arbit_manager(self):
         label = self.soup.find(
             "label", string=re.compile(r"Арбитражный управляющий", re.IGNORECASE)
         )
@@ -100,10 +102,10 @@ class AuctionParse:
                 div_arbitr_name = div_arbitr_name.findNextSibling("div")
                 arbitr_name = div_arbitr_name.get_text()
                 return dedent_func(arbitr_name)
-            return None
         return None
 
-    def get_arbitr_company(self):
+    @property
+    def arbit_manager_org(self):
         label = self.soup.find(
             "label", string=re.compile(r"Арбитражный управляющий", re.IGNORECASE)
         )
@@ -121,7 +123,8 @@ class AuctionParse:
             return None
         return None
 
-    def get_debtor_inn(self):
+    @property
+    def debtor_inn(self):
         label = self.soup.find(
             "label", string=re.compile(r"Сведения о должнике", re.IGNORECASE)
         )
@@ -152,7 +155,8 @@ class AuctionParse:
             return None
         return None
 
-    def get_property_information(self):
+    @property
+    def property_information(self):
         _div = self.soup.find(
             "div",
             string=re.compile(r"Порядок ознакомления с имуществом:", re.IGNORECASE),
@@ -162,8 +166,9 @@ class AuctionParse:
             return dedent_func(prop_info)
 
         logger.warning(
-            f"{self.response.url} | ERROR function {self.get_property_information.__name__}"
+            f"{self.response.url} | ERROR function self.property_information"
         )
+        return None
 
     # LOT PAGE
     def get_trading_form(self, trading_form_text):
@@ -175,11 +180,12 @@ class AuctionParse:
             return "closed"
         else:
             logger.warning(
-                f"{self.response.url} | ERROR function {self.get_trading_form.__name__} 2"
+                f"{self.response.url} | ERROR function {self.get_trading_form.__name__}"
             )
             return None
 
-    def trading_form_div(self):
+    @property
+    def trading_form(self):
         _div = self.soup.find(
             "div",
             string=re.compile(r"Форма торга по составу участника:", re.IGNORECASE),
@@ -187,14 +193,13 @@ class AuctionParse:
         if _div:
             form_ = _div.findNext("div").get_text().strip().lower()
             return self.get_trading_form(form_)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.trading_form_div.__name__} 1"
-        )
+        logger.warning(f"{self.response.url} | ERROR function self.trading_form")
         return None
 
+    @property
     @delete_extra_symbols
     @cut_lot_number
-    def get_short_name(self):
+    def short_name(self):
         previous_div = self.soup.find(
             "div", string=re.compile(r"Номер №\s?\d+", re.IGNORECASE)
         )
@@ -205,12 +210,11 @@ class AuctionParse:
             if _div:
                 short_name = _div.findNext("div").get_text().strip().lower()
                 return dedent_func(short_name)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.get_short_name.__name__}"
-        )
+        logger.warning(f"{self.response.url} | ERROR function self.short_name")
         return None
 
-    def get_lot_info(self):
+    @property
+    def lot_info(self):
         _div = self.soup.find(
             "div",
             string=re.compile(
@@ -221,12 +225,11 @@ class AuctionParse:
         if _div:
             lot_info = _div.findNext("div").get_text().strip().lower()
             return dedent_func(lot_info)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.get_lot_info.__name__}"
-        )
+        logger.warning(f"{self.response.url} | ERROR function self.lot_info")
         return None
 
-    def start_date_requests_auction(self):
+    @property
+    def start_date_requests(self):
         _div = self.soup.find(
             "div",
             string=re.compile(
@@ -235,24 +238,26 @@ class AuctionParse:
         )
         if _div:
             data_requests = _div.findNext("div").get_text().strip().lower()
-            return DateTimeHelper.smart_parse(data_requests).astimezone(DateTimeHelper.moscow_tz)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.start_date_requests_auction.__name__}"
-        )
+            return DateTimeHelper.smart_parse(data_requests).astimezone(
+                DateTimeHelper.moscow_tz
+            )
+        logger.warning(f"{self.response.url} | ERROR function self.start_date_requests")
         return None
 
-    def end_date_requests_auction(self):
+    @property
+    def end_date_requests(self):
         _div = self.response.xpath(
-            '//div[contains(text(), "Дата окончания")]/following|div[1]/text()'
+            '//div[contains(text(), "Дата окончания")]/following-sibling::div[1]/text()'
         ).get()
         if _div:
             end_date_req = _div.strip().lower()
-            return DateTimeHelper.smart_parse(end_date_req).astimezone(DateTimeHelper.moscow_tz)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.end_date_requests_auction.__name__}"
-        )
+            return DateTimeHelper.smart_parse(end_date_req).astimezone(
+                DateTimeHelper.moscow_tz
+            )
+        logger.warning(f"{self.response.url} | ERROR function end_date_requests")
         return None
 
+    @property
     def start_date_trading(self):
         _div = self.soup.find(
             "div", string=re.compile(r"Дата проведения", re.IGNORECASE)
@@ -261,12 +266,13 @@ class AuctionParse:
         )
         if _div:
             end_date_req = _div.findNext("div").get_text().strip().lower()
-            return DateTimeHelper.smart_parse(end_date_req).astimezone(DateTimeHelper.moscow_tz)
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.start_date_trading.__name__}"
-        )
+            return DateTimeHelper.smart_parse(end_date_req).astimezone(
+                DateTimeHelper.moscow_tz
+            )
+        logger.warning(f"{self.response.url} | ERROR function self.start_date_trading")
         return None
 
+    @property
     def start_price(self):
         start_price = self.soup.find(
             "div", string=re.compile(r"^Начальная цена", re.IGNORECASE)
@@ -278,16 +284,15 @@ class AuctionParse:
             return None
         return None
 
-    def get_msg_number(self):
+    @property
+    def msg_number(self):
         _div = self.soup.find(
             "div", string=re.compile(r"Номер сообщения в ЕФРСБ:", re.IGNORECASE)
         )
         if _div:
             msg = _div.findNext("div").get_text().strip().lower()
             return " ".join(re.findall(r"\d{7,8}", msg))
-        logger.warning(
-            f"{self.response.url} | ERROR function {self.get_msg_number.__name__}"
-        )
+        logger.warning(f"{self.response.url} | ERROR function self.msg_number")
         return None
 
     def get_step_price(self, start_price):
@@ -310,9 +315,8 @@ class AuctionParse:
             logger.debug(
                 f"{self.response.url} | DEBUG function {self.get_step_price.__name__}"
             )
-            return None
         except Exception as e:
             logger.warning(
                 f"{self.response.url} | ERROR function {self.get_step_price.__name__} - {e}"
             )
-            return None
+        return None

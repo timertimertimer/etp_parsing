@@ -45,7 +45,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: INVALID DATA PAGINATION ON PAGE")
             return 0
 
-    def get_trading_number_auction(self):
+    @property
+    def trading_number(self):
         legend = None
         try:
             legend = self.response.xpath(self.loc.trading_num_loc).get()
@@ -58,6 +59,7 @@ class AuctionPage:
             )
         return legend
 
+    @property
     def trading_form(self):
         try:
             form = (
@@ -76,7 +78,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: TRADING TYPE ERROR\n{e}")
         return None
 
-    def get_organizer(self):
+    @property
+    def trading_org(self):
         try:
             org = self.response.xpath(self.loc_auc.oranizer_name_loc).get()
             if org:
@@ -86,7 +89,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: ERROR ORGANIZER NAME\n{e}")
         return None
 
-    def get_org_inn(self):
+    @property
+    def trading_org_inn(self):
         try:
             _inn = self.response.xpath(self.loc_auc.organizer_inn_loc).get()
             if _inn:
@@ -96,7 +100,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} ::: ERROR INN ORG")
         return None
 
-    def get_org_phone(self):
+    @property
+    def phone(self):
         phone = None
         try:
             phone = self.response.xpath(self.loc_auc.organizer_phone_loc).get()
@@ -107,7 +112,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} ::: ERROR INN ORG")
         return phone
 
-    def get_org_email(self):
+    @property
+    def email(self):
         email = None
         try:
             email = self.response.xpath(self.loc_auc.organizer_email_loc).get()
@@ -119,8 +125,8 @@ class AuctionPage:
         return email
 
     @property
-    def return_org_contacts(self):
-        return {"email": self.get_org_email(), "phone": self.get_org_phone()}
+    def trading_org_contacts(self):
+        return {"email": self.email, "phone": self.phone}
 
     @property
     def msg_number(self):
@@ -139,7 +145,8 @@ class AuctionPage:
                 return Contacts.check_case_number(number)
         return None
 
-    def get_debtor_inn(self):
+    @property
+    def debtor_inn(self):
         try:
             _inn = self.response.xpath(self.loc_auc.debtor_inn_loc).get()
             if _inn:
@@ -149,7 +156,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} ::: ERROR INN DEBTOR\n{e}")
         return None
 
-    def get_address(self):
+    @property
+    def address(self):
         try:
             address = self.response.xpath(self.loc_auc.address_loc).get()
             if address:
@@ -163,7 +171,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} ::: ERROR ADDRESS DEBTOR\n{e}")
         return None
 
-    def get_arbitr_name(self):
+    @property
+    def arbit_manager(self):
         try:
             arbitr = self.response.xpath(self.loc_auc.arbitr_name_loc).get()
             if arbitr:
@@ -173,7 +182,8 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: ERROR ARBITR NAME\n{e}")
         return None
 
-    def get_arbitr_company(self):
+    @property
+    def arbit_manager_org(self):
         try:
             company = self.response.xpath(self.loc_auc.arbitr_org_loc).get()
             if company:
@@ -187,13 +197,15 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: ERROR company NAME\n{e}")
         return None
 
-    def get_arbitr_inn(self):
-        if self.get_arbitr_name() == self.get_organizer():
-            return self.get_org_inn()
+    @property
+    def arbit_manager_inn(self):
+        if self.arbit_manager == self.trading_org:
+            return self.trading_org_inn
         return None
 
     # lot
-    def get_status_lot(self):
+    @property
+    def status(self):
         try:
             active = ("Прием заявок", "Приём заявок")
             pending = ("Извещение опубликовано",)
@@ -208,6 +220,7 @@ class AuctionPage:
                 "Отменён организатором",
                 "Приостановлен",
                 "Приём заявок на интервале неактивен",
+                "Контракт заключён"
             )
             status = self.response.xpath(self.loc_auc.status_loc).get()
             if status:
@@ -273,21 +286,24 @@ class AuctionPage:
             logger.warning(f"{self.response.url} :: referer {referer} \n{e}")
         return None
 
-    def get_short_name(self):
+    @property
+    def short_name(self):
         short = self.response.xpath(self.loc_auc.short_name_loc).get()
         if short:
             short = dedent_func(BS(str(short), features="lxml").get_text())
             return short.strip()
         return None
 
-    def get_lot_info(self):
+    @property
+    def lot_info(self):
         lot_info = self.response.xpath(self.loc_auc.lot_info_loc).get()
         if lot_info:
             lot_info = dedent_func(BS(str(lot_info), features="lxml").get_text())
             return lot_info.strip()
         return None
 
-    def get_property_info(self):
+    @property
+    def property_information(self):
         property_info = self.response.xpath(self.loc_auc.property_info_loc).get()
         if property_info:
             property_info = dedent_func(
@@ -296,7 +312,8 @@ class AuctionPage:
             return property_info.strip()
         return None
 
-    def start_date_request(self):
+    @property
+    def start_date_requests(self):
         try:
             start = self.response.xpath(self.loc_auc.start_date_request_loc).get()
             if start:
@@ -312,7 +329,8 @@ class AuctionPage:
             )
         return None
 
-    def end_date_request(self):
+    @property
+    def end_date_requests(self):
         try:
             end = self.response.xpath(self.loc_auc.end_date_request_loc).get()
             if end:
@@ -328,6 +346,7 @@ class AuctionPage:
             )
         return None
 
+    @property
     def start_date_trading(self):
         try:
             start = self.response.xpath(self.loc_auc.start_date_trading_loc).get()

@@ -230,7 +230,10 @@ class Combo:
 
     def download_files(self):
         download_data = []
-        links = self.soup.find("table", text=contains("Сообщения").find_all("a"))
+        links = self.soup.find("h3", text=contains("Сообщения"))
+        if not links:
+            return None
+        links = links.find_next('table').find_all("a")
         for link in links:
             url = link.get("href")
             name = link.get('value')

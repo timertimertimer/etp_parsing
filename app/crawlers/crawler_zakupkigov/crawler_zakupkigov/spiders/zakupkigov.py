@@ -44,6 +44,8 @@ class ZakupkigovBaseSpider(BaseSpider):
             )
 
     def parse_trade(self, response):
+        def go_to_documents():
+            yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
         combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin)
@@ -71,19 +73,20 @@ class ZakupkigovBaseSpider(BaseSpider):
         loader.add_value("start_price", combo.start_price)
         loader.add_value("step_price", combo.step_price)
         loader.add_value("periods", combo.periods)
-        # TODO: ИНН парсится на отдельной страницы организации, контактные данные на лоте
-        # TODO: документы собираются из отдельной страницы
         trading_org_data = combo.get_trading_org_data()
         documents_link = response.url.replace('common-info', 'documents')
         if trading_org_data:
-            trading_org_link = trading_org_data.find_next('span').find('a').get('href')
+            trading_org_a = trading_org_data.find_next('span').find('a')
+            if not trading_org_a:
+                go_to_documents()
+            trading_org_link = trading_org_a.get('href')
             yield Request(
                 url=URL.url_join(data_origin, trading_org_link),
                 callback=self.get_trading_org_info,
                 cb_kwargs={'loader': loader, 'documents_link': documents_link}, errback=self.errback_httpbin
             )
         else:
-            yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
+            go_to_documents()
 
     def get_trading_org_info(self, response, loader, documents_link):
         combo = Combo(response=response)

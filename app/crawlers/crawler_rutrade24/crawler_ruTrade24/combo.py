@@ -244,6 +244,8 @@ class Combo:
                 "Торги проводятся",
                 "Прием заявок окончен",
                 "Торги приостановлены",
+                "Процедура завершена",
+                "Заключение договоров",
             ],
         }
         for key in d:
@@ -304,6 +306,7 @@ class Combo:
         )
         if date:
             return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     @property
     def end_date_requests(self):
@@ -338,7 +341,9 @@ class Combo:
             "Дата и время подведения итогов"
         )
         if date:
-            return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
+            dt = DateTimeHelper.smart_parse(date)
+            if dt:
+                return dt.astimezone(DateTimeHelper.moscow_tz)
         return None
 
     def start_price(self, lot: BeautifulSoup):

@@ -26,4 +26,4 @@ def sistematorg():
 
 
 if __name__ == "__main__":
-    eltorg_bankruptcy()
+    sistematorg()

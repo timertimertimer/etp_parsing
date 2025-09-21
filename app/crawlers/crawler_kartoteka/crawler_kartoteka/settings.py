@@ -16,3 +16,4 @@ DOWNLOAD_HANDLERS = {
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
 LOG_FILE = "kartoteka.log" if write_log_to_file else None
+ROTATING_PROXY_LIST_PATH = None

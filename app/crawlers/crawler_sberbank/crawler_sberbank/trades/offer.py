@@ -13,7 +13,7 @@ class OfferParse:
         self.data = data
 
     @property
-    def get_periods(self):
+    def periods(self):
         try:
             data = deep_get_dict(self.data, "BidView.BidReductionPeriod.Periods")
         except Exception as e:
@@ -39,8 +39,8 @@ class OfferParse:
         return periods
 
     @property
-    def start_date_request(self):
-        periods = self.get_periods
+    def start_date_requests(self):
+        periods = self.periods
         try:
             return periods[0]["start_date_requests"]
         except Exception as e:
@@ -48,8 +48,8 @@ class OfferParse:
         return None
 
     @property
-    def end_date_request(self):
-        periods = self.get_periods
+    def end_date_requests(self):
+        periods = self.periods
         try:
             return periods[-1]["end_date_requests"]
         except Exception as e:
@@ -58,11 +58,11 @@ class OfferParse:
 
     @property
     def start_date_trading(self):
-        return self.start_date_request
+        return self.start_date_requests
 
     @property
     def end_date_trading(self):
-        return self.end_date_request
+        return self.end_date_requests
 
     @property
     def start_price(self):

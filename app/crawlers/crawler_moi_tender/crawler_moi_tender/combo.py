@@ -2,15 +2,15 @@ import re
 from bs4 import BeautifulSoup, NavigableString
 
 from .config import data_origin_url
-from general_utils import (
-    format_time,
+from app.utils import (
     dedent_func,
     make_float,
     contains,
-    UrlConfig,
-    CheckIfCorrectContactInfo,
+    URL,
+    Contacts,
+    DateTimeHelper,
 )
-from general_utils.models import DownloadData
+from app.db.models import DownloadData
 
 
 class Combo:
@@ -74,7 +74,7 @@ class Combo:
         for link in links.parent.find_all("div", class_="isfile") or []:
             a = link.find("a")
             name = a.get_text().strip()
-            link = UrlConfig.url_join(data_origin_url, a.get("href"))
+            link = URL.url_join(data_origin_url, a.get("href"))
             files.append(
                 DownloadData(file_name=name, url=link, referer=self.response.url)
             )
@@ -89,12 +89,12 @@ class Combo:
         profile_page = self.get_profile_page()
         email = profile_page.find("a", href=re.compile("mailto:"))
         if email:
-            email_ = CheckIfCorrectContactInfo.check_email(
+            email_ = Contacts.check_email(
                 dedent_func(email.get("href").removeprefix("mailto:"))
             )
             phone = email.find_next("div", class_="value")
             if phone:
-                phone = CheckIfCorrectContactInfo.check_phone(phone.get_text())
+                phone = Contacts.check_phone(phone.get_text())
             email = email_
         return {"email": email, "phone": phone}
 
@@ -104,7 +104,8 @@ class Combo:
         inn = profile_page.find("div", class_="value", text=contains("ИНН"))
         if inn:
             inn = inn.get_text(strip=True).split()[-1]
-            return dedent_func(CheckIfCorrectContactInfo.check_inn(inn))
+            return dedent_func(Contacts.check_inn(inn))
+        return None
 
     def get_profile_page(self):
         return self.soup.find("div", class_="profile-page")
@@ -118,6 +119,7 @@ class Combo:
         info = self.soup.find("div", class_="description")
         if info:
             return dedent_func(info.get_text())
+        return None
 
     @property
     def property_information(self):
@@ -132,20 +134,20 @@ class Combo:
             .find_next("div")
             .get_text(strip=True)
         )
-        return format_time(start)
+        return DateTimeHelper.smart_parse(start).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
         div = self.soup.find(
             "div", class_="label", text=contains("Дата окончания приема заявок")
         ).find_next("div")
-        return format_time(
+        return DateTimeHelper.smart_parse(
             "".join(
                 child for child in div.contents if isinstance(child, NavigableString)
             )
             .strip()
             .replace("/ ", "")
-        )
+        ).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_trading(self):

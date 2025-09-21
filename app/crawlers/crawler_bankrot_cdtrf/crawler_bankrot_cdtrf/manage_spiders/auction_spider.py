@@ -19,8 +19,7 @@ class AuctionSpider:
         )
 
     @property
-    def get_trading_type(self):
-        """return trading type"""
+    def trading_type(self):
         trading_type = self.response.xpath(Auction.trading_type_loc).get()
         if trading_type and len(trading_type) > 0:
             type_ = dedent_func(
@@ -37,9 +36,10 @@ class AuctionSpider:
                 return "auction"
             else:
                 logger.warning(f"{self.response.url} :: INVALID DATA TRADING TYPE")
+        return None
 
     @property
-    def start_date_req(self):
+    def start_date_requests(self):
         try:
             s = self.soup.find(id=Auction.start_date_req_loc)
             if s:
@@ -49,9 +49,10 @@ class AuctionSpider:
             logger.error(
                 f"{self.response.url} :: INVAID DATA START DATE REQUST AUCTION"
             )
+        return None
 
     @property
-    def end_date_req(self):
+    def end_date_requests(self):
         try:
             e = self.soup.find(id=Auction.end_date_req_loc)
             if e:
@@ -59,6 +60,7 @@ class AuctionSpider:
                 return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING")
+        return None
 
     @property
     def start_date_trading(self):
@@ -74,6 +76,7 @@ class AuctionSpider:
                     return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA START DATE TRADING")
+        return None
 
     @property
     def end_date_trading(self):
@@ -84,6 +87,7 @@ class AuctionSpider:
                 return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
         except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA END DATE TRADING")
+        return None
 
     @property
     def start_price(self):
@@ -98,6 +102,7 @@ class AuctionSpider:
                     return round(float(p), 2)
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DATA START PRICE\n{e}")
+        return None
 
     @property
     def step_price(self):
@@ -112,6 +117,7 @@ class AuctionSpider:
                     return round(float(p), 2)
         except ValueError as e:
             logger.error(f"{self.response.url} :: INVALID DATA STEP PRICE\n{e}")
+        return None
 
     # FILES
     @property
@@ -122,12 +128,12 @@ class AuctionSpider:
                 return links
         except Exception as e:
             logger.error(f"{self.response.url} :: INVALID DATA LINK TO LOT FILE\n{e}")
-            return None
+        return None
 
     @property
     def clean_files_lot_links(self):
+        clean_set = set()
         if self.list_link_to_file_lot:
-            clean_set = set()
             for link in self.list_link_to_file_lot:
                 try:
                     link = BS(str(link), features="lxml").find("a").get("href")
@@ -135,9 +141,9 @@ class AuctionSpider:
                         URL.url_join(trade_page_file, link)
                     )
                     clean_set.add(link)
-                finally:
+                except Exception as e:
                     continue
-            return clean_set
+        return clean_set
 
     def general_file_link_doc_1(self):
         try:
@@ -152,6 +158,7 @@ class AuctionSpider:
                     return list()
         except Exception as e:
             logger.error(f"{self.response.url} :: ERROR GETTING GREF TO FILE GENERAL")
+        return None
 
     def general_file_link_doc_2(self):
         try:
@@ -168,6 +175,7 @@ class AuctionSpider:
             logger.error(
                 f"{self.response.url} :: ERROR GETTING GREF TO FILE GENERAL\n{e}"
             )
+        return None
 
     def find_all_files(self, referer):
         link = self.soup.find_all(
@@ -179,7 +187,7 @@ class AuctionSpider:
             logger.error(f"{referer} :: ERROR WITH DOCUMENTS", exc_info=True)
             with open("ERROR_doc_page.txt", "w") as f:
                 f.write(self.response.text)
-            return list()
+        return list()
 
     @staticmethod
     def download(lst: list) -> list:

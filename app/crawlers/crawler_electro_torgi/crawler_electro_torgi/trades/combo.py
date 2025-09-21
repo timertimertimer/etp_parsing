@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from app.utils import dedent_func, DateTimeHelper, logger, Contacts
+from app.utils import dedent_func, DateTimeHelper, logger, Contacts, make_float
 from app.db.models import DownloadData
 from ..trades.auc import Auc
 from ..trades.offer import Offer
@@ -100,7 +100,6 @@ class Combo:
                 return "competition", "open"
             if trading_type in competition and trading_type in close_form:
                 return "competition", "closed"
-        logger.warning(f"{self.response.url} | function self.trading_type_and_form")
         return None
 
     @property
@@ -110,7 +109,6 @@ class Combo:
             or self.response.xpath(self.loc.trading_org_loc_2).get()
         )
         if not org:
-            logger.warning(f"{self.response.url} | Couldn't get trading_org")
             return None
         td_org = dedent_func(org).strip()
         return "".join(re.sub(r"\s+", " ", td_org))
@@ -172,7 +170,6 @@ class Combo:
     def case_number(self):
         case_number = self.response.xpath(self.loc.case_number_loc).get()
         if not case_number:
-            logger.warning(f"{self.response.url} | case_number not found")
             return None
         return Contacts.check_case_number(case_number.strip())
 
@@ -183,7 +180,6 @@ class Combo:
             or self.response.xpath(self.loc.debitor_inn_loc_2).get()
         )
         if not inn:
-            logger.warning(f"{self.response.url} | debtor_inn not found")
             return None
         return Contacts.check_inn(inn.strip())
 
@@ -191,7 +187,6 @@ class Combo:
     def address(self):
         address = self.response.xpath(self.loc.region_loc).get()
         if not address:
-            logger.warning(f"{self.response.url} | address not found")
             return None
         return dedent_func(address)
 
@@ -199,7 +194,6 @@ class Combo:
     def arbit_manager(self):
         arbit_manager = self.response.xpath(self.loc.arbit_manager_loc).get()
         if not arbit_manager:
-            logger.warning(f"{self.response.url} | arbit_manager not_found")
             return None
         arbit_manager = dedent_func(arbit_manager)
         return "".join(re.sub(r"\s+", " ", arbit_manager))
@@ -208,7 +202,6 @@ class Combo:
     def arbit_manager_inn(self):
         inn = self.response.xpath(self.loc.arbit_manager_inn_loc).get()
         if not inn:
-            logger.warning(f"{self.response.url} | arbit_manager_inn not found")
             return None
         inn = dedent_func(inn)
         return Contacts.check_inn(inn.strip())
@@ -217,7 +210,6 @@ class Combo:
     def arbit_manager_org(self):
         org = self.response.xpath(self.loc.arbit_manager_org_loc).get()
         if not org:
-            logger.warning(f"{self.response.url} | arbit_manager_org not found")
             return None
         if "(" in org:
             org = "".join(
@@ -235,7 +227,6 @@ class Combo:
             or self.response.xpath(self.loc.short_name_loc_2).get()
         )
         if not short_name:
-            logger.warning(f"{self.response.url} | short_name not found")
             return None
         return dedent_func(short_name)
 
@@ -246,7 +237,6 @@ class Combo:
             or self.response.xpath(self.loc.lot_info_loc_2).get()
         )
         if not lot_info:
-            logger.warning(f"{self.response.url} | lot_info not found")
             return None
         return dedent_func(lot_info)
 
@@ -256,7 +246,6 @@ class Combo:
             self.loc.property_information_loc
         ).get()
         if not property_information:
-            logger.warning(f"{self.response.url} | property_information not found")
             return None
         return dedent_func(property_information)
 
@@ -264,7 +253,6 @@ class Combo:
     def start_date_requests(self):
         date = self.response.xpath(self.loc.start_date_requests_loc).get()
         if not date:
-            logger.warning(f"{self.response.url} | start_date_requests not found")
             return None
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
@@ -272,7 +260,6 @@ class Combo:
     def end_date_requests(self):
         date = self.response.xpath(self.loc.end_date_requests_loc).get()
         if not date:
-            logger.warning(f"{self.response.url} | end_date_requests not found")
             return None
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
@@ -281,15 +268,10 @@ class Combo:
         prices = self.response.xpath(self.loc.start_price_auc_loc).getall()
         for p in prices:
             try:
-                if p:
-                    p = re.sub(
-                        r"\s", "", dedent_func(p.strip()).replace(",", ".").rstrip(".")
-                    )
-                    p = "".join([x for x in p if x.isdigit() or x == "."]).rstrip(".")
-                    if len(p) > 0:
-                        return round(float(p), 2)
+                if p and any(ch.isdigit() for ch in p):
+                    return make_float(p)
             except Exception as e:
-                logger.warning(f"{self.response.url} | INVALID DATA START PRICE\n{e}")
+                continue
         return None
 
     @property
@@ -297,12 +279,7 @@ class Combo:
         try:
             p = self.response.xpath(self.loc.step_price_auc_loc).get()
             if p:
-                p = re.sub(
-                    r"\s", "", dedent_func(p.strip()).replace(",", ".").rstrip(".")
-                )
-                p = "".join([x for x in p if x.isdigit() or x == "."])
-                if len(p) > 0:
-                    return round(float(p), 2)
+                return make_float(p)
         except ValueError as e:
             logger.warning(f"{self.response.url} | INVALID DATA STEP PRICE\n{e}")
         return None
@@ -311,6 +288,5 @@ class Combo:
     def categories(self):
         categories = self.response.xpath(self.loc.categories_loc).getall()
         if not categories:
-            logger.warning(f"{self.response.url} | categories not found")
             return None
-        return dedent_func(categories)
+        return categories

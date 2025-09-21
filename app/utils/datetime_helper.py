@@ -74,7 +74,6 @@ class DateTimeHelper:
         if dt is None:
             error_message = f"Could not parse date from {string=}"
             logger.warning(error_message)
-            raise InvalidFormatDateTime(error_message)
 
         return dt
 

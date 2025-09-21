@@ -9,6 +9,10 @@ start_urls = {
     "bankruptcy": "https://ru-trade24.ru/query/Filter",
     "commercial": "https://com.ru-trade24.ru/query/Filter",
 }
+pagination_urls = {
+    "bankruptcy": "https://ru-trade24.ru/Home/Trades",
+    "commercial": "https://com.ru-trade24.ru/Home/Trades",
+}
 
 formdata = {
     "MainPageFilterPartpAppDateBegin": DateTimeHelper.format_datetime(

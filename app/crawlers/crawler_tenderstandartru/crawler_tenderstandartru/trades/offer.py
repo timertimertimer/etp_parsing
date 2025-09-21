@@ -13,7 +13,8 @@ class OfferParse:
             return df[0]
         return None
 
-    def return_periods(self):
+    @property
+    def periods(self):
         check_value = int(10**20)
         periods = list()
         df = self.get_period_table()

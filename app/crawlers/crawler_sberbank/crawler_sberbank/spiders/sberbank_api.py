@@ -140,12 +140,12 @@ class SberbankBankruptcyAPISpider(SberbankBaseAPISpider):
             loader.add_value("start_price", combo.auc.start_price)
             loader.add_value("step_price", combo.auc.step_price)
         else:
-            loader.add_value("start_date_requests", combo.offer.start_date_request)
-            loader.add_value("end_date_requests", combo.offer.end_date_request)
+            loader.add_value("start_date_requests", combo.offer.start_date_requests)
+            loader.add_value("end_date_requests", combo.offer.end_date_requests)
             loader.add_value("start_date_trading", combo.offer.start_date_trading)
             loader.add_value("end_date_trading", combo.offer.end_date_trading)
             loader.add_value("start_price", combo.offer.start_price)
-            loader.add_value("periods", combo.offer.get_periods)
+            loader.add_value("periods", combo.offer.periods)
         docs = data["BidView"]["Bids"]["BidDebtorInfo"].get("BidAdditionalDocEDS", [])
         if docs:
             docs = [docs["file"]] if isinstance(docs["file"], dict) else docs["file"]
@@ -192,12 +192,12 @@ class SberbankBaseNotBankruptcyAPISpider(SberbankBaseAPISpider):
         loader.add_value("lot_info", combo.auc.lot_info)
         loader.add_value("property_information", combo.auc.property_information)
         if loader.get_output_value("trading_type") == "offer":
-            loader.add_value("start_date_requests", combo.offer.start_date_request)
-            loader.add_value("end_date_requests", combo.offer.end_date_request)
+            loader.add_value("start_date_requests", combo.offer.start_date_requests)
+            loader.add_value("end_date_requests", combo.offer.end_date_requests)
             loader.add_value("start_date_trading", combo.offer.start_date_trading)
             loader.add_value("end_date_trading", combo.offer.end_date_trading)
             loader.add_value("start_price", combo.offer.start_price)
-            loader.add_value("periods", combo.offer.get_periods)
+            loader.add_value("periods", combo.offer.periods)
         else:
             loader.add_value("start_price", combo.auc.start_price)
             loader.add_value("step_price", combo.auc.step_price)

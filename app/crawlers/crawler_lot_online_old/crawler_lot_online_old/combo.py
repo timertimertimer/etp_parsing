@@ -35,7 +35,8 @@ class Combo:
         images = []
         lot_images = (
             self.soup.find("div", id="lot_photos") or
-            self.soup.find("div", id="img-container")
+            self.soup.find("div", id="img-container") or
+            self.soup.find("div", class_="img-container")
         ).find_all("img")
         for i, image in enumerate(lot_images):
             relative_link = image.get('src')

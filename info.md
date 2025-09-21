@@ -62,11 +62,15 @@ d = {
 }
 ```
 
-для сбера (sberbank) и росельторга (roseltorg) нужны прокси
+для росельторга (roseltorg) нужны прокси
 proxies template `user:pass@ip:port`
 
 отказались от sales.lot-online.ru, тк catalog.lot-online.ru пришел на замену с теми же лотами
 
 в heveya нет документов, только картинки с карусели
 
-property_type/trading_type могут быть null, значит что тип нельзя отнести к какой-либо группе
+property_type/trading_type могут быть null, значит что тип нельзя отнести к какой-либо группе. ex: https://ei.ru/lot/3128827 | Could not parse trading type: Скоро в продаже
+
+старые лоты в арестованном и коммерческом в akosta
+
+21.09.25 мойтендер.рф (moi_tender) сдох

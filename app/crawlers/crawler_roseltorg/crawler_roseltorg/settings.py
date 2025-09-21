@@ -11,3 +11,4 @@ BOT_NAME = "crawler_roseltorg"
 SPIDER_MODULES = ["crawler_roseltorg.spiders"]
 NEWSPIDER_MODULE = "crawler_roseltorg.spiders"
 LOG_FILE = "roseltorg.log" if write_log_to_file else None
+# ROTATING_PROXY_LIST_PATH = None

@@ -21,7 +21,8 @@ class OfferPage:
             features="lxml",
         )
 
-    def get_trading_number_offer(self):
+    @property
+    def trading_number(self):
         try:
             legend = self.response.xpath(self.loc_offer.trading_num_loc).get()
             if legend:
@@ -54,7 +55,8 @@ class OfferPage:
             )
         return None
 
-    def get_property_info(self):
+    @property
+    def property_information(self):
         property_info = self.response.xpath(self.loc_offer.property_info_loc).get()
         if property_info:
             property_info = dedent_func(
@@ -71,6 +73,7 @@ class OfferPage:
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
         return None
 
+    @property
     def trading_form(self):
         try:
             form = (
@@ -101,7 +104,8 @@ class OfferPage:
             )
         return None
 
-    def return_periods(self):
+    @property
+    def periods(self):
         try:
             period_lst = list()
             periods = self.get_period_table()
@@ -130,7 +134,7 @@ class OfferPage:
         return None
 
     @property
-    def start_date_request_offer(self):
+    def start_date_requests(self):
         try:
             start = DateTimeHelper.smart_parse(self.get_period_table().iloc[1][1]).astimezone(DateTimeHelper.moscow_tz)
             return start
@@ -141,7 +145,7 @@ class OfferPage:
         return None
 
     @property
-    def end_date_request_offer(self):
+    def end_date_requests(self):
         try:
             end = DateTimeHelper.smart_parse(self.get_period_table().iloc[-1][2]).astimezone(DateTimeHelper.moscow_tz)
             return end
@@ -152,15 +156,15 @@ class OfferPage:
         return None
 
     @property
-    def start_date_trading_offer(self):
-        return self.start_date_request_offer
+    def start_date_trading(self):
+        return self.start_date_requests
 
     @property
-    def end_date_trading_offer(self):
-        return self.end_date_request_offer
+    def end_date_trading(self):
+        return self.end_date_requests
 
     @property
-    def price_offer(self):
+    def start_price(self):
         try:
             periods = self.get_period_table()
             col = periods.columns

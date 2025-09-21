@@ -10,4 +10,4 @@ def zakupkigov_capital_repair():
 
 
 if __name__ == "__main__":
-    zakupkigov_fz44()
+    zakupkigov_capital_repair()

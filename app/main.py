@@ -90,8 +90,8 @@ property_types = {
 crawlers = {
     "crawler_akosta": [f'akosta_{el}' for el in [
         AuctionPropertyType.bankruptcy,
-        AuctionPropertyType.arrested,
-        AuctionPropertyType.commercial
+        # AuctionPropertyType.arrested,
+        # AuctionPropertyType.commercial
     ]],
     "crawler_altimeta": altimeta,
     "crawler_bankrot_cdtrf": "bankrot_cdtrf",

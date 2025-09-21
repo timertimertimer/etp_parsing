@@ -8,3 +8,5 @@ from app.crawlers.settings import *
 BOT_NAME = "crawler_electro_torgi"
 SPIDER_MODULES = ["crawler_electro_torgi.spiders"]
 NEWSPIDER_MODULE = "crawler_electro_torgi.spiders"
+
+ROTATING_PROXY_LIST_PATH = None

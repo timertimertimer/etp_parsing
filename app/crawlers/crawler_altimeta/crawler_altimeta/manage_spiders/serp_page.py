@@ -141,9 +141,9 @@ class SerpPage:
         logger.warning(f"{self.response.url} :: ERROR FORM, {_form}")
         return None
 
-    @staticmethod
-    def get_trading_id(url):
-        match = re.findall(r"\d{4,}$", str(url).strip())
+    @property
+    def trading_id(self):
+        match = re.findall(r"\d{4,}$", str(self.response.url).strip())
         return "".join(match)
 
     def get_trading_number_from_serp_page(self):
@@ -159,7 +159,8 @@ class SerpPage:
             )
         return links
 
-    def get_trading_number(self) -> str or None:
+    @property
+    def trading_number(self) -> str or None:
         _h1 = self.soup.h1.get_text()
         pattern = re.compile(r"идентификационный номер: (\d+-\D{4})\)")
         match = pattern.findall(_h1)
@@ -169,26 +170,30 @@ class SerpPage:
             logger.error(f"{self.response.url} :: ERROR TRADING NUMBER")
             return None
 
-    def get_trading_org(self):
+    @property
+    def trading_org(self):
         org_name = self.response.xpath(self.loc_trade.trading_org_name_loc).get()
         org_name = BS(str(org_name), features="lxml").get_text().strip()
         return dedent_func(org_name)
 
-    def get_org_email(self):
+    @property
+    def email(self):
         org_email = self.response.xpath(self.loc_trade.trading_org_email_loc).get()
         org_email = BS(str(org_email), features="lxml").get_text().strip()
         return Contacts.check_email(org_email)
 
-    def get_org_phone(self):
+    @property
+    def phone(self):
         org_phone = self.response.xpath(self.loc_trade.trading_org_phone_loc).get()
         phone = BS(str(org_phone), features="lxml").get_text()
         return Contacts.check_phone(phone)
 
     @property
     def trading_org_contacts(self):
-        return {"email": self.get_org_email(), "phone": self.get_org_phone()}
+        return {"email": self.email, "phone": self.phone}
 
-    def get_arbitr_name(self):
+    @property
+    def arbit_manager(self):
         arb_name = self.response.xpath(self.loc_trade.arbitr_name_loc).get()
         if arb_name:
             arb_name = BS(str(arb_name), features="lxml").get_text().strip()
@@ -200,25 +205,29 @@ class SerpPage:
                 return dedent_func(comp_man)
         return None
 
-    def get_arb_org(self):
+    @property
+    def arbit_manager_org(self):
         company = self.response.xpath(self.loc_trade.arbitr_org_loc).get()
         if company:
             company = BS(str(company), features="lxml").get_text().strip()
             return dedent_func(company)
         return None
 
-    def get_msg_number(self):
+    @property
+    def msg_number(self):
         msg = self.response.xpath(self.loc_trade.msg_number_loc).get()
         return Contacts.check_msg_number(
             BS(str(msg), features="lxml").get_text().strip()
         )
 
-    def get_case_number(self):
+    @property
+    def case_number(self):
         case = self.response.xpath(self.loc_trade.case_number_loc).get()
         case = BS(str(case), features="lxml").get_text().strip()
         return Contacts.check_case_number(case)
 
-    def get_debtor_inn(self):
+    @property
+    def debtor_inn(self):
         _inn = self.response.xpath(self.loc_trade.debtor_inn_loc).get()
         _inn = BS(str(_inn), features="lxml").get_text().strip()
         return Contacts.check_inn(_inn)

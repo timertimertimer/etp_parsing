@@ -69,8 +69,8 @@ def arbbitlot():
     execute(["scrapy", "crawl", "arbbitlot"])
 
 
-def ets24():
-    execute(["scrapy", "crawl", "ets24"])
+def ets24_bankruptcy():
+    execute(["scrapy", "crawl", "ets24_bankruptcy"])
 
 
 def selt_online():
@@ -82,4 +82,4 @@ def centerr_commercial():
 
 
 if __name__ == "__main__":
-    centerr_commercial()
+    arbbitlot()

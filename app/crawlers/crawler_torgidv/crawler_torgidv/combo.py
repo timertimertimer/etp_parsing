@@ -1,7 +1,7 @@
 import json
 import re
 
-from app.utils import URL, dedent_func, Contacts,DateTimeHelper, logger
+from app.utils import URL, dedent_func, Contacts, DateTimeHelper, logger
 from app.db.models import DownloadData, AuctionPropertyType
 from .config import urls, data_origin_url
 from .locators.locator_trade import LocatorTrade
@@ -58,8 +58,13 @@ class Combo:
     @property
     def trading_type(self):
         type_ = self.response.xpath(LocatorTrade.trading_type_loc).get()
-        d = {"Аукцион": "auction", "Конкурс": "competition", "Предложение": "offer"}
-        return d[type_]
+        if "предложени" in type_.lower():
+            return "offer"
+        elif "аукцион" in type_.lower():
+            return "auction"
+        elif "конкурс" in type_.lower():
+            return "competition"
+        return None
 
     @property
     def trading_form(self):

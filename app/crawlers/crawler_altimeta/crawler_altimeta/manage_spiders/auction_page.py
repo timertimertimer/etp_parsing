@@ -13,17 +13,20 @@ class AucPage:
             features="lxml",
         )
 
-    def start_date_request_auc(self):
+    @property
+    def start_date_requests(self):
         date = self.response.xpath(LocatorTradePage.start_date_request_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
-    def end_date_request_auc(self):
+    @property
+    def end_date_requests(self):
         date = self.response.xpath(LocatorTradePage.end_date_request_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
-    def start_date_trading_auc(self):
+    @property
+    def start_date_trading(self):
         date = self.response.xpath(LocatorTradePage.start_date_trading_loc).get()
         if date is None:
             date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
@@ -31,7 +34,8 @@ class AucPage:
         date = BS(str(date), features="lxml").get_text(strip=True)
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
-    def end_date_trading_auc(self):
+    @property
+    def end_date_trading(self):
         date = self.response.xpath(LocatorTradePage.end_date_trading_loc).get()
         date = BS(str(date), features="lxml").get_text(strip=True)
         return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)

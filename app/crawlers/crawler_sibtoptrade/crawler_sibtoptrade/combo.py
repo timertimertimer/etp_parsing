@@ -1,17 +1,10 @@
 import re
-from datetime import datetime
 
 from bs4 import BeautifulSoup as BS
 
 from app.db.models import DownloadData
-from app.utils import dedent_func, Contacts, make_float, logger
+from app.utils import dedent_func, Contacts, make_float, logger, DateTimeHelper
 from .locator import Locator
-
-
-def return_time_period(strtime):
-    date = str(strtime).strip("\n, -").replace("- ", "").replace("&nbsp;", "")
-    date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    return date.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def replaceMultiple(mainString, toBeReplaces, newString):
@@ -179,30 +172,30 @@ class Combo:
     @property
     def start_date_requests(self):
         date = self.response.xpath(Locator.start_date_request_loc).get()
-        if date:
-            return return_time_period(date)
-        return None
+        if not date:
+            return None
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_requests(self):
         date = self.response.xpath(Locator.end_date_request_loc).get()
-        if date:
-            return return_time_period(date)
-        return None
+        if not date:
+            return None
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_date_trading(self):
         date = self.response.xpath(Locator.start_trading_loc).get()
-        if date:
-            return return_time_period(date)
-        return None
+        if not date:
+            return None
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def end_date_trading(self):
         date = self.response.xpath(Locator.end_trading_loc).get()
-        if date:
-            return return_time_period(date)
-        return None
+        if not date:
+            return None
+        return DateTimeHelper.smart_parse(date).astimezone(DateTimeHelper.moscow_tz)
 
     @property
     def start_price(self):
@@ -251,9 +244,15 @@ class Combo:
                 )
                 end_date_requests = replaceMultiple(end.strip(), pattern_replace1, " ")
                 period = {
-                    "start_date_requests": return_time_period(start_date_requests),
-                    "end_date_requests": return_time_period(end_date_requests),
-                    "end_date_trading": return_time_period(end_date_requests),
+                    "start_date_requests": DateTimeHelper.smart_parse(
+                        start_date_requests
+                    ).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_requests": DateTimeHelper.smart_parse(
+                        end_date_requests
+                    ).astimezone(DateTimeHelper.moscow_tz),
+                    "end_date_trading": DateTimeHelper.smart_parse(
+                        end_date_requests
+                    ).astimezone(DateTimeHelper.moscow_tz),
                     "current_price": make_float(price),
                 }
             except:

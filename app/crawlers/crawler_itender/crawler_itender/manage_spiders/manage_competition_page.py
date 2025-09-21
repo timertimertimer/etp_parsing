@@ -19,7 +19,8 @@ class CompetitionPage:
             features="lxml",
         )
 
-    def get_trading_number_comp(self):
+    @property
+    def trading_number(self):
         try:
             legend = self.response.xpath(self.loc_comp.trading_num_loc).get()
             if legend:
@@ -40,6 +41,7 @@ class CompetitionPage:
             return " ".join(re.findall(r"\d{6,8}", dedent_func(msg)))
         return None
 
+    @property
     def trading_form(self):
         try:
             form = self.response.xpath(self.loc_comp.trading_form_loc).get()
@@ -55,7 +57,8 @@ class CompetitionPage:
             logger.warning(f"{self.response.url} :: TRDING TYPE ERROR")
         return None
 
-    def start_date_request(self):
+    @property
+    def start_date_requests(self):
         try:
             start = self.response.xpath(self.loc_comp.start_date_request_loc).get()
             if start:
@@ -71,7 +74,8 @@ class CompetitionPage:
             )
         return None
 
-    def end_date_request(self):
+    @property
+    def end_date_requests(self):
         try:
             end = self.response.xpath(self.loc_comp.end_date_request_loc).get()
             if end:
@@ -87,6 +91,7 @@ class CompetitionPage:
             )
         return None
 
+    @property
     def start_date_trading(self):
         try:
             start = self.response.xpath(self.loc_comp.start_date_trading_loc).get()
@@ -117,7 +122,8 @@ class CompetitionPage:
             )
         return None
 
-    def get_property_info(self):
+    @property
+    def property_information(self):
         property_info = self.response.xpath(self.loc_comp.property_info_loc).get()
         if property_info:
             property_info = dedent_func(

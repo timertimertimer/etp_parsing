@@ -7,7 +7,6 @@ class SerpParse:
         self.soup = soup(self.response)
 
     def get_length_param(self):
-        """get one of param data for request - Length"""
         form_ = self.soup.find(
             "form", attrs={"action": re.compile(r"/Trade/AllSearch\?Length")}
         )
@@ -165,7 +164,8 @@ class SerpParse:
     def get_trading_id(self, trading_url):
         return "".join(re.findall(r"\d+$", trading_url.strip()))
 
-    def get_trading_type(self):
+    @property
+    def trading_type(self):
         if re.match(".+Trade/AuctionTrades.?", str(self.response.url)):
             return "auction"
         elif re.match(".+Trade/PublicOfferTrades.?", str(self.response.url)):
@@ -174,6 +174,6 @@ class SerpParse:
             return "competition"
         else:
             logger.warning(
-                f"{self.response.url} | ERROR {self.get_trading_type.__name__} {self.response.url}"
+                f"{self.response.url} | ERROR {self.trading_type.__name__} {self.response.url}"
             )
-            return None
+        return None

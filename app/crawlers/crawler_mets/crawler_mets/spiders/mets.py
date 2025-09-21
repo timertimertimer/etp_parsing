@@ -48,7 +48,7 @@ class MetsSpider(BaseSpider):
         "LOG_FILE": f"{name}.log" if write_log_to_file else None,
         "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
         in trash_resources,
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+        # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
     }
 
     def __init__(self):
@@ -150,21 +150,21 @@ class MetsSpider(BaseSpider):
             loader.add_value("arbit_manager", comp.offer.arbitr_manager_org)
             loader.add_value("arbit_manager_inn", comp.offer.arbitr_inn)
             loader.add_value("arbit_manager_org", comp.offer.arbitr_org)
-            lot_number = comp.offer.lot_number(lot)
+            lot_number = comp.offer.get_lot_number(lot)
             loader.add_value("status", status)
-            loader.add_value("lot_link", comp.offer.lot_link(lot_number))
-            loader.add_value("lot_id", comp.offer.lot_id(lot))
+            loader.add_value("lot_link", comp.offer.get_lot_link(lot_number))
+            loader.add_value("lot_id", comp.offer.get_lot_id(lot))
             loader.add_value("lot_number", lot_number)
             loader.add_value("short_name", comp.offer.short_name(lot_number))
             loader.add_value("lot_info", comp.offer.lot_info(lot_number))
             loader.add_value("address", comp.offer.address)
             loader.add_value("property_information", property_info)
-            loader.add_value("start_price", comp.offer.start_price(lot_number))
+            loader.add_value("start_price", comp.offer.get_start_price(lot_number))
             loader.add_value(
-                "step_price", comp.auc.step_price(trading_number, lot_number)
+                "step_price", comp.auc.get_step_price(trading_number, lot_number)
             )
-            loader.add_value("start_date_requests", comp.auc.start_date_request)
-            loader.add_value("end_date_requests", comp.auc.end_date_request)
+            loader.add_value("start_date_requests", comp.auc.start_date_requests)
+            loader.add_value("end_date_requests", comp.auc.end_date_requests)
             loader.add_value("start_date_trading", comp.auc.start_date_trading)
             loader.add_value("end_date_trading", comp.auc.end_date_trading)
             loader.add_value("periods", None)
@@ -195,29 +195,29 @@ class MetsSpider(BaseSpider):
             loader.add_value("arbit_manager", comp.offer.arbitr_manager_org)
             loader.add_value("arbit_manager_inn", comp.offer.arbitr_inn)
             loader.add_value("arbit_manager_org", comp.offer.arbitr_org)
-            lot_number = comp.offer.lot_number(lot)
+            lot_number = comp.offer.get_lot_number(lot)
             loader.add_value("status", status)
-            loader.add_value("lot_link", comp.offer.lot_link(lot_number))
-            loader.add_value("lot_id", comp.offer.lot_id(lot))
+            loader.add_value("lot_link", comp.offer.get_lot_link(lot_number))
+            loader.add_value("lot_id", comp.offer.get_lot_id(lot))
             loader.add_value("lot_number", lot_number)
             loader.add_value("short_name", comp.offer.short_name(lot_number))
             loader.add_value("lot_info", comp.offer.lot_info(lot_number))
             loader.add_value("address", comp.offer.address)
             loader.add_value("property_information", property_info)
-            loader.add_value("start_price", comp.offer.start_price(lot_number))
+            loader.add_value("start_price", comp.offer.get_start_price(lot_number))
             loader.add_value(
-                "start_date_requests", comp.offer.start_date_request(lot_number)
+                "start_date_requests", comp.offer.get_start_date_requests(lot_number)
             )
             loader.add_value(
-                "end_date_requests", comp.offer.end_date_request(lot_number)
+                "end_date_requests", comp.offer.get_end_date_requests(lot_number)
             )
             loader.add_value(
-                "start_date_trading", comp.offer.start_date_request(lot_number)
+                "start_date_trading", comp.offer.get_start_date_requests(lot_number)
             )
             loader.add_value(
-                "end_date_trading", comp.offer.end_date_request(lot_number)
+                "end_date_trading", comp.offer.get_end_date_requests(lot_number)
             )
-            loader.add_value("periods", comp.offer.get_period(lot_number))
+            loader.add_value("periods", comp.offer.get_periods(lot_number))
             loader.add_value("categories", None)
             files_lot = comp.offer.download()
             loader.add_value("files", {"general": [], "lot": files_lot})

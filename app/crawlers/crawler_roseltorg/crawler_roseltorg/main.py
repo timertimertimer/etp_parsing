@@ -14,4 +14,4 @@ def roseltorg_fz223():
 
 
 if __name__ == "__main__":
-    roseltorg_fz223()
+    roseltorg_legal_entities()

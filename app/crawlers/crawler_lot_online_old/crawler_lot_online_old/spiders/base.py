@@ -83,7 +83,8 @@ class LotOnlineOldBaseSpider(BaseSpider):
         for lot in data["rows"]:
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", data_origin[self.name_without_prefix])
-            loader.add_value("property_type", self.property_type.value)
+            if self.property_type:
+                loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", trading_id)
             loader.add_value(
                 "trading_link",

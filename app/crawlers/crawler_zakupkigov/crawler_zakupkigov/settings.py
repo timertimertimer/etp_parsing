@@ -12,3 +12,4 @@ SPIDER_MODULES = ["crawler_zakupkigov.spiders"]
 NEWSPIDER_MODULE = "crawler_zakupkigov.spiders"
 
 LOG_FILE = "zakupkigov.log" if write_log_to_file else None
+ROTATING_PROXY_LIST_PATH = None

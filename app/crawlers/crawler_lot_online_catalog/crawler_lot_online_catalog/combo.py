@@ -278,7 +278,6 @@ class Combo:
             )
         return None
 
-    # TODO: Менеджер продаж (ex: https://catalog.lot-online.ru/index.php?dispatch=products.view&product_id=871797)
     @property
     def arbit_manager(self):
         debtor = self.get_debtor()

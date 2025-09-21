@@ -161,7 +161,6 @@ class Combo:
             return icon_map.find_next("p", class_="search-results__tooltip").get_text(
                 strip=True
             )
-        logger.warning(f"{self.response.url} | Address not found")
         return None
 
     @property
@@ -171,7 +170,6 @@ class Combo:
     def categories(self, lot: BeautifulSoup):
         if categories := lot.find("td", text=contains("Категория")):
             return categories.find_next("p").get_text(strip=True)
-        logger.warning(f"{self.response.url} | Categories not found")
         return None
 
     @property
@@ -186,7 +184,6 @@ class Combo:
     def short_name(self):
         if short_name := self.soup.find("div", class_="lot-item__subject"):
             return short_name.get_text(strip=True)
-        logger.warning(f"{self.response.url} | Short name not found")
         return None
 
     @property
@@ -205,7 +202,6 @@ class Combo:
             return DateTimeHelper.smart_parse(
                 date.find_next("p").get_text(strip=True), ["%d.%m.%y %H:%M:%S (МСК)", "%d.%m.%y  (МСК)"]
             ).astimezone(DateTimeHelper.moscow_tz)
-        logger.warning(f"{self.response.url} | Start date requests not found")
         return None
 
     def end_date_requests(self, lot: BeautifulSoup):
@@ -217,7 +213,6 @@ class Combo:
         ):
             format = "до %d.%m.%y %H:%M:%S (МСК)"
         else:
-            logger.warning(f"{self.response.url} | End date requests not found")
             return None
         return DateTimeHelper.smart_parse(
             date.find_next("p").get_text(strip=True), format
@@ -228,7 +223,6 @@ class Combo:
             return DateTimeHelper.smart_parse(
                 date.find_next("p").get_text(strip=True), ["%d.%m.%y %H:%M:%S (МСК)", "%d.%m.%y  (МСК)"]
             ).astimezone(DateTimeHelper.moscow_tz)
-        logger.warning(f"{self.response.url} | Start date trading not found")
         return None
 
     @property
@@ -241,7 +235,6 @@ class Combo:
             if price == "НМЦ не указано":
                 return
             return make_float(price)
-        logger.warning(f"{self.response.url} | Start price not found")
         return None
 
     def step_price(self, lot: BeautifulSoup):

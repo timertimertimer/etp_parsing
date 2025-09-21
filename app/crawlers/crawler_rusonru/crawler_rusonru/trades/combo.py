@@ -3,7 +3,7 @@ import re
 import pandas as pd
 from numpy import float64
 
-from app.utils import dedent_func, Contacts, make_float, format_time, logger
+from app.utils import dedent_func, Contacts, make_float, DateTimeHelper, logger
 from .serp import SerpParse
 from .files import DocumentGeneral, DocumentLot
 from bs4 import BeautifulSoup as BS
@@ -456,7 +456,9 @@ class Combo:
                     ),
                 ).findNext("td")
                 if start:
-                    start = format_time(dedent_func(start.get_text().strip()))
+                    start = DateTimeHelper.smart_parse(
+                        dedent_func(start.get_text().strip())
+                    ).astimezone(DateTimeHelper.moscow_tz)
                     return start
         except Exception as ex:
             logger.warning(
@@ -476,9 +478,9 @@ class Combo:
                     ),
                 )
                 if end:
-                    end = format_time(
+                    end = DateTimeHelper.smart_parse(
                         dedent_func(end.findNext("td").get_text().strip())
-                    )
+                    ).astimezone(DateTimeHelper.moscow_tz)
                     return end
         except Exception as ex:
             logger.warning(
@@ -495,9 +497,9 @@ class Combo:
                     "td", string=re.compile("ата проведени", re.IGNORECASE)
                 )
                 if start:
-                    start = format_time(
+                    start = DateTimeHelper.smart_parse(
                         dedent_func(start.findNext("td").get_text().strip())
-                    )
+                    ).astimezone(DateTimeHelper.moscow_tz)
                     return start
         except Exception as ex:
             logger.warning(
@@ -533,7 +535,9 @@ class Combo:
         try:
             table_period = self.get_period_table(table)
             start_date = table_period.iloc[0][0]
-            return format_time(start_date)
+            return DateTimeHelper.smart_parse(start_date).astimezone(
+                DateTimeHelper.moscow_tz
+            )
         except Exception as ex:
             logger.warning(
                 f"{self.response.url} | INVALID DATA START DATE TRADING OFFER {ex}"
@@ -544,7 +548,9 @@ class Combo:
         try:
             table_period = self.get_period_table(table)
             end_date = table_period.iloc[-1][1]
-            return format_time(end_date)
+            return DateTimeHelper.smart_parse(end_date).astimezone(
+                DateTimeHelper.moscow_tz
+            )
         except Exception as ex:
             logger.warning(f"{self.response.url} | INVALID DATA END DATE TRADING {ex}")
         return None
@@ -645,9 +651,15 @@ class Combo:
                         )
                         current_price_ = None
                     period = {
-                        "start_date_requests": format_time(start_date_request),
-                        "end_date_requests": format_time(end_date_request),
-                        "end_date_trading": format_time(end_date_trading),
+                        "start_date_requests": DateTimeHelper.smart_parse(
+                            start_date_request
+                        ).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_requests": DateTimeHelper.smart_parse(
+                            end_date_request
+                        ).astimezone(DateTimeHelper.moscow_tz),
+                        "end_date_trading": DateTimeHelper.smart_parse(
+                            end_date_trading
+                        ).astimezone(DateTimeHelper.moscow_tz),
                         "current_price": current_price_,
                     }
                     periods.append(period)

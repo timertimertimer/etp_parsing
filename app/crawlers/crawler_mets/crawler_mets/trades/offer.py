@@ -272,19 +272,19 @@ class OfferParse:
                 return k
         return None
 
-    def lot_id(self, lot):
+    def get_lot_id(self, lot):
         id_ = BS(lot, features="lxml").find("div", class_="lot-regnumber")
         if not id_:
             return None
         return id_.get_text(strip=True).removeprefix("Идентификационный номер: ")
 
-    def lot_link(self, lot_num):
+    def get_lot_link(self, lot_num):
         return f"{self.trading_link}-{lot_num}"
 
-    def lot_number(self, lot):
-        return self.lot_id(lot).split("-")[-1]
+    def get_lot_number(self, lot):
+        return self.get_lot_id(lot).split("-")[-1]
 
-    def short_name(self, lot_num: str):
+    def get_short_name(self, lot_num: str):
         short_name = self.response.xpath(
             TradeLocator.short_name_loc.format(lot_num)
         ).get()
@@ -292,7 +292,7 @@ class OfferParse:
             return None
         return dedent_func(BS(str(short_name), features="lxml").get_text())
 
-    def lot_info(self, lot_num: str):
+    def get_lot_info(self, lot_num: str):
         lot_info = self.response.xpath(TradeLocator.lot_info_loc.format(lot_num)).get()
         if not lot_info:
             return None
@@ -315,7 +315,7 @@ class OfferParse:
             return None
         return dedent_func(BS(str(property_info), features="lxml").get_text())
 
-    def start_price(self, lot_num: str):
+    def get_start_price(self, lot_num: str):
         start_price = self.response.xpath(
             TradeLocator.start_price_loc.format(lot_num)
         ).get()
@@ -339,7 +339,7 @@ class OfferParse:
             )
         return None
 
-    def period_table(self, lot_num: str):
+    def get_period_table(self, lot_num: str):
         try:
             table = self.response.xpath(
                 TradeLocator.period_table_loc.format(lot_num)
@@ -356,9 +356,9 @@ class OfferParse:
             )
         return None
 
-    def get_period(self, lot_num):
+    def get_periods(self, lot_num):
         periods = list()
-        table = self.period_table(lot_num)
+        table = self.get_period_table(lot_num)
         for p in range(len(table)):
             try:
                 start = table.iloc[p][1]
@@ -385,9 +385,9 @@ class OfferParse:
                 continue
         return periods
 
-    def start_date_request(self, lot_num):
+    def get_start_date_requests(self, lot_num):
         try:
-            table = self.period_table(lot_num)
+            table = self.get_period_table(lot_num)
             return DateTimeHelper.smart_parse(table.iloc[0][1]).astimezone(
                 DateTimeHelper.moscow_tz
             )
@@ -397,9 +397,9 @@ class OfferParse:
             )
         return None
 
-    def end_date_request(self, lot_num):
+    def get_end_date_requests(self, lot_num):
         try:
-            table = self.period_table(lot_num)
+            table = self.get_period_table(lot_num)
             return DateTimeHelper.smart_parse(table.iloc[-1][2]).astimezone(
                 DateTimeHelper.moscow_tz
             )

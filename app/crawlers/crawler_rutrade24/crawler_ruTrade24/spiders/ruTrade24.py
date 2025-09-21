@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import scrapy
 from typing import Iterable
 from scrapy import Request, FormRequest
 
@@ -9,7 +8,14 @@ from app.db.models import AuctionPropertyType
 from app.utils import URL
 from app.utils.config import write_log_to_file
 from ..combo import Combo
-from ..config import page_limits, formdata, main_data_origin, start_urls, data_origins
+from ..config import (
+    page_limits,
+    formdata,
+    main_data_origin,
+    start_urls,
+    data_origins,
+    pagination_urls,
+)
 
 BOUNDARY = "wL36Yn8afVp8Ag7AmP8qZ0SA4n1v9T"
 
@@ -59,7 +65,7 @@ class Rutrade24BaseSpider(BaseSpider):
                 )
                 status = trade_container.css(".trade-card__status::text").get()
                 if trade_link not in self.previous_trades:
-                    yield scrapy.Request(
+                    yield Request(
                         url=trade_link,
                         callback=self.parse_trade,
                         cb_kwargs=dict(status=status),
@@ -68,7 +74,7 @@ class Rutrade24BaseSpider(BaseSpider):
         if nextPage_url is not None and current_page <= page_limits["page_stop"]:
             formdata["page"] = str(current_page + 1)
             yield FormRequest(
-                self.start_urls[0],
+                pagination_urls[self.property_type.value],
                 method="POST",
                 formdata=formdata,
                 callback=self.parse,
@@ -83,7 +89,7 @@ class Rutrade24BaseSpider(BaseSpider):
     def get_next_page(self, response, property_type: str):
         next_href = response.css(".paging__arrow--next::attr(href)").get()
         if next_href:
-            return data_origins[property_type] + next_href
+            return URL.url_join(data_origins[property_type], next_href)
         return None
 
     def parse_trade(self, response, status):

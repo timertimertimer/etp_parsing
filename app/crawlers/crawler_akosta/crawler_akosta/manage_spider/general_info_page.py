@@ -190,20 +190,23 @@ class MainTradingPage:
         )
         return None
 
-    def start_date_req_auc(self):
+    @property
+    def start_date_requests(self):
         if self.get_period_requests_auction():
             return DateTimeHelper.smart_parse(self.get_period_requests_auction()[0]).astimezone(DateTimeHelper.moscow_tz)
         logger.error(f"{self.response.url} :: INVALID START DATE REQUEST AUCTION")
         return None
 
-    def end_date_request_auc(self):
+    @property
+    def end_date_requests(self):
         if self.get_period_requests_auction():
             return DateTimeHelper.smart_parse(self.get_period_requests_auction()[1]).astimezone(DateTimeHelper.moscow_tz)
         logger.error(f"{self.response.url} :: INVALID END DATE REQUEST AUCTION")
         return None
 
 
-    def start_date_trading_auc(self):
+    @property
+    def start_date_trading(self):
         _div = self.response.xpath(GeneralInfoLocator.start_date_trading_auc_loc).get()
         if not _div:
             return None
@@ -215,7 +218,8 @@ class MainTradingPage:
             return DateTimeHelper.smart_parse(_date[0]).astimezone(DateTimeHelper.moscow_tz)
         return None
 
-    def end_date_trading_auc(self):
+    @property
+    def end_date_trading(self):
         _div = self.response.xpath(GeneralInfoLocator.end_date_trading_auc_loc).get()
         if not _div:
             return None

@@ -72,7 +72,8 @@ class LotOnlineZalogBaseSpider(BaseSpider):
         if not match and not match1:
             loader = EtpItemLoader(EtpItem(), response=response)
             loader.add_value("data_origin", start_url)
-            loader.add_value("property_type", self.property_type.value)
+            # zalog не входит ни в одну категорию торгов
+            # loader.add_value("property_type", self.property_type.value)
             loader.add_value("trading_id", combo.get_trading_id())
             loader.add_value("trading_link", response.url)
             loader.add_value("trading_number", combo.get_trading_id())

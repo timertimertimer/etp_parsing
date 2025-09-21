@@ -87,6 +87,7 @@ class SitesoftBaseSpider(BaseSpider):
                     continue
                 trading_type = {
                     "auction": [
+                        "Аукцион",
                         "Аукцион в электронной форме",
                         "Аукцион на повышение",
                         "Аукцион на понижение",
@@ -101,6 +102,7 @@ class SitesoftBaseSpider(BaseSpider):
                     "ended": [
                         "Приостановлено проведение торгов",
                         "Процедура не состоялась",
+                        "Отказ от проведения",
                     ],
                 }
                 loader = EtpItemLoader(EtpItem(), response=response)
