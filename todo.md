@@ -48,3 +48,5 @@
 - [x] отдельно проверить все поля у каждого типа у sberbank
 - [x] пофиксить сбер
 - [ ] fix centerr offer, берет старые лоты
+- [ ] local dev installation script
+- [ ] initial db dump with alembic migrations?
