@@ -21,6 +21,7 @@ services:
 #      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
     volumes:
       - etp_parsing_mysql_data:/var/lib/mysql
+      - ./app/db/migrations:/docker-entrypoint-initdb.d
     logging: *logging-default
     networks:
       - etp_parsing_network
