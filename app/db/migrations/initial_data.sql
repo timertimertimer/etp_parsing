@@ -19,7 +19,6 @@
 -- Table structure for table `addresses`
 --
 
-DROP TABLE IF EXISTS `addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `addresses` (
@@ -49,7 +48,6 @@ UNLOCK TABLES;
 -- Table structure for table `trading_floors`
 --
 
-DROP TABLE IF EXISTS `trading_floors`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `trading_floors` (
@@ -80,7 +78,6 @@ UNLOCK TABLES;
 -- Table structure for table `regions`
 --
 
-DROP TABLE IF EXISTS `regions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `regions` (
@@ -106,7 +103,6 @@ UNLOCK TABLES;
 -- Table structure for table `cities`
 --
 
-DROP TABLE IF EXISTS `cities`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cities` (
