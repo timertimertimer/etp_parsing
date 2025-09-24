@@ -20,7 +20,7 @@ def run_spider(project: str, spider: str) -> None:
     logger.info(f"Started {project}/{spider}")
     start_spider_time = time.time()
 
-    os.system(f"cd {Path.cwd() / project} && /usr/local/bin/scrapy crawl {spider}")
+    os.system(f"cd {Path.cwd() / 'crawlers' / project} && /usr/local/bin/scrapy crawl {spider}")
 
     spider_duration = time.time() - start_spider_time
     logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
