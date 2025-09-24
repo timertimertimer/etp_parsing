@@ -8,12 +8,12 @@ from string import ascii_letters, digits
 from dotenv import load_dotenv
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-from app.db.models import AuctionPropertyType
+from db.models import AuctionPropertyType
 from utils import logger
 from utils.config import post_main_service
 
 load_dotenv()
-set_logger(logger)  # FIXME
+# set_logger(logger)  # FIXME
 
 
 def run_spider(project: str, spider: str) -> None:

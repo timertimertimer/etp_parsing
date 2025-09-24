@@ -9,9 +9,9 @@ import unicodedata
 from http.cookies import SimpleCookie
 from chardet import detect
 
-from app.utils.logger import logger
-from app.utils.datetime_helper import datetime
-from app.utils.config import lot_classifiers_code_to_name
+from .logger import logger
+from .datetime_helper import datetime
+from .config import lot_classifiers_code_to_name
 
 
 columns = ["Code", "Name"]

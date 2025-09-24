@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.utils.datetime_helper import DateTimeHelper
+from .datetime_helper import DateTimeHelper
 
 project_main_dir = PurePath(__file__).parent.parent
 
@@ -178,5 +178,5 @@ start_dates = {
 
 download_files_from_get_url = True  # True - файлы качаются по GET запросу
 write_log_to_file = False
-post_main_service = True
+post_main_service = False
 parse_fedresurs = False

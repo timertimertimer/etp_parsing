@@ -5,7 +5,7 @@ from dateutil import parser
 from datetime import datetime, timedelta, UTC, timezone
 from typing import Optional
 
-from app.utils.logger import logger
+from .logger import logger
 
 
 class InvalidFormatDateTime(Exception):
