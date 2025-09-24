@@ -7,6 +7,7 @@ from random import choices
 from string import ascii_letters, digits
 from dotenv import load_dotenv
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 
 from db.models import AuctionPropertyType
 from utils import logger
@@ -15,12 +16,11 @@ from utils.config import post_main_service
 load_dotenv()
 # set_logger(logger)  # FIXME
 
-
 def run_spider(project: str, spider: str) -> None:
     logger.info(f"Started {project}/{spider}")
     start_spider_time = time.time()
 
-    os.system(f"cd {project} && /usr/local/bin/scrapy crawl {spider}")
+    os.system(f"cd {Path.cwd() / project} && /usr/local/bin/scrapy crawl {spider}")
 
     spider_duration = time.time() - start_spider_time
     logger.info(f"Finished {project}/{spider} in {spider_duration:.2f} seconds")
