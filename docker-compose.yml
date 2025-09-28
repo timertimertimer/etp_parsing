@@ -59,7 +59,7 @@ services:
     image: etp_parsing:latest
     container_name: app
     env_file:
-      - .env
+      - app/.env
     build:
       args:
         USER: ${USER}

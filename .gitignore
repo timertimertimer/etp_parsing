@@ -122,7 +122,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+app/.env
 .venv
 env/
 venv/
@@ -168,7 +168,7 @@ proxy*
 *.html
 files/
 browser_data/
-uv.lock
+app/uv.lock
 alembic/versions
 proxies.txt
 some.*
