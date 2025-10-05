@@ -181,7 +181,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
             loader.add_value(
-                "property_information", combo.auc.property_information(table_=table)
+                "property_information", combo.auc.get_property_info(table_=table)
             )
             loader.add_value("start_price", combo.auc.start_price(table_=table))
             loader.add_value("step_price", combo.auc.get_step_price(table_=table))
@@ -236,7 +236,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
             loader.add_value(
-                "property_information", combo.auc.property_information(table_=table)
+                "property_information", combo.auc.get_property_info(table_=table)
             )
             loader.add_value(
                 "start_date_requests", combo.offer.get_start_date_requests(table_=table)
@@ -308,7 +308,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("short_name", combo.auc.get_short_name(table_=table))
             loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value(
-                "property_information", combo.auc.property_information(table_=table)
+                "property_information", combo.auc.get_property_info(table_=table)
             )
             loader.add_value("start_price", combo.auc.start_price(table_=table))
             loader.add_value("step_price", combo.auc.get_step_price(table_=table))
