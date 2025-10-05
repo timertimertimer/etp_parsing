@@ -177,6 +177,7 @@ start_dates = {
 }
 
 download_files_from_get_url = True  # True - файлы качаются по GET запросу
+unpack_archives = True
 write_log_to_file = False
 post_main_service = False
 parse_fedresurs = False

@@ -6,7 +6,7 @@ import urllib3
 from random import choice
 from requests import Session
 
-from .config import archive_formats, socks5_proxies, headers
+from .config import archive_formats, socks5_proxies, headers, unpack_archives
 from .archive import ZipFiles, RarFiles, SevenZipFiles
 from .logger import logger
 from app.db.models.download_data import DownloadData
@@ -28,10 +28,10 @@ class DownloadFiles:
 
     @staticmethod
     def request_to_download_general(
-        download_data: DownloadData,
-        absolute_path: pathlib.PurePath,
-        relative_path: pathlib.PurePath,
-        attempts: int = 5,
+            download_data: DownloadData,
+            absolute_path: pathlib.PurePath,
+            relative_path: pathlib.PurePath,
+            attempts: int = 5,
     ) -> list[pathlib.PurePath]:
         session = requests.Session()
         session.headers.update({"User-Agent": headers["User-Agent"]})
@@ -39,7 +39,9 @@ class DownloadFiles:
 
         for attempt in range(1, attempts + 1):
             try:
-                if path.suffix.lower() not in archive_formats:
+                if path.suffix.lower() not in archive_formats or (
+                        path.suffix.lower() in archive_formats and not unpack_archives
+                ):
                     if not path.exists():
                         DownloadFiles.download_file(
                             session, download_data, absolute_path, attempt
@@ -62,17 +64,17 @@ class DownloadFiles:
 
     @staticmethod
     def download_file(
-        session: Session,
-        download_data: DownloadData,
-        absolute_path: pathlib.PurePath,
-        attempt: int,
+            session: Session,
+            download_data: DownloadData,
+            absolute_path: pathlib.PurePath,
+            attempt: int,
     ):
         rd = download_data.model_dump()
         verify = rd.pop("verify")
         with session.request(
-            **rd,
-            stream=True,
-            verify=verify if attempt == 1 else (attempt != 5),
+                **rd,
+                stream=True,
+                verify=verify if attempt == 1 else (attempt != 5),
         ) as response:
             response.raise_for_status()
             with open(absolute_path, "wb") as out_file:
@@ -81,11 +83,11 @@ class DownloadFiles:
 
     @staticmethod
     def download_archive(
-        session: Session,
-        download_data: DownloadData,
-        absolute_path: pathlib.PurePath,
-        relative_path: pathlib.PurePath,
-        attempt: int,
+            session: Session,
+            download_data: DownloadData,
+            absolute_path: pathlib.PurePath,
+            relative_path: pathlib.PurePath,
+            attempt: int,
     ):
         handler = ARCHIVE_HANDLERS.get(absolute_path.suffix)
         if not handler:
@@ -95,9 +97,9 @@ class DownloadFiles:
         verify = rd.pop("verify")
 
         with session.request(
-            **rd,
-            stream=True,
-            verify=verify if attempt == 1 else (attempt != 5),
+                **rd,
+                stream=True,
+                verify=verify if attempt == 1 else (attempt != 5),
         ) as response:
             with open(absolute_path, "wb") as archive_file:
                 archive_file.write(response.content)
