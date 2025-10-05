@@ -30,7 +30,7 @@ CREATE TABLE `addresses` (
   UNIQUE KEY `name` (`name`),
   KEY `region_id` (`region_id`),
   CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`region_id`) REFERENCES `regions` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18914 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,7 +81,7 @@ CREATE TABLE `auctions` (
   CONSTRAINT `auctions_ibfk_3` FOREIGN KEY (`legal_case_id`) REFERENCES `legal_cases` (`id`),
   CONSTRAINT `auctions_ibfk_4` FOREIGN KEY (`organizer_id`) REFERENCES `counterparties` (`id`),
   CONSTRAINT `auctions_ibfk_5` FOREIGN KEY (`trading_floor_id`) REFERENCES `trading_floors` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=65296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,7 +98,7 @@ CREATE TABLE `cities` (
   PRIMARY KEY (`id`),
   KEY `region_id` (`region_id`),
   CONSTRAINT `cities_ibfk_1` FOREIGN KEY (`region_id`) REFERENCES `regions` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3209 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,7 +130,7 @@ CREATE TABLE `counterparties` (
   UNIQUE KEY `inn` (`inn`),
   KEY `address_id` (`address_id`),
   CONSTRAINT `counterparties_ibfk_1` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41560 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,7 +177,7 @@ CREATE TABLE `debtor_messages` (
   KEY `legal_case_id` (`legal_case_id`),
   CONSTRAINT `debtor_messages_ibfk_1` FOREIGN KEY (`debtor_id`) REFERENCES `counterparties` (`id`),
   CONSTRAINT `debtor_messages_ibfk_2` FOREIGN KEY (`legal_case_id`) REFERENCES `legal_cases` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=64205 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -200,7 +200,7 @@ CREATE TABLE `files` (
   `order` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ix_model_type_model_id` (`model_type`,`model_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=489778 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,7 +221,7 @@ CREATE TABLE `legal_cases` (
   `debtor_category` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `number` (`number`)
-) ENGINE=InnoDB AUTO_INCREMENT=29787 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -238,7 +238,7 @@ CREATE TABLE `lot_categories` (
   PRIMARY KEY (`id`),
   KEY `lot_categories_ibfk_1` (`lot_id`),
   CONSTRAINT `lot_categories_ibfk_1` FOREIGN KEY (`lot_id`) REFERENCES `lots` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37308 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -261,7 +261,7 @@ CREATE TABLE `lot_periods` (
   PRIMARY KEY (`id`),
   KEY `lot_periods_ibfk_1` (`lot_id`),
   CONSTRAINT `lot_periods_ibfk_1` FOREIGN KEY (`lot_id`) REFERENCES `lots` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=312511 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -287,7 +287,7 @@ CREATE TABLE `lots` (
   PRIMARY KEY (`id`),
   KEY `lots_ibfk_1` (`auction_id`),
   CONSTRAINT `lots_ibfk_1` FOREIGN KEY (`auction_id`) REFERENCES `auctions` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=89006 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -308,7 +308,7 @@ CREATE TABLE `parsers_status` (
   PRIMARY KEY (`id`),
   KEY `trading_floor_id` (`trading_floor_id`),
   CONSTRAINT `parsers_status_ibfk_1` FOREIGN KEY (`trading_floor_id`) REFERENCES `trading_floors` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=387 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -324,7 +324,7 @@ CREATE TABLE `regions` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `oktmo` (`oktmo`)
-) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -345,7 +345,7 @@ CREATE TABLE `trading_floors` (
   PRIMARY KEY (`id`),
   KEY `counterparty_id` (`counterparty_id`),
   CONSTRAINT `trading_floors_ibfk_1` FOREIGN KEY (`counterparty_id`) REFERENCES `counterparties` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
