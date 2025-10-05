@@ -145,13 +145,31 @@ class SberbankBaseHTMLSpider(SberbankBaseSpider):
 class SberbankCommercialHTMLSpider(SberbankBaseHTMLSpider):
     name = "sberbank_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
+                                                    in trash_resources,
+        # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+    }
 
 
 class SberbankFz223HTMLSpider(SberbankBaseHTMLSpider):
     name = "sberbank_fz223"
     property_type = AuctionPropertyType.fz223
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
+                                                    in trash_resources,
+        # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+    }
 
 
 class SberbankFz44HTMLSpider(SberbankBaseHTMLSpider):
     name = "sberbank_fz44"
     property_type = AuctionPropertyType.fz44
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+        "PLAYWRIGHT_ABORT_REQUEST": lambda request: request.resource_type
+                                                    in trash_resources,
+        # "PLAYWRIGHT_LAUNCH_OPTIONS": {"headless": False},
+    }

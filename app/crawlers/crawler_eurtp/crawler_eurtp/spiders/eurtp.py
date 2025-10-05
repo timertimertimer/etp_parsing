@@ -4,7 +4,7 @@ from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import AuctionPropertyType
 from app.utils import URL
 from app.crawlers.base import BaseSpider
-from app.utils.config import start_date, end_date
+from app.utils.config import start_date, end_date, write_log_to_file
 from ..combo import Combo
 from ..config import bankrupt_categories, arrested_categories, page_limit
 from ..config import data_origin_url
@@ -126,9 +126,15 @@ class EurtpBankruptcySpider(EurtpBaseSpider):
     name = "eurtp_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
     category_urls = bankrupt_categories
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class EurtpArrestedSpider(EurtpBaseSpider):
     name = "eurtp_arrested"
     property_type = AuctionPropertyType.arrested
     category_urls = arrested_categories
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

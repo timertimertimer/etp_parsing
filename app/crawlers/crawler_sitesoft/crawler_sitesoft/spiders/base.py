@@ -12,7 +12,7 @@ from app.crawlers.crawler_sitesoft.crawler_sitesoft.config import (
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
 from app.utils import URL, logger
-from app.utils.config import start_date
+from app.utils.config import start_date, write_log_to_file
 
 
 class SitesoftBaseSpider(BaseSpider):
@@ -160,27 +160,45 @@ class SitesoftBaseSpider(BaseSpider):
 class CdtrfArrestedSpider(SitesoftBaseSpider):
     name = "cdtrf_arrested"
     property_type = AuctionPropertyType.arrested
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class EtpuArrestedSpider(SitesoftBaseSpider):
     name = "etpu_arrested"
     property_type = AuctionPropertyType.arrested
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class EtpuCommercialSpider(SitesoftBaseSpider):
     name = "etpu_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class AlfalotCommercialSpider(SitesoftBaseSpider):
     name = "alfalot_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class TenderOneCommercialSpider(SitesoftBaseSpider):
     name = "tender_one_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 class EtpuLegalEntitiesSpider(SitesoftBaseSpider):
     name = "etpu_legal_entities"
     property_type = AuctionPropertyType.legal_entities
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

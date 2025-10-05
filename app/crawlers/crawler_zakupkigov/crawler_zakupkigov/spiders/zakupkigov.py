@@ -6,6 +6,7 @@ from app.crawlers.crawler_zakupkigov.crawler_zakupkigov.config import search_lin
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.db.models import AuctionPropertyType
 from app.utils import URL
+from app.utils.config import write_log_to_file
 
 
 class ZakupkigovBaseSpider(BaseSpider):
@@ -45,7 +46,9 @@ class ZakupkigovBaseSpider(BaseSpider):
 
     def parse_trade(self, response):
         def go_to_documents():
-            yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
+            yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader},
+                          errback=self.errback_httpbin)
+
         combo = Combo(response=response)
         loader = EtpItemLoader(EtpItem(), response=response)
         loader.add_value("data_origin", data_origin)
@@ -91,7 +94,8 @@ class ZakupkigovBaseSpider(BaseSpider):
     def get_trading_org_info(self, response, loader, documents_link):
         combo = Combo(response=response)
         loader.add_value("trading_org_inn", combo.trading_org_inn)
-        yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader}, errback=self.errback_httpbin)
+        yield Request(documents_link, callback=self.get_documents, cb_kwargs={'loader': loader},
+                      errback=self.errback_httpbin)
 
     def get_documents(self, response, loader):
         combo = Combo(response=response)
@@ -105,8 +109,14 @@ class ZakupkigovBaseSpider(BaseSpider):
 class ZakupkigovFz44Spider(ZakupkigovBaseSpider):
     name = "zakupkigov_fz44"
     property_type = AuctionPropertyType.fz44
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class ZakupkigovCapitalRepairSpider(ZakupkigovBaseSpider):
     name = "zakupkigov_capital_repair"
     property_type = AuctionPropertyType.capital_repair
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

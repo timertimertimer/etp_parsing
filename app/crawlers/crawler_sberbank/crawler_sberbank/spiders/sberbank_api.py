@@ -6,6 +6,7 @@ from scrapy import FormRequest
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import AuctionPropertyType
 from app.utils import logger
+from app.utils.config import write_log_to_file
 from .base import SberbankBaseSpider
 from ..trades.combo import ComposeTrades
 from ..utils.config import *
@@ -46,6 +47,9 @@ class SberbankBaseAPISpider(SberbankBaseSpider):
 class SberbankBankruptcyAPISpider(SberbankBaseAPISpider):
     name = "sberbank_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
     def parse_trade(self, response, **kwargs):
         trading_link = response.meta["trade"]
@@ -228,8 +232,14 @@ class SberbankBaseNotBankruptcyAPISpider(SberbankBaseAPISpider):
 class SberbankCapitalRepairAPISpider(SberbankBaseNotBankruptcyAPISpider):
     name = "sberbank_capital_repair"
     property_type = AuctionPropertyType.capital_repair
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class SberbankLegalEntitiesAPISpider(SberbankBaseNotBankruptcyAPISpider):
     name = "sberbank_legal_entities"
     property_type = AuctionPropertyType.legal_entities
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

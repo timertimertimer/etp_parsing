@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from scrapy import FormRequest, Request
 
 from app.db.models import AuctionPropertyType
+from app.utils.config import write_log_to_file
 from ..combo import Combo
 from ..config import data_origin_url, bankrupt_form_data, sales_form_data, urls
 from app.utils import URL
@@ -123,6 +124,9 @@ class TorgidvBankruptSpider(TorgidvBaseSpider):
     property_type = AuctionPropertyType.bankruptcy
     start_urls = [urls[property_type]]
     form_data = bankrupt_form_data
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class TorgidvArrestedSpider(TorgidvBaseSpider):
@@ -130,3 +134,6 @@ class TorgidvArrestedSpider(TorgidvBaseSpider):
     property_type = AuctionPropertyType.arrested
     start_urls = [urls[property_type]]
     form_data = sales_form_data
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

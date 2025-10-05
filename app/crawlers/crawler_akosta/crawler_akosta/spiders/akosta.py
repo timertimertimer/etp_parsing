@@ -221,7 +221,7 @@ class AkostaBaseSpider(BaseSpider):
         transfer["data_origin"] = data_origin
         transfer["trading_id"] = trading_id
         transfer["trading_link"] = response.url
-        trading_type = combo.trade.trading_type_str()
+        trading_type = combo.trade.get_trading_type()
         transfer["trading_type"] = trading_type
         transfer["trading_form"] = combo.trade.trading_form()
         transfer["trading_org"] = combo.trade.trading_org()

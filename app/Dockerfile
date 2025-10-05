@@ -26,7 +26,7 @@ COPY pyproject.toml ./
 
 # Install dependencies using uv
 RUN uv pip install -e . --system
-RUN playwright install
+RUN playwright install && playwright install-deps
 
 # Create log file with proper permissions
 RUN touch /var/log/etp_parsing_output.log && chmod 777 /var/log/etp_parsing_output.log

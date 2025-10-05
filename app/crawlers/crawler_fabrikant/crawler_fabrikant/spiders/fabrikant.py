@@ -4,6 +4,7 @@ from scrapy_splash import SplashFormRequest, SlotPolicy
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
+from app.utils.config import write_log_to_file
 from ..combo import Combo
 from ..config import *
 from ..locator import Locator
@@ -166,18 +167,30 @@ class FabrikantBaseSpider(BaseSpider):
 class FabrikantBankruptcySpider(FabrikantBaseSpider):
     name = "fabrikant_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class FabrikantCommercialSpider(FabrikantBaseSpider):
     name = "fabrikant_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class FabrikantLegalEntitiesSpider(FabrikantBaseSpider):
     name = "fabrikant_legal_entities"
     property_type = AuctionPropertyType.legal_entities
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class FabrikantFZ223Spider(FabrikantBaseSpider):
     name = "fabrikant_fz223"
     property_type = AuctionPropertyType.fz223
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

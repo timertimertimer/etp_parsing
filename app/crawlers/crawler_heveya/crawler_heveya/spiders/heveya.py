@@ -3,6 +3,7 @@ from scrapy import Request, FormRequest
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.crawlers.base import BaseSpider
 from app.db.models import AuctionPropertyType
+from app.utils.config import write_log_to_file
 from app.utils.logger import logger
 from ..combo import Combo
 from ..config import bankruptcy_params, arrested_params, data_origin_url
@@ -106,9 +107,15 @@ class HeveyaBankruptcySpider(HeveyaBaseSpider):
     name = "heveya_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
     params = bankruptcy_params
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class HeveyaArrestedSpider(HeveyaBaseSpider):
     name = "heveya_arrested"
     property_type = AuctionPropertyType.arrested
     params = arrested_params
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

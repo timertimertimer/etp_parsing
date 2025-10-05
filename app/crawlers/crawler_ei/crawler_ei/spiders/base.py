@@ -8,6 +8,7 @@ from app.crawlers.crawler_ei.crawler_ei.combo import Combo
 from app.crawlers.crawler_ei.crawler_ei.config import data_origin, params, types
 from app.crawlers.items import EtpItem, EtpItemLoader
 from app.db.models import AuctionPropertyType
+from app.utils.config import write_log_to_file
 
 
 def build_query(params_dict):
@@ -122,13 +123,22 @@ class EiBaseSpider(BaseSpider):
 class EiBankruptcySpider(EiBaseSpider):
     name = "ei_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class EiArrestedSpider(EiBaseSpider):
     name = "ei_arrested"
     property_type = AuctionPropertyType.arrested
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class EiCommercialSpider(EiBaseSpider):
     name = "ei_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

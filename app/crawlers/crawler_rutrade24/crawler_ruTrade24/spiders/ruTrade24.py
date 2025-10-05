@@ -144,8 +144,14 @@ class Rutrade24BaseSpider(BaseSpider):
 class Rutrade24BankruptcySpider(Rutrade24BaseSpider):
     name = "rutrade24_bankruptcy"
     property_type = AuctionPropertyType.bankruptcy
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class Rutrade24CommercialSpider(Rutrade24BaseSpider):
     name = "rutrade24_commercial"
     property_type = AuctionPropertyType.commercial
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }

@@ -6,6 +6,7 @@ from app.db.models import AuctionPropertyType
 from app.utils import URL, logger
 from app.crawlers.items import EtpItemLoader, EtpItem
 from app.crawlers.base import BaseSpider
+from app.utils.config import write_log_to_file
 from ..combo import Combo
 from ..config import formdatas, search_link, data_origin, start_date
 
@@ -106,13 +107,22 @@ class RoseltorgBaseSpider(BaseSpider):
 class RoseltorgLegalEntitiesSpider(RoseltorgBaseSpider):
     name = 'roseltorg_legal_entities'
     property_type = AuctionPropertyType.legal_entities
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class RoseltorgCapitalRepairSpider(RoseltorgBaseSpider):
     name = 'roseltorg_capital_repair'
     property_type = AuctionPropertyType.capital_repair
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
 
 
 class RoseltorgFz223Spider(RoseltorgBaseSpider):
     name = 'roseltorg_fz223'
     property_type = AuctionPropertyType.fz223
+    custom_settings = {
+        "LOG_FILE": f"{name}.log" if write_log_to_file else None,
+    }
