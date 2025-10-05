@@ -71,13 +71,14 @@ services:
     volumes:
       - ./app/:/var/www/app
       - ./app/supervisord.conf:/etc/supervisor/supervisord.conf
+    environment:
+      RUN_CRON: ${RUN_CRON:-1}
     depends_on:
       - mysql
       - splash
     logging: *logging-default
     networks:
       - etp_parsing_network
-        #entrypoint: ["tail", "-f", "/dev/null"]
 
 volumes:
   etp_parsing_mysql_data:

@@ -26,7 +26,7 @@ COPY pyproject.toml ./
 
 # Install dependencies using uv
 RUN uv pip install -e . --system
-RUN uv run playwright install chromium --with-deps
+RUN playwright install chromium --with-deps
 
 # Create user and set permissions
 RUN deluser www-data 2>/dev/null || true && \
