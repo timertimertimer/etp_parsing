@@ -26,31 +26,17 @@ COPY pyproject.toml ./
 
 # Install dependencies using uv
 RUN uv pip install -e . --system
-RUN playwright install chromium --with-deps
-
-# Create user and set permissions
-RUN deluser www-data 2>/dev/null || true && \
-    addgroup --gid $UID www-data && \
-    adduser --uid $UID --disabled-password --ingroup www-data www-data && \
-    echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-RUN chown -R www-data:www-data /var/www/app
-RUN chmod -R u+rX /var/www/app
+RUN playwright install
 
 # Create log file with proper permissions
 RUN touch /var/log/etp_parsing_output.log && chmod 777 /var/log/etp_parsing_output.log
 
 # Copy cron jobs
-COPY ./cron /var/spool/cron/crontabs/www-data
-RUN chmod 600 /var/spool/cron/crontabs/www-data && chmod 700 /var/spool/cron/crontabs
+COPY ./cron /etc/cron.d/mycron
+RUN chmod 0644 /etc/cron.d/mycron
 
 # Copy and make entrypoint executable
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Set proper ownership
-RUN chown -R www-data:www-data /var/www/app
-
-USER www-data
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

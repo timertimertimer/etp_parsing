@@ -1,6 +1,6 @@
 data_origin = "https://ei.ru/"
 
-types = {"bankruptcy": "1", "arrested": "2"}
+types = {"bankruptcy": "1", "arrested": "2", "commercial": "6"}
 
 params = {
     "expand": "torg,manager,prices,place,categories",
