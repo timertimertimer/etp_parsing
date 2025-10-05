@@ -6,6 +6,12 @@ export PYTHONPATH=/var/www
 
 echo "Deploying app"
 echo "Running migrations"
+echo "Waiting for MySQL at $DB_HOST:$DB_PORT..."
+until mysqladmin ping -h "$DB_HOST" -P "$DB_PORT" --silent; do
+	echo "MySQL is unavailable - sleeping 2s"
+	sleep 2
+done
+
 cd /var/www/app/db && uv run alembic upgrade head
 
 echo "Running supervisord"

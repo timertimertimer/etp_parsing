@@ -28,13 +28,14 @@ COPY pyproject.toml ./
 RUN uv pip install -e . --system
 RUN uv run playwright install chromium --with-deps
 
-COPY . .
-
 # Create user and set permissions
 RUN deluser www-data 2>/dev/null || true && \
     addgroup --gid $UID www-data && \
     adduser --uid $UID --disabled-password --ingroup www-data www-data && \
     echo "www-data ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+RUN chown -R www-data:www-data /var/www/app
+RUN chmod -R u+rX /var/www/app
 
 # Create log file with proper permissions
 RUN touch /var/log/etp_parsing_output.log && chmod 777 /var/log/etp_parsing_output.log

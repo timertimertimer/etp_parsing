@@ -168,7 +168,7 @@ proxy*
 *.html
 files/
 browser_data/
-app/uv.lock
+uv.lock
 alembic/versions
 proxies.txt
 some.*

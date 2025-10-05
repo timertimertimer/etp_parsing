@@ -77,7 +77,7 @@ services:
     logging: *logging-default
     networks:
       - etp_parsing_network
-#    entrypoint: ["tail", "-f", "/dev/null"]
+        #entrypoint: ["tail", "-f", "/dev/null"]
 
 volumes:
   etp_parsing_mysql_data:
