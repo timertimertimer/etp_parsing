@@ -8,7 +8,8 @@ class LotAuctionPage:
         self.response = _response
         self.soup = soup
 
-    def get_lot_status(self):
+    @property
+    def lot_status(self):
         active = ("идет прием заявок", "идет приём заявок")
         pending = ("торги объявлены",)
         ended = (

@@ -396,13 +396,13 @@ class Combo:
     def get_lot_info(self, lot):
         lot_soup = self.create_soup(lot)
         lot_info = (
-            lot_soup.find("div", text=re.compile("Предмет договора", re.IGNORECASE))
-            or lot_soup.find(
-                "div", text=re.compile("Наименование предмета торгов", re.IGNORECASE)
-            )
-            or lot_soup.find(
-                "div", text=re.compile("Наименование предмета аренды", re.IGNORECASE)
-            )
+                lot_soup.find("div", text=re.compile("Предмет договора", re.IGNORECASE))
+                or lot_soup.find(
+            "div", text=re.compile("Наименование предмета торгов", re.IGNORECASE)
+        )
+                or lot_soup.find(
+            "div", text=re.compile("Наименование предмета аренды", re.IGNORECASE)
+        )
         )
         if not lot_info:
             return None
@@ -437,7 +437,7 @@ class Combo:
             "div",
             text=re.compile("Дата окончания приема заявок", re.IGNORECASE),
         ) or self.soup.find(
-            "div",text=re.compile("Дата и время окончания приема заявок", re.IGNORECASE),
+            "div", text=re.compile("Дата и время окончания приема заявок", re.IGNORECASE),
 
         )
         lot_soup = self.create_soup(lot)
@@ -449,24 +449,26 @@ class Combo:
             text=re.compile("Дата окончания приема заявок", re.IGNORECASE),
         )
 
-        return DateTimeHelper.smart_parse(
-            (lot_date or procedure_date).find_next("div").get_text(strip=True)
-        ).astimezone(DateTimeHelper.moscow_tz)
+        if date := (lot_date or procedure_date):
+            return DateTimeHelper.smart_parse(
+                date.find_next("div").get_text(strip=True)
+            ).astimezone(DateTimeHelper.moscow_tz)
+        return None
 
     def get_categories(self, lot):
         lot_soup = self.create_soup(lot)
         categories = (
-            lot_soup.find(
-                "div",
-                text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
-            )
-            or lot_soup.find(
-                "div", text=re.compile("Категория имущества", re.IGNORECASE)
-            )
-            or lot_soup.find("div", text=re.compile("Коды ОКПД", re.IGNORECASE))
-            or lot_soup.find(
-                "div", text=re.compile("Категория для рассылки по ОКПД2", re.IGNORECASE)
-            )
+                lot_soup.find(
+                    "div",
+                    text=re.compile("Классификатор имущества для ЕФРСБ", re.IGNORECASE),
+                )
+                or lot_soup.find(
+            "div", text=re.compile("Категория имущества", re.IGNORECASE)
+        )
+                or lot_soup.find("div", text=re.compile("Коды ОКПД", re.IGNORECASE))
+                or lot_soup.find(
+            "div", text=re.compile("Категория для рассылки по ОКПД2", re.IGNORECASE)
+        )
         )
         if not categories:
             return None
@@ -475,24 +477,24 @@ class Combo:
     def get_start_date_trading(self, lot):
         soup = self.create_soup(lot)
         date = (
-            soup.find(
-                "div",
-                text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
-            )
-            or soup.find(
-                "div",
-                text=re.compile(
-                    "Дата и время начала подачи предложений о цене",
-                    re.IGNORECASE,
-                ),
-            )
-            or soup.find(
-                "div",
-                text=re.compile(
-                    "Дата начала редукциона",
-                    re.IGNORECASE,
-                ),
-            )
+                soup.find(
+                    "div",
+                    text=re.compile("Дата и время начала аукциона", re.IGNORECASE),
+                )
+                or soup.find(
+            "div",
+            text=re.compile(
+                "Дата и время начала подачи предложений о цене",
+                re.IGNORECASE,
+            ),
+        )
+                or soup.find(
+            "div",
+            text=re.compile(
+                "Дата начала редукциона",
+                re.IGNORECASE,
+            ),
+        )
         )
         if not date:
             return None
@@ -514,9 +516,9 @@ class Combo:
 
     def get_start_price(self, lot):
         if not (
-            start_price := self.create_soup(lot).find(
-                "div", class_="panel-group panel-group-element-lot_price"
-            )
+                start_price := self.create_soup(lot).find(
+                    "div", class_="panel-group panel-group-element-lot_price"
+                )
         ):
             return None
         start_price = start_price.find_next("div").get_text(strip=True)
@@ -542,18 +544,18 @@ class Combo:
     def get_periods(self, lot):
         lot_soup = self.create_soup(lot)
         if not (
-            tables := (
-                lot_soup.find("div", text=re.compile("Этап понижения", re.IGNORECASE))
-                or lot_soup.find(
+                tables := (
+                        lot_soup.find("div", text=re.compile("Этап понижения", re.IGNORECASE))
+                        or lot_soup.find(
                     "div", text=re.compile("Этапы приема заявок", re.IGNORECASE)
                 )
-            )
+                )
         ):
             return None
 
         tables = tables.find_next("div")
         periods = []
-        check_value = 10**22
+        check_value = 10 ** 22
         for table in tables.find_all("table"):
             _table = pd.read_html(str(table))
             df = _table[0][1]

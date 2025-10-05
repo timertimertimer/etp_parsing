@@ -221,11 +221,11 @@ class AkostaBaseSpider(BaseSpider):
         transfer["data_origin"] = data_origin
         transfer["trading_id"] = trading_id
         transfer["trading_link"] = response.url
-        trading_type = combo.trade.get_trading_type()
+        trading_type = combo.trade.trading_type
         transfer["trading_type"] = trading_type
-        transfer["trading_form"] = combo.trade.trading_form()
-        transfer["trading_org"] = combo.trade.trading_org()
-        transfer["trading_org_contacts"] = combo.trade.trading_org_contacts()
+        transfer["trading_form"] = combo.trade.trading_form
+        transfer["trading_org"] = combo.trade.trading_org
+        transfer["trading_org_contacts"] = combo.trade.trading_org_contacts
         if trading_type in ("auction", "competition"):
             transfer["start_date_requests"] = combo.main_.start_date_requests
             transfer["end_date_requests"] = combo.main_.end_date_requests
@@ -498,7 +498,7 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("arbit_manager", transfer["arbit_manager"])
         loader.add_value("arbit_manager_inn", transfer["arbit_manager_inn"])
         loader.add_value("arbit_manager_org", transfer["arbit_manager_org"])
-        loader.add_value("status", combo.auc.get_lot_status())
+        loader.add_value("status", combo.auc.lot_status)
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)
@@ -652,7 +652,7 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("end_date_requests", transfer["end_date_requests"])
         loader.add_value("start_date_trading", transfer["start_date_trading"])
         loader.add_value("end_date_trading", transfer["end_date_trading"])
-        loader.add_value("status", combo.auc.get_lot_status())
+        loader.add_value("status", combo.auc.lot_status)
         loader.add_value("lot_id", None)
         loader.add_value("lot_link", response.url)
         loader.add_value("lot_number", lot_number)

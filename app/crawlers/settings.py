@@ -81,7 +81,7 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 CLOSESPIDER_PAGECOUNT = 5000
 
-SPLASH_URL = "http://localhost:8050/"
+SPLASH_URL = "http://etp_parsing_splash:8050/"
 SPIDER_MIDDLEWARES = {
     "scrapy_splash.SplashDeduplicateArgsMiddleware": 100,
 }

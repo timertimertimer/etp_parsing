@@ -178,7 +178,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("end_date_trading", transfer["end_date_trading"])
             loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.get_short_name(table_=table))
-            loader.add_value("lot_info", combo.auc.lot_info(table_=table))
+            loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
             loader.add_value(
                 "property_information", combo.auc.property_information(table_=table)
@@ -233,7 +233,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("status", combo.auc.get_status(table_=table))
             loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.get_short_name(table_=table))
-            loader.add_value("lot_info", combo.auc.lot_info(table_=table))
+            loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value("categories", combo.auc.get_categories(table=table))
             loader.add_value(
                 "property_information", combo.auc.property_information(table_=table)
@@ -306,7 +306,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value("end_date_trading", transfer["end_date_trading"])
             loader.add_value("lot_number", combo.auc.get_lot_number(table_=table))
             loader.add_value("short_name", combo.auc.get_short_name(table_=table))
-            loader.add_value("lot_info", combo.auc.lot_info(table_=table))
+            loader.add_value("lot_info", combo.auc.get_lot_info(table_=table))
             loader.add_value(
                 "property_information", combo.auc.property_information(table_=table)
             )

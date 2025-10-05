@@ -29,7 +29,8 @@ class TradePage:
             logger.warning(f"{self.response.url} | {ex}")
         return None
 
-    def get_trading_type(self):
+    @property
+    def trading_type(self):
         try:
             trading_type = self.soup.find(
                 "label", string=re.compile("Вид торгов", re.IGNORECASE)
