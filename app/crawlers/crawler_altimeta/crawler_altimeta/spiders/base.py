@@ -245,10 +245,10 @@ class AltimetaBaseSpider(BaseSpider):
                 "end_date_requests", combo.offer.get_end_date_requests(table_=table)
             )
             loader.add_value(
-                "start_date_trading", combo.offer.start_date_trading(table_=table)
+                "start_date_trading", combo.offer.get_start_date_trading(table_=table)
             )
             loader.add_value(
-                "end_date_trading", combo.offer.end_date_trading(table_=table)
+                "end_date_trading", combo.offer.get_end_date_trading(table_=table)
             )
             loader.add_value("periods", combo.offer.get_period(table_=table))
             loader.add_value("start_price", combo.offer.get_start_price_offer(table_=table))
