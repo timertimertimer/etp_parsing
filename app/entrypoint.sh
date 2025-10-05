@@ -2,10 +2,11 @@
 
 set -e
 
-sudo chown -R www-data:www-data /var/www/app
+export PYTHONPATH=/var/www
 
-sudo find /var/www/app/docker /var/www/app/deploy -type f -name "*.sh" -exec chmod +x {} \;
+echo "Deploying app"
+echo "Running migrations"
+cd /var/www/app/db && uv run alembic upgrade head
 
-sh /var/www/app/deploy/full.sh
-
+echo "Running supervisord"
 sudo supervisord -n

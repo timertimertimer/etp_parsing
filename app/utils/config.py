@@ -79,7 +79,7 @@ class ENV(BaseSettings):
 
 
 env = ENV()
-env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.mysql_external_port}/{env.db_database}"
+env.connection_string = f"mysql+pymysql://{env.db_user}:{env.db_password}@{env.db_host}:{env.db_port}/{env.db_database}"
 
 headers = {
     "Accept": "*/*",

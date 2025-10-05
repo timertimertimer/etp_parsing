@@ -9,7 +9,9 @@ x-logging: &logging-default
 services:
   mysql:
     image: mysql:8.0
-    container_name: etp_parsing_mysql
+    container_name: ${MYSQL_DNS_NAME}
+    env_file:
+      - .env
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -18,9 +20,10 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - '127.0.0.1:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
-      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
+#      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${MYSQL_EXTERNAL_PORT:-3306}:${DB_PORT:-3306}'
     volumes:
-      - etp_parsing_mysql_data:/var/lib/mysql
+      - etp_parsing_mysql_data_2:/var/lib/mysql
+      - ./app/db/migrations:/docker-entrypoint-initdb.d
     logging: *logging-default
     networks:
       - etp_parsing_network
@@ -30,9 +33,9 @@ services:
     container_name: nginx
     ports:
       - '127.0.0.1:${NGINX_HTTP_EXTERNAL_PORT:-80}:80'
-      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${NGINX_HTTP_EXTERNAL_PORT:-80}:80'
+#      - '${MAIN_SERVICE_PRIVATE_HOST:-10.16.0.1}:${NGINX_HTTP_EXTERNAL_PORT:-80}:80'
     volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./files:/usr/share/nginx/html/files
     restart: unless-stopped
     logging: *logging-default
@@ -59,26 +62,25 @@ services:
     image: etp_parsing:latest
     container_name: app
     env_file:
-      - app/.env
+      - .env
     build:
       args:
-        USER: ${USER}
         UID: ${UID:-1000}
-      context: ./docker/app
-      dockerfile: ./Dockerfile
+      context: ./app
     restart: unless-stopped
     volumes:
-      - ./:/var/www/app
-      - ./docker/app/supervisord.conf:/etc/supervisor/supervisord.conf
+      - ./app/:/var/www/app
+      - ./app/supervisord.conf:/etc/supervisor/supervisord.conf
     depends_on:
       - mysql
       - splash
     logging: *logging-default
     networks:
       - etp_parsing_network
+#    entrypoint: ["tail", "-f", "/dev/null"]
 
 volumes:
-  etp_parsing_mysql_data:
+  etp_parsing_mysql_data_2:
 
 networks:
   etp_parsing_network:

@@ -1,7 +1,6 @@
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm
 
-ARG USER
-ARG UID
+ARG UID=1000
 
 WORKDIR /var/www/app
 
@@ -27,6 +26,7 @@ COPY pyproject.toml ./
 
 # Install dependencies using uv
 RUN uv pip install -e . --system
+RUN uv run playwright install chromium --with-deps
 
 COPY . .
 
@@ -48,7 +48,7 @@ COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set proper ownership
-RUN chown -R www-data:www-data /app
+RUN chown -R www-data:www-data /var/www/app
 
 USER www-data
 
