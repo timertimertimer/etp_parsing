@@ -183,7 +183,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value(
                 "property_information", combo.auc.get_property_info(table_=table)
             )
-            loader.add_value("start_price", combo.auc.start_price(table_=table))
+            loader.add_value("start_price", combo.auc.get_start_price(table_=table))
             loader.add_value("step_price", combo.auc.get_step_price(table_=table))
             lot_files = combo.doc.get_lot_docs(table_=table, crawler_name=self.name)
             loader.add_value("files", {"general": general_docs, "lot": lot_files})
@@ -310,7 +310,7 @@ class AltimetaBaseSpider(BaseSpider):
             loader.add_value(
                 "property_information", combo.auc.get_property_info(table_=table)
             )
-            loader.add_value("start_price", combo.auc.start_price(table_=table))
+            loader.add_value("start_price", combo.auc.get_start_price(table_=table))
             loader.add_value("step_price", combo.auc.get_step_price(table_=table))
             lot_files = combo.doc.get_lot_docs(table_=table, crawler_name=self.name)
             loader.add_value("files", {"general": general_docs, "lot": lot_files})
