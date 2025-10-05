@@ -13,7 +13,8 @@ class LotOfferPage:
         self.response = _response
         self.soup = soup
 
-    def get_start_price(self):
+    @property
+    def start_price(self):
         try:
             start_price = self.soup.find(
                 "label", string=re.compile("Начальная стоимость", re.IGNORECASE)
@@ -82,7 +83,8 @@ class LotOfferPage:
             logger.warning(f"{self.response.url} | ERROR END DATE TRADING {e}")
         return None
 
-    def return_periods(self):
+    @property
+    def periods(self):
         check_value = 10000000000000000000000
         periods = list()
         tbody_periods = self.get_period_table()

@@ -509,7 +509,7 @@ class AkostaBaseSpider(BaseSpider):
         loader.add_value("categories", combo.categories)
         lot_files = combo.download_lot()
         loader.add_value("files", dict(general=general_files, lot=lot_files))
-        period_first_page = combo.offer.periods()
+        period_first_page = combo.offer.periods
         total_pages_period = combo.offer.return_period_pagination()
         # total_pages_period & total are info about how many pages has pariod table
         if total_pages_period:
