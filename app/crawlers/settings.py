@@ -125,3 +125,4 @@ def setup_logger():
 
 setup_logger()
 LOG_ENABLED = False
+TELNETCONSOLE_ENABLED = False
