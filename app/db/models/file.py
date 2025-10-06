@@ -27,6 +27,7 @@ class File(Base):
     )
     model_id: Mapped[int] = mapped_column(Integer)
     is_image: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_image_from_archive: Mapped[bool] = mapped_column(Boolean, default=False)
     order: Mapped[int] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

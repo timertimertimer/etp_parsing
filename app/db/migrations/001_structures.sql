@@ -197,6 +197,7 @@ CREATE TABLE `files` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `is_image` tinyint(1) NOT NULL,
+  `is_image_from_archive` tinyint(1) NOT NULL,
   `order` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `ix_model_type_model_id` (`model_type`,`model_id`)

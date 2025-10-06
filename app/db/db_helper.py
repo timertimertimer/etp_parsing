@@ -19,7 +19,7 @@ from app.utils.config import (
     relative_download_path,
     download_files_from_get_url,
     allowable_formats,
-    parse_fedresurs, image_formats,
+    parse_fedresurs, image_formats, archive_formats,
 )
 from app.utils.download import DownloadFiles
 from app.db.models import (
@@ -928,6 +928,7 @@ class DBHelper:
                 )
             # paths может быть списком из более чем одного элемента в случае если архив в download_data
             for path in paths:  # type: pathlib.Path
+                is_image = download_data.is_image or (path.suffix.lower() in image_formats if path else False)
                 file_objs.append(
                     File(
                         name=path.name if path else file_name,
@@ -937,7 +938,8 @@ class DBHelper:
                         else None,
                         model_type=model_type,
                         model_id=model_id,
-                        is_image=download_data.is_image or (path.suffix.lower() in image_formats if path else False),
+                        is_image=is_image,
+                        is_image_from_archive=is_image and absolute_path.suffix.lower() in archive_formats,
                         order=download_data.order,
                     )
                 )

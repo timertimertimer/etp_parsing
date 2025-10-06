@@ -1,5 +1,5 @@
 apt update && apt upgrade -y
-apt install -y build-essential
+apt install -y build-essential git
 
 # install docker
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do apt remove $pkg; done
